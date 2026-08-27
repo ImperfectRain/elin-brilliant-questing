@@ -1,0 +1,19 @@
+# Build output
+bin/
+obj/
+artifacts/
+*.user
+*.suo
+
+# Local Elin references (game assemblies are never committed)
+lib/Elin/
+lib/BepInEx/
+
+# Editor
+.vs/
+.idea/
+.vscode/
+
+# Lab output
+*.saves/
+lab-output/

@@ -1,0 +1,172 @@
+using BrilliantQuesting.Foundation;
+using BrilliantQuesting.Integration;
+using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Threads;
+using BrilliantQuesting.World;
+
+namespace BrilliantQuesting.Situations
+{
+    /// <summary>
+    /// The three-NPC laboratory from the design document's Phase 1.
+    ///
+    /// A stole something from B; C saw it. That is the entire scenario, and it is deliberately
+    /// tiny - the point is not the story, it is whether the architecture can carry one. If a
+    /// player can approach this through conversation, investigation, theft, coercion, money or
+    /// violence; if failing produces new state rather than a wall; and if the world still makes
+    /// sense ten days later, then the expensive parts of the mod are worth building.
+    ///
+    /// Note what is generated: a cause, three motivated people, an object, and who knows what.
+    /// No quest, no objectives, no branches. Those emerge from the verb library.
+    /// </summary>
+    public sealed class PettyTheftSituation
+    {
+        public const string ArchetypeId = "petty_theft";
+
+        private static readonly string[] VictimNames = { "Mara", "Elna", "Tovar", "Sibylla", "Garron" };
+        private static readonly string[] ThiefNames = { "Dorren", "Kip", "Ansel", "Vess", "Rulf" };
+        private static readonly string[] WitnessNames = { "Odile", "Bram", "Nessa", "Corin", "Thalia" };
+        private static readonly string[] Valuables = { "silver ring", "brass locket", "engraved cup", "ivory comb", "old signet" };
+
+        private PettyTheftSituation()
+        {
+        }
+
+        public NarrativeThread Thread { get; private set; }
+
+        /// <summary>The person who lost something and wants it back.</summary>
+        public EntityId VictimId { get; private set; }
+
+        /// <summary>The person who took it, and is still carrying it.</summary>
+        public EntityId ThiefId { get; private set; }
+
+        /// <summary>The person who saw it happen and would rather not be involved.</summary>
+        public EntityId WitnessId { get; private set; }
+
+        public EntityId ItemId { get; private set; }
+
+        /// <summary>The fact "the thief stole the item". True from the start; almost nobody knows it.</summary>
+        public EntityId TheftFactId { get; private set; }
+
+        /// <summary>The fact "the victim owns the item". What makes returning it meaningful.</summary>
+        public EntityId OwnershipFactId { get; private set; }
+
+        public EntityId ZoneId { get; private set; }
+
+        public static PettyTheftSituation Create(NarrativeWorldState world, ISituationStager stager, EntityId zone, GameTime now, ulong seed)
+        {
+            DeterministicRng rng = new DeterministicRng(seed).Fork(ArchetypeId);
+            PettyTheftSituation situation = new PettyTheftSituation { ZoneId = zone };
+
+            NarrativeNpc victim = world.Registry.Add(new NarrativeNpc(world.NewId("npc"), Pick(VictimNames, rng))
+            {
+                Occupation = "shopkeeper",
+                Importance = NarrativeImportance.Known
+            });
+            NarrativeNpc thief = world.Registry.Add(new NarrativeNpc(world.NewId("npc"), Pick(ThiefNames, rng))
+            {
+                Occupation = "labourer",
+                Importance = NarrativeImportance.Known
+            });
+            NarrativeNpc witness = world.Registry.Add(new NarrativeNpc(world.NewId("npc"), Pick(WitnessNames, rng))
+            {
+                Occupation = "neighbour",
+                Importance = NarrativeImportance.Known
+            });
+
+            situation.VictimId = victim.Id;
+            situation.ThiefId = thief.Id;
+            situation.WitnessId = witness.Id;
+
+            // Personalities decide who is worth which approach: the thief can be bought, the
+            // witness can be frightened, the victim can be talked to.
+            thief.Personality.Greed = 0.8;
+            thief.Personality.Honesty = 0.2;
+            thief.Personality.Courage = 0.5;
+            witness.Personality.Courage = 0.2;
+            witness.Personality.Sociability = 0.7;
+            witness.Personality.Greed = 0.4;
+            victim.Personality.Vengefulness = 0.6;
+            victim.Personality.Honesty = 0.8;
+
+            string valuable = Pick(Valuables, rng);
+            situation.ItemId = world.NewId("item");
+            ItemDescriptor item = new ItemDescriptor(situation.ItemId, valuable, "jewelry", 400 + rng.NextInt(600));
+
+            stager.StageCharacter(victim.Id, new CharacterBlueprint(victim.Name)
+                    .With(VanillaAttribute.Charisma, 12).With(VanillaAttribute.Will, 11)
+                    .With(VanillaAttribute.Perception, 9).With(VanillaSkill.Negotiation, 8),
+                zone);
+
+            // The thief is still carrying it. That is what makes pickpocketing a real route.
+            stager.StageCharacter(thief.Id, new CharacterBlueprint(thief.Name)
+                    .With(VanillaAttribute.Strength, 14).With(VanillaAttribute.Will, 9)
+                    .With(VanillaAttribute.Perception, 12).With(VanillaSkill.Pickpocket, 6)
+                    .Carrying(item),
+                zone);
+
+            stager.StageCharacter(witness.Id, new CharacterBlueprint(witness.Name)
+                    .With(VanillaAttribute.Perception, 14).With(VanillaAttribute.Will, 7)
+                    .With(VanillaAttribute.Charisma, 10),
+                zone);
+
+            // -- what is true, and who knows it --------------------------------------------
+            Fact theft = new Fact(world.NewId("fact"), thief.Id, FactPredicates.Stole, situation.ItemId, valuable, TruthState.True, secrecy: 60);
+            theft.EvidenceIds.Add(situation.ItemId);
+            world.Knowledge.AddFact(theft);
+            situation.TheftFactId = theft.Id;
+
+            Fact ownership = new Fact(world.NewId("fact"), victim.Id, FactPredicates.Possesses, situation.ItemId, valuable);
+            world.Knowledge.AddFact(ownership);
+            situation.OwnershipFactId = ownership.Id;
+
+            // The thief knows because he did it. The witness knows because she saw it - but she
+            // has no object to show anyone, so she cannot prove a thing. The victim knows only
+            // that it is gone. The player knows nothing at all.
+            world.Knowledge.Teach(thief.Id, theft.Id, KnowledgeSource.Participant, 1.0, now, true);
+            world.Knowledge.Teach(witness.Id, theft.Id, KnowledgeSource.Witnessed, 1.0, now, false);
+            world.Knowledge.Teach(victim.Id, ownership.Id, KnowledgeSource.Participant, 1.0, now, false);
+            world.Knowledge.Teach(thief.Id, ownership.Id, KnowledgeSource.Participant, 1.0, now, false);
+
+            // -- who cares, and how much ---------------------------------------------------
+            victim.Goals.Add(new Goal("recover_property", situation.ItemId, 90));
+            thief.Goals.Add(new Goal("avoid_exposure", theft.Id, 85));
+            thief.Goals.Add(new Goal("raise_money", thief.Id, 70));
+            witness.Goals.Add(new Goal("stay_out_of_trouble", witness.Id, 75));
+
+            world.Relationships.ConnectMutual(victim.Id, witness.Id, Relationships.RelationKind.Acquaintance, 30);
+            world.Relationships.Connect(witness.Id, thief.Id, Relationships.RelationKind.Acquaintance, -10);
+
+            // -- the thread ----------------------------------------------------------------
+            NarrativeThread thread = new NarrativeThread(world.NewId("thread"), ArchetypeId, now)
+            {
+                Tension = 20,
+                Importance = 30,
+                State = ThreadState.Active
+            };
+            thread.ParticipantIds.Add(victim.Id);
+            thread.ParticipantIds.Add(thief.Id);
+            thread.ParticipantIds.Add(witness.Id);
+            thread.FactIds.Add(theft.Id);
+            thread.FactIds.Add(ownership.Id);
+            thread.SiteIds.Add(zone);
+            thread.OpenQuestions.Add("Where is " + victim.Name + "'s " + valuable + "?");
+            thread.OpenQuestions.Add("Did anyone see what happened?");
+
+            // Nothing here fails the player. Each step is the world getting on with it.
+            thread.Escalation.Add(new EscalationStep("victim_asks_around", 2, "The victim starts asking neighbours."));
+            thread.Escalation.Add(new EscalationStep("thief_hides_it", 4, "The thief stops carrying it."));
+            thread.Escalation.Add(new EscalationStep("witness_talks", 7, "The witness lets something slip."));
+            thread.Escalation.Add(new EscalationStep("accusation", 10, "The victim acts on what they believe."));
+            thread.Escalation.Add(new EscalationStep("feud", 14, "The two households stop speaking."));
+
+            world.Threads.Add(thread);
+            situation.Thread = thread;
+            return situation;
+        }
+
+        private static string Pick(string[] options, DeterministicRng rng)
+        {
+            return options[rng.NextInt(options.Length)];
+        }
+    }
+}

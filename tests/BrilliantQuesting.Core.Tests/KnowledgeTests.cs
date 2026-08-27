@@ -1,0 +1,116 @@
+using System.Collections.Generic;
+using BrilliantQuesting.Events;
+using BrilliantQuesting.Foundation;
+using BrilliantQuesting.Knowledge;
+using Xunit;
+
+namespace BrilliantQuesting.Tests
+{
+    public class KnowledgeTests
+    {
+        private static readonly EntityId Thief = EntityId.Parse("npc_thief");
+        private static readonly EntityId Witness = EntityId.Parse("npc_witness");
+        private static readonly EntityId Victim = EntityId.Parse("npc_victim");
+        private static readonly EntityId Guard = EntityId.Parse("npc_guard");
+
+        private static (KnowledgeGraph, Fact) Scene()
+        {
+            KnowledgeGraph knowledge = new KnowledgeGraph();
+            Fact theft = new Fact(EntityId.Parse("fact_1"), Thief, FactPredicates.Stole, EntityId.Parse("item_1"), "silver ring");
+            knowledge.AddFact(theft);
+            return (knowledge, theft);
+        }
+
+        [Fact]
+        public void AWorldFactIsNotTheSameAsSomeoneKnowingIt()
+        {
+            (KnowledgeGraph knowledge, Fact theft) = Scene();
+
+            Assert.NotNull(knowledge.GetFact(theft.Id));
+            Assert.False(knowledge.Knows(Victim, theft.Id));
+            Assert.False(knowledge.Knows(Guard, theft.Id));
+        }
+
+        [Fact]
+        public void SeeingItMeansKnowingIt_ButNotBeingAbleToProveIt()
+        {
+            (KnowledgeGraph knowledge, Fact theft) = Scene();
+            knowledge.Teach(Witness, theft.Id, KnowledgeSource.Witnessed, 1.0, GameTime.Zero, canProve: false);
+
+            Assert.True(knowledge.Knows(Witness, theft.Id));
+            Assert.True(knowledge.BelievesConfidently(Witness, theft.Id));
+            Assert.False(knowledge.CanProve(Witness, theft.Id));
+        }
+
+        [Fact]
+        public void HearsayLosesConfidenceAndNeverCarriesProof()
+        {
+            (KnowledgeGraph knowledge, Fact theft) = Scene();
+            EventLedger ledger = new EventLedger();
+            RumorSystem rumors = new RumorSystem(knowledge, ledger, new IdMinter());
+
+            knowledge.Teach(Witness, theft.Id, KnowledgeSource.Witnessed, 1.0, GameTime.Zero, canProve: true);
+            Assert.True(rumors.Tell(Witness, Victim, theft.Id, GameTime.Zero));
+            Assert.True(rumors.Tell(Victim, Guard, theft.Id, GameTime.Zero));
+
+            knowledge.TryGetBelief(Victim, theft.Id, out KnowledgeRecord victimBelief);
+            knowledge.TryGetBelief(Guard, theft.Id, out KnowledgeRecord guardBelief);
+
+            Assert.True(victimBelief.Confidence < 1.0);
+            Assert.True(guardBelief.Confidence < victimBelief.Confidence);
+            Assert.False(victimBelief.CanProve);
+            Assert.False(guardBelief.CanProve);
+        }
+
+        [Fact]
+        public void ProofTravelsOnlyWhenTheEvidenceIsShown()
+        {
+            (KnowledgeGraph knowledge, Fact theft) = Scene();
+            RumorSystem rumors = new RumorSystem(knowledge, new EventLedger(), new IdMinter());
+            knowledge.Teach(Witness, theft.Id, KnowledgeSource.Witnessed, 1.0, GameTime.Zero, canProve: true);
+
+            rumors.Tell(Witness, Guard, theft.Id, GameTime.Zero, showsProof: true);
+
+            Assert.True(knowledge.CanProve(Guard, theft.Id));
+        }
+
+        [Fact]
+        public void DestroyingEvidenceStripsProofButNotBelief()
+        {
+            (KnowledgeGraph knowledge, Fact theft) = Scene();
+            knowledge.Teach(Victim, theft.Id, KnowledgeSource.Document, 0.9, GameTime.Zero, canProve: true);
+
+            knowledge.RevokeProof(theft.Id);
+
+            Assert.True(knowledge.Knows(Victim, theft.Id));
+            Assert.False(knowledge.CanProve(Victim, theft.Id));
+        }
+
+        [Fact]
+        public void AStrongerSourceUpgradesABeliefButWeakGossipDoesNotDowngradeIt()
+        {
+            (KnowledgeGraph knowledge, Fact theft) = Scene();
+            knowledge.Teach(Guard, theft.Id, KnowledgeSource.Hearsay, 0.4, GameTime.Zero, canProve: false);
+            knowledge.Teach(Guard, theft.Id, KnowledgeSource.Document, 0.95, GameTime.Zero, canProve: true);
+            knowledge.Teach(Guard, theft.Id, KnowledgeSource.Hearsay, 0.2, GameTime.Zero, canProve: false);
+
+            knowledge.TryGetBelief(Guard, theft.Id, out KnowledgeRecord belief);
+            Assert.Equal(0.95, belief.Confidence, 3);
+            Assert.True(belief.CanProve);
+        }
+
+        [Fact]
+        public void CirculationOnlyReachesPeopleWhoWereToldSomething()
+        {
+            (KnowledgeGraph knowledge, Fact theft) = Scene();
+            RumorSystem rumors = new RumorSystem(knowledge, new EventLedger(), new IdMinter());
+            knowledge.Teach(Witness, theft.Id, KnowledgeSource.Witnessed, 1.0, GameTime.Zero, canProve: false);
+
+            List<EntityId> crowd = new List<EntityId> { Victim, Guard, Thief };
+            rumors.Circulate(theft.Id, crowd, GameTime.Zero, new DeterministicRng(5), chancePerListener: 1.0);
+
+            Assert.True(knowledge.Knows(Victim, theft.Id));
+            Assert.True(knowledge.Knows(Guard, theft.Id));
+        }
+    }
+}

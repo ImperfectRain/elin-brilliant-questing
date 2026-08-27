@@ -1,0 +1,85 @@
+using System.Collections.Generic;
+using BrilliantQuesting.Foundation;
+using BrilliantQuesting.Knowledge;
+
+namespace BrilliantQuesting.Actions.Library
+{
+    /// <summary>Shared plumbing for the verb library. No gameplay rules live here.</summary>
+    internal static class ActionSupport
+    {
+        private static readonly EntityId[] NoWitnesses = new EntityId[0];
+
+        /// <summary>
+        /// Something the target knows that the actor does not. This is what makes a conversation
+        /// worth having: if there is nothing to be learned, the option is not offered.
+        /// </summary>
+        public static EntityId FindTeachableFact(ActionContext context)
+        {
+            KnowledgeGraph knowledge = context.World.Knowledge;
+
+            if (!context.SubjectFact.IsNone)
+            {
+                bool targetKnows = knowledge.Knows(context.Target, context.SubjectFact);
+                bool actorKnows = knowledge.Knows(context.Actor, context.SubjectFact);
+                return targetKnows && !actorKnows ? context.SubjectFact : EntityId.None;
+            }
+
+            EntityId best = EntityId.None;
+            double bestConfidence = 0.0;
+            foreach (KnowledgeRecord record in knowledge.BeliefsOf(context.Target))
+            {
+                if (knowledge.Knows(context.Actor, record.FactId))
+                {
+                    continue;
+                }
+
+                if (record.Confidence > bestConfidence)
+                {
+                    bestConfidence = record.Confidence;
+                    best = record.FactId;
+                }
+            }
+
+            return best;
+        }
+
+        /// <summary>
+        /// Whoever the caller says is close enough to notice. Actions decide, per outcome, whether
+        /// these people actually saw anything - a clean theft has no witnesses even in a crowd.
+        /// </summary>
+        public static IReadOnlyList<EntityId> Bystanders(ActionContext context, bool noticed)
+        {
+            if (!noticed || context.Witnesses.Count == 0)
+            {
+                return NoWitnesses;
+            }
+
+            List<EntityId> seen = new List<EntityId>();
+            for (int i = 0; i < context.Witnesses.Count; i++)
+            {
+                EntityId witness = context.Witnesses[i];
+                if (witness != context.Actor)
+                {
+                    seen.Add(witness);
+                }
+            }
+
+            return seen;
+        }
+
+        public static string Describe(ActionContext context, EntityId factId)
+        {
+            Fact fact = context.World.Knowledge.GetFact(factId);
+            if (fact == null)
+            {
+                return "something";
+            }
+
+            string subject = context.NameOf(fact.Subject);
+            // Prefer the human label an item carries over its id; ids are for the database.
+            string obj = !string.IsNullOrEmpty(fact.Value) ? fact.Value
+                : fact.Object.IsNone ? string.Empty : context.NameOf(fact.Object);
+            return (subject + " " + fact.Predicate.Replace('_', ' ') + " " + obj).Trim();
+        }
+    }
+}

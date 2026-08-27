@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!--
+      netstandard2.1 is the widest surface Elin's Unity/Mono runtime consumes cleanly.
+      This project must never reference Elin.dll, BepInEx or UnityEngine: everything the
+      simulation needs from the game is expressed as an interface under Integration/.
+    -->
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <RootNamespace>BrilliantQuesting</RootNamespace>
+    <AssemblyName>BrilliantQuesting.Core</AssemblyName>
+  </PropertyGroup>
+
+</Project>
