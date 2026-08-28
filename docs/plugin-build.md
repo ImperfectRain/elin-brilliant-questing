@@ -104,3 +104,32 @@ No situation is generated in game, and no dialogue is presented — the verb lib
 offered through. Drama choice injection and the crime-witness hooks are still unexamined. What
 exists is the seam, proven to compile against the real assemblies; none of it has been run inside
 Elin yet, which is the next thing to do and the only thing that can confirm any of it.
+
+## Running the in-game scenario test
+
+**Use a throwaway save.** This writes: it spawns three Charas into your current zone, transfers an
+item between inventories, and changes vanilla affinity.
+
+1. Launch once with the mod installed so BepInEx writes
+   `BepInEx/config/elin.brilliant.questing.cfg`.
+2. Set `StageScenarioOnLoad = true` under `[Testing]`.
+3. Load the throwaway save.
+
+It runs on `PostLoad`, once, and only when the world has no threads yet — so a save that already
+ran it will not run it again. It also refuses to run when attributes or skills are unavailable,
+because every check would read zero and the result would mean nothing.
+
+The log then contains, in order: the generated truth and who knows it; the three staged NPCs read
+back through the adapter (level, affinity, PER, WIL, inventory count); every verb the world permits
+against each of them plus the reason for each it refuses; three verbs played with their full check
+arithmetic; and the aftermath read back out of the game.
+
+What to check in that output:
+
+- The three NPCs report **real stats**, not zeros — the stager set them and the adapter can read them.
+- **Solution families open** is 3 or more per target. Fewer means the situation is not offering
+  genuinely different routes.
+- The **blocked** list gives reasons of the right kind: "you cannot reveal something you do not
+  know", not "your skill is too low".
+- Affinity in the aftermath **differs** from the staged value, and the item moved.
+- Save, quit fully, reload: the thread, events and facts come back out of the chunk unchanged.

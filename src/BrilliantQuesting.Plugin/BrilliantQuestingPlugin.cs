@@ -1,6 +1,9 @@
 using System;
 using BepInEx;
+using BepInEx.Configuration;
 using BepInEx.Logging;
+using BrilliantQuesting.Actions;
+using BrilliantQuesting.Actions.Library;
 using BrilliantQuesting.Checks;
 using BrilliantQuesting.Consequences;
 using BrilliantQuesting.Foundation;
@@ -36,12 +39,25 @@ namespace BrilliantQuesting.Plugin
         private ElinSituationStager _stager;
         private NarrativeWorldState _world;
         private ConsequenceEngine _consequences;
+        private ActionRegistry _actions;
 
         private bool _live;
+        private ConfigEntry<bool> _stageTestScenario;
 
         private void Awake()
         {
             _log = Logger;
+
+            // Off by default and deliberately awkward to turn on. It spawns three people into the
+            // player's current zone and moves their affinity, which is not something to do to a
+            // save by accident.
+            _stageTestScenario = Config.Bind(
+                "Testing",
+                "StageScenarioOnLoad",
+                false,
+                "Stage the three-NPC theft scenario into the current zone on the next load, and "
+                + "play it. Writes to the save: spawns Charas, transfers an item, changes affinity. "
+                + "Use a throwaway save. Runs once per load, and only when no thread exists yet.");
 
             // Elin publishes its own lifecycle. Subscribing to it beats both polling in Update and
             // Harmony-patching the load path: it is the same route the game's bundled Scripting
@@ -98,6 +114,7 @@ namespace BrilliantQuesting.Plugin
             _vanilla.DetectCapabilities();
 
             _checks = new ElinCheckResolver(_bindings, new VanillaStyleCheckResolver(_vanilla), _log);
+            _actions = StandardActions.CreateRegistry();
 
             _consequences = new ConsequenceEngine(_world, _vanilla);
             _consequences.Attach();
@@ -106,6 +123,7 @@ namespace BrilliantQuesting.Plugin
                          + _world.Ledger.Count + " events, " + _world.Threads.Count + " threads.");
 
             ReportPlayerState();
+            MaybeStageTestScenario();
         }
 
         /// <summary>
@@ -147,6 +165,42 @@ namespace BrilliantQuesting.Plugin
                          + "/" + _vanilla.IsGuildMember(GuildId.Merchants)
                          + "  influence " + _vanilla.GetInfluence(EntityId.None)
                          + "  contribution " + _vanilla.GetContribution());
+        }
+
+        /// <summary>
+        /// Runs the in-game scenario when the config asks for it, the world is still empty, and
+        /// the adapter can actually read the stats the scenario depends on. Any of those missing
+        /// is a reason to say so rather than half-stage something.
+        /// </summary>
+        private void MaybeStageTestScenario()
+        {
+            if (_stageTestScenario == null || !_stageTestScenario.Value)
+            {
+                return;
+            }
+
+            if (_world.Threads.Count > 0)
+            {
+                _log.LogInfo("Test scenario skipped: this world already has "
+                             + _world.Threads.Count + " thread(s). Use a fresh save.");
+                return;
+            }
+
+            if (!_vanilla.Supports(VanillaCapability.ReadAttributes) || !_vanilla.Supports(VanillaCapability.ReadSkills))
+            {
+                _log.LogWarning("Test scenario skipped: attributes or skills are unavailable, so every "
+                                + "check would read zero and the result would mean nothing.");
+                return;
+            }
+
+            try
+            {
+                new ProceduralQuestTest(_world, _vanilla, _stager, _checks, _actions, _log).Run();
+            }
+            catch (Exception ex)
+            {
+                _log.LogError("Test scenario failed: " + ex);
+            }
         }
 
         private void End()
