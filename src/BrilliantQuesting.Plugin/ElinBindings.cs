@@ -31,8 +31,33 @@ namespace BrilliantQuesting.Plugin
             _uidToEntity[uid] = entity;
         }
 
+        /// <summary>
+        /// Rebuilds the identity map from the save.
+        ///
+        /// People come back from `NarrativeNpc.VanillaCharaRef`; everything else - items above
+        /// all - comes from `world.ExternalRefs`. Until that second half existed, a reload left
+        /// the map holding only people, so `EntityIdFor` would mint a fresh `item_&lt;uid&gt;` for a
+        /// Thing the simulation already knew under another id. The stolen ring in somebody's
+        /// pack stopped matching the Possesses fact about it, and returning or keeping it
+        /// silently became impossible.
+        /// </summary>
         internal void BindSavedRefs(NarrativeWorldState world, ManualLogSource log = null)
         {
+            int restored = 0;
+            foreach (KeyValuePair<EntityId, string> pair in world.ExternalRefs)
+            {
+                if (int.TryParse(pair.Value, out int savedUid))
+                {
+                    Bind(pair.Key, savedUid);
+                    restored++;
+                }
+            }
+
+            if (restored > 0)
+            {
+                log?.LogInfo("Restored " + restored + " object binding(s) from the save.");
+            }
+
             foreach (NarrativeNpc npc in world.Registry.Npcs.Values)
             {
                 if (int.TryParse(npc.VanillaCharaRef, out int uid))
@@ -125,6 +150,25 @@ namespace BrilliantQuesting.Plugin
             }
 
             return owner.things.Find(uid);
+        }
+
+        /// <summary>
+        /// Writes the map back into the world so the next load can rebuild it. Called before the
+        /// world is serialised; the map is the only place the two id spaces meet, so if it is not
+        /// saved the connection between them is lost with the session.
+        /// </summary>
+        internal void WriteSavedRefs(NarrativeWorldState world)
+        {
+            if (world == null)
+            {
+                return;
+            }
+
+            world.ExternalRefs.Clear();
+            foreach (KeyValuePair<EntityId, int> pair in _entityToUid)
+            {
+                world.ExternalRefs[pair.Key] = pair.Value.ToString();
+            }
         }
 
         internal void Clear()

@@ -39,6 +39,17 @@ namespace BrilliantQuesting.Persistence
             }
 
             root.Set("idCounters", counters);
+
+            // The adapter's identity map. Additive and optional: a save written before this
+            // existed simply has no node, and loads with an empty map - which is exactly the
+            // state it was already in - so no schema bump is owed.
+            JsonValue refs = JsonValue.Object();
+            foreach (KeyValuePair<EntityId, string> pair in world.ExternalRefs)
+            {
+                refs.Set(pair.Key.Value, pair.Value);
+            }
+
+            root.Set("externalRefs", refs);
             root.Set("npcs", NpcsToJson(world));
             root.Set("organizations", OrganizationsToJson(world));
             root.Set("sites", SitesToJson(world));
@@ -62,6 +73,15 @@ namespace BrilliantQuesting.Persistence
             NarrativeWorldState world = new NarrativeWorldState(ulong.Parse(root.GetString("worldSeed", "0")));
             world.SchemaVersion = root.GetInt("schemaVersion", NarrativeWorldState.CurrentSchemaVersion);
             world.Rng.RestoreState(ulong.Parse(root.GetString("rngState", "0")));
+
+            JsonValue refs = root["externalRefs"];
+            if (refs != null)
+            {
+                foreach (KeyValuePair<string, JsonValue> pair in refs.Members)
+                {
+                    world.ExternalRefs[EntityId.Parse(pair.Key)] = refs.GetString(pair.Key);
+                }
+            }
 
             JsonValue counters = root["idCounters"];
             if (counters != null)

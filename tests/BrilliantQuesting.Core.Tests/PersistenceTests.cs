@@ -146,6 +146,46 @@ namespace BrilliantQuesting.Tests
             return rolls;
         }
 
+        /// <summary>
+        /// The bug a tester hit: after reloading, the ring could no longer be given back or kept.
+        ///
+        /// Identity of anything that is not a person lives only in the adapter's uid map, and the
+        /// map was not saved. On reload the adapter minted a fresh id for the same Thing, so it
+        /// stopped matching the Possesses fact the whole situation is written against and both
+        /// resolution verbs quietly went unavailable. The map now round-trips.
+        /// </summary>
+        [Fact]
+        public void TheAdaptersIdentityMapSurvivesTheSave()
+        {
+            TheftLaboratory lab = PlayedScenario();
+            lab.World.ExternalRefs[lab.Situation.ItemId] = "5091";
+            lab.World.ExternalRefs[lab.Situation.ThiefId] = "510";
+
+            NarrativeWorldState reloaded = WorldStateSerializer.Load(WorldStateSerializer.Save(lab.World));
+
+            Assert.Equal("5091", reloaded.ExternalRefs[lab.Situation.ItemId]);
+            Assert.Equal("510", reloaded.ExternalRefs[lab.Situation.ThiefId]);
+        }
+
+        /// <summary>
+        /// A save written before the map existed has no node at all, and must still load - with
+        /// an empty map, which is exactly the state those saves were already in. That is why this
+        /// is additive rather than a schema bump.
+        /// </summary>
+        [Fact]
+        public void ASaveWithoutTheMapStillLoads()
+        {
+            JsonValue old = JsonValue.Object()
+                .Set("schemaVersion", NarrativeWorldState.CurrentSchemaVersion)
+                .Set("worldSeed", "42")
+                .Set("rngState", "42");
+
+            NarrativeWorldState reloaded = WorldStateSerializer.FromJson(old);
+
+            Assert.Empty(reloaded.ExternalRefs);
+            Assert.Equal(42UL, reloaded.WorldSeed);
+        }
+
         /// <summary>The ledger must not gain a duplicate id by passing through the save.</summary>
         [Fact]
         public void NoEventIsDuplicatedByTheRoundTrip()

@@ -55,6 +55,17 @@ namespace BrilliantQuesting.World
         /// <summary>World-level stream. Subsystems should Fork() rather than draw from this.</summary>
         public DeterministicRng Rng { get; }
 
+        /// <summary>
+        /// The adapter's handle for an entity, keyed by the id the simulation uses.
+        ///
+        /// Opaque to Core: it is a string because what is on the other side is not Core's business.
+        /// It exists because identity has to outlive a session. `NarrativeNpc.VanillaCharaRef`
+        /// already did this for people, and nothing did it for anything else - so after a reload
+        /// the adapter could not recognise the very object a situation was about, and a stolen
+        /// ring came back as a different ring.
+        /// </summary>
+        public Dictionary<EntityId, string> ExternalRefs { get; } = new Dictionary<EntityId, string>();
+
         public EntityId NewId(string kind) => Ids.Next(kind);
 
         /// <summary>

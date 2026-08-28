@@ -627,6 +627,7 @@ namespace BrilliantQuesting.Plugin
 
             try
             {
+                _bindings?.WriteSavedRefs(_world);
                 context.Save(ModInfo.SaveChunk, WorldStateSerializer.Save(_world, indented: false), null);
                 _log.LogInfo("Saved " + _world.Ledger.Count + " events into chunk '" + ModInfo.SaveChunk + "'.");
             }
