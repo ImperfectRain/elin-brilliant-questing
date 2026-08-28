@@ -134,7 +134,8 @@ No system is allowed to disappear from this table.
 | Save migration & integrity | Playable | Complete-until-launch | BQ-105, BQ-106 |
 | Performance & simulation tiers | Absent | Hardened | BQ-107, BQ-108 |
 | Compatibility & version drift | Prototype | Hardened | BQ-109, BQ-110 |
-| Player configuration | Prototype (2 flags) | Complete-until-launch | BQ-111 |
+| Player configuration | Prototype (2 flags) | Complete-until-launch | BQ-111, BQ-120 |
+| Engagement & reward | Absent | Complete-until-launch | BQ-112 … BQ-119 |
 | Mod interoperability API | Absent | Post-launch | §8 |
 | Multiplayer | Absent | Post-launch, explicitly unsupported | §8 |
 | Optional LLM prose | Absent | Post-launch | §8 |
@@ -1043,6 +1044,90 @@ rumour verbosity, debug causality. Weights and presentation only — never autho
 
 ---
 
+### Engagement track — added after the reward audit
+
+Nine steps from [`design/engagement-and-reward.md`](design/engagement-and-reward.md), which answers a
+question the other four documents leave open: not whether the simulation is good, but why a player
+would engage with it rather than treat it as scenery. Each is placed in an existing stage by
+dependency rather than run as its own stage — engagement is not a feature to bolt on at the end.
+
+#### BQ-112 — Reward vocabulary audit *(stage S3, alongside the action library)*
+Every resolution grants access, a relationship, standing, information, property or a favour owed.
+No resolution grants a loot payout.
+- **Depends** BQ-009.
+- **Done when** no verb or archetype produces an item reward that is not a real recovered object, and a test asserts it.
+- **Sources** engagement §3 Tier 2; PM §12; SDT overjustification.
+- **Why** a payout attached to a story converts it into a chore with a fee, and measurably weakens the motivation the rest of the design builds.
+
+#### BQ-113 — Favours are callable *(stage S6, extends BQ-055)*
+A recorded favour becomes a player-usable action: call it in, and the NPC does something they would
+otherwise refuse.
+- **Depends** BQ-055.
+- **Done when** the player can spend a favour from dialogue and the world honours it.
+- **Sources** engagement §3 Tier 2; PM §22.
+- **Why** a stored option the player chooses when to spend is the most autonomy-supporting reward available.
+
+#### BQ-114 — Situations cast people the player already knows *(stage S5)*
+Casting prefers actors the player has actually met, traded with, or lives beside, over strangers.
+- **Depends** BQ-039, BQ-067.
+- **Done when** the first situation in a fresh save casts an NPC the player has already interacted with, in the majority of test runs.
+- **Sources** engagement §4; CD §13.1.
+- **Why** attachment must precede stakes; a threat to a stranger is an errand.
+
+#### BQ-115 — Seed familiars early *(stage S5)*
+A handful of low-stakes recurring contacts appear in the first hours — a shopkeeper who remembers
+you, a neighbour with a small complaint — before any crisis exists.
+- **Depends** BQ-114.
+- **Done when** a new save produces recognisable recurring faces before it produces its first situation.
+- **Sources** engagement §4; PM §19.
+- **Why** cheap to build, disproportionate in effect: it is what makes the first real situation land.
+
+#### BQ-116 — Supply-line coupling *(stage S6, alongside BQ-050)*
+Situations become the source of things Elin already makes players want: specialists, stock,
+investment, materials, labour, safety, land.
+- **Depends** BQ-048, BQ-050, BQ-051.
+- **Done when** a player pursuing only town development finds engaging with situations the shortest route to a specialist they need.
+- **Sources** engagement §3 Tier 1; Kenshi dependency model.
+- **Why** this is the single highest-leverage engagement step. It converts the mod from a distraction into a supply line.
+
+#### BQ-117 — Chronicle as trophy case *(stage S4, extends BQ-034)*
+The history is readable as a narrative of who this character became — feuds, rescues, businesses
+saved, places that carry their name — and exportable as text.
+- **Depends** BQ-034, BQ-086.
+- **Done when** a tester reads their own chronicle and can retell it to someone else without the game open.
+- **Sources** engagement §3 Tier 3; Dwarf Fortress Legends.
+- **Why** DF players generate worlds purely to read history. A shareable chronicle is the mod's best advertisement for itself.
+
+#### BQ-118 — Standing sheet
+A single readable view of earned access: contacts, safehouses, discounts, introductions, favours
+owed and owing, standing with organizations.
+- **Depends** BQ-055, BQ-113.
+- **Done when** the player can see everything they have earned that is not money or an item.
+- **Sources** engagement §3 Tier 2; Fallen London qualities.
+- **Why** access-as-reward only motivates if the player can see it accumulating.
+
+#### BQ-119 — Engagement telemetry *(debug only)*
+Count situations generated, surfaced, engaged, ignored, and resolved by others. Local, debug-gated,
+never transmitted.
+- **Depends** BQ-100.
+- **Done when** a play session reports its engagement profile in the inspector.
+- **Sources** engagement §6; CD §35.
+- **Why** the engagement test in engagement §6 cannot be answered by opinion.
+
+#### BQ-120 — Intensity presets *(stage S9, extends BQ-111)*
+Presets from "background texture" to "the world is busy", changing frequency and arrival, never
+outcomes.
+- **Depends** BQ-111, BQ-119.
+- **Done when** the quietest preset leaves ordinary Elin play untouched and the loudest never scripts a result.
+- **Sources** engagement §4; LW §10.7.
+- **Why** autonomy is the strongest of the three motivational needs in a sandbox; the player must own the dial.
+
+> **Engagement checkpoint.** The seven questions in `engagement-and-reward.md §6` must all answer
+> yes. Question 1 is the one that matters: *can a player who wants nothing but a better town find
+> the mod useful?* If not, the mod is a narrative distraction however good the simulation is.
+
+---
+
 ## 6. Critical path and parallel work
 
 Most of the plan is sequential by dependency, but three tracks can run in parallel once S2 is done,
@@ -1283,6 +1368,23 @@ the audit artifact: if an idea is not here, it was missed.
 | Features to retain list | Mapped above or in §8 |
 | Anti-patterns | Standing rules §10 |
 
+### From `engagement-and-reward.md`
+
+| Idea | Where |
+|---|---|
+| Supply-line coupling; simulation as source of wanted things | BQ-116 |
+| Access, relationship and option rewards over payouts | BQ-112 |
+| Favour as a stored, callable option | BQ-113 |
+| Attachment before stakes | BQ-114, BQ-115 |
+| Chronicle as trophy case, exportable history | BQ-117 |
+| Standing sheet | BQ-118 |
+| Earned, never random, arriving consequences | BQ-098 |
+| Ignoring costs availability, not power | BQ-051, standing rules §10 |
+| First situation matched to the player's build | BQ-114 |
+| Small stakes as on-ramp | BQ-047, BQ-115 |
+| Engagement test and telemetry | BQ-119 |
+| Overjustification anti-pattern | BQ-112; standing rules §10 |
+
 ### From `character-dialogue-system.md`
 
 | Idea | Where |
@@ -1390,6 +1492,8 @@ bind every step above; a step that violates one is wrong even if it works.
 19. Weirdness is one absurd premise treated sincerely with real mechanical consequence — not a joke announced.
 20. Drama must have an owner and a cause. Never manufacture escalation because a thread went quiet.
 21. Protect ordinary Elin play. The player must be able to farm, build and explore uninterrupted.
+21a. Reward with access, relationships, standing, information and options — never with a payout attached to a story.
+21b. Engaging must be the shortest path to something the player already wanted, not a detour from it.
 
 **How to keep it alive**
 
