@@ -64,7 +64,7 @@ namespace BrilliantQuesting.Diagnostics
                 sb.Append(" none");
             }
 
-            foreach (Goal goal in npc.Goals)
+            foreach (NpcGoal goal in npc.Goals)
             {
                 sb.Append(' ').Append(goal);
             }

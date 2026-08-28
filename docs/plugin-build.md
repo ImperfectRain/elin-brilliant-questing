@@ -38,9 +38,27 @@ fails with a readable message rather than a wall of missing-type errors if eithe
 
 ## Installing
 
-Copy `BrilliantQuesting.Plugin.dll`, `BrilliantQuesting.Core.dll` and `package.xml` into a folder
-under the game's `Package\` directory. Elin's Package Chainloader picks it up from there; nothing
-goes in `BepInEx\plugins`.
+Copy `BrilliantQuesting.Plugin.dll` and `package.xml` into a folder under the game's `Package\`
+directory. Nothing goes in `BepInEx\plugins`.
+
+Then **enable it in the game's Mods menu**. Dropping the folder in only gets the package discovered;
+`BaseModPackage` distinguishes `installed` from `activated`, and the Scripting Kit filters on
+`activated && !builtin`. Activation is what writes the trailing `,1` in `loadorder.txt`. Installing
+is two steps, and the first log from a discovered-but-inactive package looks identical to one that
+was never copied.
+
+### One assembly, on purpose
+
+The simulation is compiled into the plugin DLL rather than shipped beside it. Elin's Package
+Chainloader scans a package folder for BepInPlugin types; if enumerating them needs a sibling
+assembly it does not resolve, the type load fails and the package reports **zero plugins with no
+error at all** - indistinguishable in the log from a package that contains nothing. Every working
+example in `Package/` ships a single DLL.
+
+A consequence worth knowing: the merged assembly sees Elin's global namespace, so a Core type
+sharing a name with a game type becomes ambiguous. `Goal` was renamed `NpcGoal` for exactly this
+reason. Anything added to Core should avoid the game's very generic names - `Zone`, `Map`, `World`,
+`Check`, `Element`.
 
 ## Reading the game's API
 

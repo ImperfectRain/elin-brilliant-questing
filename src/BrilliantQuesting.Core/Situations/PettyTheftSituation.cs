@@ -128,10 +128,10 @@ namespace BrilliantQuesting.Situations
             world.Knowledge.Teach(thief.Id, ownership.Id, KnowledgeSource.Participant, 1.0, now, false);
 
             // -- who cares, and how much ---------------------------------------------------
-            victim.Goals.Add(new Goal("recover_property", situation.ItemId, 90));
-            thief.Goals.Add(new Goal("avoid_exposure", theft.Id, 85));
-            thief.Goals.Add(new Goal("raise_money", thief.Id, 70));
-            witness.Goals.Add(new Goal("stay_out_of_trouble", witness.Id, 75));
+            victim.Goals.Add(new NpcGoal("recover_property", situation.ItemId, 90));
+            thief.Goals.Add(new NpcGoal("avoid_exposure", theft.Id, 85));
+            thief.Goals.Add(new NpcGoal("raise_money", thief.Id, 70));
+            witness.Goals.Add(new NpcGoal("stay_out_of_trouble", witness.Id, 75));
 
             world.Relationships.ConnectMutual(victim.Id, witness.Id, Relationships.RelationKind.Acquaintance, 30);
             world.Relationships.Connect(witness.Id, thief.Id, Relationships.RelationKind.Acquaintance, -10);

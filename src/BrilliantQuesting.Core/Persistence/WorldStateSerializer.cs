@@ -103,7 +103,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("vengefulness", npc.Personality.Vengefulness);
 
                 JsonValue goals = JsonValue.Array();
-                foreach (Goal goal in npc.Goals)
+                foreach (NpcGoal goal in npc.Goals)
                 {
                     goals.Add(JsonValue.Object()
                         .Set("kind", goal.Kind)
@@ -343,7 +343,7 @@ namespace BrilliantQuesting.Persistence
 
                 foreach (JsonValue goalJson in json.GetArray("goals"))
                 {
-                    npc.Goals.Add(new Goal(goalJson.GetString("kind"), EntityId.Parse(goalJson.GetString("subject")), goalJson.GetInt("weight"))
+                    npc.Goals.Add(new NpcGoal(goalJson.GetString("kind"), EntityId.Parse(goalJson.GetString("subject")), goalJson.GetInt("weight"))
                     {
                         Satisfied = goalJson.GetBool("satisfied")
                     });

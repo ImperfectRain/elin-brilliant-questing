@@ -29,7 +29,7 @@ namespace BrilliantQuesting.World
             Id = id;
             Name = name;
             Personality = new PersonalityWeights();
-            Goals = new List<Goal>();
+            Goals = new List<NpcGoal>();
             OrganizationIds = new List<EntityId>();
             Alive = true;
         }
@@ -54,7 +54,7 @@ namespace BrilliantQuesting.World
 
         public PersonalityWeights Personality { get; }
 
-        public List<Goal> Goals { get; }
+        public List<NpcGoal> Goals { get; }
 
         public List<EntityId> OrganizationIds { get; }
 
@@ -80,10 +80,13 @@ namespace BrilliantQuesting.World
     /// <summary>
     /// Something a character is trying to achieve. Weighted so that conflicting goals produce
     /// actual dilemmas - a merchant who wants his cargo back but wants his daughter safe more.
+    ///
+    /// Named NpcGoal rather than Goal because Elin defines a global Goal, and the shipped plugin
+    /// compiles this source into an assembly that references it.
     /// </summary>
-    public sealed class Goal
+    public sealed class NpcGoal
     {
-        public Goal(string kind, EntityId subject, int weight)
+        public NpcGoal(string kind, EntityId subject, int weight)
         {
             Kind = kind;
             Subject = subject;
