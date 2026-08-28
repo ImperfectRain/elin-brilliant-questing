@@ -46,7 +46,22 @@ namespace BrilliantQuesting.World
         /// </summary>
         public string VanillaCharaRef { get; set; }
 
+        /// <summary>What they do for a living. Description, not permission.</summary>
         public string Occupation { get; set; }
+
+        /// <summary>
+        /// Standing this character holds - who may take a crime report, who speaks for a guild.
+        ///
+        /// Separate from <see cref="Occupation"/> on purpose. Authority was briefly stored there,
+        /// which conflated two dimensions that are not the same: a brewer can be a guild officer,
+        /// and a guard who stops being one is still a person with a job. Overloading the field
+        /// also made the answer sticky, because there was nowhere to record that somebody no
+        /// longer holds a role without erasing what they do.
+        ///
+        /// Strings rather than an enum because the adapter, situations and eventually
+        /// organizations all name roles, and Core should not have to enumerate every source.
+        /// </summary>
+        public HashSet<string> Roles { get; } = new HashSet<string>();
 
         public EntityId HomeSiteId { get; set; }
 

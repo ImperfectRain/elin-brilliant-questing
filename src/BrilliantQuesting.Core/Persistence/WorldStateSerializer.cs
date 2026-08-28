@@ -137,6 +137,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("name", npc.Name)
                     .Set("charaRef", npc.VanillaCharaRef)
                     .Set("occupation", npc.Occupation)
+                    .Set("roles", Strings(npc.Roles))
                     .Set("homeSite", npc.HomeSiteId.Value)
                     .Set("importance", (int)npc.Importance)
                     .Set("alive", npc.Alive)
@@ -347,6 +348,11 @@ namespace BrilliantQuesting.Persistence
                     Alive = json.GetBool("alive", true),
                     LastSimulatedAt = new GameTime(json.GetLong("lastSimulated"))
                 };
+
+                foreach (string role in StringList(json, "roles"))
+                {
+                    npc.Roles.Add(role);
+                }
 
                 JsonValue personality = json["personality"];
                 if (personality != null)
@@ -625,6 +631,17 @@ namespace BrilliantQuesting.Persistence
             }
 
             return ids;
+        }
+
+        private static JsonValue Strings(IEnumerable<string> values)
+        {
+            JsonValue array = JsonValue.Array();
+            foreach (string value in values)
+            {
+                array.Add(JsonValue.String(value));
+            }
+
+            return array;
         }
 
         private static string[] StringList(JsonValue json, string name)

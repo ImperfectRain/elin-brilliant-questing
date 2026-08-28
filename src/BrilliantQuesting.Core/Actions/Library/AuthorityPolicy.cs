@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.World;
@@ -50,31 +50,48 @@ namespace BrilliantQuesting.Actions.Library
     /// <summary>What an authority will do with an accusation at each proof level.</summary>
     public static class AuthorityPolicy
     {
+        /// <summary>Role names anybody - adapter, situation, organization - can grant.</summary>
+        public const string GuardRole = "guard";
+        public const string GuildRole = "guild";
+        public const string CourtRole = "court";
+
+        /// <summary>
+        /// What standing this character holds.
+        ///
+        /// Read from <see cref="NarrativeNpc.Roles"/>, not from their occupation. Authority lived
+        /// in the occupation string briefly and that conflated two different things: a brewer can
+        /// be a guild officer, and a guard who is dismissed still has a job. It also made the
+        /// answer impossible to withdraw, because there was nowhere to say "no longer" without
+        /// erasing what the person does for a living.
+        /// </summary>
         public static AuthorityRole RoleOf(NarrativeNpc npc)
         {
-            if (npc == null || string.IsNullOrEmpty(npc.Occupation))
+            if (npc == null || npc.Roles.Count == 0)
             {
                 return AuthorityRole.None;
             }
 
-            string occupation = npc.Occupation;
-            if (Contains(occupation, "guard") || Contains(occupation, "sheriff") || Contains(occupation, "constable"))
+            if (npc.Roles.Contains(GuardRole))
             {
                 return AuthorityRole.Guard;
             }
 
-            if (Contains(occupation, "guild"))
+            if (npc.Roles.Contains(GuildRole))
             {
                 return AuthorityRole.Guild;
             }
 
-            if (Contains(occupation, "judge") || Contains(occupation, "court") || Contains(occupation, "magistrate"))
+            if (npc.Roles.Contains(CourtRole))
             {
                 return AuthorityRole.Court;
             }
 
             return AuthorityRole.None;
         }
+
+        /// <summary>Every role this policy recognises, so a refresh knows what it may withdraw.</summary>
+        public static IReadOnlyList<string> AuthorityRoles { get; } =
+            new List<string> { GuardRole, GuildRole, CourtRole };
 
         public static AuthorityDecision Evaluate(ActionContext context)
         {
@@ -147,9 +164,5 @@ namespace BrilliantQuesting.Actions.Library
             }
         }
 
-        private static bool Contains(string text, string value)
-        {
-            return text.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
-        }
     }
 }

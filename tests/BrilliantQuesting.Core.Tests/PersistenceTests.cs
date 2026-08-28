@@ -187,6 +187,19 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(42UL, reloaded.WorldSeed);
         }
 
+        /// <summary>Standing has to survive a reload, or every guard forgets they are one.</summary>
+        [Fact]
+        public void RolesSurviveTheRoundTrip()
+        {
+            TheftLaboratory lab = PlayedScenario();
+            lab.World.Registry.GetNpc(lab.Situation.VictimId).Roles.Add("guard");
+
+            NarrativeWorldState reloaded = WorldStateSerializer.Load(WorldStateSerializer.Save(lab.World));
+
+            Assert.Contains("guard", reloaded.Registry.GetNpc(lab.Situation.VictimId).Roles);
+            Assert.Empty(reloaded.Registry.GetNpc(lab.Situation.ThiefId).Roles);
+        }
+
         /// <summary>The ledger must not gain a duplicate id by passing through the save.</summary>
         [Fact]
         public void NoEventIsDuplicatedByTheRoundTrip()

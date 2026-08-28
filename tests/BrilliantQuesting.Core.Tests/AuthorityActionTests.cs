@@ -23,7 +23,7 @@ namespace BrilliantQuesting.Tests
         [Fact]
         public void GuardActsOnTheSameAccusationWhenThePlayerHasProof()
         {
-            Scene scene = CreateScene(Guard, "guard");
+            Scene scene = CreateScene(Guard, AuthorityPolicy.GuardRole);
             scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Document, 1.0, scene.Vanilla.Now, canProve: true);
 
             ActionOutcome outcome = scene.Report();
@@ -35,7 +35,7 @@ namespace BrilliantQuesting.Tests
         [Fact]
         public void GuardReboundsTheSameAccusationWhenItIsOnlyBelieved()
         {
-            Scene scene = CreateScene(Guard, "guard");
+            Scene scene = CreateScene(Guard, AuthorityPolicy.GuardRole);
             scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Hearsay, 0.8, scene.Vanilla.Now, canProve: false);
 
             ActionOutcome outcome = scene.Report();
@@ -49,7 +49,7 @@ namespace BrilliantQuesting.Tests
         [Fact]
         public void GuildFilesTheSameAccusationAsRumorAtLowConfidence()
         {
-            Scene scene = CreateScene(Guild, "guild clerk");
+            Scene scene = CreateScene(Guild, AuthorityPolicy.GuildRole);
             scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Hearsay, 0.2, scene.Vanilla.Now, canProve: false);
 
             ActionOutcome outcome = scene.Report();
@@ -61,7 +61,7 @@ namespace BrilliantQuesting.Tests
         [Fact]
         public void GuildOpensInquiryForBelievedButUnprovableAccusation()
         {
-            Scene scene = CreateScene(Guild, "guild clerk");
+            Scene scene = CreateScene(Guild, AuthorityPolicy.GuildRole);
             scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Hearsay, 0.8, scene.Vanilla.Now, canProve: false);
 
             ActionOutcome outcome = scene.Report();
@@ -74,7 +74,7 @@ namespace BrilliantQuesting.Tests
         [Fact]
         public void CourtWillOnlyActOnPhysicalProof()
         {
-            Scene scene = CreateScene(Court, "magistrate");
+            Scene scene = CreateScene(Court, AuthorityPolicy.CourtRole);
             scene.World.Knowledge.Teach(
                 Player,
                 scene.Fact.Id,
@@ -89,7 +89,7 @@ namespace BrilliantQuesting.Tests
             Assert.Contains(witnessOnly.Events, e => e.Type == WorldEventType.InquiryOpened);
             Assert.DoesNotContain(witnessOnly.Events, e => e.Type == WorldEventType.CrimeReported);
 
-            Scene physical = CreateScene(Court, "magistrate");
+            Scene physical = CreateScene(Court, AuthorityPolicy.CourtRole);
             physical.World.Knowledge.Teach(Player, physical.Fact.Id, KnowledgeSource.Document, 1.0, physical.Vanilla.Now, canProve: true);
 
             ActionOutcome physicalProof = physical.Report();
@@ -117,7 +117,7 @@ namespace BrilliantQuesting.Tests
         [Fact]
         public void TheSameUnprovableAccusationOnlyReboundsOnce()
         {
-            Scene scene = CreateScene(Guard, "guard");
+            Scene scene = CreateScene(Guard, AuthorityPolicy.GuardRole);
             scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Hearsay, 0.8, scene.Vanilla.Now, canProve: false);
 
             Assert.Contains(scene.Report().Events, e => e.Type == WorldEventType.AccusationMade);
@@ -136,7 +136,7 @@ namespace BrilliantQuesting.Tests
         [Fact]
         public void ComingBackWithProofIsStillHeardAfterARebound()
         {
-            Scene scene = CreateScene(Guard, "guard");
+            Scene scene = CreateScene(Guard, AuthorityPolicy.GuardRole);
             scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Hearsay, 0.8, scene.Vanilla.Now, canProve: false);
             scene.Report();
 
@@ -153,7 +153,7 @@ namespace BrilliantQuesting.Tests
         [Fact]
         public void ReportingAFactThatNoLongerExistsIsRefusedRatherThanThrowing()
         {
-            Scene scene = CreateScene(Guard, "guard");
+            Scene scene = CreateScene(Guard, AuthorityPolicy.GuardRole);
             scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Hearsay, 0.8, scene.Vanilla.Now, canProve: false);
 
             ActionContext context = scene.Context();
@@ -175,7 +175,7 @@ namespace BrilliantQuesting.Tests
         [Fact]
         public void ATrueButUnprovableAccusationIsNotRecordedAsALie()
         {
-            Scene scene = CreateScene(Guard, "guard");
+            Scene scene = CreateScene(Guard, AuthorityPolicy.GuardRole);
             Assert.Equal(TruthState.True, scene.Fact.Truth);
             scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Hearsay, 0.8, scene.Vanilla.Now, canProve: false);
 
@@ -190,7 +190,7 @@ namespace BrilliantQuesting.Tests
         [Fact]
         public void AnAccusationThatContradictsTheFactIsRecordedAsFalse()
         {
-            Scene scene = CreateScene(Guard, "guard");
+            Scene scene = CreateScene(Guard, AuthorityPolicy.GuardRole);
             scene.Fact.Truth = TruthState.False;
             scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Hearsay, 0.8, scene.Vanilla.Now, canProve: false);
 
@@ -209,7 +209,7 @@ namespace BrilliantQuesting.Tests
         [InlineData(false)]
         public void TheReportNeverClaimsAnAuthorityWillAct(bool withProof)
         {
-            Scene scene = CreateScene(Guard, "guard");
+            Scene scene = CreateScene(Guard, AuthorityPolicy.GuardRole);
             scene.World.Knowledge.Teach(
                 Player, scene.Fact.Id, KnowledgeSource.Witnessed, 1.0, scene.Vanilla.Now, canProve: withProof);
 
@@ -219,12 +219,44 @@ namespace BrilliantQuesting.Tests
             Assert.DoesNotContain("look into it", outcome.Narration);
         }
 
-        private static Scene CreateScene(EntityId authority, string occupation)
+        /// <summary>
+        /// Authority is a role, not a job title. A guild officer who brews for a living still
+        /// takes reports, and their occupation says what they do rather than what they may do.
+        /// </summary>
+        [Fact]
+        public void AuthorityIsIndependentOfWhatSomebodyDoesForALiving()
+        {
+            Scene scene = CreateScene(Guild, AuthorityPolicy.GuildRole);
+            NarrativeNpc official = scene.World.Registry.GetNpc(Guild);
+            official.Occupation = "brewer";
+
+            Assert.Equal(AuthorityRole.Guild, AuthorityPolicy.RoleOf(official));
+        }
+
+        /// <summary>
+        /// And it can be taken away. While authority lived in the occupation string there was no
+        /// way to say "not any more" without erasing what the person does.
+        /// </summary>
+        [Fact]
+        public void AuthorityCanBeWithdrawnWithoutErasingTheirOccupation()
+        {
+            Scene scene = CreateScene(Guard, AuthorityPolicy.GuardRole);
+            NarrativeNpc official = scene.World.Registry.GetNpc(Guard);
+            official.Occupation = "brewer";
+
+            official.Roles.Remove(AuthorityPolicy.GuardRole);
+
+            Assert.Equal(AuthorityRole.None, AuthorityPolicy.RoleOf(official));
+            Assert.Equal("brewer", official.Occupation);
+        }
+
+        private static Scene CreateScene(EntityId authority, string role)
         {
             NarrativeWorldState world = new NarrativeWorldState(99);
             world.Registry.Add(new NarrativeNpc(Player, "Player"));
             world.Registry.Add(new NarrativeNpc(Suspect, "Suspect"));
-            world.Registry.Add(new NarrativeNpc(authority, "Authority") { Occupation = occupation });
+            NarrativeNpc official = world.Registry.Add(new NarrativeNpc(authority, "Authority") { Occupation = "clerk" });
+            official.Roles.Add(role);
             SandboxVanillaState vanilla = new SandboxVanillaState(Player);
             vanilla.Define(Player, zone: Zone);
             vanilla.Define(Suspect, zone: Zone);
