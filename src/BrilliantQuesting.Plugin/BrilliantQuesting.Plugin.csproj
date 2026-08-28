@@ -34,7 +34,7 @@
       Elin's Package Chainloader scans a package folder for BepInPlugin types; if enumerating them
       needs a sibling assembly it does not resolve, the type load fails and the package reports
       zero plugins with no error. Every working example in Package/ ships a single DLL, so this
-      one does too. The Core project still exists as its own project - that is what the 46 tests
+      one does too. The Core project still exists as its own project - that is what the 100 tests
       build against, and it is still forbidden from referencing Elin.
     -->
     <Compile Include="..\BrilliantQuesting.Core\**\*.cs" Exclude="..\BrilliantQuesting.Core\bin\**\*.cs;..\BrilliantQuesting.Core\obj\**\*.cs" />

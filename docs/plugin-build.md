@@ -60,10 +60,14 @@ assembly it does not resolve, the type load fails and the package reports **zero
 error at all** - indistinguishable in the log from a package that contains nothing. Every working
 example in `Package/` ships a single DLL.
 
-A consequence worth knowing: the merged assembly sees Elin's global namespace, so a Core type
-sharing a name with a game type becomes ambiguous. `Goal` was renamed `NpcGoal` for exactly this
-reason. Anything added to Core should avoid the game's very generic names - `Zone`, `Map`, `World`,
-`Check`, `Element`.
+A consequence worth knowing: the merged assembly sees Elin's global namespace, and **the game's
+type wins**, so a Core type sharing a name with a game type is silently shadowed. Three renames so
+far: `Goal` to `NpcGoal`, `Scene` to `NarrativeScene`, and `WorldInspector` to
+`NarrativeInspector`. The last one is the instructive failure - it did not present as a name clash
+at all, but as `'WorldInspector' does not contain a definition for 'Explain'`, because the compiler
+had resolved the name to Elin's class and was reporting truthfully about that one. Anything added
+to Core should avoid the game's very generic names: `Zone`, `Map`, `World`, `Check`, `Element`,
+`Scene`, `Goal`, and anything ending in `Inspector`.
 
 ## Reading the game's API
 
@@ -88,6 +92,22 @@ Read `BepInEx\LogOutput.log` after the first launch. Correct the table, which is
 the mod where those strings appear. `ElementAliases.DumpKnownAliases` writes every alias the game
 knows, if the log is not enough.
 
+## Configuration
+
+The first launch writes `BepInEx/config/elin.brilliant.questing.cfg`. Three flags, **all off by
+default**, and each one is off for a different reason:
+
+| Flag | Section | Why it is off |
+|---|---|---|
+| `StageScenarioOnLoad` | `Testing` | Writes to the save: spawns Charas and creates procedural world state. Throwaway saves only. |
+| `GatherPrototypeNpcsNearPlayer` | `Testing` | Relocates characters in the loaded save. A playtest aid, not a feature. |
+| `ExplainInDialogue` | `Debug` | Adds a "why?" option to Brilliant Questing dialogue that writes the full BQ-012 report to the log. Reads only, changes nothing, but it is developer text. |
+
+The Drama projector itself has no flag. It installs on `Awake` and its patches are live for every
+player, so its safety boundary is scope rather than configuration: it reads or rewrites only
+Elin's generic conversation (book `_chara`, step `main`), never authored dialogue, patching is
+all-or-nothing with a diagnostic, and every callback is guarded.
+
 ## What the plugin does today
 
 - Resolves element aliases and reports which vanilla capabilities are genuinely available.
@@ -98,12 +118,16 @@ knows, if the log is not enough.
 - Stages generated characters and items as ordinary Chara and Thing objects.
 - Persists the whole procedural world into the save as the `brilliantQuesting` chunk.
 
+- Offers its verbs through ordinary Elin dialogue. Talking to a staged NPC adds Brilliant
+  Questing options to the generic conversation, each labelled with vanilla's own difficulty
+  wording, resolving through the action library and changing the world.
+
 ## What it does not do yet
 
-No situation is generated in game, and no dialogue is presented — the verb library has no UI to be
-offered through. Drama choice injection and the crime-witness hooks are still unexamined. What
-exists is the seam, proven to compile against the real assemblies; none of it has been run inside
-Elin yet, which is the next thing to do and the only thing that can confirm any of it.
+No situation is **generated** by the world - the one that exists is staged by a config flag, and
+generation arrives at BQ-039. There is no crime or witness observation from vanilla play (BQ-014),
+no Home state, economy, sites, NPC autonomy or director, and one situation archetype. Personality
+exists as nine decision weights and is not yet expressed in dialogue.
 
 ## Running the in-game scenario test
 
@@ -119,10 +143,14 @@ It runs on `PostLoad`, once, and only when the world has no threads yet — so a
 ran it will not run it again. It also refuses to run when attributes or skills are unavailable,
 because every check would read zero and the result would mean nothing.
 
-The log then contains, in order: the generated truth and who knows it; the three staged NPCs read
-back through the adapter (level, affinity, PER, WIL, inventory count); every verb the world permits
-against each of them plus the reason for each it refuses; three verbs played with their full check
-arithmetic; and the aftermath read back out of the game.
+It runs on `PostLoad`, once. The log then contains, in order: the generated truth and who knows
+it; the three staged NPCs read back through the adapter (level, affinity, PER, WIL, inventory
+count); and every verb the world permits against each of them plus the reason for each it refuses.
+
+The verbs are no longer played by the test. **Walk up to a staged NPC and talk to them** - the
+options are in the conversation, and choosing one resolves it. Turn on
+`GatherPrototypeNpcsNearPlayer` if you cannot find them; the log line
+`procedural people in this save:` reports where each one is.
 
 What to check in that output:
 
@@ -131,5 +159,8 @@ What to check in that output:
   genuinely different routes.
 - The **blocked** list gives reasons of the right kind: "you cannot reveal something you do not
   know", not "your skill is too low".
-- Affinity in the aftermath **differs** from the staged value, and the item moved.
+- Talking to a staged NPC **offers Brilliant Questing options**, and the log says
+  `Projected N Brilliant Questing option(s)`. Talking to anyone else, or opening a quest or shop
+  conversation with a staged NPC, offers none and leaves the vanilla text alone.
+- Choosing one changes something you can see, and affinity or inventory **differs** afterwards.
 - Save, quit fully, reload: the thread, events and facts come back out of the chunk unchanged.
