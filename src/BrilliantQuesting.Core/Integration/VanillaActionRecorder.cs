@@ -65,7 +65,7 @@ namespace BrilliantQuesting.Integration
                 related: new[] { theft.Id },
                 witnesses: action.Witnesses,
                 evidence: new[] { action.Item },
-                tags: new[] { "observed_vanilla", action.SourceActionId });
+                tags: new[] { EventTags.Observed, action.SourceActionId });
         }
 
         private WorldEvent RecordKilling(ObservedVanillaAction action)
@@ -104,7 +104,7 @@ namespace BrilliantQuesting.Integration
                 action.Zone,
                 related: relatedFact.IsNone ? null : new[] { relatedFact },
                 witnesses: action.Witnesses,
-                tags: new[] { "observed_vanilla", action.SourceActionId });
+                tags: new[] { EventTags.Observed, action.SourceActionId });
         }
     }
 }

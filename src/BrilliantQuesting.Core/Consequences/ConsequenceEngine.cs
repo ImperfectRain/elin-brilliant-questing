@@ -63,9 +63,18 @@ namespace BrilliantQuesting.Consequences
             ApplyToTarget(worldEvent, profile, magnitude, actorIsPlayer);
             ApplyToWitnesses(worldEvent, profile, magnitude, actorIsPlayer);
 
-            if (actorIsPlayer)
+            // Karma and fame are the world's verdict on what somebody did. An observed act has
+            // not been judged yet - the observer can see that the player killed something, not
+            // whether it was murder, self-defence, a lawful bounty or clearing a dungeon - so the
+            // verdict waits for BQ-046 rather than defaulting to "murder". Affinity and memory
+            // still apply: being hit is a reason to think less of someone whatever the law says.
+            if (actorIsPlayer && !HasTag(worldEvent, EventTags.Observed))
             {
                 ApplyToPlayerStanding(profile, magnitude);
+            }
+            else if (actorIsPlayer)
+            {
+                Trace.Add("standing unchanged: " + worldEvent.Type + " was observed, not judged");
             }
         }
 

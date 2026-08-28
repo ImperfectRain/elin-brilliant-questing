@@ -147,7 +147,7 @@ namespace BrilliantQuesting.Tests
         }
 
         [Fact]
-        public void ObservedMurderInFrontOfWitnessesUsesTheKilledConsequenceShape()
+        public void ObservedKillingIsRememberedByEveryoneWhoSawItButNotJudged()
         {
             NarrativeWorldState world = new NarrativeWorldState(123);
             world.Registry.Add(new NarrativeNpc(Player, "Player"));
@@ -177,8 +177,12 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(WorldEventType.Killed, recorded.Type);
             Assert.True(vanilla.GetAffinity(Victim) < victimAffinityBefore);
             Assert.True(vanilla.GetAffinity(Witness) < witnessAffinityBefore);
-            Assert.True(vanilla.Karma < karmaBefore);
-            Assert.True(vanilla.Fame > fameBefore);
+            // The people involved react - they watched somebody die. The world does not pass a
+            // verdict, because the observer cannot tell murder from self-defence, a lawful bounty
+            // from an assault, or clearing a dungeon from killing a shopkeeper. Karma and fame
+            // wait for BQ-046 to say which it was.
+            Assert.Equal(karmaBefore, vanilla.Karma);
+            Assert.Equal(fameBefore, vanilla.Fame);
 
             MemoryRecord victimMemory = Assert.Single(world.Memories.MemoriesAbout(Victim, Player));
             Assert.Equal("killed_someone", victimMemory.SummaryTag);
@@ -191,6 +195,53 @@ namespace BrilliantQuesting.Tests
             Fact fact = recorded.Related.Select(id => world.Knowledge.GetFact(id)).Single();
             Assert.Equal(FactPredicates.Killed, fact.Predicate);
             Assert.True(world.Knowledge.Knows(Witness, fact.Id));
+        }
+
+        /// <summary>
+        /// The same act, done deliberately through a Brilliant Questing verb rather than merely
+        /// seen happening, is judged. The distinction is whether anything classified it, not who
+        /// swung - so the tag has to be what gates the verdict.
+        /// </summary>
+        [Fact]
+        public void AnActTheSimulationItselfRecordsIsStillJudged()
+        {
+            NarrativeWorldState world = new NarrativeWorldState(123);
+            world.Registry.Add(new NarrativeNpc(Player, "Player"));
+            world.Registry.Add(new NarrativeNpc(Victim, "Victim"));
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.Define(Victim, zone: Zone);
+            int karmaBefore = vanilla.Karma;
+            new ConsequenceEngine(world, vanilla).Attach();
+
+            world.Record(WorldEventType.Killed, Player, Victim, vanilla.Now, 1.0, Zone);
+
+            Assert.True(vanilla.Karma < karmaBefore);
+        }
+
+        /// <summary>Observed theft is not double-punished either: Elin charges its own karma.</summary>
+        [Fact]
+        public void ObservedTheftDoesNotChargeKarmaOnTopOfElinsOwn()
+        {
+            NarrativeWorldState world = new NarrativeWorldState(123);
+            world.Registry.Add(new NarrativeNpc(Player, "Player"));
+            world.Registry.Add(new NarrativeNpc(Victim, "Victim"));
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.Define(Victim, zone: Zone);
+            int karmaBefore = vanilla.Karma;
+            new ConsequenceEngine(world, vanilla).Attach();
+            VanillaActionRecorder recorder = new VanillaActionRecorder(world, vanilla);
+
+            recorder.Record(new ObservedVanillaAction(
+                ObservedVanillaActionKind.Theft,
+                Player,
+                Victim,
+                EntityId.Parse("item_1"),
+                "silver ring",
+                Zone,
+                "ActStealing",
+                new EntityId[0]));
+
+            Assert.Equal(karmaBefore, vanilla.Karma);
         }
     }
 }
