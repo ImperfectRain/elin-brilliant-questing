@@ -4,18 +4,24 @@ Phases and gates follow the master design document. This file tracks what is act
 
 ## Phase 0 - reverse-engineering spike
 
+Assemblies from a live install are now readable locally, and `tools/ApiDump` reads their metadata.
+Findings are written up in [elin-api-notes.md](elin-api-notes.md). Metadata proves a member exists;
+it does not prove it behaves, so "found" below is not the same as "works".
+
 | Item | Status |
 |---|---|
-| Confirm runtime access to elements, skills, affinity, Karma, prestige, Influence, guild, faith, home, inventory | **not started** - needs a current Elin build |
-| Confirm creation and persistence of generated Chara and zones | **not started** |
-| Decide how mod save data attaches, with a migration version | design done, `WorldStateSerializer` + `SaveMigrations`; attachment point not chosen |
-| Prototype custom `Check` rows and `Check.Perform` from runtime | modelled by `VanillaStyleCheckResolver`; the native path is unproven |
+| Confirm runtime access to elements, skills, affinity, Karma, prestige, Influence, inventory | **found** - every `IVanillaState` member has a named target |
+| Confirm access to guild, faith, home state | partly - `EClass.Home` / `.Branch` located, members not yet mapped |
+| Confirm creation and persistence of generated Chara and zones | partly - `Zone.AddChara` located, persistence untested |
+| Decide how mod save data attaches, with a migration version | **found** - `[ElinGameIOProperty(chunkName)]` attaches a property to the save |
+| Prototype custom `Check` rows and `Check.Perform` from runtime | **found, untested** - `Check.Get/GetFinalDC/Perform` and the four-result enum exist; `SourceCheck.Row` schema captured |
 | Prototype Drama choice injection | **not started** |
-| Confirm crime/witness hooks | modelled behind `VanillaCapability.ObserveCrimeWitnesses`; the real hook is unproven |
+| Confirm crime/witness hooks | **not started** - modelled behind `VanillaCapability.ObserveCrimeWitnesses` |
 
 **Gate A** - a hard-coded scenario reads vanilla stats, performs a native-style check, updates
 affinity and Karma, saves, reloads and continues correctly.
-*Passed headless.* The same scenario against a running game is what the spike above is for.
+*Passed headless.* Every call it would need in game is now located; running it against a live game
+is the remaining half.
 
 ## Phase 1 - three-NPC simulation laboratory
 
