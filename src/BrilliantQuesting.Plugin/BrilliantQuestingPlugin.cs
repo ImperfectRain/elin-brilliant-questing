@@ -168,6 +168,7 @@ namespace BrilliantQuesting.Plugin
                 new PettyTheftEscalation(_vanilla, new RumorSystem(_world.Knowledge, _world.Ledger, _world.Ids)));
             _drama.AdvanceThreads = AdvanceThreads;
             _actionObserver = new ElinActionObserver(_world, _vanilla, _bindings, _log);
+            ElinAuthorityRoles.RefreshAll(_world, _bindings, _log);
 
             _consequences = new ConsequenceEngine(_world, _vanilla);
             _consequences.Attach();
@@ -583,6 +584,7 @@ namespace BrilliantQuesting.Plugin
         private void End()
         {
             _threads = null;
+            _actionObserver = null;
             _bindings?.Clear();
             if (DramaChoiceProjector.Current == _drama)
             {

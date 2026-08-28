@@ -335,6 +335,10 @@ namespace BrilliantQuesting.Plugin
                 npc.VanillaCharaRef = chara.uid.ToString();
             }
 
+            // Guards and guild staff have to be recognisable as such the moment they enter the
+            // world model, or AuthorityPolicy has nobody to hand an accusation to.
+            ElinAuthorityRoles.Apply(npc, chara);
+
             return id;
         }
 

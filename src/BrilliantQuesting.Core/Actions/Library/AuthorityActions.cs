@@ -44,6 +44,26 @@ namespace BrilliantQuesting.Actions.Library
             string who = context.NameOf(context.Target);
             ActionOutcome outcome;
 
+            // Availability established the fact was there; a projected choice can outlive the
+            // state it was drawn against, and every branch below dereferences it.
+            if (fact == null)
+            {
+                outcome = new ActionOutcome(Id, null, "There is nothing left to report.");
+                outcome.Notes.Add("the fact behind this report no longer exists");
+                return outcome;
+            }
+
+            // Saying it again, with nothing new, is not a second accusation. Without this a player
+            // could report an unprovable claim over and over, and every rebound would land another
+            // FalseAccusation on the accused - a defining memory, -35 affinity and -4 karma each
+            // time - which makes an unwinnable accusation into an unlimited weapon.
+            if (AlreadyRebounded(context, fact.Id, decision.Response))
+            {
+                outcome = new ActionOutcome(Id, null, who + " will not hear the same accusation twice without proof.");
+                outcome.Notes.Add("repeat accusation at " + decision.Evidence + "; already rebounded once, no new consequence");
+                return outcome;
+            }
+
             switch (decision.Response)
             {
                 case AuthorityResponse.Acts:
@@ -111,6 +131,43 @@ namespace BrilliantQuesting.Actions.Library
             }
 
             return outcome;
+        }
+
+        /// <summary>
+        /// True when this accusation has already rebounded on the player once.
+        ///
+        /// Making it again with no better evidence is the same accusation, not a second one. It is
+        /// read off the ledger rather than off the authority's beliefs, because a rebound is
+        /// deliberately something they retain nothing from - and because the harm being guarded
+        /// against lands on the accused, who does not care which guard turned it down.
+        ///
+        /// Only the rebound is limited. Bringing real proof later is always worth hearing, which
+        /// is the whole point of the step.
+        /// </summary>
+        private static bool AlreadyRebounded(ActionContext context, EntityId factId, AuthorityResponse response)
+        {
+            if (response != AuthorityResponse.Rebounds)
+            {
+                return false;
+            }
+
+            foreach (WorldEvent past in context.World.Ledger.OfType(WorldEventType.FalseAccusation))
+            {
+                if (past.Actor != context.Actor)
+                {
+                    continue;
+                }
+
+                for (int i = 0; i < past.Related.Count; i++)
+                {
+                    if (past.Related[i] == factId)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private static void TeachAuthority(ActionContext context, EntityId factId, double confidence, bool copyProof)

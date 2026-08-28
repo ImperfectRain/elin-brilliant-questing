@@ -107,6 +107,63 @@ namespace BrilliantQuesting.Tests
             Assert.Contains("no authority", availability.Reason);
         }
 
+        /// <summary>
+        /// An accusation that cannot be proved rebounds once. Repeating it is the same accusation,
+        /// not a second one - otherwise every retry lands another FalseAccusation on the accused,
+        /// a defining memory at -35 affinity and -4 karma each time, and a claim the player can
+        /// never prove becomes a weapon they can swing without limit.
+        /// </summary>
+        [Fact]
+        public void TheSameUnprovableAccusationOnlyReboundsOnce()
+        {
+            Scene scene = CreateScene(Guard, "guard");
+            scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Hearsay, 0.8, scene.Vanilla.Now, canProve: false);
+
+            Assert.Contains(scene.Report().Events, e => e.Type == WorldEventType.FalseAccusation);
+
+            ActionOutcome again = scene.Report();
+
+            Assert.Empty(again.Events);
+            Assert.Contains("twice", again.Narration);
+            Assert.Single(scene.World.Ledger.OfType(WorldEventType.FalseAccusation));
+        }
+
+        /// <summary>
+        /// Coming back with real proof is always worth hearing. The repeat guard must not lock a
+        /// player out of the route the whole step exists to reward.
+        /// </summary>
+        [Fact]
+        public void ComingBackWithProofIsStillHeardAfterARebound()
+        {
+            Scene scene = CreateScene(Guard, "guard");
+            scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Hearsay, 0.8, scene.Vanilla.Now, canProve: false);
+            scene.Report();
+
+            scene.World.Knowledge.Teach(
+                Player, scene.Fact.Id, KnowledgeSource.Witnessed, 1.0, scene.Vanilla.Now, canProve: true);
+
+            ActionOutcome outcome = scene.Report();
+
+            Assert.Contains(outcome.Events, e => e.Type == WorldEventType.CrimeReported);
+            Assert.True(scene.World.Knowledge.CanProve(Guard, scene.Fact.Id));
+        }
+
+        /// <summary>A projected choice can outlive the fact it was drawn against.</summary>
+        [Fact]
+        public void ReportingAFactThatNoLongerExistsIsRefusedRatherThanThrowing()
+        {
+            Scene scene = CreateScene(Guard, "guard");
+            scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Hearsay, 0.8, scene.Vanilla.Now, canProve: false);
+
+            ActionContext context = scene.Context();
+            context.SubjectFact = scene.World.NewId("fact");
+
+            ActionOutcome outcome = StandardActions.CreateRegistry().Get("report").Perform(context);
+
+            Assert.Empty(outcome.Events);
+            Assert.Contains("nothing left to report", outcome.Narration);
+        }
+
         private static Scene CreateScene(EntityId authority, string occupation)
         {
             NarrativeWorldState world = new NarrativeWorldState(99);
