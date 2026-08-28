@@ -536,9 +536,9 @@ namespace BrilliantQuesting.Plugin
         [HarmonyPatch(typeof(DialogDrama), nameof(DialogDrama.SetText))]
         private static class DialogDramaSetTextPatch
         {
-            private static void Prefix(ref string text)
+            private static void Prefix(ref string detail)
             {
-                Current?.TryReplaceRenderedText(ref text);
+                Current?.TryReplaceRenderedText(ref detail);
             }
         }
     }
