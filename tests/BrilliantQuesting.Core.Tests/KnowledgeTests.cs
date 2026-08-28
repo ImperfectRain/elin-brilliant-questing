@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Situations;
 using Xunit;
 
 namespace BrilliantQuesting.Tests
@@ -125,6 +126,44 @@ namespace BrilliantQuesting.Tests
 
             Assert.True(knowledge.Knows(Victim, theft.Id));
             Assert.True(knowledge.Knows(Guard, theft.Id));
+        }
+
+        /// <summary>
+        /// Burning the evidence takes the object away, not the memory of the person who watched.
+        /// Clearing every proof would collapse "witnessed and provable" into "believed but
+        /// unprovable", which is the distinction the whole authority layer rests on.
+        /// </summary>
+        [Fact]
+        public void DestroyingEvidenceLeavesAnEyewitnessAbleToTestify()
+        {
+            EntityId watcher = EntityId.Parse("npc_watcher");
+            EntityId holder = EntityId.Parse("npc_holder");
+            EntityId ring = EntityId.Parse("item_ring");
+
+            KnowledgeGraph knowledge = new KnowledgeGraph();
+            Fact theft = new Fact(EntityId.Parse("fact_1"), EntityId.Parse("npc_thief"), FactPredicates.Stole, ring, "silver ring");
+            theft.EvidenceIds.Add(ring);
+            knowledge.AddFact(theft);
+
+            // One saw it happen; the other only has the ring.
+            knowledge.Teach(watcher, theft.Id, KnowledgeSource.Witnessed, 1.0, GameTime.Zero, canProve: true);
+            knowledge.Teach(
+                holder, theft.Id, KnowledgeSource.Hearsay, 0.9, GameTime.Zero,
+                canProve: true,
+                proofs: new[] { new ProofLink(ProofKind.PhysicalEvidence, ring) });
+
+            Assert.True(knowledge.CanProve(watcher, theft.Id));
+            Assert.True(knowledge.CanProve(holder, theft.Id));
+
+            knowledge.RevokeProof(theft.Id);
+
+            // The ring is gone, so the person relying on it can no longer demonstrate anything -
+            // but they still believe it.
+            Assert.False(knowledge.CanProve(holder, theft.Id));
+            Assert.True(knowledge.Knows(holder, theft.Id));
+
+            // Watching something does not burn.
+            Assert.True(knowledge.CanProve(watcher, theft.Id));
         }
     }
 }

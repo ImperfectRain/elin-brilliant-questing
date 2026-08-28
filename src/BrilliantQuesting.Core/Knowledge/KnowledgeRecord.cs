@@ -24,7 +24,7 @@ namespace BrilliantQuesting.Knowledge
     /// <summary>What one character believes about one fact, and how well they can back it up.</summary>
     public sealed class KnowledgeRecord
     {
-        public KnowledgeRecord(EntityId knower, EntityId factId, KnowledgeSource source, double confidence, GameTime learnedAt, bool canProve, EntityId toldBy = default, IReadOnlyList<ProofLink> proofs = null)
+        public KnowledgeRecord(EntityId knower, EntityId factId, KnowledgeSource source, double confidence, GameTime learnedAt, EntityId toldBy = default, IReadOnlyList<ProofLink> proofs = null)
         {
             Knower = knower;
             FactId = factId;

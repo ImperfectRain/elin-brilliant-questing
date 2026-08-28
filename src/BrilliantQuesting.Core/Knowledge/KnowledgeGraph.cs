@@ -87,7 +87,7 @@ namespace BrilliantQuesting.Knowledge
                 return existing;
             }
 
-            KnowledgeRecord record = new KnowledgeRecord(knower, factId, source, Clamp01(confidence), now, proofLinks.Count > 0, toldBy, proofLinks);
+            KnowledgeRecord record = new KnowledgeRecord(knower, factId, source, Clamp01(confidence), now, toldBy, proofLinks);
             byFact[factId] = record;
             return record;
         }
@@ -147,6 +147,12 @@ namespace BrilliantQuesting.Knowledge
         /// <summary>
         /// Destroying the last piece of physical evidence does not erase beliefs - it strips the
         /// ability to prove them, which is exactly the interesting state.
+        ///
+        /// Only the physical proof goes. Somebody who watched the theft can still stand up and
+        /// say so after the ring is melted down; burning an object does not unmake a memory. That
+        /// distinction is the whole reason BQ-018 can tell "witnessed and provable" from
+        /// "believed but unprovable", and clearing every proof indiscriminately would have
+        /// silently collapsed the two the first time anything called this.
         /// </summary>
         public void RevokeProof(EntityId factId)
         {
@@ -154,7 +160,7 @@ namespace BrilliantQuesting.Knowledge
             {
                 if (byFact.TryGetValue(factId, out KnowledgeRecord record))
                 {
-                    record.Proofs.Clear();
+                    record.Proofs.RemoveAll(proof => proof.Kind == ProofKind.PhysicalEvidence);
                 }
             }
         }
