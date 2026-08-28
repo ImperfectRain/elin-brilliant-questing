@@ -40,7 +40,8 @@ namespace BrilliantQuesting.Tests
 
             ActionOutcome outcome = scene.Report();
 
-            Assert.Contains(outcome.Events, e => e.Type == WorldEventType.FalseAccusation);
+            Assert.Contains(outcome.Events, e => e.Type == WorldEventType.AccusationMade);
+            Assert.DoesNotContain(outcome.Events, e => e.Type == WorldEventType.FalseAccusation);
             Assert.True(scene.World.Knowledge.Knows(Suspect, scene.World.Knowledge.FindFact(Player, FactPredicates.Investigating).Id));
             Assert.False(scene.World.Knowledge.Knows(Guard, scene.Fact.Id));
         }
@@ -53,7 +54,7 @@ namespace BrilliantQuesting.Tests
 
             ActionOutcome outcome = scene.Report();
 
-            Assert.Contains(outcome.Events, e => e.Type == WorldEventType.RumorSpread);
+            Assert.Contains(outcome.Events, e => e.Type == WorldEventType.AccusationRejected);
             Assert.False(scene.World.Knowledge.CanProve(Guild, scene.Fact.Id));
         }
 
@@ -65,7 +66,7 @@ namespace BrilliantQuesting.Tests
 
             ActionOutcome outcome = scene.Report();
 
-            Assert.Contains(outcome.Events, e => e.Type == WorldEventType.SecretRevealed);
+            Assert.Contains(outcome.Events, e => e.Type == WorldEventType.InquiryOpened);
             Assert.True(scene.World.Knowledge.Knows(Guild, scene.Fact.Id));
             Assert.False(scene.World.Knowledge.CanProve(Guild, scene.Fact.Id));
         }
@@ -85,7 +86,7 @@ namespace BrilliantQuesting.Tests
 
             ActionOutcome witnessOnly = scene.Report();
 
-            Assert.Contains(witnessOnly.Events, e => e.Type == WorldEventType.SecretRevealed);
+            Assert.Contains(witnessOnly.Events, e => e.Type == WorldEventType.InquiryOpened);
             Assert.DoesNotContain(witnessOnly.Events, e => e.Type == WorldEventType.CrimeReported);
 
             Scene physical = CreateScene(Court, "magistrate");
@@ -119,13 +120,13 @@ namespace BrilliantQuesting.Tests
             Scene scene = CreateScene(Guard, "guard");
             scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Hearsay, 0.8, scene.Vanilla.Now, canProve: false);
 
-            Assert.Contains(scene.Report().Events, e => e.Type == WorldEventType.FalseAccusation);
+            Assert.Contains(scene.Report().Events, e => e.Type == WorldEventType.AccusationMade);
 
             ActionOutcome again = scene.Report();
 
             Assert.Empty(again.Events);
             Assert.Contains("twice", again.Narration);
-            Assert.Single(scene.World.Ledger.OfType(WorldEventType.FalseAccusation));
+            Assert.Single(scene.World.Ledger.OfType(WorldEventType.AccusationMade));
         }
 
         /// <summary>
@@ -162,6 +163,60 @@ namespace BrilliantQuesting.Tests
 
             Assert.Empty(outcome.Events);
             Assert.Contains("nothing left to report", outcome.Narration);
+        }
+
+        /// <summary>
+        /// The defect this vocabulary exists for. A player who correctly identifies the thief and
+        /// simply cannot prove it has not lied about anybody, and the ledger must not say they
+        /// did. Provability is what can be demonstrated; truth is what happened. Conflating the
+        /// two poisons memory, reputation and the Chronicle - and rumour circulation would then
+        /// carry the slander outward.
+        /// </summary>
+        [Fact]
+        public void ATrueButUnprovableAccusationIsNotRecordedAsALie()
+        {
+            Scene scene = CreateScene(Guard, "guard");
+            Assert.Equal(TruthState.True, scene.Fact.Truth);
+            scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Hearsay, 0.8, scene.Vanilla.Now, canProve: false);
+
+            ActionOutcome outcome = scene.Report();
+
+            Assert.Contains(outcome.Events, e => e.Type == WorldEventType.AccusationMade);
+            Assert.DoesNotContain(outcome.Events, e => e.Type == WorldEventType.FalseAccusation);
+            Assert.Contains("the claim itself stands", string.Join(" ", outcome.Notes));
+        }
+
+        /// <summary>And an accusation that really is untrue still counts as one.</summary>
+        [Fact]
+        public void AnAccusationThatContradictsTheFactIsRecordedAsFalse()
+        {
+            Scene scene = CreateScene(Guard, "guard");
+            scene.Fact.Truth = TruthState.False;
+            scene.World.Knowledge.Teach(Player, scene.Fact.Id, KnowledgeSource.Hearsay, 0.8, scene.Vanilla.Now, canProve: false);
+
+            ActionOutcome outcome = scene.Report();
+
+            Assert.Contains(outcome.Events, e => e.Type == WorldEventType.FalseAccusation);
+            Assert.DoesNotContain(outcome.Events, e => e.Type == WorldEventType.AccusationMade);
+        }
+
+        /// <summary>
+        /// Nobody arrests, investigates or pursues anybody yet. The report may only claim to have
+        /// been heard and written down - the same rule BQ-009 applied to intimidation.
+        /// </summary>
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TheReportNeverClaimsAnAuthorityWillAct(bool withProof)
+        {
+            Scene scene = CreateScene(Guard, "guard");
+            scene.World.Knowledge.Teach(
+                Player, scene.Fact.Id, KnowledgeSource.Witnessed, 1.0, scene.Vanilla.Now, canProve: withProof);
+
+            ActionOutcome outcome = scene.Report();
+
+            Assert.DoesNotContain("actionable", outcome.Narration);
+            Assert.DoesNotContain("look into it", outcome.Narration);
         }
 
         private static Scene CreateScene(EntityId authority, string occupation)

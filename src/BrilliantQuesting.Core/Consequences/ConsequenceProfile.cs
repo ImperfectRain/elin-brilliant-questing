@@ -69,6 +69,11 @@ namespace BrilliantQuesting.Consequences
                 { WorldEventType.SecretLearned, new ConsequenceProfile("learned_a_secret", MemoryWeight.Routine, 0) },
                 { WorldEventType.SecretRevealed, new ConsequenceProfile("exposed_a_secret", MemoryWeight.Important, -30, 0) },
                 { WorldEventType.FalseAccusation, new ConsequenceProfile("was_falsely_accused", MemoryWeight.Defining, -35, -6, karma: -4) },
+
+                // Being accused truthfully but unprovably still stings; it is not being lied about.
+                { WorldEventType.AccusationMade, new ConsequenceProfile("was_accused", MemoryWeight.Important, -12) },
+                { WorldEventType.AccusationRejected, new ConsequenceProfile("accusation_dismissed", MemoryWeight.Routine, 0) },
+                { WorldEventType.InquiryOpened, new ConsequenceProfile("under_inquiry", MemoryWeight.Important, -8) },
                 { WorldEventType.EvidenceCreated, new ConsequenceProfile("created_evidence", MemoryWeight.Routine, 0) },
                 { WorldEventType.EvidenceDestroyed, new ConsequenceProfile("destroyed_evidence", MemoryWeight.Important, -12, -3, karma: -1) },
                 { WorldEventType.CrimeWitnessed, new ConsequenceProfile("witnessed_a_crime", MemoryWeight.Notable, 0) },

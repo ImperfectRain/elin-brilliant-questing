@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions.Library
 {
@@ -66,62 +67,48 @@ namespace BrilliantQuesting.Actions.Library
 
             switch (decision.Response)
             {
+                // Every branch below says what the authority did with the report, and nothing
+                // about what they will do next. Nobody arrests, investigates or pursues anybody
+                // yet - authority autonomy is BQ-093 - and claiming otherwise is the same lie
+                // BQ-009 removed from intimidation.
                 case AuthorityResponse.Acts:
                     TeachAuthority(context, fact.Id, confidence: 0.95, copyProof: true);
-                    outcome = new ActionOutcome(Id, null, who + " accepts the report and treats it as actionable.");
-                    outcome.Events.Add(context.World.Record(
-                        WorldEventType.CrimeReported,
-                        context.Actor,
-                        fact.Subject,
-                        context.Now,
-                        0.9,
-                        context.Zone,
-                        new[] { fact.Id },
-                        ActionSupport.Bystanders(context, true)));
-                    outcome.Notes.Add("authority response: " + decision.Role + " acted on " + decision.Evidence);
+                    outcome = new ActionOutcome(Id, null, who + " takes the report seriously, and writes down what you can show them.");
+                    outcome.Events.Add(Accusation(context, fact, WorldEventType.CrimeReported, 0.9, seen: true));
+                    outcome.Notes.Add("authority response: " + decision.Role + " accepted it on " + decision.Evidence);
+                    outcome.Notes.Add("nobody acts on it yet; authority autonomy arrives at BQ-093");
                     break;
 
                 case AuthorityResponse.OpensInquiry:
                     TeachAuthority(context, fact.Id, confidence: 0.65, copyProof: false);
-                    outcome = new ActionOutcome(Id, null, who + " will look into it, but will not act on your word alone.");
-                    outcome.Events.Add(context.World.Record(
-                        WorldEventType.SecretRevealed,
-                        context.Actor,
-                        fact.Subject,
-                        context.Now,
-                        0.5,
-                        context.Zone,
-                        new[] { fact.Id }));
-                    outcome.Notes.Add("authority response: inquiry opened without proof");
+                    outcome = new ActionOutcome(Id, null, who + " writes it down, and says they are not willing to act on your word alone.");
+                    outcome.Events.Add(Accusation(context, fact, WorldEventType.InquiryOpened, 0.5, seen: false));
+                    outcome.Notes.Add("authority response: recorded, not actionable without proof");
                     break;
 
                 case AuthorityResponse.RejectsRumor:
                     TeachAuthority(context, fact.Id, confidence: 0.25, copyProof: false);
-                    outcome = new ActionOutcome(Id, null, who + " files it as rumor and does nothing.");
-                    outcome.Events.Add(context.World.Record(
-                        WorldEventType.RumorSpread,
-                        context.Actor,
-                        context.Target,
-                        context.Now,
-                        0.25,
-                        context.Zone,
-                        new[] { fact.Id }));
-                    outcome.Notes.Add("authority response: rumor rejected");
+                    outcome = new ActionOutcome(Id, null, who + " files it with the rest of the talk and does nothing.");
+                    outcome.Events.Add(Accusation(context, fact, WorldEventType.AccusationRejected, 0.25, seen: false));
+                    outcome.Notes.Add("authority response: filed as rumour");
                     break;
 
                 case AuthorityResponse.Rebounds:
-                    outcome = new ActionOutcome(Id, null, who + " refuses to act without proof, and the accusation rebounds.");
-                    outcome.Events.Add(context.World.Record(
-                        WorldEventType.FalseAccusation,
-                        context.Actor,
-                        fact.Subject,
-                        context.Now,
+                    outcome = new ActionOutcome(Id, null, who + " will not act on this, and it is now known that you said it.");
+
+                    // Truth decides which of these it was, not provability. A player who names
+                    // the real thief and simply cannot prove it has not lied about anybody.
+                    bool untrue = fact.Truth == TruthState.False;
+                    outcome.Events.Add(Accusation(
+                        context,
+                        fact,
+                        untrue ? WorldEventType.FalseAccusation : WorldEventType.AccusationMade,
                         0.6,
-                        context.Zone,
-                        new[] { fact.Id },
-                        ActionSupport.Bystanders(context, true)));
+                        seen: true));
                     WarnAccused(context, fact, outcome);
-                    outcome.Notes.Add("authority response: accusation rebounded at " + decision.Evidence);
+                    outcome.Notes.Add(untrue
+                        ? "authority response: rejected, and the claim is untrue"
+                        : "authority response: rejected for want of proof; the claim itself stands");
                     break;
 
                 default:
@@ -131,6 +118,25 @@ namespace BrilliantQuesting.Actions.Library
             }
 
             return outcome;
+        }
+
+        /// <summary>
+        /// Records the accusation itself. One shape for all of them, so the ledger describes the
+        /// same act consistently however the authority reacted.
+        /// </summary>
+        private static WorldEvent Accusation(
+            ActionContext context, Fact fact, WorldEventType type, double magnitude, bool seen)
+        {
+            return context.World.Record(
+                type,
+                context.Actor,
+                fact.Subject,
+                context.Now,
+                magnitude,
+                context.Zone,
+                new[] { fact.Id },
+                seen ? ActionSupport.Bystanders(context, true) : null,
+                threadId: context.Thread?.Id ?? EntityId.None);
         }
 
         /// <summary>
@@ -151,7 +157,7 @@ namespace BrilliantQuesting.Actions.Library
                 return false;
             }
 
-            foreach (WorldEvent past in context.World.Ledger.OfType(WorldEventType.FalseAccusation))
+            foreach (WorldEvent past in Rebounded(context.World))
             {
                 if (past.Actor != context.Actor)
                 {
@@ -168,6 +174,23 @@ namespace BrilliantQuesting.Actions.Library
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Accusations that have already been put on the record and turned down, whichever way
+        /// their truth fell.
+        /// </summary>
+        private static IEnumerable<WorldEvent> Rebounded(NarrativeWorldState world)
+        {
+            foreach (WorldEvent made in world.Ledger.OfType(WorldEventType.AccusationMade))
+            {
+                yield return made;
+            }
+
+            foreach (WorldEvent falsely in world.Ledger.OfType(WorldEventType.FalseAccusation))
+            {
+                yield return falsely;
+            }
         }
 
         private static void TeachAuthority(ActionContext context, EntityId factId, double confidence, bool copyProof)
