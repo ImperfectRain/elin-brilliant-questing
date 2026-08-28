@@ -70,21 +70,51 @@ vanilla rows only where they map cleanly.
 Beware name collisions when reading these: `Zone` is both an Elin class and
 `System.Security.Policy.Zone`. `ApiDump` resolves the game's assembly first.
 
+## The event bus — the most useful thing found so far
+
+`BaseModManager` publishes the game's own lifecycle, and the bundled Scripting Kit uses it for
+exactly the jobs this mod needs. This is better than both polling in `Update` and Harmony-patching
+the load path.
+
+```
+BaseModManager.SubscribeEvent<T>(string eventId, Action<T> handler)
+
+EVENT: PreLoad, PostLoad, PreSave, PostSave, NewGame, ModsActivated,
+       PreSceneInit, PostSceneInit, CharaCreated, ActPerformed,
+       DramaParseAction, FeatApply, ReligionImporting
+```
+
+Three of those are roadmap items answered before they were started:
+
+- **`ActPerformed`** — observe what the player actually did. The intended route for crime and
+  witness observation, with no patching.
+- **`DramaParseAction`** — the hook for putting procedural choices into dialogue.
+- **`CharaCreated`** — bind a generated Chara to its `EntityId` at the moment it exists.
+
 ## Mod save data
 
 ```
-ElinGameIOPropertyAttribute : ElinGameIOEventAttribute
-    string ChunkName { get; }
-    void   Register(PropertyInfo property)
-
-GameIO : EClass
-    static void SaveFile(string path, object obj)
-    static T    LoadFile<T>(string path)
+GameIOContext
+    bool Load<T>(string chunkName, out T data, JsonSerializerSettings settings)
+    void Save<T>(string chunkName, T data, JsonSerializerSettings settings)
+    bool Compress(string chunkName, bool deleteOld)
+    static GameIOContext GetPersistentModContext(string path)
 ```
 
-Decorating a property with `[ElinGameIOProperty(chunkName)]` attaches it to the save as a named
-chunk. That is where `WorldStateSerializer` output belongs — no separate sidecar file, and the
-procedural world travels with the save it belongs to.
+A `GameIOContext` arrives as the argument of `PostLoad` / `PreSave`, so the world is read and
+written on the game's own schedule, into the save's own chunk store, with compression available and
+Newtonsoft doing the work. `GetPersistentModContext` covers anything that should outlive a single
+save.
+
+An attribute route also exists (`ElinGameIOPropertyAttribute`, carrying a `ChunkName`) and compiles
+fine, but the context API is what shipped code uses and it does not require a static property.
+
+## How a package is loaded
+
+`BaseModPackage` carries `builtin`, `installed`, `activated` and `willActivate`, and the Scripting
+Kit filters on `p.activated && !p.builtin`. A package dropped into `Package/` is discovered but does
+nothing until it is **activated** — that is what the `,1` / `,0` flags in `loadorder.txt` record,
+and what the in-game mod list writes. Installing is two steps, not one.
 
 ## Packaging
 
@@ -124,6 +154,6 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
 
 - Whether `Check.Perform` is safe to call outside the contexts vanilla calls it from.
 - Whether a mod-supplied `Check` row is picked up without CWL.
-- Drama choice injection — not yet examined.
-- Crime witness hooks (`Point.TryWitnessCrime` and friends) — not yet examined.
-- Whether `[ElinGameIOProperty]` works on a type the base game has never seen.
+- Drama choice injection — `EVENT.DramaParseAction` located, not yet used.
+- Crime witness observation — `EVENT.ActPerformed` located, not yet used.
+- Whether the element aliases in `ElementAliases.cs` are correct. Nothing else is guessed.

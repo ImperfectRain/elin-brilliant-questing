@@ -21,8 +21,8 @@ Plugins.BaseCore.dll
 Plugins.Modding.dll
 UnityEngine.dll
 UnityEngine.CoreModule.dll
+Newtonsoft.Json.dll
 mscorlib.dll             <- only needed by tools/ApiDump
-Newtonsoft.Json.dll      <- only needed by tools/ApiDump
 ```
 
 From `BepInEx\core\` into `lib/BepInEx/BepInEx/core/`:

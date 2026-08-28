@@ -13,10 +13,10 @@ it does not prove it behaves, so "found" below is not the same as "works".
 | Confirm runtime access to elements, skills, affinity, Karma, prestige, Influence, inventory | **found** - every `IVanillaState` member has a named target |
 | Confirm access to guild, faith, home state | partly - `EClass.Home` / `.Branch` located, members not yet mapped |
 | Confirm creation and persistence of generated Chara and zones | partly - `Zone.AddChara` located, persistence untested |
-| Decide how mod save data attaches, with a migration version | **found** - `[ElinGameIOProperty(chunkName)]` attaches a property to the save |
+| Decide how mod save data attaches, with a migration version | **found and implemented** - `GameIOContext.Save/Load` on `EVENT.PreSave` / `PostLoad` |
 | Prototype custom `Check` rows and `Check.Perform` from runtime | **found, untested** - `Check.Get/GetFinalDC/Perform` and the four-result enum exist; `SourceCheck.Row` schema captured |
-| Prototype Drama choice injection | **not started** |
-| Confirm crime/witness hooks | **not started** - modelled behind `VanillaCapability.ObserveCrimeWitnesses` |
+| Prototype Drama choice injection | hook located (`EVENT.DramaParseAction`), not yet used |
+| Confirm crime/witness hooks | hook located (`EVENT.ActPerformed`), not yet used |
 
 `src/BrilliantQuesting.Plugin` now implements `IVanillaState`, `ICheckResolver` and
 `ISituationStager` against the real assemblies and compiles clean. Compiling proves the calls

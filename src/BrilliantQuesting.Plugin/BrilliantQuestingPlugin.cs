@@ -38,52 +38,51 @@ namespace BrilliantQuesting.Plugin
 
         private bool _live;
 
-        /// <summary>
-        /// The procedural world, serialised, living inside the player's save as a named chunk.
-        ///
-        /// This is why it is a chunk rather than a file beside the save: a world model that can
-        /// desync from the save it describes is worse than no world model. Roll back a save and
-        /// the history rolls back with it.
-        /// </summary>
-        [ElinGameIOProperty(ModInfo.SaveChunk)]
-        public static string SavedWorld { get; set; }
-
         private void Awake()
         {
             _log = Logger;
+
+            // Elin publishes its own lifecycle. Subscribing to it beats both polling in Update and
+            // Harmony-patching the load path: it is the same route the game's bundled Scripting
+            // Kit uses for exactly this job, so it is as stable as anything in Early Access gets.
+            BaseModManager.SubscribeEvent<GameIOContext>(EVENT.PostLoad, OnPostLoad);
+            BaseModManager.SubscribeEvent<GameIOContext>(EVENT.PreSave, OnPreSave);
+            BaseModManager.SubscribeEvent(EVENT.NewGame, OnNewGame);
+
             _log.LogInfo(ModInfo.Name + " " + ModInfo.Version + " loaded. Waiting for a game.");
         }
 
-        private void Update()
+        private void OnNewGame()
         {
-            bool gameIsLive = EClass.game != null && EClass.pc != null && EClass.sources != null;
+            Restart(null);
+        }
 
-            if (gameIsLive && !_live)
+        private void OnPostLoad(GameIOContext context)
+        {
+            Restart(context);
+        }
+
+        private void OnPreSave(GameIOContext context)
+        {
+            Persist(context);
+        }
+
+        private void Restart(GameIOContext context)
+        {
+            try
             {
-                try
-                {
-                    Begin();
-                    _live = true;
-                }
-                catch (Exception ex)
-                {
-                    // A broken procedural layer must never take the player's game with it.
-                    _log.LogError("Failed to start: " + ex);
-                    enabled = false;
-                }
+                Begin(context);
+                _live = true;
             }
-            else if (!gameIsLive && _live)
+            catch (Exception ex)
             {
-                End();
+                // A broken procedural layer must never take the player's game with it.
+                _log.LogError("Failed to start: " + ex);
                 _live = false;
             }
         }
 
-        /// <summary>
-        /// Lazy start rather than a patch on the game's own load path. It costs one comparison a
-        /// frame and it cannot break when Early Access renames a method.
-        /// </summary>
-        private void Begin()
+        private void Begin(GameIOContext context)
         {
             ElementAliases.Resolve(_log);
 
@@ -91,7 +90,7 @@ namespace BrilliantQuesting.Plugin
             _vanilla = new ElinVanillaState(_bindings, _log);
             _stager = new ElinSituationStager(_bindings, _log);
 
-            _world = Load();
+            _world = Load(context);
 
             EntityId playerId = EntityId.Parse("npc_player");
             _vanilla.BindPlayer(playerId);
@@ -108,15 +107,27 @@ namespace BrilliantQuesting.Plugin
 
         private void End()
         {
-            Persist();
             _bindings?.Clear();
             _world = null;
             _log.LogInfo("Simulation detached.");
         }
 
-        private NarrativeWorldState Load()
+        /// <summary>
+        /// Reads the procedural world out of the save's own chunk store.
+        ///
+        /// A chunk rather than a file beside the save: a world model that can desync from the save
+        /// it describes is worse than no world model. Roll a save back and the history rolls back
+        /// with it.
+        /// </summary>
+        private NarrativeWorldState Load(GameIOContext context)
         {
-            if (string.IsNullOrEmpty(SavedWorld))
+            string json = null;
+            if (context != null && context.Load(ModInfo.SaveChunk, out string stored, null))
+            {
+                json = stored;
+            }
+
+            if (string.IsNullOrEmpty(json))
             {
                 ulong seed = (ulong)(EClass.game?.seed ?? Environment.TickCount);
                 _log.LogInfo("No saved world; starting a new one from seed " + seed + ".");
@@ -125,28 +136,30 @@ namespace BrilliantQuesting.Plugin
 
             try
             {
-                return WorldStateSerializer.Load(SavedWorld);
+                return WorldStateSerializer.Load(json);
             }
             catch (Exception ex)
             {
-                // Never silently discard a player's history. Keep the raw text so it can be
-                // recovered by hand, and carry on with an empty world rather than refusing to run.
-                _log.LogError("Saved world could not be read (" + ex.Message + "). Keeping the raw "
-                              + "chunk; starting empty for this session.");
+                // Never silently discard a player's history. The chunk is left untouched so it can
+                // be recovered by hand, and this session carries on with an empty world rather
+                // than refusing to run.
+                _log.LogError("Saved world could not be read (" + ex.Message + "). The chunk has "
+                              + "been left alone; starting empty for this session.");
                 return new NarrativeWorldState((ulong)(EClass.game?.seed ?? 0));
             }
         }
 
-        private void Persist()
+        private void Persist(GameIOContext context)
         {
-            if (_world == null)
+            if (_world == null || context == null)
             {
                 return;
             }
 
             try
             {
-                SavedWorld = WorldStateSerializer.Save(_world, indented: false);
+                context.Save(ModInfo.SaveChunk, WorldStateSerializer.Save(_world, indented: false), null);
+                _log.LogInfo("Saved " + _world.Ledger.Count + " events into chunk '" + ModInfo.SaveChunk + "'.");
             }
             catch (Exception ex)
             {

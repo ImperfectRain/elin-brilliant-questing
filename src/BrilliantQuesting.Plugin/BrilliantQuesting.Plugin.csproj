@@ -45,6 +45,11 @@
       <HintPath>$(ElinLib)\Plugins.Modding.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- Ships with the game; needed only because GameIOContext's signatures mention it. -->
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(ElinLib)\Newtonsoft.Json.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>$(ElinLib)\UnityEngine.dll</HintPath>
       <Private>false</Private>
