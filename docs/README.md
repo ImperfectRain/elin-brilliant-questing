@@ -5,6 +5,7 @@ out to disagree.
 
 | | |
 |---|---|
+| [`implementation-roadmap.md`](implementation-roadmap.md) | **The plan.** Ordered, commit-sized steps from here to launch, with checkpoints, a system ledger, and an index proving every idea in every design document has a place. Start here. |
 | [`design/master-design.md`](design/master-design.md) | The vision and the non-negotiable principles. Everything else serves this. A generated mirror of the `.docx` beside it, which is the source of truth. |
 | [`design/post-master-findings.md`](design/post-master-findings.md) | Design reasoning developed after the master document: content classes, mechanical coverage, adventurer ecology, the shared action resolver, mod-ecosystem lessons, and the implementation doctrine. Three claims in it are marked **[superseded]**. |
 | [`design/living-world-priorities.md`](design/living-world-priorities.md) | Third design reference: runtime-grounded priorities, player-facing UX doctrine, safe vanilla mutation, procedural locations, fun-first rules, and a priority roadmap from the current state. |
@@ -13,8 +14,8 @@ out to disagree.
 | [`elin-api-notes.md`](elin-api-notes.md) | What the shipped assemblies actually expose, read with `tools/ApiDump`. **Authoritative on runtime facts** - where a design document disagrees with this, this wins. |
 | [`elin-element-aliases.md`](elin-element-aliases.md) | The verified element alias table, read from a running game. Attributes, skills, Home Skills, policies. Data, not code - it cannot be recovered from the assembly. |
 | [`plugin-build.md`](plugin-build.md) | Populating `lib/` from your own install, building the plugin, installing it, and the two-step activation that is easy to miss. |
-| [`handoff-drama-projection.md`](handoff-drama-projection.md) | Brief for the next piece of work: making the scenario playable through Drama. Written to be handed to an agent starting cold. |
-| [`roadmap.md`](roadmap.md) | Phases, gates, and an honest account of what is done. |
+| [`handoff-drama-projection.md`](handoff-drama-projection.md) | Cold-start brief written for the Drama projection work, which has since landed. Kept for its traps-and-constraints section, which still applies to any new contributor. |
+| [`roadmap.md`](roadmap.md) | Historical record of the original phases and the Gate A/B evidence. Superseded for planning by `implementation-roadmap.md`. |
 
 ## Conventions
 

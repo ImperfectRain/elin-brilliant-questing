@@ -1,3 +1,7 @@
+> **Superseded for planning.** [`implementation-roadmap.md`](implementation-roadmap.md) is the
+> single ordered plan. This file is kept as the historical record of the original phase structure
+> and the evidence for Gates A and B.
+
 # Roadmap
 
 Phases and gates follow the master design document. This file tracks what is actually done.

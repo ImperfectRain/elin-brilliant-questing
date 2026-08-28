@@ -1,3 +1,8 @@
+> **The task described here has landed.** Drama projection is implemented. This brief is kept
+> because its "traps this project already hit" section still applies to every new contributor, and
+> because it records what the project looked like immediately before that work. For what to do next,
+> see [`implementation-roadmap.md`](implementation-roadmap.md).
+
 # Handoff: make the procedural scenario playable through dialogue
 
 For an agent continuing this work in a fresh session. Everything referenced here is committed on
