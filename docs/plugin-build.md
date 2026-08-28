@@ -117,7 +117,6 @@ all-or-nothing with a diagnostic, and every callback is guarded.
   portable resolver where it does not. Both paths produce the same four outcomes.
 - Stages generated characters and items as ordinary Chara and Thing objects.
 - Persists the whole procedural world into the save as the `brilliantQuesting` chunk.
-
 - Offers its verbs through ordinary Elin dialogue. Talking to a staged NPC adds Brilliant
   Questing options to the generic conversation, each labelled with vanilla's own difficulty
   wording, resolving through the action library and changing the world.
@@ -143,8 +142,7 @@ It runs on `PostLoad`, once, and only when the world has no threads yet — so a
 ran it will not run it again. It also refuses to run when attributes or skills are unavailable,
 because every check would read zero and the result would mean nothing.
 
-It runs on `PostLoad`, once. The log then contains, in order: the generated truth and who knows
-it; the three staged NPCs read back through the adapter (level, affinity, PER, WIL, inventory
+The log then contains, in order: the generated truth and who knows it; the three staged NPCs read back through the adapter (level, affinity, PER, WIL, inventory
 count); and every verb the world permits against each of them plus the reason for each it refuses.
 
 The verbs are no longer played by the test. **Walk up to a staged NPC and talk to them** - the
