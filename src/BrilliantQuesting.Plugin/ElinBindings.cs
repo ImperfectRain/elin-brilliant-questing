@@ -41,7 +41,7 @@ namespace BrilliantQuesting.Plugin
                     continue;
                 }
 
-                Chara match = FindUniqueLoadedCharaByName(npc.Name);
+                Chara match = FindStagedChara(npc.Name);
                 if (match != null)
                 {
                     Bind(npc.Id, match.uid);
@@ -82,7 +82,16 @@ namespace BrilliantQuesting.Plugin
             return EClass.game?.cards?.Find(uid);
         }
 
-        private static Chara FindUniqueLoadedCharaByName(string name)
+        /// <summary>
+        /// Recovers a binding lost before the stager began writing `VanillaCharaRef`.
+        ///
+        /// It matches on `c_altName` only, because that is the field the stager sets on the
+        /// characters it creates. Matching a display name as well would let the simulation adopt
+        /// an ordinary villager who merely shares a generated name, and everything downstream -
+        /// rewritten dialogue, forced relocation, affinity and karma writes - would then land on
+        /// a character the mod does not own. A tie is refused rather than guessed.
+        /// </summary>
+        private static Chara FindStagedChara(string name)
         {
             if (string.IsNullOrEmpty(name) || EClass._map?.charas == null)
             {
@@ -92,12 +101,7 @@ namespace BrilliantQuesting.Plugin
             Chara match = null;
             foreach (Chara chara in EClass._map.charas)
             {
-                if (chara == null || chara.isDead)
-                {
-                    continue;
-                }
-
-                if (chara.c_altName != name && chara.Name != name)
+                if (chara == null || chara.isDead || chara.c_altName != name)
                 {
                     continue;
                 }

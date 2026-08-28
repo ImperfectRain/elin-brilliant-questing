@@ -32,7 +32,6 @@ namespace BrilliantQuesting.Plugin
         private readonly ElinCheckResolver _checks;
         private readonly ActionRegistry _actions;
         private readonly ManualLogSource _log;
-        private readonly DeterministicRng _rng;
 
         internal DramaChoiceProjector(
             NarrativeWorldState world,
@@ -48,7 +47,6 @@ namespace BrilliantQuesting.Plugin
             _checks = checks;
             _actions = actions;
             _log = log;
-            _rng = world.Rng.Fork("drama");
         }
 
         internal static DramaChoiceProjector Current { get; set; }
@@ -150,7 +148,7 @@ namespace BrilliantQuesting.Plugin
 
         internal void ProjectChoices(DramaManager manager, DramaEventTalk talk)
         {
-            if (_world == null || manager?.tg?.chara == null || talk == null)
+            if (_world == null || manager?.tg?.chara == null || talk == null || !IsDefaultTalk(manager))
             {
                 return;
             }
@@ -166,46 +164,53 @@ namespace BrilliantQuesting.Plugin
                 return;
             }
 
-            ApplySituationText(talk, thread, target, subjectFact);
-
             if (AlreadyProjected(talk))
             {
                 return;
             }
 
-            ActionContext context = Context(thread, target, subjectFact, subjectItem);
-            List<ActionOffer> offers = _actions.Discover(context, includeUnavailable: true);
-            DramaChoice notes = new DramaChoice("BQ: Review case notes", "", "bq:notes", "", "")
-                .SetOnClick(() => ShowCaseNotes(thread, subjectFact));
-            talk.AddChoice(notes);
-            int added = 0;
+            ApplySituationText(talk, target);
 
-            foreach (ActionOffer offer in offers)
+            ActionContext context = Context(thread, target, subjectFact, subjectItem);
+            List<ActionOffer> available = new List<ActionOffer>();
+            foreach (ActionOffer offer in _actions.Discover(context, includeUnavailable: true))
             {
-                if (!offer.Availability.IsAvailable)
+                if (offer.Availability.IsAvailable)
+                {
+                    available.Add(offer);
+                }
+                else
                 {
                     _log.LogInfo("Drama hides " + offer.Action.Id + " vs " + _world.Registry.NameOf(target)
                                  + ": " + offer.Availability.Reason);
-                    continue;
                 }
-
-                if (added >= MaxChoices)
-                {
-                    break;
-                }
-
-                NarrativeAction actionToRun = offer.Action;
-                string text = SafeChoiceText(actionToRun, context);
-                DramaChoice choice = new DramaChoice(text, "", "bq:" + actionToRun.Id, "", "")
-                    .SetOnClick(() => Perform(manager, thread, target, subjectFact, subjectItem, actionToRun));
-                talk.AddChoice(choice);
-                added++;
             }
 
-            if (added > 0)
+            DramaChoice notes = new DramaChoice("BQ: Review case notes", "", "bq:notes", "", "")
+                .SetOnClick(() => ShowCaseNotes(target));
+            talk.AddChoice(notes);
+
+            List<ActionOffer> offered = OfferPresentation.TakeForDisplay(available, MaxChoices);
+            for (int i = 0; i < offered.Count; i++)
             {
-                _log.LogInfo("Projected " + added + " Brilliant Questing option(s) for "
+                NarrativeAction actionToRun = offered[i].Action;
+                string text = SafeChoiceText(actionToRun, context);
+                DramaChoice choice = new DramaChoice(text, "", "bq:" + actionToRun.Id, "", "")
+                    .SetOnClick(() => Perform(manager, target, actionToRun));
+                talk.AddChoice(choice);
+            }
+
+            if (offered.Count > 0)
+            {
+                _log.LogInfo("Projected " + offered.Count + " Brilliant Questing option(s) for "
                              + _world.Registry.NameOf(target) + ".");
+            }
+
+            if (available.Count > offered.Count)
+            {
+                _log.LogInfo("Drama held back " + (available.Count - offered.Count)
+                             + " lower-priority option(s) for " + _world.Registry.NameOf(target)
+                             + " to stay within " + MaxChoices + " choices.");
             }
         }
 
@@ -222,23 +227,40 @@ namespace BrilliantQuesting.Plugin
             }
         }
 
-        private void ShowCaseNotes(NarrativeThread thread, EntityId theftFactId)
+        private void ShowCaseNotes(EntityId target)
         {
-            string notes = CaseNotes(thread, theftFactId);
+            NarrativeThread thread = FindThread(target);
+            if (thread == null || !TryBuildFocus(thread, out EntityId subjectFact, out _))
+            {
+                Msg.SayRaw("Case notes: nothing open here any more.");
+                return;
+            }
+
+            string notes = CaseNotes(thread, subjectFact);
             Msg.SayRaw(notes);
             _log.LogInfo("Case notes shown: " + notes);
         }
 
-        private void Perform(
-            DramaManager manager,
-            NarrativeThread thread,
-            EntityId target,
-            EntityId subjectFact,
-            EntityId subjectItem,
-            NarrativeAction action)
+        /// <summary>
+        /// Rediscovers the live focus before acting. A projected choice sits on a node that can
+        /// outlive the situation it was built for, so the thread, the fact and the item are read
+        /// again here rather than captured when the button was drawn. Only the NPC is carried
+        /// across, because that is the one thing the player actually chose.
+        /// </summary>
+        private void Perform(DramaManager manager, EntityId target, NarrativeAction action)
         {
             try
             {
+                NarrativeThread thread = FindThread(target);
+                if (thread == null || !TryBuildFocus(thread, out EntityId subjectFact, out EntityId subjectItem))
+                {
+                    Msg.SayRaw(action.Label + ": that matter is settled.");
+                    _log.LogInfo("Drama dropped " + action.Id + " vs " + _world.Registry.NameOf(target)
+                                 + ": no live thread when the choice was clicked.");
+                    manager?.sequence?.Exit();
+                    return;
+                }
+
                 ActionContext context = Context(thread, target, subjectFact, subjectItem);
                 Availability availability = action.GetAvailability(context);
                 if (!availability.IsAvailable)
@@ -270,7 +292,11 @@ namespace BrilliantQuesting.Plugin
 
         private ActionContext Context(NarrativeThread thread, EntityId target, EntityId subjectFact, EntityId subjectItem)
         {
-            ActionContext context = new ActionContext(_world, _vanilla, _checks, _rng, _vanilla.PlayerId, target)
+            // The world RNG's state is persisted and restored with the save. A Fork is derived
+            // from the seed alone, so a forked stream restarts from the beginning every time the
+            // save is opened and replays the rolls it already made. Draw from the persisted
+            // stream instead, so reloading continues the sequence rather than repeating it.
+            ActionContext context = new ActionContext(_world, _vanilla, _checks, _world.Rng, _vanilla.PlayerId, target)
             {
                 Thread = thread,
                 SubjectFact = subjectFact,
@@ -356,23 +382,44 @@ namespace BrilliantQuesting.Plugin
             return string.IsNullOrEmpty(difficulty) ? text : text + " (" + difficulty + ")";
         }
 
-        private void ApplySituationText(DramaEventTalk talk, NarrativeThread thread, EntityId target, EntityId theftFactId)
+        /// <summary>
+        /// Installs the situation text as a live function rather than a captured string.
+        ///
+        /// `DramaEventTalk.Play` prefers `funcText` over `text`, and the node belongs to the game
+        /// rather than to us, so a snapshot keeps speaking after the thread resolves and after the
+        /// projector has been torn down. This re-reads the world on every render and hands the node
+        /// straight back to whatever it said before the moment the situation stops being ours.
+        /// </summary>
+        private void ApplySituationText(DramaEventTalk talk, EntityId target)
         {
-            string text = SituationText(thread, target, theftFactId);
-            if (string.IsNullOrEmpty(text) || talk.text == text)
+            string original = talk.text;
+            Func<string> originalFunc = talk.funcText;
+            talk.funcText = () => LiveSituationText(target) ?? (originalFunc != null ? originalFunc() : original);
+            _log.LogInfo("Applied Brilliant Questing situation text for " + _world.Registry.NameOf(target) + ".");
+        }
+
+        /// <summary>The situation text for this NPC right now, or null when we have nothing to say.</summary>
+        private string LiveSituationText(EntityId target)
+        {
+            if (_world == null || Current != this)
             {
-                return;
+                return null;
             }
 
-            talk.text = text;
-            talk.funcText = () => text;
-            _log.LogInfo("Applied Brilliant Questing situation text for " + _world.Registry.NameOf(target) + ".");
+            NarrativeThread thread = FindThread(target);
+            if (thread == null || !TryBuildFocus(thread, out EntityId subjectFact, out _))
+            {
+                return null;
+            }
+
+            string text = SituationText(thread, target, subjectFact);
+            return string.IsNullOrEmpty(text) ? null : text;
         }
 
         internal bool TryReplaceRenderedText(ref string text)
         {
             DramaManager manager = LayerDrama.Instance?.drama;
-            if (_world == null || manager?.tg?.chara == null)
+            if (_world == null || manager?.tg?.chara == null || !IsDefaultTalk(manager))
             {
                 return false;
             }
@@ -412,12 +459,15 @@ namespace BrilliantQuesting.Plugin
             string victimName = _world.Registry.NameOf(victim);
             string thiefName = _world.Registry.NameOf(theft.Subject);
             string targetName = _world.Registry.NameOf(target);
-            string item = string.IsNullOrEmpty(theft.Value) ? "a missing item" : theft.Value;
+            bool named = !string.IsNullOrEmpty(theft.Value);
+            string anItem = named ? "a " + theft.Value : "something";
+            string theItem = named ? "the " + theft.Value : "it";
+            string theMissing = named ? "the missing " + theft.Value : "the missing property";
 
             List<string> lines = new List<string>
             {
                 "A local theft is unfolding.",
-                victimName + " is missing " + item + ". Someone nearby knows more than they are saying."
+                victimName + " is missing " + anItem + ". Someone nearby knows more than they are saying."
             };
 
             if (target == victim)
@@ -426,7 +476,7 @@ namespace BrilliantQuesting.Plugin
             }
             else if (target == theft.Subject && _world.Knowledge.Knows(_vanilla.PlayerId, theftFactId))
             {
-                lines.Add(targetName + " is tied to the missing " + item + ". Press carefully: confession, proof, theft, or leverage could all move this forward.");
+                lines.Add(targetName + " is tied to " + theMissing + ". Press carefully: confession, proof, theft, or leverage could all move this forward.");
             }
             else if (target == witness)
             {
@@ -442,11 +492,11 @@ namespace BrilliantQuesting.Plugin
                 string proof = _world.Knowledge.CanProve(_vanilla.PlayerId, theftFactId)
                     ? "You can prove it."
                     : "You know the claim, but still lack proof.";
-                lines.Add("Current lead: " + thiefName + " stole the " + item + ". " + proof);
+                lines.Add("Current lead: " + thiefName + " stole " + theItem + ". " + proof);
             }
             else
             {
-                lines.Add("Objective: learn who took the " + item + ", find proof if possible, then decide whether to expose them, return it, keep it, or let the dispute run.");
+                lines.Add("Objective: learn who took " + theItem + ", find proof if possible, then decide whether to expose them, return it, keep it, or let the dispute run.");
             }
 
             if (thread.OpenQuestions.Count > 0)
@@ -467,10 +517,12 @@ namespace BrilliantQuesting.Plugin
 
             EntityId victim = FindVictim(thread, theft.Object);
             EntityId witness = FindWitness(theftFactId, theft.Subject);
-            string item = string.IsNullOrEmpty(theft.Value) ? "the missing item" : theft.Value;
+            bool named = !string.IsNullOrEmpty(theft.Value);
+            string anItem = named ? "a " + theft.Value : "something";
+            string theItem = named ? "the " + theft.Value : "it";
             bool playerKnows = _world.Knowledge.Knows(_vanilla.PlayerId, theftFactId);
             string lead = _world.Knowledge.Knows(_vanilla.PlayerId, theftFactId)
-                ? "Lead: " + _world.Registry.NameOf(theft.Subject) + " took " + item + "."
+                ? "Lead: " + _world.Registry.NameOf(theft.Subject) + " took " + theItem + "."
                 : "Lead: unknown.";
             string proof = _world.Knowledge.CanProve(_vanilla.PlayerId, theftFactId)
                 ? "Proof: you have evidence."
@@ -478,7 +530,7 @@ namespace BrilliantQuesting.Plugin
 
             List<string> lines = new List<string>
             {
-                "Case notes: " + _world.Registry.NameOf(victim) + " is missing " + item + ".",
+                "Case notes: " + _world.Registry.NameOf(victim) + " is missing " + anItem + ".",
                 "People: " + _world.Registry.NameOf(victim) + " lost it; "
                 + _world.Registry.NameOf(witness) + " may have seen something; "
                 + (playerKnows
@@ -557,6 +609,23 @@ namespace BrilliantQuesting.Plugin
                 case "frame": return ProceduralCheckProfiles.Fabrication;
                 default: return null;
             }
+        }
+
+        /// <summary>
+        /// True only for Elin's ordinary "talk to someone" conversation.
+        ///
+        /// `Chara.ShowDialog` opens that as book `_chara`, step `main`. Everything authored passes
+        /// something else - a quest names its own book, guild clerks use `guild_clerk`, weddings
+        /// and worship use `_adv`, a character with its own sheet uses its id, and `_chara` itself
+        /// is reused with other steps for sleeping, escorts, bouts and hiring. Gating on the
+        /// generic conversation is what keeps the mod out of dialogue somebody wrote.
+        /// </summary>
+        private static bool IsDefaultTalk(DramaManager manager)
+        {
+            DramaSetup setup = manager?.setup;
+            return setup != null
+                   && string.Equals(setup.book, "_chara", StringComparison.Ordinal)
+                   && string.Equals(setup.step, "main", StringComparison.Ordinal);
         }
 
         private static string FirstAction(Dictionary<string, string> line)

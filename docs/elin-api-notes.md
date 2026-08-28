@@ -125,6 +125,35 @@ Three of those are roadmap items answered before they were started:
   the built-in `_choices` action is processed.
 - **`CharaCreated`** — bind a generated Chara to its `EntityId` at the moment it exists.
 
+## Identifying the generic conversation
+
+Read off `Chara.ShowDialog` / `Chara._ShowDialog` / `LayerDrama.Activate` in the 28 Aug 2026 build.
+Every Drama is opened with a **book**, a **sheet** and a **step**, reachable at runtime as
+`DramaManager.setup.book` / `.sheet` / `.step`.
+
+The ordinary "talk to someone" conversation is **book `_chara`, step `main`** — `ShowDialog`'s
+defaults. Everything authored passes something else:
+
+| What | Book | Step |
+|---|---|---|
+| Generic conversation | `_chara` | `main` |
+| Talking to the player | `_chara` | `pc` |
+| Sleeping, invisible, escort, strain, gift, lunch | `_chara` | `sleep`, `invisible`, `escort`, … |
+| Hiring from the board | `_chara` | `4-1` |
+| Quest success / failure | `_chara` | `quest_success` / `quest_fail` |
+| Arena bout result | `_chara` | `bout_win` / `bout_lose` |
+| Maid meeting | `_chara` | `meeting` |
+| A character with its own sheet | its `id` | `main` |
+| Guild doorman / clerk | `guild_doorman` / `guild_clerk` | `main` |
+| Marriage, wedding, worship | `_adv` | `marry`, `wedding`, `worship` |
+| Main story | `_main` | per row |
+| Quest with its own drama | `source.drama[0]` | `source.drama[1]` |
+
+**Why this matters.** A mod that injects into dialogue must gate on book *and* step. Gating on the
+NPC alone means overwriting authored quest, guild and wedding dialogue for anyone the mod is
+tracking — `_chara` is itself reused for a dozen non-generic situations, so the book alone is not
+enough either.
+
 ## Mod save data
 
 ```

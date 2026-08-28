@@ -67,9 +67,10 @@ namespace BrilliantQuesting.Plugin
             _gatherPrototypeNpcs = Config.Bind(
                 "Testing",
                 "GatherPrototypeNpcsNearPlayer",
-                true,
+                false,
                 "Move live NPCs participating in the current petty-theft prototype near the player "
-                + "on load. This is a temporary playtest aid for the prototype scenario.");
+                + "on load. Relocates characters in the loaded save, so it is off by default and "
+                + "is a playtest aid for a throwaway save, not a feature.");
 
             // Elin publishes its own lifecycle. Subscribing to it beats both polling in Update and
             // Harmony-patching the load path: it is the same route the game's bundled Scripting
