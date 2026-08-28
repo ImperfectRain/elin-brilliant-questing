@@ -169,6 +169,33 @@ namespace BrilliantQuesting.Plugin
 
         public bool Supports(VanillaCapability capability) => _capabilities.Contains(capability);
 
+        /// <summary>
+        /// The largest single step any one consequence may take. Nothing the simulation does moves
+        /// standing by more than a handful of points, so a value outside this band is a bug
+        /// upstream - an uninitialised field, a runaway loop, an overflow - and applying it would
+        /// wreck a save that the player cannot repair. Refused loudly rather than clamped, because
+        /// a clamped write hides the bug and still lies to the simulation about what happened.
+        /// </summary>
+        private const int MaxStandingStep = 1000;
+
+        private bool WithinBand(string what, int delta)
+        {
+            if (delta >= -MaxStandingStep && delta <= MaxStandingStep)
+            {
+                return true;
+            }
+
+            Refuse("change " + what, "a step of " + delta + " is outside +/-" + MaxStandingStep
+                                     + "; treating it as a bug rather than an intention");
+            return false;
+        }
+
+        /// <summary>Every refused write says so. A write that quietly does nothing is unfindable.</summary>
+        private void Refuse(string what, string why)
+        {
+            _log.LogWarning("Refused to " + what + ": " + why + ".");
+        }
+
         private void Probe(VanillaCapability capability, Func<string> evidence)
         {
             try
@@ -277,8 +304,19 @@ namespace BrilliantQuesting.Plugin
 
         public void ChangeAffinity(EntityId chara, int delta)
         {
+            if (delta == 0 || !Supports(VanillaCapability.ReadWriteAffinity))
+            {
+                return;
+            }
+
             Chara c = _bindings.ResolveChara(chara);
-            if (c == null || delta == 0)
+            if (c == null || c.isDead)
+            {
+                Refuse("change affinity", chara + " is not a live character");
+                return;
+            }
+
+            if (!WithinBand("affinity", delta))
             {
                 return;
             }
@@ -294,20 +332,24 @@ namespace BrilliantQuesting.Plugin
 
         public void ChangeKarma(int delta)
         {
-            if (delta != 0)
+            if (delta == 0 || !Supports(VanillaCapability.ReadWriteKarma) || !WithinBand("karma", delta))
             {
-                EClass.player?.ModKarma(delta);
+                return;
             }
+
+            EClass.player?.ModKarma(delta);
         }
 
         public int Fame => EClass.player?.fame ?? 0;
 
         public void ChangeFame(int delta)
         {
-            if (delta != 0)
+            if (delta == 0 || !Supports(VanillaCapability.ReadWriteFame) || !WithinBand("fame", delta))
             {
-                EClass.player?.ModFame(delta);
+                return;
             }
+
+            EClass.player?.ModFame(delta);
         }
 
         /// <summary>
@@ -328,9 +370,18 @@ namespace BrilliantQuesting.Plugin
 
         public void ChangeInfluence(EntityId townId, int delta)
         {
-            if (delta != 0)
+            if (delta == 0 || !Supports(VanillaCapability.ReadWriteInfluence) || !WithinBand("influence", delta))
             {
-                EClass.pc?.ModCurrency(delta, InfluenceCurrency);
+                return;
+            }
+
+            // ModCurrency will not take a balance below zero for us, so clamp the spend to what
+            // is actually there rather than asking the game to go negative.
+            int held = EClass.pc?.GetCurrency(InfluenceCurrency) ?? 0;
+            int applied = delta < 0 && held + delta < 0 ? -held : delta;
+            if (applied != 0)
+            {
+                EClass.pc?.ModCurrency(applied, InfluenceCurrency);
             }
         }
 
@@ -377,21 +428,46 @@ namespace BrilliantQuesting.Plugin
             return c?.GetCurrency(MoneyCurrency) ?? 0;
         }
 
+        /// <summary>
+        /// Moves money, or refuses. Both ends are resolved before either is touched.
+        ///
+        /// The earlier version debited the payer, then resolved the payee, then credited it if it
+        /// happened to be there - so a payee who had died, wandered off or was never bound
+        /// destroyed the money and the method still reported success. A named payee that cannot be
+        /// found is now a refusal. An unnamed one is a deliberate sink, which is how the contract
+        /// reads in <c>SandboxVanillaState</c>: a fine or a bribe can leave the world.
+        /// </summary>
         public bool TrySpendMoney(EntityId payer, EntityId payee, int amount)
         {
-            if (amount < 0)
+            if (amount < 0 || !Supports(VanillaCapability.SpendMoney))
             {
                 return false;
             }
 
             Chara from = _bindings.ResolveChara(payer);
-            if (from == null || from.GetCurrency(MoneyCurrency) < amount)
+            if (from == null)
+            {
+                Refuse("spend money", "payer " + payer + " is not bound to a live character");
+                return false;
+            }
+
+            Chara to = null;
+            if (!payee.IsNone)
+            {
+                to = _bindings.ResolveChara(payee);
+                if (to == null)
+                {
+                    Refuse("spend money", "payee " + payee + " is not bound to a live character");
+                    return false;
+                }
+            }
+
+            if (from.GetCurrency(MoneyCurrency) < amount)
             {
                 return false;
             }
 
             from.ModCurrency(-amount, MoneyCurrency);
-            Chara to = _bindings.ResolveChara(payee);
             to?.ModCurrency(amount, MoneyCurrency);
             return true;
         }
@@ -412,19 +488,43 @@ namespace BrilliantQuesting.Plugin
                     continue;
                 }
 
-                EntityId id = EntityIdFor(thing);
-                items.Add(new ItemDescriptor(id, thing.Name, thing.category?.id ?? string.Empty, thing.GetPrice(CurrencyType.Money, false, PriceType.Default, null)));
+                try
+                {
+                    EntityId id = EntityIdFor(thing);
+                    items.Add(new ItemDescriptor(id, thing.Name, thing.category?.id ?? string.Empty, thing.GetPrice(CurrencyType.Money, false, PriceType.Default, null)));
+                }
+                catch (Exception ex)
+                {
+                    // One unreadable object must not empty somebody's inventory as far as the
+                    // simulation is concerned - that would silently make a theft impossible.
+                    _log.LogWarning("Skipped an unreadable item on " + c.Name + " ("
+                                    + ex.GetType().Name + ").");
+                }
             }
 
             return items;
         }
 
+        /// <summary>
+        /// Moves a real object between two real inventories, and reports whether it arrived.
+        ///
+        /// <c>Pick</c> can decline - weight, capacity, a container that will not take the thing -
+        /// and says so only by leaving the item where it was. Reporting success without looking
+        /// would tell the simulation an item changed hands when it did not, and every fact,
+        /// consequence and piece of evidence downstream would be built on that.
+        /// </summary>
         public bool TryTransferItem(EntityId itemId, EntityId from, EntityId to)
         {
+            if (!Supports(VanillaCapability.TransferItems) || from == to)
+            {
+                return false;
+            }
+
             Chara source = _bindings.ResolveChara(from);
             Chara destination = _bindings.ResolveChara(to);
             if (source == null || destination == null)
             {
+                Refuse("transfer item", "one end of " + from + " -> " + to + " is not bound to a live character");
                 return false;
             }
 
@@ -434,8 +534,26 @@ namespace BrilliantQuesting.Plugin
                 return false;
             }
 
-            destination.Pick(thing, false, true);
-            return true;
+            try
+            {
+                destination.Pick(thing, false, true);
+            }
+            catch (Exception ex)
+            {
+                Refuse("transfer item", thing.Name + " could not be picked up (" + ex.GetType().Name + ")");
+                return false;
+            }
+
+            // Ask the world rather than trusting the call: the item has moved only if the source
+            // no longer holds it and the destination does.
+            bool arrived = _bindings.ResolveThing(itemId, source) == null
+                           && _bindings.ResolveThing(itemId, destination) != null;
+            if (!arrived)
+            {
+                Refuse("transfer item", thing.Name + " did not reach " + destination.Name);
+            }
+
+            return arrived;
         }
 
         // -- world ----------------------------------------------------------------------------

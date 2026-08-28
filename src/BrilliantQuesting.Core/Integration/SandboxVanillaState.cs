@@ -153,13 +153,30 @@ namespace BrilliantQuesting.Integration
 
         public void ChangeAffinity(EntityId chara, int delta)
         {
+            if (delta == 0 || !Supports(VanillaCapability.ReadWriteAffinity))
+            {
+                return;
+            }
+
             CharaState state = Ensure(chara);
             state.Affinity = Clamp(state.Affinity + delta, -200, 1000);
         }
 
-        public void ChangeKarma(int delta) => Karma = Clamp(Karma + delta, -100, 100);
+        public void ChangeKarma(int delta)
+        {
+            if (delta != 0 && Supports(VanillaCapability.ReadWriteKarma))
+            {
+                Karma = Clamp(Karma + delta, -100, 100);
+            }
+        }
 
-        public void ChangeFame(int delta) => Fame = Math.Max(0, Fame + delta);
+        public void ChangeFame(int delta)
+        {
+            if (delta != 0 && Supports(VanillaCapability.ReadWriteFame))
+            {
+                Fame = Math.Max(0, Fame + delta);
+            }
+        }
 
         public int GetInfluence(EntityId townId)
         {
@@ -169,7 +186,10 @@ namespace BrilliantQuesting.Integration
 
         public void ChangeInfluence(EntityId townId, int delta)
         {
-            _influence[townId] = Math.Max(0, GetInfluence(townId) + delta);
+            if (delta != 0 && Supports(VanillaCapability.ReadWriteInfluence))
+            {
+                _influence[townId] = Math.Max(0, GetInfluence(townId) + delta);
+            }
         }
 
         public bool IsGuildMember(GuildId guild) => GetGuildRank(guild) > 0;
@@ -186,23 +206,28 @@ namespace BrilliantQuesting.Integration
 
         public int GetMoney(EntityId owner) => Ensure(owner).Money;
 
+        /// <summary>
+        /// Money is conserved or the call is refused; it is never half-applied. An unnamed payee
+        /// is a deliberate sink - a fine, a tithe, money that leaves the world.
+        /// </summary>
         public bool TrySpendMoney(EntityId payer, EntityId payee, int amount)
         {
-            if (amount < 0)
+            if (amount < 0 || !Supports(VanillaCapability.SpendMoney))
             {
                 return false;
             }
 
             CharaState from = Ensure(payer);
-            if (from.Money < amount)
+            CharaState to = payee.IsNone ? null : Ensure(payee);
+            if (from == to || from.Money < amount)
             {
                 return false;
             }
 
             from.Money -= amount;
-            if (!payee.IsNone)
+            if (to != null)
             {
-                Ensure(payee).Money += amount;
+                to.Money += amount;
             }
 
             return true;
@@ -210,8 +235,22 @@ namespace BrilliantQuesting.Integration
 
         public IReadOnlyList<ItemDescriptor> GetInventory(EntityId owner) => Ensure(owner).Inventory;
 
+        /// <summary>
+        /// An item is in exactly one inventory before and after. A transfer that cannot happen
+        /// reports false and moves nothing.
+        /// </summary>
         public bool TryTransferItem(EntityId itemId, EntityId from, EntityId to)
         {
+            // Both ends must be somebody. An item handed to nobody is a real object deleted from
+            // the world, and the fact written about it afterwards would name a person who is not
+            // there. The live adapter refuses this by failing to resolve the Chara; the contract
+            // says so explicitly rather than relying on that.
+            if (!Supports(VanillaCapability.TransferItems)
+                || from == to || itemId.IsNone || from.IsNone || to.IsNone)
+            {
+                return false;
+            }
+
             List<ItemDescriptor> source = Ensure(from).Inventory;
             for (int i = 0; i < source.Count; i++)
             {
