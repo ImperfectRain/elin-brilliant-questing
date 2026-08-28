@@ -1,3 +1,4 @@
+using System;
 using BrilliantQuesting.Checks;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
@@ -65,6 +66,63 @@ namespace BrilliantQuesting.Tests
         }
 
         [Fact]
+        public void ProfileDiceAndCriticalWindowsAreHonoured()
+        {
+            SandboxVanillaState vanilla = World();
+            VanillaStyleCheckResolver resolver = new VanillaStyleCheckResolver(vanilla);
+            CheckProfile profile = new CheckProfile("test_small_die", 99).WithDice(6, critRange: 2, fumbleRange: 2);
+            CheckRequest request = new CheckRequest(profile, Player, Guard);
+
+            Assert.Equal(CheckOutcome.CriticalFail, resolver.Resolve(request, RngThatRolls(6, 1)).Outcome);
+            Assert.Equal(CheckOutcome.CriticalFail, resolver.Resolve(request, RngThatRolls(6, 2)).Outcome);
+            Assert.Equal(CheckOutcome.Fail, resolver.Resolve(request, RngThatRolls(6, 3)).Outcome);
+            Assert.Equal(CheckOutcome.Fail, resolver.Resolve(request, RngThatRolls(6, 4)).Outcome);
+            Assert.Equal(CheckOutcome.CriticalPass, resolver.Resolve(request, RngThatRolls(6, 5)).Outcome);
+            Assert.Equal(CheckOutcome.CriticalPass, resolver.Resolve(request, RngThatRolls(6, 6)).Outcome);
+        }
+
+        [Fact]
+        public void InvalidDiceSettingsAreClampedToPlayableValues()
+        {
+            CheckProfile profile = new CheckProfile("test_bad_die", 10).WithDice(0, critRange: -3, fumbleRange: -2);
+
+            Assert.Equal(2, profile.Dice);
+            Assert.Equal(0, profile.CritRange);
+            Assert.Equal(0, profile.FumbleRange);
+        }
+
+        [Fact]
+        public void PortableSingleElementDistributionMatchesSourceCheckShape()
+        {
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.Define(Player, level: 5);
+            vanilla.Define(Guard, level: 12);
+            vanilla.SetSkill(Player, VanillaSkill.Negotiation, 18);
+            vanilla.SetAttribute(Guard, VanillaAttribute.Perception, 9);
+
+            CheckProfile profile = new CheckProfile("test_single_element", 14)
+                .WithActorSkill(VanillaSkill.Negotiation, 0.5)
+                .WithTargetAttribute(VanillaAttribute.Perception, 0.5)
+                .WithTargetLevel(0.25)
+                .WithDice(20, critRange: 1, fumbleRange: 1);
+            CheckRequest request = new CheckRequest(profile, Player, Guard).WithModifier("hard rain", 2);
+            VanillaStyleCheckResolver resolver = new VanillaStyleCheckResolver(vanilla);
+
+            int[] portable = new int[4];
+            int[] sourceCheckShape = new int[4];
+            for (ulong seed = 0; seed < 1000; seed++)
+            {
+                portable[(int)resolver.Resolve(request, new DeterministicRng(seed)).Outcome]++;
+                sourceCheckShape[(int)ResolveSingleElementLikeSourceCheck(request, vanilla, new DeterministicRng(seed))]++;
+            }
+
+            for (int i = 0; i < portable.Length; i++)
+            {
+                Assert.InRange(Math.Abs(portable[i] - sourceCheckShape[i]), 0, 1);
+            }
+        }
+
+        [Fact]
         public void SituationalModifiersAppearInTheExplanation()
         {
             SandboxVanillaState vanilla = World();
@@ -104,6 +162,71 @@ namespace BrilliantQuesting.Tests
                 .WithActorAttribute(VanillaAttribute.Charisma, 0.25)
                 .WithTargetAttribute(VanillaAttribute.Perception, 0.25);
             return new CheckRequest(profile, Player, Guard);
+        }
+
+        private static DeterministicRng RngThatRolls(int dice, int roll)
+        {
+            for (ulong seed = 0; seed < 10000; seed++)
+            {
+                DeterministicRng rng = new DeterministicRng(seed);
+                if (rng.Roll(dice) == roll)
+                {
+                    return new DeterministicRng(seed);
+                }
+            }
+
+            throw new InvalidOperationException("No seed found for roll " + roll + " on d" + dice + ".");
+        }
+
+        private static CheckOutcome ResolveSingleElementLikeSourceCheck(CheckRequest request, IVanillaState vanilla, DeterministicRng rng)
+        {
+            CheckProfile profile = request.Profile;
+            int dc = profile.BaseDifficulty;
+
+            if (!request.Target.IsNone && profile.TargetLevelWeight != 0.0)
+            {
+                dc += Scale(vanilla.GetLevel(request.Target), profile.TargetLevelWeight);
+            }
+
+            Assert.True(profile.ActorSkills.Count <= 1);
+            Assert.Empty(profile.ActorAttributes);
+            Assert.True(profile.TargetAttributes.Count <= 1);
+
+            if (!request.Target.IsNone && profile.TargetAttributes.Count == 1)
+            {
+                CheckProfile.WeightedAttribute resist = profile.TargetAttributes[0];
+                dc += Scale(vanilla.GetAttribute(request.Target, resist.Attribute), resist.Weight);
+            }
+
+            if (profile.ActorSkills.Count == 1)
+            {
+                CheckProfile.WeightedSkill skill = profile.ActorSkills[0];
+                dc -= Scale(vanilla.GetSkill(request.Actor, skill.Skill), skill.Weight);
+            }
+
+            foreach (SituationalModifier modifier in request.Modifiers)
+            {
+                dc += modifier.DcDelta;
+            }
+
+            int roll = rng.Roll(profile.Dice);
+            if (profile.CritRange > 0 && roll > profile.Dice - profile.CritRange)
+            {
+                return CheckOutcome.CriticalPass;
+            }
+
+            if (profile.FumbleRange > 0 && roll <= profile.FumbleRange)
+            {
+                return CheckOutcome.CriticalFail;
+            }
+
+            return roll >= dc ? CheckOutcome.Pass : CheckOutcome.Fail;
+        }
+
+        private static int Scale(int value, double weight)
+        {
+            double scaled = value * weight;
+            return (int)(scaled >= 0 ? scaled + 0.5 : scaled - 0.5);
         }
     }
 }
