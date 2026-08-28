@@ -241,6 +241,34 @@ namespace BrilliantQuesting.Tests
             Assert.Contains("try again with evidence", string.Join(" ", outcome.Notes));
         }
 
+        /// <summary>
+        /// Small talk does not compound forever. The first live run had a player choose rapport
+        /// three times in a row against the same person, banking affinity on each one.
+        /// </summary>
+        [Fact]
+        public void SmallTalkStopsBeingOfferedOnceItHasDoneAllItCan()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+            NarrativeAction rapport = lab.Actions.Get("rapport");
+
+            Assert.True(rapport.GetAvailability(FullContext(lab, lab.Situation.WitnessId)).IsAvailable);
+
+            for (int i = 0; i < 20; i++)
+            {
+                ActionContext context = FullContext(lab, lab.Situation.WitnessId);
+                if (!rapport.GetAvailability(context).IsAvailable)
+                {
+                    Availability closed = rapport.GetAvailability(context);
+                    Assert.Contains("as far as it will", closed.Reason);
+                    return;
+                }
+
+                rapport.Perform(context);
+            }
+
+            Assert.Fail("rapport never stopped being offered, so affinity can be farmed from one conversation");
+        }
+
         /// <summary>The offer warns before the money is spent, not after.</summary>
         [Fact]
         public void TheBribeOfferSaysWhenThereMayBeNothingToBuy()

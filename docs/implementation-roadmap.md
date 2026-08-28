@@ -69,7 +69,7 @@ persists to the save's `brilliantQuesting` chunk on `EVENT.PreSave`. Reads real 
 through the adapter — all 23 element aliases resolve, 12 of 13 capabilities available. A staged
 three-NPC theft can be entered through default talk, with procedural choices injected into Drama.
 
-**Working headless.** 159 tests. Deterministic simulation core: stable identity, event ledger,
+**Working headless.** 160 tests. Deterministic simulation core: stable identity, event ledger,
 fact/belief separation with provenance and provability, memory with consolidation, relationship
 graph, threads with milestone escalation, fourteen verbs across six solution families, four-outcome
 checks, versioned save with migration.

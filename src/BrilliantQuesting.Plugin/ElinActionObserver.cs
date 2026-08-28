@@ -125,6 +125,11 @@ namespace BrilliantQuesting.Plugin
                 return null;
             }
 
+            if (!IsWorthRecording(actor, target))
+            {
+                return null;
+            }
+
             EntityId actorId = EntityIdFor(actor);
             EntityId targetId = EntityIdFor(target);
             EntityId zone = _vanilla.GetZoneOf(actorId);
@@ -309,6 +314,42 @@ namespace BrilliantQuesting.Plugin
             int spotting = _vanilla.GetSkill(witnessId, VanillaSkill.SpotHidden);
             int detection = perception + spotting + Math.Max(0, maxDistance - distance);
             return detection >= actorStealth;
+        }
+
+        /// <summary>
+        /// Whether violence between these two is a story beat or just Elin happening.
+        ///
+        /// The first live run recorded four combat events in about a minute: a yeek swinging at
+        /// the player three times, and a guard shooting a gangster on the far side of town. None
+        /// of it means anything, and left alone a dungeon crawl would bury the ledger - and the
+        /// chronicle the player is eventually meant to read - under thousands of melee swings.
+        /// Mundane content is supposed to give the major beats their weight; a combat log is not
+        /// mundane content, it is noise.
+        ///
+        /// The rule is who the world already cared about before it saw this. Anything the player
+        /// does is theirs and is recorded. Otherwise both parties must already be known to the
+        /// simulation - staged, or drawn into a situation - which a wandering monster never is.
+        /// Whether a wider net is wanted is a director's decision and belongs to BQ-099.
+        /// </summary>
+        private bool IsWorthRecording(Chara actor, Chara target)
+        {
+            if (actor.IsPC)
+            {
+                return true;
+            }
+
+            return IsAlreadyKnown(actor) && IsAlreadyKnown(target);
+        }
+
+        /// <summary>
+        /// Known *before* this observation - deliberately not `EntityIdFor`, which would register
+        /// the character it was asked about and make everybody known the first time they swing.
+        /// </summary>
+        private bool IsAlreadyKnown(Chara chara)
+        {
+            return chara.IsPC
+                   || (_bindings.TryGetEntity(chara.uid, out EntityId id)
+                       && _world.Registry.GetNpc(id) != null);
         }
 
         private EntityId EntityIdFor(Chara chara)

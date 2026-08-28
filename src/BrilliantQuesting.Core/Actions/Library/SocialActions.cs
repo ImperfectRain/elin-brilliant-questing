@@ -17,11 +17,26 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>
+        /// How warm small talk can make somebody before it stops being small talk. Chosen low on
+        /// purpose: rapport is a way in, not a substitute for doing anything.
+        /// </summary>
+        private const int WarmthCeiling = 20;
+
         public override Availability GetAvailability(ActionContext context)
         {
             if (context.Target.IsNone || !context.Vanilla.IsAlive(context.Target))
             {
                 return Availability.NotRelevant("nobody to talk with");
+            }
+
+            // The first live run had a player choose this three times in a row against the same
+            // person, banking affinity each time. Pleasantries do not compound forever: past a
+            // point somebody is as well-disposed towards a near-stranger as small talk can make
+            // them, and going round again is the player farming a number rather than playing.
+            if (context.Affinity >= WarmthCeiling)
+            {
+                return Availability.NotRelevant("small talk has taken you as far as it will with them");
             }
 
             return Availability.Available();

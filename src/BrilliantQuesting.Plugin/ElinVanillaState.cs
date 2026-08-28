@@ -501,7 +501,7 @@ namespace BrilliantQuesting.Plugin
                 try
                 {
                     EntityId id = EntityIdFor(thing);
-                    items.Add(new ItemDescriptor(id, thing.Name, thing.category?.id ?? string.Empty, thing.GetPrice(CurrencyType.Money, false, PriceType.Default, null)));
+                    items.Add(new ItemDescriptor(id, BareName(thing.Name), thing.category?.id ?? string.Empty, thing.GetPrice(CurrencyType.Money, false, PriceType.Default, null)));
                 }
                 catch (Exception ex)
                 {
@@ -606,6 +606,32 @@ namespace BrilliantQuesting.Plugin
         /// An id for a thing the simulation has not seen before. Bound on first sight so that the
         /// same physical object keeps the same identity for the rest of the save.
         /// </summary>
+        /// <summary>
+        /// Elin item names arrive with their own article - "a paper engraved cup". The simulation
+        /// composes its own determiners around a bare noun, which is what let the first live run
+        /// say "You hand the A Paper Engraved Cup back to Tovar". Stripping it here rather than in
+        /// each line of prose keeps one rule in one place, at the seam where game text enters.
+        /// </summary>
+        private static string BareName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return name;
+            }
+
+            string[] articles = { "a ", "an ", "the " };
+            for (int i = 0; i < articles.Length; i++)
+            {
+                if (name.Length > articles[i].Length
+                    && name.StartsWith(articles[i], StringComparison.OrdinalIgnoreCase))
+                {
+                    return name.Substring(articles[i].Length);
+                }
+            }
+
+            return name;
+        }
+
         private EntityId EntityIdFor(Thing thing)
         {
             if (_bindings.TryGetEntity(thing.uid, out EntityId existing))
