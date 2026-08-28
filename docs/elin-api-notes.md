@@ -125,6 +125,25 @@ Three of those are roadmap items answered before they were started:
   the built-in `_choices` action is processed.
 - **`CharaCreated`** — bind a generated Chara to its `EntityId` at the moment it exists.
 
+## Why procedural checks resolve portably
+
+`Check.Get` reads all nine `proc_*` rows the mod installs, and yet every check in a live log is
+resolved by the portable resolver. That is the design, not a fault, and it confused two rounds of
+log reading before it was written down.
+
+A vanilla `SourceCheck.Row` is **single-element**: one actor element with a factor, one target
+element with a factor, one level modifier. Every procedural profile is deliberately composite -
+intimidation reads Negotiation, Charisma *and* Strength against Will, so that a mute bruiser has a
+social route - and composing that is the whole point of `CheckProfile`. So `ElinCheckResolver`
+refuses the native path for any profile with more than one actor element, which in practice is all
+of them.
+
+The rows still earn their place: `Check.GetText` gives the player **vanilla's own difficulty
+wording** on the dialogue option, in the game's language, rather than a number of ours.
+
+If that ever needs revisiting, the decision is one method - `CanResolveNatively` - and the log now
+names the resolver and the reason once per profile.
+
 ## Identifying the generic conversation
 
 Read off `Chara.ShowDialog` / `Chara._ShowDialog` / `LayerDrama.Activate` in the 28 Aug 2026 build.

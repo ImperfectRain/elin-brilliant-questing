@@ -43,11 +43,18 @@ namespace BrilliantQuesting.Plugin
         {
             if (!PreferNativeChecks)
             {
+                ReportPath(request.Profile.Id, "portable", "native checks are switched off");
                 return _fallback.Resolve(request, rng);
             }
 
             if (!CanResolveNatively(request.Profile))
             {
+                ReportPath(
+                    request.Profile.Id,
+                    "portable",
+                    "the profile is composite (" + request.Profile.ActorSkills.Count + " actor skill(s), "
+                    + request.Profile.ActorAttributes.Count + " actor attribute(s), "
+                    + request.Profile.TargetAttributes.Count + " target attribute(s)) and a vanilla row is single-element");
                 return _fallback.Resolve(request, rng);
             }
 
@@ -128,6 +135,18 @@ namespace BrilliantQuesting.Plugin
             }
         }
 
+        /// <summary>
+        /// A vanilla `SourceCheck` row is single-element: one actor element, one target element.
+        /// Every procedural profile is deliberately composite - intimidation reads Negotiation,
+        /// Charisma and Strength - so in practice none of them qualifies, and the rows installed
+        /// by BQ-006 earn their keep through `Check.GetText` alone, giving the player vanilla's
+        /// own difficulty wording over our arithmetic.
+        ///
+        /// That is the intended design and not a fault, but it was invisible: this branch fell
+        /// through to the fallback without saying anything, so a log full of portable traces sat
+        /// underneath nine lines reporting the rows as available and looked like a contradiction.
+        /// It now says which resolver ran and why.
+        /// </summary>
         private static bool CanResolveNatively(CheckProfile profile)
         {
             return profile.ActorSkills.Count <= 1
