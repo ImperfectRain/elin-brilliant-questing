@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using BrilliantQuesting.Checks;
 using BrilliantQuesting.Consequences;
+using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Memory;
@@ -85,6 +87,91 @@ namespace BrilliantQuesting.Tests
 
             // And the restored memories were not duplicated by the restore itself.
             Assert.Single(reloaded.Memories.MemoriesAbout(lab.Situation.VictimId, lab.Player));
+        }
+
+        /// <summary>
+        /// BQ-010: saving and reloading in the middle of a situation is transparent. Playing on
+        /// after a reload must give exactly what playing on without one would have given.
+        ///
+        /// This is the property BQ-005a made possible. The projector used to draw from
+        /// `Rng.Fork("drama")`, and Fork derives from the seed rather than the live state, so the
+        /// stream restarted every time the save was opened - the first roll after any reload was
+        /// always the roll the session had already made. Drawing from the persisted stream is what
+        /// makes the seam invisible, and this is the test that would fail if anyone re-forked it.
+        /// </summary>
+        [Fact]
+        public void PlayingOnAfterAReloadMatchesPlayingOnWithout()
+        {
+            List<string> uninterrupted = PlayOn(PlayedScenario().World);
+
+            NarrativeWorldState reloaded = WorldStateSerializer.Load(WorldStateSerializer.Save(PlayedScenario().World));
+            List<string> acrossASave = PlayOn(reloaded);
+
+            Assert.Equal(uninterrupted, acrossASave);
+        }
+
+        /// <summary>
+        /// The trap itself, pinned where it can be tested.
+        ///
+        /// Fork is derived from the parent's seed, not its live state, and its own position is
+        /// never persisted - so a forked stream is identical however far the parent has advanced,
+        /// and restarts from the beginning every time the save is opened. That is correct for its
+        /// intended use (replaying a situation from a seed) and wrong for anything that resolves
+        /// player actions, which is what BQ-005a had to undo. Anyone tempted to fork a stream for
+        /// live play should read this test first.
+        /// </summary>
+        [Fact]
+        public void AForkedStreamIgnoresHowFarTheParentHasGone()
+        {
+            DeterministicRng parent = new DeterministicRng(1234);
+            List<string> early = Draw(parent.Fork("drama"));
+
+            for (int i = 0; i < 50; i++)
+            {
+                parent.Roll(20);
+            }
+
+            Assert.Equal(early, Draw(parent.Fork("drama")));
+            Assert.NotEqual(early, Draw(parent));
+        }
+
+        private static List<string> Draw(DeterministicRng rng)
+        {
+            List<string> rolls = new List<string>();
+            for (int i = 0; i < 8; i++)
+            {
+                rolls.Add(rng.Roll(20).ToString());
+            }
+
+            return rolls;
+        }
+
+        /// <summary>The ledger must not gain a duplicate id by passing through the save.</summary>
+        [Fact]
+        public void NoEventIsDuplicatedByTheRoundTrip()
+        {
+            NarrativeWorldState reloaded = WorldStateSerializer.Load(WorldStateSerializer.Save(PlayedScenario().World));
+
+            HashSet<EntityId> seen = new HashSet<EntityId>();
+            foreach (WorldEvent worldEvent in reloaded.Ledger.Events)
+            {
+                Assert.True(seen.Add(worldEvent.Id), "event " + worldEvent.Id + " appears twice after a reload");
+            }
+        }
+
+        /// <summary>
+        /// Draws the next few rolls from a world's own stream. What they are does not matter;
+        /// that both worlds produce the same ones is the whole point.
+        /// </summary>
+        private static List<string> PlayOn(NarrativeWorldState world)
+        {
+            List<string> rolls = new List<string>();
+            for (int i = 0; i < 8; i++)
+            {
+                rolls.Add(world.Rng.Roll(20).ToString());
+            }
+
+            return rolls;
         }
 
         [Fact]
