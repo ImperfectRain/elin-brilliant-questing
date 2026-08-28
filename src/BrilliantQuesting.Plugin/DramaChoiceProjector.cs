@@ -159,6 +159,8 @@ namespace BrilliantQuesting.Plugin
                 return;
             }
 
+            AdvanceThreads?.Invoke();
+
             NarrativeThread thread = FindThread(target);
             if (thread == null || !TryBuildFocus(thread, out EntityId subjectFact, out EntityId subjectItem))
             {
@@ -251,6 +253,12 @@ namespace BrilliantQuesting.Plugin
 
         /// <summary>Set from config. The inspector is a developer tool, not player-facing text.</summary>
         internal bool ExplainInDialogue { get; set; }
+
+        /// <summary>
+        /// Brings threads up to the current date before anything is read off them. Without it the
+        /// player can be shown a situation that the calendar says has already moved on.
+        /// </summary>
+        internal Action AdvanceThreads { get; set; }
 
         /// <summary>
         /// BQ-012 in game: the whole "why?" report for whoever the player is standing in front of,

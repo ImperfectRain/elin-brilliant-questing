@@ -62,6 +62,46 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(ThreadState.Dormant, lab.Situation.Thread.State);
         }
 
+        /// <summary>
+        /// BQ-013 wires Advance onto every load and every Brilliant Questing conversation, so it
+        /// is called far more often than the calendar moves. Advancing without time passing must
+        /// change nothing at all - otherwise talking to somebody repeatedly would drive the
+        /// situation forward, which is the opposite of what escalation means.
+        /// </summary>
+        [Fact]
+        public void AdvancingWithoutTimePassingChangesNothing()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+            lab.AdvanceDays(3);
+
+            int stepsAfterADay = lab.Situation.Thread.CompletedSteps.Count;
+            int eventsAfterADay = lab.World.Ledger.Count;
+
+            for (int i = 0; i < 20; i++)
+            {
+                lab.Threads.Advance(lab.World, lab.Vanilla.Now);
+            }
+
+            Assert.Equal(stepsAfterADay, lab.Situation.Thread.CompletedSteps.Count);
+            Assert.Equal(eventsAfterADay, lab.World.Ledger.Count);
+        }
+
+        /// <summary>
+        /// A save closed for a fortnight owes every milestone in between, in order, on the load
+        /// that reopens it - not just the latest one.
+        /// </summary>
+        [Fact]
+        public void ALongAbsenceOwesEveryMilestoneInOrder()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+
+            lab.AdvanceDays(15);
+
+            Assert.Equal(
+                new List<string> { "victim_asks_around", "thief_hides_it", "witness_talks", "accusation", "feud" },
+                lab.Situation.Thread.CompletedSteps);
+        }
+
         [Fact]
         public void SolvingItEarlyStopsTheEscalationAndLeavesADifferentWorld()
         {

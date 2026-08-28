@@ -10,6 +10,7 @@ using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Persistence;
+using BrilliantQuesting.Situations;
 using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 
@@ -43,6 +44,7 @@ namespace BrilliantQuesting.Plugin
         private ConsequenceEngine _consequences;
         private ActionRegistry _actions;
         private DramaChoiceProjector _drama;
+        private ThreadEngine _threads;
 
         private bool _live;
         private ConfigEntry<bool> _stageTestScenario;
@@ -148,6 +150,12 @@ namespace BrilliantQuesting.Plugin
             };
             DramaChoiceProjector.Current = _drama;
 
+            _threads = new ThreadEngine();
+            _threads.Register(
+                PettyTheftSituation.ArchetypeId,
+                new PettyTheftEscalation(_vanilla, new RumorSystem(_world.Knowledge, _world.Ledger, _world.Ids)));
+            _drama.AdvanceThreads = AdvanceThreads;
+
             _consequences = new ConsequenceEngine(_world, _vanilla);
             _consequences.Attach();
 
@@ -155,6 +163,7 @@ namespace BrilliantQuesting.Plugin
                          + _world.Ledger.Count + " events, " + _world.Threads.Count + " threads.");
 
             EnsurePrototypeEvidenceExists();
+            AdvanceThreads();
             GatherPrototypeParticipantsNearPlayer();
             ReportPlayerState();
             ReportProceduralParticipants();
@@ -201,6 +210,47 @@ namespace BrilliantQuesting.Plugin
                          + "/" + _vanilla.IsGuildMember(GuildId.Merchants)
                          + "  influence " + _vanilla.GetInfluence(EntityId.None)
                          + "  contribution " + _vanilla.GetContribution());
+        }
+
+        /// <summary>
+        /// Moves live threads forward to the current in-game date.
+        ///
+        /// ThreadEngine has always known how to do this - fire each step once, in order, and let
+        /// a thread go dormant when it runs out - and nothing in the plugin had ever called it, so
+        /// in a real save the staged theft sat at day zero however many days passed. The first
+        /// playtest log showed every milestone unfired and it read like a short session rather
+        /// than like a system that was never wired up.
+        ///
+        /// It ticks on the two hooks that are known to work: loading a save, which catches
+        /// everything owed since the last one, and opening a Brilliant Questing conversation, so
+        /// what the player is shown is current. That is not a clock. A real heartbeat wants
+        /// EVENT.ActPerformed, which BQ-014 has to observe running before anything should depend
+        /// on it - a milestone that fires late is a smaller problem than one that fires from an
+        /// event nobody has watched behave.
+        /// </summary>
+        private void AdvanceThreads()
+        {
+            if (_world == null || _threads == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_threads.Advance(_world, _vanilla.Now) == 0)
+                {
+                    return;
+                }
+
+                foreach (string applied in _threads.LastApplied)
+                {
+                    _log.LogInfo("Thread escalated: " + applied + " at " + _vanilla.Now + ".");
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning("Thread escalation skipped after an exception: " + ex.Message);
+            }
         }
 
         /// <summary>
@@ -519,6 +569,7 @@ namespace BrilliantQuesting.Plugin
 
         private void End()
         {
+            _threads = null;
             _bindings?.Clear();
             if (DramaChoiceProjector.Current == _drama)
             {
