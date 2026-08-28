@@ -4,6 +4,7 @@ using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Memory;
 using BrilliantQuesting.World;
 using Xunit;
 
@@ -143,6 +144,53 @@ namespace BrilliantQuesting.Tests
             Assert.True(world.Knowledge.CanProve(Witness, fact.Id));
             Assert.False(world.Knowledge.Knows(Victim, fact.Id));
             Assert.False(world.Knowledge.Knows(Bystander, fact.Id));
+        }
+
+        [Fact]
+        public void ObservedMurderInFrontOfWitnessesUsesTheKilledConsequenceShape()
+        {
+            NarrativeWorldState world = new NarrativeWorldState(123);
+            world.Registry.Add(new NarrativeNpc(Player, "Player"));
+            world.Registry.Add(new NarrativeNpc(Victim, "Victim"));
+            world.Registry.Add(new NarrativeNpc(Witness, "Witness"));
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.Define(Victim, zone: Zone);
+            vanilla.Define(Witness, zone: Zone);
+            int victimAffinityBefore = vanilla.GetAffinity(Victim);
+            int witnessAffinityBefore = vanilla.GetAffinity(Witness);
+            int karmaBefore = vanilla.Karma;
+            int fameBefore = vanilla.Fame;
+            new ConsequenceEngine(world, vanilla).Attach();
+            VanillaActionRecorder recorder = new VanillaActionRecorder(world, vanilla);
+
+            WorldEvent recorded = recorder.Record(new ObservedVanillaAction(
+                ObservedVanillaActionKind.Killed,
+                Player,
+                Victim,
+                EntityId.None,
+                "",
+                Zone,
+                "ActMelee",
+                new[] { Witness }));
+
+            Assert.NotNull(recorded);
+            Assert.Equal(WorldEventType.Killed, recorded.Type);
+            Assert.True(vanilla.GetAffinity(Victim) < victimAffinityBefore);
+            Assert.True(vanilla.GetAffinity(Witness) < witnessAffinityBefore);
+            Assert.True(vanilla.Karma < karmaBefore);
+            Assert.True(vanilla.Fame > fameBefore);
+
+            MemoryRecord victimMemory = Assert.Single(world.Memories.MemoriesAbout(Victim, Player));
+            Assert.Equal("killed_someone", victimMemory.SummaryTag);
+            Assert.Equal(MemoryWeight.Defining, victimMemory.Weight);
+
+            MemoryRecord witnessMemory = Assert.Single(world.Memories.MemoriesAbout(Witness, Player));
+            Assert.Equal("saw_killed_someone", witnessMemory.SummaryTag);
+            Assert.Equal(MemoryWeight.Important, witnessMemory.Weight);
+
+            Fact fact = recorded.Related.Select(id => world.Knowledge.GetFact(id)).Single();
+            Assert.Equal(FactPredicates.Killed, fact.Predicate);
+            Assert.True(world.Knowledge.Knows(Witness, fact.Id));
         }
     }
 }

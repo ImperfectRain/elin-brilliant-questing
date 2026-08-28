@@ -53,6 +53,8 @@ namespace BrilliantQuesting.Integration
 
     public enum ObservedVanillaActionKind
     {
-        Theft
+        Theft,
+        Attacked,
+        Killed
     }
 }

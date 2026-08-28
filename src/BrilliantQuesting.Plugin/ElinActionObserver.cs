@@ -14,7 +14,7 @@ namespace BrilliantQuesting.Plugin
     ///
     /// The event payload is deliberately accepted as object: the public event bus publishes object
     /// payloads, and this keeps a small diagnostic path alive if an Early Access build wraps the
-    /// Act differently. BQ-014 records only confirmed thefts; BQ-015 owns witness derivation.
+    /// Act differently.
     /// </summary>
     internal sealed class ElinActionObserver
     {
@@ -59,8 +59,10 @@ namespace BrilliantQuesting.Plugin
                 WorldEvent recorded = _recorder.Record(action);
                 if (recorded != null)
                 {
-                    _log.LogInfo("Observed vanilla theft: " + _world.Registry.NameOf(recorded.Actor)
-                                 + " took " + action.ItemName + " [" + action.Item + "]"
+                    _log.LogInfo("Observed vanilla " + recorded.Type + ": "
+                                 + _world.Registry.NameOf(recorded.Actor) + " -> "
+                                 + _world.Registry.NameOf(recorded.Target)
+                                 + Detail(action)
                                  + " via " + action.SourceActionId + " (" + recorded.Id + ").");
                 }
             }
@@ -73,11 +75,21 @@ namespace BrilliantQuesting.Plugin
         private ObservedVanillaAction ToObservedAction(Act act)
         {
             string sourceId = SourceId(act);
-            if (!IsTheft(act, sourceId))
+            if (IsTheft(act, sourceId))
             {
-                return null;
+                return ToObservedTheft(act, sourceId);
             }
 
+            if (IsHostile(act, sourceId))
+            {
+                return ToObservedViolence(act, sourceId);
+            }
+
+            return null;
+        }
+
+        private ObservedVanillaAction ToObservedTheft(Act act, string sourceId)
+        {
             Chara actor = ActorOf(act);
             Thing item = ItemOf(act);
             if (actor == null || item == null)
@@ -102,6 +114,39 @@ namespace BrilliantQuesting.Plugin
                 zone,
                 sourceId,
                 witnesses);
+        }
+
+        private ObservedVanillaAction ToObservedViolence(Act act, string sourceId)
+        {
+            Chara actor = ActorOf(act);
+            Chara target = TargetCharaOf(act, actor);
+            if (actor == null || target == null)
+            {
+                return null;
+            }
+
+            EntityId actorId = EntityIdFor(actor);
+            EntityId targetId = EntityIdFor(target);
+            EntityId zone = _vanilla.GetZoneOf(actorId);
+            IReadOnlyList<EntityId> witnesses = WitnessesOf(actor, target);
+            ObservedVanillaActionKind kind = target.isDead
+                ? ObservedVanillaActionKind.Killed
+                : ObservedVanillaActionKind.Attacked;
+
+            return new ObservedVanillaAction(
+                kind,
+                actorId,
+                targetId,
+                EntityId.None,
+                "",
+                zone,
+                sourceId,
+                witnesses);
+        }
+
+        private static string Detail(ObservedVanillaAction action)
+        {
+            return action.Item.IsNone ? string.Empty : " with " + action.ItemName + " [" + action.Item + "]";
         }
 
         private static object Unwrap(object payload)
@@ -136,6 +181,17 @@ namespace BrilliantQuesting.Plugin
             return string.Equals(typeName, "AI_Steal", StringComparison.Ordinal)
                    || Contains(sourceId, "steal")
                    || Contains(typeName, "steal");
+        }
+
+        private static bool IsHostile(Act act, string sourceId)
+        {
+            string typeName = act.GetType().Name;
+            return act.IsHostileAct
+                   || act is ActBaseAttack
+                   || Contains(typeName, "attack")
+                   || Contains(typeName, "melee")
+                   || Contains(typeName, "ranged")
+                   || Contains(sourceId, "attack");
         }
 
         private static bool Contains(string text, string value)
@@ -180,6 +236,12 @@ namespace BrilliantQuesting.Plugin
 
         private EntityId TargetOf(Act act, Chara actor)
         {
+            Chara target = TargetCharaOf(act, actor);
+            return target == null || target == actor ? EntityId.None : EntityIdFor(target);
+        }
+
+        private static Chara TargetCharaOf(Act act, Chara actor)
+        {
             Chara target = null;
             Card targetCard = GetField<Card>(act, "TC");
             if (targetCard?.Chara != null && targetCard.Chara != actor)
@@ -192,10 +254,10 @@ namespace BrilliantQuesting.Plugin
                 target = GetField<Chara>(act, "target");
             }
 
-            return target == null || target == actor ? EntityId.None : EntityIdFor(target);
+            return target == actor ? null : target;
         }
 
-        private IReadOnlyList<EntityId> WitnessesOf(Chara actor, Thing item)
+        private IReadOnlyList<EntityId> WitnessesOf(Chara actor, Card focus)
         {
             List<EntityId> witnesses = new List<EntityId>();
             Map map = EClass._map;
@@ -207,7 +269,7 @@ namespace BrilliantQuesting.Plugin
             int stealth = _vanilla.GetSkill(EntityIdFor(actor), VanillaSkill.Stealth);
             foreach (Chara candidate in map.charas)
             {
-                if (!CanWitness(candidate, actor, item, stealth))
+                if (!CanWitness(candidate, actor, focus, stealth))
                 {
                     continue;
                 }
@@ -222,7 +284,7 @@ namespace BrilliantQuesting.Plugin
             return witnesses;
         }
 
-        private bool CanWitness(Chara witness, Chara actor, Thing item, int actorStealth)
+        private bool CanWitness(Chara witness, Chara actor, Card focus, int actorStealth)
         {
             if (witness == null || witness == actor || witness.isDead || actor == null)
             {
@@ -237,7 +299,7 @@ namespace BrilliantQuesting.Plugin
                 return false;
             }
 
-            if (!witness.CanSeeLos(actor, maxDistance) && (item == null || !witness.CanSeeLos(item, maxDistance)))
+            if (!witness.CanSeeLos(actor, maxDistance) && (focus == null || !witness.CanSeeLos(focus, maxDistance)))
             {
                 return false;
             }

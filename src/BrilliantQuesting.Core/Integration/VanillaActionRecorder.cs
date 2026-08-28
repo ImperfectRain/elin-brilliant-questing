@@ -28,6 +28,10 @@ namespace BrilliantQuesting.Integration
             {
                 case ObservedVanillaActionKind.Theft:
                     return RecordTheft(action);
+                case ObservedVanillaActionKind.Attacked:
+                    return RecordViolence(action, WorldEventType.Attacked, EntityId.None);
+                case ObservedVanillaActionKind.Killed:
+                    return RecordKilling(action);
                 default:
                     return null;
             }
@@ -61,6 +65,45 @@ namespace BrilliantQuesting.Integration
                 related: new[] { theft.Id },
                 witnesses: action.Witnesses,
                 evidence: new[] { action.Item },
+                tags: new[] { "observed_vanilla", action.SourceActionId });
+        }
+
+        private WorldEvent RecordKilling(ObservedVanillaAction action)
+        {
+            if (action.Target.IsNone)
+            {
+                return null;
+            }
+
+            Fact killed = new Fact(
+                _world.NewId("fact"),
+                action.Actor,
+                FactPredicates.Killed,
+                action.Target,
+                null,
+                secrecy: 10);
+            _world.Knowledge.AddFact(killed);
+            _world.Knowledge.Teach(action.Actor, killed.Id, KnowledgeSource.Participant, 1.0, _vanilla.Now, true);
+
+            return RecordViolence(action, WorldEventType.Killed, killed.Id);
+        }
+
+        private WorldEvent RecordViolence(ObservedVanillaAction action, WorldEventType type, EntityId relatedFact)
+        {
+            if (action.Target.IsNone)
+            {
+                return null;
+            }
+
+            return _world.Record(
+                type,
+                action.Actor,
+                action.Target,
+                _vanilla.Now,
+                type == WorldEventType.Killed ? 1.0 : 0.9,
+                action.Zone,
+                related: relatedFact.IsNone ? null : new[] { relatedFact },
+                witnesses: action.Witnesses,
                 tags: new[] { "observed_vanilla", action.SourceActionId });
         }
     }
