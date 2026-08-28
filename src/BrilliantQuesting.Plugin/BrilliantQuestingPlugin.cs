@@ -8,6 +8,7 @@ using BrilliantQuesting.Checks;
 using BrilliantQuesting.Consequences;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
+using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Persistence;
 using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
@@ -137,6 +138,7 @@ namespace BrilliantQuesting.Plugin
             _log.LogInfo("Simulation attached: " + _world.Registry.Npcs.Count + " people, "
                          + _world.Ledger.Count + " events, " + _world.Threads.Count + " threads.");
 
+            EnsurePrototypeEvidenceExists();
             GatherPrototypeParticipantsNearPlayer();
             ReportPlayerState();
             ReportProceduralParticipants();
@@ -264,6 +266,84 @@ namespace BrilliantQuesting.Plugin
             }
 
             return null;
+        }
+
+        private void EnsurePrototypeEvidenceExists()
+        {
+            NarrativeThread thread = FindLivePettyTheftThread();
+            if (thread == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < thread.FactIds.Count; i++)
+            {
+                Fact fact = _world.Knowledge.GetFact(thread.FactIds[i]);
+                if (fact == null || fact.Predicate != FactPredicates.Stole || fact.Object.IsNone)
+                {
+                    continue;
+                }
+
+                if (_bindings.TryGetUid(fact.Object, out int itemUid) && EClass.game?.cards?.Find(itemUid) != null)
+                {
+                    return;
+                }
+
+                Chara thief = _bindings.ResolveChara(fact.Subject);
+                if (thief == null || thief.isDead)
+                {
+                    RepairMissingEvidenceNearPlayer(fact);
+                    return;
+                }
+
+                ItemDescriptor evidence = new ItemDescriptor(
+                    fact.Object,
+                    string.IsNullOrEmpty(fact.Value) ? "stolen ring" : fact.Value,
+                    "jewelry",
+                    400,
+                    "ring");
+                _stager.StageItem(fact.Subject, evidence);
+                _log.LogInfo("Repaired missing prototype evidence '" + evidence.Name + "' on "
+                             + _world.Registry.NameOf(fact.Subject) + ".");
+                return;
+            }
+        }
+
+        private void RepairMissingEvidenceNearPlayer(Fact fact)
+        {
+            if (EClass._zone == null || EClass.pc?.pos == null)
+            {
+                _log.LogWarning("Prototype evidence '" + fact.Value + "' is missing, but there is no loaded zone to repair it in.");
+                return;
+            }
+
+            Thing thing;
+            try
+            {
+                thing = ThingGen.Create("ring", -1, 4);
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning("Could not repair missing prototype evidence '" + fact.Value + "': " + ex.Message);
+                return;
+            }
+
+            if (thing == null)
+            {
+                _log.LogWarning("Could not repair missing prototype evidence '" + fact.Value + "': ThingGen returned nothing.");
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(fact.Value))
+            {
+                thing.c_altName = fact.Value;
+            }
+
+            Point spot = FindNearbyPrototypeSpot(8) ?? EClass.pc.pos;
+            EClass._zone.AddCard(thing, spot);
+            _bindings.Bind(fact.Object, thing.uid);
+            _log.LogInfo("Repaired missing prototype evidence '" + thing.Name
+                         + "' as a loose item near the player at " + spot + ".");
         }
 
         private static Point FindNearbyPrototypeSpot(int slot)

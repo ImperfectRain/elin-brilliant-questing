@@ -8,6 +8,37 @@ using BrilliantQuesting.Knowledge;
 namespace BrilliantQuesting.Actions.Library
 {
     /// <summary>
+    /// A low-stakes conversation beat. It does not reveal the secret directly, but it makes later
+    /// social checks less hostile and gives non-social characters a quiet way to move the case.
+    /// </summary>
+    public sealed class BuildRapportAction : NarrativeAction
+    {
+        public BuildRapportAction() : base("rapport", ActionFamily.Social, "Build rapport")
+        {
+        }
+
+        public override Availability GetAvailability(ActionContext context)
+        {
+            if (context.Target.IsNone || !context.Vanilla.IsAlive(context.Target))
+            {
+                return Availability.NotRelevant("nobody to talk with");
+            }
+
+            return Availability.Available();
+        }
+
+        public override ActionOutcome Perform(ActionContext context)
+        {
+            string who = context.NameOf(context.Target);
+            ActionOutcome outcome = new ActionOutcome(Id, null, "You keep the conversation light. " + who + " seems a little more willing to hear you out.");
+            outcome.Events.Add(context.World.Record(WorldEventType.Helped, context.Actor, context.Target, context.Now, 0.2, context.Zone));
+            outcome.Events.Add(context.World.Record(WorldEventType.Conversed, context.Actor, context.Target, context.Now, 0.2, context.Zone));
+            outcome.Notes.Add("rapport improved; future social checks should be less hostile");
+            return outcome;
+        }
+    }
+
+    /// <summary>
     /// Ask someone what they know.
     ///
     /// A failure here is not a dead end. Push a witness badly enough and they mention that

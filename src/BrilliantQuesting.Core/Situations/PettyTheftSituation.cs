@@ -90,7 +90,7 @@ namespace BrilliantQuesting.Situations
 
             string valuable = Pick(Valuables, rng);
             situation.ItemId = world.NewId("item");
-            ItemDescriptor item = new ItemDescriptor(situation.ItemId, valuable, "jewelry", 400 + rng.NextInt(600));
+            ItemDescriptor item = new ItemDescriptor(situation.ItemId, valuable, "jewelry", 400 + rng.NextInt(600), "ring");
 
             stager.StageCharacter(victim.Id, new CharacterBlueprint(victim.Name)
                     .With(VanillaAttribute.Charisma, 12).With(VanillaAttribute.Will, 11)

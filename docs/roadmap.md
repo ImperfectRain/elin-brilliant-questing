@@ -19,7 +19,7 @@ it does not prove it behaves, so "found" below is not the same as "works".
 | Confirm creation and persistence of generated Chara and zones | partly - `Zone.AddChara` located, persistence untested |
 | Decide how mod save data attaches, with a migration version | **working in game** - chunk written on `PreSave`, read on `PostLoad` |
 | Prototype custom `Check` rows and `Check.Perform` from runtime | **found, untested** - `Check.Get/GetFinalDC/Perform` and the four-result enum exist; `SourceCheck.Row` schema captured |
-| Prototype Drama choice injection | **compiled and installed locally** - the current Elin build exposes `EVENT.DramaParseAction` but does not publish it, so the prototype injects at `DramaManager.ParseLine` when `_choices` is processed |
+| Prototype Drama choice injection | **working in game** - the current Elin build exposes `EVENT.DramaParseAction` but does not publish it, so the prototype injects into default Drama talk and labels procedural choices with `BQ:` |
 | Confirm crime/witness hooks | hook located (`EVENT.ActPerformed`), not yet used |
 
 `src/BrilliantQuesting.Plugin` implements `IVanillaState`, `ICheckResolver` and `ISituationStager`
@@ -45,14 +45,16 @@ not town Influence; the spendable resource is a currency. Fixed, and pending re-
 **Gate A** - a staged scenario reads vanilla stats, offers actions through dialogue, performs a
 native-style check, updates affinity and Karma, saves, reloads and continues correctly.
 *Passed headless; partly passed in game.* The plugin loads, attaches, persists and detaches against
-a real save. The dialogue prototype compiles, installs, and routes choices through the existing
-action library; a live click-through is the next verification step.
+a real save. The dialogue prototype routes choices through the existing action library, records
+varied outcomes, and now announces the case in game. The remaining Gate A risk is journal
+integration: `LayerJournal`, `ContentQuest`, `QuestManager`, and `Quest` exist, but a first-class
+Brilliant Questing tab still needs a focused UI spike.
 
 ## Phase 1 - three-NPC simulation laboratory
 
 Done. `PettyTheftSituation` generates three persistent, motivated characters, an object, a fact
-graph and an escalation schedule. Twelve verbs act on it: question, persuade, lie, intimidate,
-bribe, search, expose, pickpocket, frame, return, keep, attack.
+graph and an escalation schedule. Thirteen verbs act on it: build rapport, question, persuade,
+lie, intimidate, bribe, search, expose, pickpocket, frame, return, keep, attack.
 
 **Gate B** - let ten or more in-game days pass through multiple outcomes; the resulting state must
 be explainable, persistent, replayable and interesting.

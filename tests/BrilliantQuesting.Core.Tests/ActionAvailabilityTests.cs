@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using BrilliantQuesting.Actions;
+using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Situations;
@@ -72,6 +73,30 @@ namespace BrilliantQuesting.Tests
 
             Assert.True(lab.Actions.Get("pickpocket").GetAvailability(lab.Context(lab.Situation.ThiefId)).IsAvailable);
             Assert.False(lab.Actions.Get("pickpocket").GetAvailability(lab.Context(lab.Situation.WitnessId)).IsAvailable);
+        }
+
+        [Fact]
+        public void TheStolenItemHasAVanillaSourceId()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+
+            IReadOnlyList<ItemDescriptor> carried = lab.Vanilla.GetInventory(lab.Situation.ThiefId);
+
+            Assert.Single(carried);
+            Assert.Equal(lab.Situation.ItemId, carried[0].Id);
+            Assert.False(string.IsNullOrEmpty(carried[0].SourceId));
+        }
+
+        [Fact]
+        public void BuildingRapportIsASoftAvailableAction()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+
+            ActionOutcome outcome = lab.Perform("rapport", lab.Situation.WitnessId);
+
+            Assert.Equal("rapport", outcome.ActionId);
+            Assert.True(lab.Actions.Get("rapport").GetAvailability(lab.Context(lab.Situation.WitnessId)).IsAvailable);
+            Assert.Contains(lab.World.Ledger.Events, e => e.Type == WorldEventType.Helped);
         }
 
         [Fact]

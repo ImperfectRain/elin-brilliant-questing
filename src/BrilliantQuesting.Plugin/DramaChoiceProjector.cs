@@ -107,6 +107,9 @@ namespace BrilliantQuesting.Plugin
 
             ActionContext context = Context(thread, target, subjectFact, subjectItem);
             List<ActionOffer> offers = _actions.Discover(context, includeUnavailable: true);
+            DramaChoice notes = new DramaChoice("BQ: Review case notes", "", "bq:notes", "", "")
+                .SetOnClick(() => ShowCaseNotes(thread, subjectFact));
+            talk.AddChoice(notes);
             int added = 0;
 
             foreach (ActionOffer offer in offers)
@@ -149,6 +152,13 @@ namespace BrilliantQuesting.Plugin
                 _log.LogWarning("Could not describe dialogue option '" + action.Id + "': " + ex.Message);
                 return action.Label;
             }
+        }
+
+        private void ShowCaseNotes(NarrativeThread thread, EntityId theftFactId)
+        {
+            string notes = CaseNotes(thread, theftFactId);
+            Msg.SayRaw(notes);
+            _log.LogInfo("Case notes shown: " + notes);
         }
 
         private void Perform(
@@ -267,14 +277,14 @@ namespace BrilliantQuesting.Plugin
 
         private string ChoiceText(NarrativeAction action, ActionContext context)
         {
+            string text = "BQ: " + action.Label;
             CheckProfile profile = ProfileFor(action.Id);
             if (profile == null)
             {
-                return action.Label;
+                return text;
             }
 
             string difficulty = _checks.DescribeDifficulty(new CheckRequest(profile, context.Actor, context.Target), true);
-            string text = "BQ: " + action.Label;
             return string.IsNullOrEmpty(difficulty) ? text : text + " (" + difficulty + ")";
         }
 
@@ -346,7 +356,7 @@ namespace BrilliantQuesting.Plugin
             {
                 lines.Add(targetName + " is the injured party. They want the property recovered, but cannot prove who took it.");
             }
-            else if (target == theft.Subject)
+            else if (target == theft.Subject && _world.Knowledge.Knows(_vanilla.PlayerId, theftFactId))
             {
                 lines.Add(targetName + " is tied to the missing " + item + ". Press carefully: confession, proof, theft, or leverage could all move this forward.");
             }
@@ -356,7 +366,7 @@ namespace BrilliantQuesting.Plugin
             }
             else
             {
-                lines.Add(targetName + " is connected to the dispute.");
+                lines.Add(targetName + " is one of the people close enough to the dispute to matter.");
             }
 
             if (_world.Knowledge.Knows(_vanilla.PlayerId, theftFactId))
@@ -377,6 +387,58 @@ namespace BrilliantQuesting.Plugin
             }
 
             return string.Join("\n", lines);
+        }
+
+        private string CaseNotes(NarrativeThread thread, EntityId theftFactId)
+        {
+            Fact theft = _world.Knowledge.GetFact(theftFactId);
+            if (theft == null)
+            {
+                return "Case notes: the active thread has no readable theft fact.";
+            }
+
+            EntityId victim = FindVictim(thread, theft.Object);
+            EntityId witness = FindWitness(theftFactId, theft.Subject);
+            string item = string.IsNullOrEmpty(theft.Value) ? "the missing item" : theft.Value;
+            bool playerKnows = _world.Knowledge.Knows(_vanilla.PlayerId, theftFactId);
+            string lead = _world.Knowledge.Knows(_vanilla.PlayerId, theftFactId)
+                ? "Lead: " + _world.Registry.NameOf(theft.Subject) + " took " + item + "."
+                : "Lead: unknown.";
+            string proof = _world.Knowledge.CanProve(_vanilla.PlayerId, theftFactId)
+                ? "Proof: you have evidence."
+                : "Proof: not secured.";
+
+            List<string> lines = new List<string>
+            {
+                "Case notes: " + _world.Registry.NameOf(victim) + " is missing " + item + ".",
+                "People: " + _world.Registry.NameOf(victim) + " lost it; "
+                + _world.Registry.NameOf(witness) + " may have seen something; "
+                + (playerKnows
+                    ? _world.Registry.NameOf(theft.Subject) + " is the current suspect."
+                    : "the thief is still unidentified."),
+                lead + " " + proof
+            };
+
+            if (thread.State == ThreadState.Resolved)
+            {
+                lines.Add("Status: resolved (" + thread.Resolution + ").");
+            }
+            else if (_world.Knowledge.Knows(_vanilla.PlayerId, theftFactId)
+                     && !_world.Knowledge.CanProve(_vanilla.PlayerId, theftFactId))
+            {
+                lines.Add("Next: find proof, convince someone, or accept a messy outcome.");
+            }
+            else if (_world.Knowledge.CanProve(_vanilla.PlayerId, theftFactId))
+            {
+                lines.Add("Next: return the item to " + _world.Registry.NameOf(victim)
+                          + " or tell someone who will believe the proof.");
+            }
+            else
+            {
+                lines.Add("Next: ask the witness, search the scene, build rapport, or pressure someone.");
+            }
+
+            return string.Join(" ", lines);
         }
 
         private EntityId FindVictim(NarrativeThread thread, EntityId item)

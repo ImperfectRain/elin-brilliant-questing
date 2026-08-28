@@ -12,6 +12,7 @@ namespace BrilliantQuesting.Actions.Library
         public static ActionRegistry CreateRegistry()
         {
             return new ActionRegistry()
+                .Register(new BuildRapportAction())
                 .Register(new QuestionAction())
                 .Register(new PersuadeAction())
                 .Register(new LieAction())

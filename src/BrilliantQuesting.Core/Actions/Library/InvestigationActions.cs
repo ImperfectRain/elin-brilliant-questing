@@ -92,7 +92,7 @@ namespace BrilliantQuesting.Actions.Library
             for (int i = 0; i < fact.EvidenceIds.Count; i++)
             {
                 EntityId evidenceId = fact.EvidenceIds[i];
-                EntityId holder = context.SubjectItem.IsNone ? context.Zone : context.SubjectItem;
+                EntityId holder = EvidenceHolder(context, evidenceId, fact);
                 if (context.Vanilla.TryTransferItem(evidenceId, holder, context.Actor))
                 {
                     return true;
@@ -100,6 +100,24 @@ namespace BrilliantQuesting.Actions.Library
             }
 
             return false;
+        }
+
+        private static EntityId EvidenceHolder(ActionContext context, EntityId evidenceId, Fact fact)
+        {
+            IReadOnlyList<EntityId> present = context.Vanilla.GetCharactersInZone(context.Zone);
+            for (int i = 0; i < present.Count; i++)
+            {
+                IReadOnlyList<ItemDescriptor> inventory = context.Vanilla.GetInventory(present[i]);
+                for (int j = 0; j < inventory.Count; j++)
+                {
+                    if (inventory[j].Id == evidenceId)
+                    {
+                        return present[i];
+                    }
+                }
+            }
+
+            return fact.Subject.IsNone ? context.Zone : fact.Subject;
         }
     }
 
