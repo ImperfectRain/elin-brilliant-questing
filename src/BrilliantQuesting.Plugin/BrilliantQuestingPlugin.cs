@@ -45,6 +45,7 @@ namespace BrilliantQuesting.Plugin
         private ActionRegistry _actions;
         private DramaChoiceProjector _drama;
         private ThreadEngine _threads;
+        private ElinActionObserver _actionObserver;
 
         private bool _live;
         private ConfigEntry<bool> _stageTestScenario;
@@ -90,6 +91,7 @@ namespace BrilliantQuesting.Plugin
             BaseModManager.SubscribeEvent<GameIOContext>(EVENT.PostLoad, OnPostLoad);
             BaseModManager.SubscribeEvent<GameIOContext>(EVENT.PreSave, OnPreSave);
             BaseModManager.SubscribeEvent(EVENT.NewGame, OnNewGame);
+            BaseModManager.SubscribeEvent<object>(EVENT.ActPerformed, OnActPerformed);
             DramaChoiceProjector.Install(_log);
 
             _log.LogInfo(ModInfo.Name + " " + ModInfo.Version + " loaded. Waiting for a game.");
@@ -108,6 +110,16 @@ namespace BrilliantQuesting.Plugin
         private void OnPreSave(GameIOContext context)
         {
             Persist(context);
+        }
+
+        private void OnActPerformed(object payload)
+        {
+            if (!_live || _actionObserver == null)
+            {
+                return;
+            }
+
+            _actionObserver.Observe(payload);
         }
 
         private void Restart(GameIOContext context)
@@ -155,6 +167,7 @@ namespace BrilliantQuesting.Plugin
                 PettyTheftSituation.ArchetypeId,
                 new PettyTheftEscalation(_vanilla, new RumorSystem(_world.Knowledge, _world.Ledger, _world.Ids)));
             _drama.AdvanceThreads = AdvanceThreads;
+            _actionObserver = new ElinActionObserver(_world, _vanilla, _bindings, _log);
 
             _consequences = new ConsequenceEngine(_world, _vanilla);
             _consequences.Attach();
