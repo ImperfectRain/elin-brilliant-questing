@@ -115,6 +115,7 @@ namespace BrilliantQuesting.Plugin
         private void Begin(GameIOContext context)
         {
             ElementAliases.Resolve(_log);
+            ProceduralCheckRows.Install(_log);
 
             _bindings = new ElinBindings();
             _vanilla = new ElinVanillaState(_bindings, _log);

@@ -45,6 +45,11 @@ namespace BrilliantQuesting.Plugin
                 return _fallback.Resolve(request, rng);
             }
 
+            if (!CanResolveNatively(request.Profile))
+            {
+                return _fallback.Resolve(request, rng);
+            }
+
             Chara actor = _bindings.ResolveChara(request.Actor);
             if (actor == null)
             {
@@ -117,6 +122,13 @@ namespace BrilliantQuesting.Plugin
                 _missingRows.Add(request.Profile.Id);
                 return string.Empty;
             }
+        }
+
+        private static bool CanResolveNatively(CheckProfile profile)
+        {
+            return profile.ActorSkills.Count <= 1
+                   && profile.ActorAttributes.Count == 0
+                   && profile.TargetAttributes.Count <= 1;
         }
 
         private Check TryGetCheck(string id, int dcMod)
