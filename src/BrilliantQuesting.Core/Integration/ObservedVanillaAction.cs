@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
 
 namespace BrilliantQuesting.Integration
@@ -18,7 +19,8 @@ namespace BrilliantQuesting.Integration
             EntityId item,
             string itemName,
             EntityId zone,
-            string sourceActionId)
+            string sourceActionId,
+            IReadOnlyList<EntityId> witnesses = null)
         {
             Kind = kind;
             Actor = actor;
@@ -27,7 +29,10 @@ namespace BrilliantQuesting.Integration
             ItemName = itemName ?? string.Empty;
             Zone = zone;
             SourceActionId = sourceActionId ?? string.Empty;
+            Witnesses = witnesses ?? EmptyWitnesses;
         }
+
+        private static readonly EntityId[] EmptyWitnesses = new EntityId[0];
 
         public ObservedVanillaActionKind Kind { get; }
 
@@ -42,6 +47,8 @@ namespace BrilliantQuesting.Integration
         public EntityId Zone { get; }
 
         public string SourceActionId { get; }
+
+        public IReadOnlyList<EntityId> Witnesses { get; }
     }
 
     public enum ObservedVanillaActionKind

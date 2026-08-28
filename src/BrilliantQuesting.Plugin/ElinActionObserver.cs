@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using BepInEx.Logging;
 using BrilliantQuesting.Events;
@@ -90,6 +91,7 @@ namespace BrilliantQuesting.Plugin
             EntityId targetId = TargetOf(act, actor);
             EntityId itemId = EntityIdFor(item);
             EntityId zone = _vanilla.GetZoneOf(actorId);
+            IReadOnlyList<EntityId> witnesses = WitnessesOf(actor, item);
 
             return new ObservedVanillaAction(
                 ObservedVanillaActionKind.Theft,
@@ -98,7 +100,8 @@ namespace BrilliantQuesting.Plugin
                 itemId,
                 item.Name,
                 zone,
-                sourceId);
+                sourceId,
+                witnesses);
         }
 
         private static object Unwrap(object payload)
@@ -190,6 +193,60 @@ namespace BrilliantQuesting.Plugin
             }
 
             return target == null || target == actor ? EntityId.None : EntityIdFor(target);
+        }
+
+        private IReadOnlyList<EntityId> WitnessesOf(Chara actor, Thing item)
+        {
+            List<EntityId> witnesses = new List<EntityId>();
+            Map map = EClass._map;
+            if (actor == null || map?.charas == null)
+            {
+                return witnesses;
+            }
+
+            int stealth = _vanilla.GetSkill(EntityIdFor(actor), VanillaSkill.Stealth);
+            foreach (Chara candidate in map.charas)
+            {
+                if (!CanWitness(candidate, actor, item, stealth))
+                {
+                    continue;
+                }
+
+                EntityId witness = EntityIdFor(candidate);
+                if (!witnesses.Contains(witness))
+                {
+                    witnesses.Add(witness);
+                }
+            }
+
+            return witnesses;
+        }
+
+        private bool CanWitness(Chara witness, Chara actor, Thing item, int actorStealth)
+        {
+            if (witness == null || witness == actor || witness.isDead || actor == null)
+            {
+                return false;
+            }
+
+            int distance = witness.Dist(actor);
+            int sightRadius = witness.GetSightRadius();
+            int maxDistance = Math.Min(Math.Max(1, sightRadius), 8);
+            if (distance > maxDistance)
+            {
+                return false;
+            }
+
+            if (!witness.CanSeeLos(actor, maxDistance) && (item == null || !witness.CanSeeLos(item, maxDistance)))
+            {
+                return false;
+            }
+
+            EntityId witnessId = EntityIdFor(witness);
+            int perception = _vanilla.GetAttribute(witnessId, VanillaAttribute.Perception);
+            int spotting = _vanilla.GetSkill(witnessId, VanillaSkill.SpotHidden);
+            int detection = perception + spotting + Math.Max(0, maxDistance - distance);
+            return detection >= actorStealth;
         }
 
         private EntityId EntityIdFor(Chara chara)

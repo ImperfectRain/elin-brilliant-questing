@@ -59,6 +59,7 @@ namespace BrilliantQuesting.Integration
                 0.7,
                 action.Zone,
                 related: new[] { theft.Id },
+                witnesses: action.Witnesses,
                 evidence: new[] { action.Item },
                 tags: new[] { "observed_vanilla", action.SourceActionId });
         }

@@ -118,7 +118,7 @@ all-or-nothing with a diagnostic, and every callback is guarded.
 - Stages generated characters and items as ordinary Chara and Thing objects.
 - Persists the whole procedural world into the save as the `brilliantQuesting` chunk.
 - Observes theft-like vanilla actions from `EVENT.ActPerformed` and appends `Theft` events with
-  the real item id as evidence.
+  the real item id as evidence and witnesses derived from proximity, line of sight and stealth.
 - Offers its verbs through ordinary Elin dialogue. Talking to a staged NPC adds Brilliant
   Questing options to the generic conversation, each labelled with vanilla's own difficulty
   wording, resolving through the action library and changing the world.
@@ -126,10 +126,9 @@ all-or-nothing with a diagnostic, and every callback is guarded.
 ## What it does not do yet
 
 No situation is **generated** by the world - the one that exists is staged by a config flag, and
-generation arrives at BQ-039. Vanilla theft is observed, but witness lists are not derived from
-real proximity or line of sight yet (BQ-015). There is no Home state, economy, sites, NPC autonomy
-or director, and one situation archetype. Personality exists as nine decision weights and is not
-yet expressed in dialogue.
+generation arrives at BQ-039. Vanilla theft and its witnesses are observed, but there is no Home
+state, economy, sites, NPC autonomy or director, and one situation archetype. Personality exists as
+nine decision weights and is not yet expressed in dialogue.
 
 ## Running the in-game scenario test
 

@@ -160,7 +160,17 @@ namespace BrilliantQuesting.Plugin
                 });
 
             MarkUnsupported(VanillaCapability.ReadHomeState, "not implemented until BQ-030 maps Home state");
-            MarkUnsupported(VanillaCapability.ObserveCrimeWitnesses, "not implemented until BQ-014/BQ-015 wire ActPerformed witnesses");
+            Probe(
+                VanillaCapability.ObserveCrimeWitnesses,
+                () =>
+                {
+                    if (EClass._map?.charas == null || EClass.pc == null)
+                    {
+                        return null;
+                    }
+
+                    return "EVENT.ActPerformed observer uses map.charas, Chara.Dist, Chara.CanSeeLos, sight radius and stealth/perception checks";
+                });
 
             _log.LogInfo("Vanilla capabilities: " + _capabilities.Count + " of "
                          + Enum.GetValues(typeof(VanillaCapability)).Length);
