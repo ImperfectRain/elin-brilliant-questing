@@ -103,7 +103,7 @@ namespace BrilliantQuesting.Plugin
             EntityId targetId = TargetOf(act, actor);
             EntityId itemId = EntityIdFor(item);
             EntityId zone = _vanilla.GetZoneOf(actorId);
-            IReadOnlyList<EntityId> witnesses = WitnessesOf(actor, item);
+            IReadOnlyList<EntityId> witnesses = WitnessesOf(actor);
 
             return new ObservedVanillaAction(
                 ObservedVanillaActionKind.Theft,
@@ -133,7 +133,7 @@ namespace BrilliantQuesting.Plugin
             EntityId actorId = EntityIdFor(actor);
             EntityId targetId = EntityIdFor(target);
             EntityId zone = _vanilla.GetZoneOf(actorId);
-            IReadOnlyList<EntityId> witnesses = WitnessesOf(actor, target);
+            IReadOnlyList<EntityId> witnesses = WitnessesOf(actor);
             ObservedVanillaActionKind kind = target.isDead
                 ? ObservedVanillaActionKind.Killed
                 : ObservedVanillaActionKind.Attacked;
@@ -262,7 +262,7 @@ namespace BrilliantQuesting.Plugin
             return target == actor ? null : target;
         }
 
-        private IReadOnlyList<EntityId> WitnessesOf(Chara actor, Card focus)
+        private IReadOnlyList<EntityId> WitnessesOf(Chara actor)
         {
             List<EntityId> witnesses = new List<EntityId>();
             Map map = EClass._map;
@@ -274,7 +274,7 @@ namespace BrilliantQuesting.Plugin
             int stealth = _vanilla.GetSkill(EntityIdFor(actor), VanillaSkill.Stealth);
             foreach (Chara candidate in map.charas)
             {
-                if (!CanWitness(candidate, actor, focus, stealth))
+                if (!CanWitness(candidate, actor, stealth))
                 {
                     continue;
                 }
@@ -289,7 +289,7 @@ namespace BrilliantQuesting.Plugin
             return witnesses;
         }
 
-        private bool CanWitness(Chara witness, Chara actor, Card focus, int actorStealth)
+        private bool CanWitness(Chara witness, Chara actor, int actorStealth)
         {
             if (witness == null || witness == actor || witness.isDead || actor == null)
             {
@@ -304,7 +304,19 @@ namespace BrilliantQuesting.Plugin
                 return false;
             }
 
-            if (!witness.CanSeeLos(actor, maxDistance) && (focus == null || !witness.CanSeeLos(focus, maxDistance)))
+            // Seeing the actor is the requirement, not seeing the thing that happened to them.
+            //
+            // This used to accept line of sight to the victim or the item as sufficient, and the
+            // record it produces says the witness Witnessed the fact - "Haron stole the ring" -
+            // and can prove it. Somebody who saw only the victim cannot testify to that. They can
+            // say a ring is gone; they cannot name who took it, and the difference is the entire
+            // substance of an investigation.
+            //
+            // Splitting that properly - seeing an act, seeing an actor, recognising an actor as
+            // somebody in particular - is a real model and belongs with the rest of the epistemic
+            // work. Until then the narrow reading is the honest one: no sight of the actor, no
+            // testimony about the actor.
+            if (!witness.CanSeeLos(actor, maxDistance))
             {
                 return false;
             }

@@ -125,6 +125,31 @@ Three of those are roadmap items answered before they were started:
   the built-in `_choices` action is processed.
 - **`CharaCreated`** — bind a generated Chara to its `EntityId` at the moment it exists.
 
+## The witness model is ours, not Elin's
+
+Worth stating plainly, because the step that introduced it is called "derive witnesses from the
+real world" and that overstates what happens.
+
+Elin has its own crime and witness handling, but it is written to *do* things - raise hostility,
+call guards, apply karma - rather than to answer "who could see this?" as a question. So the mod
+asks the game only for facts it can read without side effects (`map.charas`, `Chara.Dist`,
+`Chara.CanSeeLos`, sight radius, Perception, Spot Hidden, the actor's Stealth) and applies its own
+rule to them.
+
+That rule is a **Brilliant Questing model built from real Elin state**, not Elin's own verdict. If
+the two ever disagree, neither is wrong; they are answering different questions.
+
+Two limits worth knowing:
+
+- **Stealth stands in for visibility.** The same number that decides whether somebody is sneaking
+  is used to decide whether an act was noticed. A very stealthy character can in principle strike
+  somebody in plain view and go unseen. Attacks and thefts probably deserve different exposure.
+- **Witnessing is currently all-or-nothing.** A witness either testifies "Haron stole the ring" or
+  saw nothing. Real investigation wants the middle: seeing that *something happened*, seeing *a
+  person* do it, and *recognising* that person are three different pieces of knowledge, and only
+  the third lets somebody name a name. Line of sight to the actor is now required precisely
+  because the record produced claims the third.
+
 ## Why procedural checks resolve portably
 
 `Check.Get` reads all nine `proc_*` rows the mod installs, and yet every check in a live log is
