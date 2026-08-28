@@ -11,6 +11,7 @@ out to disagree.
 | [`elin-api-notes.md`](elin-api-notes.md) | What the shipped assemblies actually expose, read with `tools/ApiDump`. **Authoritative on runtime facts** - where a design document disagrees with this, this wins. |
 | [`elin-element-aliases.md`](elin-element-aliases.md) | The verified element alias table, read from a running game. Attributes, skills, Home Skills, policies. Data, not code - it cannot be recovered from the assembly. |
 | [`plugin-build.md`](plugin-build.md) | Populating `lib/` from your own install, building the plugin, installing it, and the two-step activation that is easy to miss. |
+| [`handoff-drama-projection.md`](handoff-drama-projection.md) | Brief for the next piece of work: making the scenario playable through Drama. Written to be handed to an agent starting cold. |
 | [`roadmap.md`](roadmap.md) | Phases, gates, and an honest account of what is done. |
 
 ## Conventions
