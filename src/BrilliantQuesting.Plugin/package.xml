@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  NOTE: <version> is not this mod's release version. Elin reads it as a compatibility number and
+  drops the package outright, before any logging, when it is below BaseCore.versionMod:
+
+      if ((disableMod && !package.builtin) || !package.IsValidVersion()) continue;
+      IsValidVersion() => !Version.Get(version).IsBelow(BaseCore.Instance.versionMod)
+
+  A package below the threshold is discovered, listed in loadorder.txt, activated by the user, and
+  then silently skipped with no log line at all. Keep this at or above the game's mod version.
+  The mod's own release version lives in ModInfo.Version and is what BepInEx prints.
+-->
 <Meta>
   <title>Brilliant Questing</title>
   <id>elin.brilliant.questing</id>
   <author>ImperfectRain</author>
   <loadPriority>0</loadPriority>
-  <version>0.1.0</version>
+  <version>0.23.326</version>
   <description>A persistent, simulation-driven questing layer. Generates situations rather than quests and resolves them through Elin's own attributes, skills, checks, affinity, Karma and crime rules.</description>
 </Meta>

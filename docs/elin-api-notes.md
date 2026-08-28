@@ -111,10 +111,33 @@ fine, but the context API is what shipped code uses and it does not require a st
 
 ## How a package is loaded
 
+Three gates, and the second one fails silently.
+
+```csharp
+// ModManager.ActivatePackages
+foreach (ModPackage package in packages)
+{
+    if ((disableMod && !package.builtin) || !package.IsValidVersion()) continue;  // <- no log
+    package.Activate();
+    if (package.activated) BaseModManager.listChainLoad.Add(package.dirInfo.FullName);
+}
+
+// BaseModPackage
+public bool IsValidVersion() => !Version.Get(version).IsBelow(BaseCore.Instance.versionMod);
+public void Activate() { if (!hasPublishedPackage && installed && dirInfo.Exists && willActivate) ... }
+```
+
+1. **`package.xml` must exist** or `Init()` returns false.
+2. **`<version>` must be at or above `BaseCore.versionMod`.** This is a compatibility number, not
+   the mod's release version, and every shipped package uses the game's own `0.23.x`. A package
+   below it is discovered, listed in `loadorder.txt`, activated by the user, and then dropped by a
+   `continue` that runs before any logging - so the log is byte-identical to one where the mod was
+   never installed. `versionMod` is a serialized Unity field, so its value cannot be read from
+   metadata; take it from a mod that currently loads.
+3. **The user must activate it**, which is what the trailing `,1` in `loadorder.txt` records.
+
 `BaseModPackage` carries `builtin`, `installed`, `activated` and `willActivate`, and the Scripting
-Kit filters on `p.activated && !p.builtin`. A package dropped into `Package/` is discovered but does
-nothing until it is **activated** — that is what the `,1` / `,0` flags in `loadorder.txt` record,
-and what the in-game mod list writes. Installing is two steps, not one.
+Kit filters on `p.activated && !p.builtin`.
 
 ## Packaging
 

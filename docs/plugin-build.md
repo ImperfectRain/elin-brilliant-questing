@@ -41,6 +41,11 @@ fails with a readable message rather than a wall of missing-type errors if eithe
 Copy `BrilliantQuesting.Plugin.dll` and `package.xml` into a folder under the game's `Package\`
 directory. Nothing goes in `BepInEx\plugins`.
 
+`package.xml`'s `<version>` is a **compatibility number, not a release version**. Elin drops any
+package whose version is below `BaseCore.versionMod`, with a `continue` that runs before any
+logging - the resulting log is identical to one where the mod was never installed. Keep it at or
+above the game's mod version; copy the number from a mod that currently loads.
+
 Then **enable it in the game's Mods menu**. Dropping the folder in only gets the package discovered;
 `BaseModPackage` distinguishes `installed` from `activated`, and the Scripting Kit filters on
 `activated && !builtin`. Activation is what writes the trailing `,1` in `loadorder.txt`. Installing
