@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using BepInEx.Logging;
 using BrilliantQuesting.Integration;
@@ -100,6 +101,10 @@ namespace BrilliantQuesting.Plugin
             {
                 log.LogWarning("Unresolved element aliases (" + missing.Count + "): " + string.Join(", ", missing.ToArray()));
                 log.LogWarning("Those stats read as unavailable. Correct ElementAliases against the Element source sheet.");
+
+                // Say whether the sheet was empty or the names were wrong. Those need opposite
+                // fixes, and one line here beats another round of guessing.
+                DumpDiagnostics(log);
             }
             else
             {
@@ -117,17 +122,84 @@ namespace BrilliantQuesting.Plugin
             return ResolvedSkills.TryGetValue(skill, out elementId);
         }
 
+        /// <summary>
+        /// Resolves an alias to an element id.
+        ///
+        /// The lookup that matters is <c>SourceData.alias</c>, the dictionary the game builds from
+        /// the Element sheet's alias column. An earlier version used <c>GetRow(string)</c>, which
+        /// keys on the row id rather than the alias and therefore missed every single entry - the
+        /// failure mode that produces "all 23 unresolved" rather than a few.
+        ///
+        /// Falls back to a case-insensitive scan of the rows, because an alias table is exactly
+        /// the sort of thing whose capitalisation is not worth being defeated by.
+        /// </summary>
         private static bool TryResolveAlias(string alias, out int elementId)
         {
             elementId = 0;
-            SourceElement.Row row = EClass.sources.elements.GetRow(alias);
-            if (row == null)
+            SourceElement source = EClass.sources?.elements;
+            if (source == null)
             {
                 return false;
             }
 
-            elementId = row.id;
-            return elementId != 0;
+            if (source.alias != null && source.alias.TryGetValue(alias, out SourceElement.Row row) && row != null)
+            {
+                elementId = row.id;
+                return elementId != 0;
+            }
+
+            if (source.rows != null)
+            {
+                foreach (SourceElement.Row candidate in source.rows)
+                {
+                    if (candidate != null && string.Equals(candidate.alias, alias, StringComparison.OrdinalIgnoreCase))
+                    {
+                        elementId = candidate.id;
+                        return elementId != 0;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Reports whether the sheet is loaded and what it actually calls things. An empty sheet
+        /// and a wrong alias table look identical from the outside and need opposite fixes.
+        /// </summary>
+        private static void DumpDiagnostics(ManualLogSource log)
+        {
+            SourceElement source = EClass.sources?.elements;
+            if (source == null)
+            {
+                log.LogWarning("EClass.sources.elements is null - the sheet is not loaded at this point in startup.");
+                return;
+            }
+
+            int rowCount = source.rows?.Count ?? 0;
+            int aliasCount = source.alias?.Count ?? 0;
+            log.LogWarning("Element sheet: " + rowCount + " rows, " + aliasCount + " aliases indexed.");
+
+            if (rowCount == 0)
+            {
+                log.LogWarning("No rows: this is a timing problem, not a naming one.");
+                return;
+            }
+
+            List<string> sample = new List<string>();
+            foreach (SourceElement.Row row in source.rows)
+            {
+                if (row != null && !string.IsNullOrEmpty(row.alias))
+                {
+                    sample.Add(row.id + ":" + row.alias);
+                    if (sample.Count >= 60)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            log.LogWarning("Actual aliases (first " + sample.Count + "): " + string.Join(", ", sample.ToArray()));
         }
 
         /// <summary>

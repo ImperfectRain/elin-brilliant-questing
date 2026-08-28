@@ -10,22 +10,36 @@ it does not prove it behaves, so "found" below is not the same as "works".
 
 | Item | Status |
 |---|---|
-| Confirm runtime access to elements, skills, affinity, Karma, prestige, Influence, inventory | **found** - every `IVanillaState` member has a named target |
+| Confirm runtime access to elements, skills, affinity, Karma, prestige, Influence, inventory | **found**; elements/skills blocked on the alias table, the rest not yet exercised in game |
 | Confirm access to guild, faith, home state | partly - `EClass.Home` / `.Branch` located, members not yet mapped |
 | Confirm creation and persistence of generated Chara and zones | partly - `Zone.AddChara` located, persistence untested |
-| Decide how mod save data attaches, with a migration version | **found and implemented** - `GameIOContext.Save/Load` on `EVENT.PreSave` / `PostLoad` |
+| Decide how mod save data attaches, with a migration version | **working in game** - chunk written on `PreSave`, read on `PostLoad` |
 | Prototype custom `Check` rows and `Check.Perform` from runtime | **found, untested** - `Check.Get/GetFinalDC/Perform` and the four-result enum exist; `SourceCheck.Row` schema captured |
 | Prototype Drama choice injection | hook located (`EVENT.DramaParseAction`), not yet used |
 | Confirm crime/witness hooks | hook located (`EVENT.ActPerformed`), not yet used |
 
-`src/BrilliantQuesting.Plugin` now implements `IVanillaState`, `ICheckResolver` and
-`ISituationStager` against the real assemblies and compiles clean. Compiling proves the calls
-exist; it proves nothing about behaviour. Nothing has been run inside Elin.
+`src/BrilliantQuesting.Plugin` implements `IVanillaState`, `ICheckResolver` and `ISituationStager`
+against the real assemblies. **It now loads and runs inside Elin.** Observed on 28 Aug 2026:
+
+```
+Brilliant Questing 0.1.0 loaded. Waiting for a game.
+No saved world; starting a new one from seed 7525.
+Vanilla capabilities: 9 of 13
+Simulation attached: 0 people, 0 events, 0 threads.
+Saved 0 events into chunk 'brilliantQuesting'.
+Simulation detached.
+```
+
+That confirms three things metadata could only suggest: the event bus delivers `PostLoad` and
+`PreSave`, `GameIOContext` writes the mod's chunk into the save, and the capability probe reports
+honestly rather than assuming. It does not yet confirm any read or write of vanilla state, because
+the element aliases were all unresolved on that run and the stat capabilities correctly switched
+themselves off.
 
 **Gate A** - a hard-coded scenario reads vanilla stats, performs a native-style check, updates
 affinity and Karma, saves, reloads and continues correctly.
-*Passed headless.* Every call it would need in game is now located; running it against a live game
-is the remaining half.
+*Passed headless; partly passed in game.* The plugin loads, attaches, persists and detaches against
+a real save. Reading and writing vanilla state is next, and is blocked only on the element aliases.
 
 ## Phase 1 - three-NPC simulation laboratory
 
