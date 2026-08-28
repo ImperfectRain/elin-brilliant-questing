@@ -44,6 +44,7 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(before.Confidence, after.Confidence, 4);
             Assert.Equal(before.CanProve, after.CanProve);
             Assert.Equal(before.Source, after.Source);
+            Assert.Equal(before.Proofs.Count, after.Proofs.Count);
         }
 
         [Fact]

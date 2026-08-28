@@ -17,6 +17,7 @@ namespace BrilliantQuesting.Tests
         {
             KnowledgeGraph knowledge = new KnowledgeGraph();
             Fact theft = new Fact(EntityId.Parse("fact_1"), Thief, FactPredicates.Stole, EntityId.Parse("item_1"), "silver ring");
+            theft.EvidenceIds.Add(EntityId.Parse("item_1"));
             knowledge.AddFact(theft);
             return (knowledge, theft);
         }
@@ -40,6 +41,18 @@ namespace BrilliantQuesting.Tests
             Assert.True(knowledge.Knows(Witness, theft.Id));
             Assert.True(knowledge.BelievesConfidently(Witness, theft.Id));
             Assert.False(knowledge.CanProve(Witness, theft.Id));
+        }
+
+        [Fact]
+        public void ProvableBeliefNamesWhatProvesIt()
+        {
+            (KnowledgeGraph knowledge, Fact theft) = Scene();
+
+            knowledge.Teach(Witness, theft.Id, KnowledgeSource.Witnessed, 1.0, GameTime.Zero, canProve: true);
+
+            ProofLink proof = Assert.Single(knowledge.ProofsFor(Witness, theft.Id));
+            Assert.Equal(ProofKind.WitnessTestimony, proof.Kind);
+            Assert.Equal(Witness, proof.Entity);
         }
 
         [Fact]
@@ -72,6 +85,7 @@ namespace BrilliantQuesting.Tests
             rumors.Tell(Witness, Guard, theft.Id, GameTime.Zero, showsProof: true);
 
             Assert.True(knowledge.CanProve(Guard, theft.Id));
+            Assert.Equal(knowledge.ProofsFor(Witness, theft.Id), knowledge.ProofsFor(Guard, theft.Id));
         }
 
         [Fact]

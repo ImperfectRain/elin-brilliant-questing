@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
 
 namespace BrilliantQuesting.Knowledge
@@ -23,15 +24,23 @@ namespace BrilliantQuesting.Knowledge
     /// <summary>What one character believes about one fact, and how well they can back it up.</summary>
     public sealed class KnowledgeRecord
     {
-        public KnowledgeRecord(EntityId knower, EntityId factId, KnowledgeSource source, double confidence, GameTime learnedAt, bool canProve, EntityId toldBy = default)
+        public KnowledgeRecord(EntityId knower, EntityId factId, KnowledgeSource source, double confidence, GameTime learnedAt, bool canProve, EntityId toldBy = default, IReadOnlyList<ProofLink> proofs = null)
         {
             Knower = knower;
             FactId = factId;
             Source = source;
             Confidence = confidence;
             LearnedAt = learnedAt;
-            CanProve = canProve;
             ToldBy = toldBy;
+            Proofs = new List<ProofLink>();
+
+            if (proofs != null)
+            {
+                for (int i = 0; i < proofs.Count; i++)
+                {
+                    AddProof(proofs[i]);
+                }
+            }
         }
 
         public EntityId Knower { get; }
@@ -49,8 +58,28 @@ namespace BrilliantQuesting.Knowledge
         /// Whether the knower could demonstrate it to a third party. Believing Varik ordered the
         /// beating is not the same as being able to show a guard the note that proves it.
         /// </summary>
-        public bool CanProve { get; set; }
+        public bool CanProve => Proofs.Count > 0;
 
         public EntityId ToldBy { get; }
+
+        public List<ProofLink> Proofs { get; }
+
+        public void AddProof(ProofLink proof)
+        {
+            if (proof == null || proof.Entity.IsNone)
+            {
+                return;
+            }
+
+            for (int i = 0; i < Proofs.Count; i++)
+            {
+                if (Proofs[i].Kind == proof.Kind && Proofs[i].Entity == proof.Entity)
+                {
+                    return;
+                }
+            }
+
+            Proofs.Add(proof);
+        }
     }
 }

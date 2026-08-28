@@ -248,6 +248,7 @@ namespace BrilliantQuesting.Persistence
                         .Set("confidence", record.Confidence)
                         .Set("learnedAt", record.LearnedAt.TotalMinutes)
                         .Set("canProve", record.CanProve)
+                        .Set("proofs", Proofs(record.Proofs))
                         .Set("toldBy", record.ToldBy.Value));
                 }
             }
@@ -488,6 +489,7 @@ namespace BrilliantQuesting.Persistence
                     json.GetNumber("confidence"),
                     new GameTime(json.GetLong("learnedAt")),
                     json.GetBool("canProve"),
+                    ProofList(json, "proofs"),
                     EntityId.Parse(json.GetString("toldBy")));
             }
         }
@@ -600,6 +602,19 @@ namespace BrilliantQuesting.Persistence
             return array;
         }
 
+        private static JsonValue Proofs(IReadOnlyList<ProofLink> proofs)
+        {
+            JsonValue array = JsonValue.Array();
+            for (int i = 0; i < proofs.Count; i++)
+            {
+                array.Add(JsonValue.Object()
+                    .Set("kind", proofs[i].Kind.ToString())
+                    .Set("entity", proofs[i].Entity.Value));
+            }
+
+            return array;
+        }
+
         private static EntityId[] IdList(JsonValue json, string name)
         {
             IReadOnlyList<JsonValue> items = json.GetArray(name);
@@ -622,6 +637,21 @@ namespace BrilliantQuesting.Persistence
             }
 
             return values;
+        }
+
+        private static ProofLink[] ProofList(JsonValue json, string name)
+        {
+            IReadOnlyList<JsonValue> items = json.GetArray(name);
+            ProofLink[] proofs = new ProofLink[items.Count];
+            for (int i = 0; i < items.Count; i++)
+            {
+                JsonValue proof = items[i];
+                proofs[i] = new ProofLink(
+                    (ProofKind)Enum.Parse(typeof(ProofKind), proof.GetString("kind")),
+                    EntityId.Parse(proof.GetString("entity")));
+            }
+
+            return proofs;
         }
     }
 }

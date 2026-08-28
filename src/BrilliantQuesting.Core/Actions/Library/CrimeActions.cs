@@ -63,9 +63,10 @@ namespace BrilliantQuesting.Actions.Library
                         : "Your fingers close on nothing.");
                     if (taken)
                     {
+                        Fact theft = RecordTheftFact(context, item);
                         outcome.Events.Add(context.World.Record(
                             WorldEventType.Theft, context.Actor, context.Target, context.Now, 0.5, context.Zone,
-                            new[] { item.Id }, tags: new[] { EventTags.Unnoticed }));
+                            new[] { theft.Id }, evidence: new[] { item.Id }, tags: new[] { EventTags.Unnoticed }));
                         outcome.Notes.Add("no witnesses: nobody in the world knows this happened");
                     }
 

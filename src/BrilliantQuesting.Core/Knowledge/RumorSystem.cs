@@ -43,7 +43,15 @@ namespace BrilliantQuesting.Knowledge
 
             // Proof only travels when the speaker actually hands over or displays the evidence.
             bool listenerCanProve = showsProof && speakerBelief.CanProve;
-            _knowledge.Teach(listener, factId, KnowledgeSource.Hearsay, transmitted, now, listenerCanProve, speaker);
+            _knowledge.Teach(
+                listener,
+                factId,
+                KnowledgeSource.Hearsay,
+                transmitted,
+                now,
+                listenerCanProve,
+                listenerCanProve ? speakerBelief.Proofs : null,
+                speaker);
 
             _ledger.Append(new WorldEvent(
                 _ids.Next("evt"),

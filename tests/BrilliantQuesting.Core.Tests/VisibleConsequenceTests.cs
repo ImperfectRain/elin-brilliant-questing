@@ -187,6 +187,26 @@ namespace BrilliantQuesting.Tests
             Assert.NotEmpty(kept.Witnesses);
         }
 
+        [Fact]
+        public void QuietPickpocketStillCreatesARealEvidenceFact()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+            lab.Checks = new FixedCheckResolver(CheckOutcome.Pass);
+            ActionContext context = FullContext(lab, lab.Situation.ThiefId);
+
+            ActionOutcome outcome = lab.Actions.Get("pickpocket").Perform(context);
+
+            WorldEvent theft = outcome.Events.Find(e => e.Type == WorldEventType.Theft);
+            Assert.NotNull(theft);
+            EntityId factId = Assert.Single(theft.Related, id => id.Kind == "fact");
+            Fact fact = lab.World.Knowledge.GetFact(factId);
+            Assert.NotNull(fact);
+            Assert.Equal(FactPredicates.Stole, fact.Predicate);
+            Assert.Contains(lab.Situation.ItemId, fact.EvidenceIds);
+            Assert.Contains(lab.Situation.ItemId, theft.Evidence);
+            Assert.Contains(EventTags.Unnoticed, theft.Tags);
+        }
+
         /// <summary>
         /// A tester holding proof was told twice to "try again with evidence" - the one piece of
         /// advice that could not possibly help. Failing with proof is a different failure and

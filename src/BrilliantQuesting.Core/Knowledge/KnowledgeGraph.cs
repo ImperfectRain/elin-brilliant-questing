@@ -54,7 +54,12 @@ namespace BrilliantQuesting.Knowledge
         /// </summary>
         public KnowledgeRecord Teach(EntityId knower, EntityId factId, KnowledgeSource source, double confidence, GameTime now, bool canProve, EntityId toldBy = default)
         {
-            if (!_facts.ContainsKey(factId))
+            return Teach(knower, factId, source, confidence, now, canProve, null, toldBy);
+        }
+
+        public KnowledgeRecord Teach(EntityId knower, EntityId factId, KnowledgeSource source, double confidence, GameTime now, bool canProve, IReadOnlyList<ProofLink> proofs, EntityId toldBy = default)
+        {
+            if (!_facts.TryGetValue(factId, out Fact fact))
             {
                 throw new InvalidOperationException("Cannot teach unknown fact " + factId);
             }
@@ -65,6 +70,8 @@ namespace BrilliantQuesting.Knowledge
                 _beliefs[knower] = byFact;
             }
 
+            IReadOnlyList<ProofLink> proofLinks = ResolveProofs(fact, knower, source, canProve, proofs);
+
             if (byFact.TryGetValue(factId, out KnowledgeRecord existing))
             {
                 if (confidence > existing.Confidence)
@@ -72,15 +79,15 @@ namespace BrilliantQuesting.Knowledge
                     existing.Confidence = confidence;
                 }
 
-                if (canProve)
+                for (int i = 0; i < proofLinks.Count; i++)
                 {
-                    existing.CanProve = true;
+                    existing.AddProof(proofLinks[i]);
                 }
 
                 return existing;
             }
 
-            KnowledgeRecord record = new KnowledgeRecord(knower, factId, source, Clamp01(confidence), now, canProve, toldBy);
+            KnowledgeRecord record = new KnowledgeRecord(knower, factId, source, Clamp01(confidence), now, proofLinks.Count > 0, toldBy, proofLinks);
             byFact[factId] = record;
             return record;
         }
@@ -99,6 +106,13 @@ namespace BrilliantQuesting.Knowledge
         public bool CanProve(EntityId knower, EntityId factId)
         {
             return TryGetBelief(knower, factId, out KnowledgeRecord record) && record.CanProve;
+        }
+
+        public IReadOnlyList<ProofLink> ProofsFor(EntityId knower, EntityId factId)
+        {
+            return TryGetBelief(knower, factId, out KnowledgeRecord record)
+                ? record.Proofs
+                : EmptyProofs;
         }
 
         public bool TryGetBelief(EntityId knower, EntityId factId, out KnowledgeRecord record)
@@ -140,12 +154,63 @@ namespace BrilliantQuesting.Knowledge
             {
                 if (byFact.TryGetValue(factId, out KnowledgeRecord record))
                 {
-                    record.CanProve = false;
+                    record.Proofs.Clear();
                 }
             }
         }
 
         private static readonly KnowledgeRecord[] EmptyBeliefs = new KnowledgeRecord[0];
+        private static readonly ProofLink[] EmptyProofs = new ProofLink[0];
+
+        private static IReadOnlyList<ProofLink> ResolveProofs(Fact fact, EntityId knower, KnowledgeSource source, bool canProve, IReadOnlyList<ProofLink> explicitProofs)
+        {
+            if (!canProve)
+            {
+                return EmptyProofs;
+            }
+
+            List<ProofLink> result = new List<ProofLink>();
+            if (explicitProofs != null)
+            {
+                for (int i = 0; i < explicitProofs.Count; i++)
+                {
+                    AddProof(result, explicitProofs[i]);
+                }
+            }
+
+            if (result.Count == 0 && (source == KnowledgeSource.Witnessed || source == KnowledgeSource.Participant))
+            {
+                AddProof(result, new ProofLink(ProofKind.WitnessTestimony, knower));
+            }
+
+            if (result.Count == 0)
+            {
+                for (int i = 0; i < fact.EvidenceIds.Count; i++)
+                {
+                    AddProof(result, new ProofLink(ProofKind.PhysicalEvidence, fact.EvidenceIds[i]));
+                }
+            }
+
+            return result;
+        }
+
+        private static void AddProof(List<ProofLink> proofs, ProofLink proof)
+        {
+            if (proof == null || proof.Entity.IsNone)
+            {
+                return;
+            }
+
+            for (int i = 0; i < proofs.Count; i++)
+            {
+                if (proofs[i].Kind == proof.Kind && proofs[i].Entity == proof.Entity)
+                {
+                    return;
+                }
+            }
+
+            proofs.Add(proof);
+        }
 
         private static double Clamp01(double value)
         {

@@ -81,7 +81,17 @@ namespace BrilliantQuesting.Actions.Library
             {
                 case CheckOutcome.CriticalPass:
                     // They tell you, and they hand over what backs it up.
-                    context.World.Knowledge.Teach(context.Actor, factId, KnowledgeSource.Hearsay, 0.95, context.Now, context.World.Knowledge.CanProve(context.Target, factId), context.Target);
+                    context.World.Knowledge.TryGetBelief(context.Target, factId, out KnowledgeRecord targetBelief);
+                    bool canProve = targetBelief != null && targetBelief.CanProve;
+                    context.World.Knowledge.Teach(
+                        context.Actor,
+                        factId,
+                        KnowledgeSource.Hearsay,
+                        0.95,
+                        context.Now,
+                        canProve,
+                        canProve ? targetBelief.Proofs : null,
+                        context.Target);
                     outcome = new ActionOutcome(Id, check, who + " tells you everything, and offers to back it up.");
                     outcome.Notes.Add("learned: " + ActionSupport.Describe(context, factId));
                     outcome.Events.Add(context.World.Record(WorldEventType.Conversed, context.Actor, context.Target, context.Now, 0.4, context.Zone, new[] { factId }));
