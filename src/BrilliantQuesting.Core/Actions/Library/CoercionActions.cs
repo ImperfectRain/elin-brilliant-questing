@@ -51,18 +51,30 @@ namespace BrilliantQuesting.Actions.Library
             CheckResult check = context.Checks.Resolve(request, context.Rng);
             string who = context.NameOf(context.Target);
             IReadOnlyList<EntityId> seen = ActionSupport.Bystanders(context, true);
+
+            // Whether they have anything to give up decides the words as much as the roll does.
+            // Narrating from the roll alone produced the first live run's worst line: "Ansel tells
+            // you what you want to know", immediately followed by "they had nothing to give up".
+            // A threat that lands on someone with nothing still lands - they comply, they are
+            // frightened, and they remember it - so the outcome is real either way; it just is
+            // not the outcome the player was fishing for, and it should not claim to be.
+            bool hasSomethingToGive = !factId.IsNone;
             ActionOutcome outcome;
 
             switch (check.Outcome)
             {
                 case CheckOutcome.CriticalPass:
-                    outcome = new ActionOutcome(Id, check, who + " folds completely and volunteers more than you asked for.");
+                    outcome = new ActionOutcome(Id, check, hasSomethingToGive
+                        ? who + " folds completely and volunteers more than you asked for."
+                        : who + " folds completely, and swears blind they know nothing more.");
                     Concede(context, factId, 0.9, outcome);
                     outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.7, context.Zone, witnesses: seen));
                     break;
 
                 case CheckOutcome.Pass:
-                    outcome = new ActionOutcome(Id, check, who + " tells you what you want to know.");
+                    outcome = new ActionOutcome(Id, check, hasSomethingToGive
+                        ? who + " tells you what you want to know."
+                        : who + " backs down, but has nothing you did not already know.");
                     Concede(context, factId, 0.7, outcome);
                     outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.6, context.Zone, witnesses: seen));
                     break;
@@ -127,7 +139,9 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.Impossible("you cannot offer " + price + " orens you do not have");
             }
 
-            return Availability.Available("costs about " + price + " orens");
+            return Availability.Available(ActionSupport.FindTeachableFact(context).IsNone
+                ? "costs about " + price + " orens, and they may have nothing to sell"
+                : "costs about " + price + " orens");
         }
 
         /// <summary>
@@ -166,6 +180,10 @@ namespace BrilliantQuesting.Actions.Library
                 return broke;
             }
 
+            // As with intimidation: whether they have anything to sell decides the words. A
+            // success against someone with nothing still buys goodwill, which is a real thing to
+            // have bought, but it is not "pockets it and talks".
+            bool hasSomethingToSell = !factId.IsNone;
             ActionOutcome outcome;
             switch (check.Outcome)
             {
@@ -176,7 +194,9 @@ namespace BrilliantQuesting.Actions.Library
                     break;
 
                 case CheckOutcome.Pass:
-                    outcome = new ActionOutcome(Id, check, who + " pockets it and talks.");
+                    outcome = new ActionOutcome(Id, check, hasSomethingToSell
+                        ? who + " pockets it and talks."
+                        : who + " pockets it, willing enough - but they have nothing you do not already know.");
                     Reveal(context, factId, 0.7, outcome);
                     outcome.Events.Add(context.World.Record(WorldEventType.Bribed, context.Actor, context.Target, context.Now, 0.5, context.Zone));
                     break;

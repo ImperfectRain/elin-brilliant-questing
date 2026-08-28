@@ -129,9 +129,11 @@ namespace BrilliantQuesting.Actions.Library
     /// <summary>
     /// Keep it.
     ///
-    /// Also no roll, and deliberately quiet: nothing happens immediately, nobody's affinity moves,
-    /// and the world simply carries a promise you did not keep. It becomes a problem later, when
-    /// someone finds out - which is the entire argument for a knowledge model.
+    /// Also no roll, and deliberately quiet: if nobody is watching, nobody's affinity moves and
+    /// the world simply carries an act it has not noticed yet. It becomes a problem later, when
+    /// someone finds out - which is the entire argument for a knowledge model. Quiet is not the
+    /// same as unrecorded, though: the act goes into the ledger either way, tagged unnoticed, so
+    /// that the discovery has something to be a discovery *of*.
     /// </summary>
     public sealed class KeepItemAction : NarrativeAction
     {
@@ -175,8 +177,32 @@ namespace BrilliantQuesting.Actions.Library
             }
             else
             {
-                outcome.Notes.Add("nobody was promised anything; the world has not noticed yet");
+                outcome.Notes.Add("nobody was promised anything, so nobody has been let down");
             }
+
+            // Keeping it is the moment the property changes hands for good, and from the owner's
+            // side that is a theft whoever physically took it. The act belongs in history: without
+            // it the situation could end - thread resolution and all - having recorded nothing at
+            // all, leaving no memory for the owner, nothing for a rumour or an escalation to key
+            // on, and a hole in the chronicle exactly where the ending should be.
+            //
+            // Quiet is preserved by the tag, not by the silence. Unnoticed keeps the world from
+            // reacting to something nobody saw - the victim's affinity must not move, because
+            // affinity moving is itself information - while the ledger still knows it happened,
+            // which is what lets it surface later.
+            IReadOnlyList<EntityId> seen = ActionSupport.Bystanders(context, true);
+            outcome.Events.Add(context.World.Record(
+                WorldEventType.Theft,
+                context.Actor,
+                owner,
+                context.Now,
+                0.6,
+                context.Zone,
+                related: new[] { item.Id },
+                witnesses: seen,
+                evidence: new[] { item.Id },
+                tags: seen.Count == 0 ? new[] { EventTags.Unnoticed } : null,
+                threadId: context.Thread?.Id ?? EntityId.None));
 
             if (context.Thread != null)
             {

@@ -535,7 +535,7 @@ namespace BrilliantQuesting.Plugin
             string thiefName = _world.Registry.NameOf(theft.Subject);
             string targetName = _world.Registry.NameOf(target);
             bool named = !string.IsNullOrEmpty(theft.Value);
-            string anItem = named ? "a " + theft.Value : "something";
+            string anItem = named ? Article(theft.Value) : "something";
             string theItem = named ? "the " + theft.Value : "it";
             string theMissing = named ? "the missing " + theft.Value : "the missing property";
 
@@ -593,7 +593,7 @@ namespace BrilliantQuesting.Plugin
             EntityId victim = FindVictim(thread, theft.Object);
             EntityId witness = FindWitness(theftFactId, theft.Subject);
             bool named = !string.IsNullOrEmpty(theft.Value);
-            string anItem = named ? "a " + theft.Value : "something";
+            string anItem = named ? Article(theft.Value) : "something";
             string theItem = named ? "the " + theft.Value : "it";
             bool playerKnows = _world.Knowledge.Knows(_vanilla.PlayerId, theftFactId);
             string lead = _world.Knowledge.Knows(_vanilla.PlayerId, theftFactId)
@@ -634,6 +634,23 @@ namespace BrilliantQuesting.Plugin
             }
 
             return string.Join(" ", lines);
+        }
+
+        /// <summary>
+        /// "a" or "an" in front of a bare noun. BQ-005a supplied the missing article and hardcoded
+        /// "a", which the first live run rendered as "Elna is missing a old signet" - one of the
+        /// five valuables the generator picks from starts with a vowel.
+        /// </summary>
+        private static string Article(string noun)
+        {
+            if (string.IsNullOrEmpty(noun))
+            {
+                return noun;
+            }
+
+            char first = char.ToLowerInvariant(noun[0]);
+            bool vowel = first == 'a' || first == 'e' || first == 'i' || first == 'o' || first == 'u';
+            return (vowel ? "an " : "a ") + noun;
         }
 
         private EntityId FindVictim(NarrativeThread thread, EntityId item)
