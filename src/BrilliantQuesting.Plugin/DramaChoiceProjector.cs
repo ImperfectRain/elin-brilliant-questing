@@ -24,6 +24,7 @@ namespace BrilliantQuesting.Plugin
     {
         private const int MaxChoices = 7;
         private static bool _installed;
+        private static bool _patchesAvailable;
 
         private readonly NarrativeWorldState _world;
         private readonly ElinVanillaState _vanilla;
@@ -59,9 +60,76 @@ namespace BrilliantQuesting.Plugin
                 return;
             }
 
-            new Harmony(ModInfo.Guid + ".drama").PatchAll(typeof(DramaChoiceProjector).Assembly);
+            Harmony harmony = new Harmony(ModInfo.Guid + ".drama");
+            bool ok = true;
+            ok &= TryPatch(
+                harmony,
+                log,
+                "DramaManager.ParseLine",
+                AccessTools.Method(typeof(DramaManager), nameof(DramaManager.ParseLine), new[] { typeof(Dictionary<string, string>) }),
+                postfix: AccessTools.Method(typeof(DramaManagerParseLinePatch), nameof(DramaManagerParseLinePatch.Postfix)));
+            ok &= TryPatch(
+                harmony,
+                log,
+                "DramaEventTalk.InitDialog",
+                AccessTools.Method(typeof(DramaEventTalk), nameof(DramaEventTalk.InitDialog)),
+                postfix: AccessTools.Method(typeof(DramaEventTalkInitDialogPatch), nameof(DramaEventTalkInitDialogPatch.Postfix)));
+            ok &= TryPatch(
+                harmony,
+                log,
+                "DialogDrama.SetText",
+                AccessTools.Method(typeof(DialogDrama), nameof(DialogDrama.SetText), new[] { typeof(string), typeof(bool) }),
+                prefix: AccessTools.Method(typeof(DialogDramaSetTextPatch), nameof(DialogDramaSetTextPatch.Prefix)));
+
+            if (!ok)
+            {
+                harmony.UnpatchSelf();
+                _patchesAvailable = false;
+                _installed = true;
+                log.LogInfo("Drama choice projector disabled because one or more Drama patches could not be applied. Vanilla dialogue is untouched.");
+                return;
+            }
+
+            _patchesAvailable = true;
             _installed = true;
             log.LogInfo("Drama choice projector installed.");
+        }
+
+        internal static bool PatchesAvailable => _patchesAvailable;
+
+        private static bool TryPatch(
+            Harmony harmony,
+            ManualLogSource log,
+            string name,
+            System.Reflection.MethodInfo target,
+            System.Reflection.MethodInfo prefix = null,
+            System.Reflection.MethodInfo postfix = null)
+        {
+            if (target == null)
+            {
+                log.LogWarning("Drama patch skipped: could not find " + name + ".");
+                return false;
+            }
+
+            if (prefix == null && postfix == null)
+            {
+                log.LogWarning("Drama patch skipped: could not find Brilliant Questing patch method for " + name + ".");
+                return false;
+            }
+
+            try
+            {
+                harmony.Patch(
+                    target,
+                    prefix == null ? null : new HarmonyMethod(prefix),
+                    postfix == null ? null : new HarmonyMethod(postfix));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                log.LogWarning("Drama patch skipped: " + name + " could not be patched (" + ex.GetType().Name + ": " + ex.Message + ").");
+                return false;
+            }
         }
 
         internal void AddChoices(DramaManager manager, Dictionary<string, string> line)
@@ -515,30 +583,63 @@ namespace BrilliantQuesting.Plugin
             return false;
         }
 
-        [HarmonyPatch(typeof(DramaManager), nameof(DramaManager.ParseLine))]
         private static class DramaManagerParseLinePatch
         {
-            private static void Postfix(DramaManager __instance, Dictionary<string, string> item)
+            internal static void Postfix(DramaManager __instance, Dictionary<string, string> item)
             {
-                Current?.AddChoices(__instance, item);
+                if (!_patchesAvailable)
+                {
+                    return;
+                }
+
+                try
+                {
+                    Current?.AddChoices(__instance, item);
+                }
+                catch (Exception ex)
+                {
+                    Current?._log.LogWarning("Brilliant Questing skipped Drama choice projection after an exception: " + ex.Message);
+                }
             }
         }
 
-        [HarmonyPatch(typeof(DramaEventTalk), nameof(DramaEventTalk.InitDialog))]
         private static class DramaEventTalkInitDialogPatch
         {
-            private static void Postfix(DramaEventTalk __instance)
+            internal static void Postfix(DramaEventTalk __instance)
             {
-                Current?.ProjectChoices(__instance?.manager, __instance);
+                if (!_patchesAvailable)
+                {
+                    return;
+                }
+
+                try
+                {
+                    Current?.ProjectChoices(__instance?.manager, __instance);
+                }
+                catch (Exception ex)
+                {
+                    Current?._log.LogWarning("Brilliant Questing skipped Drama init projection after an exception: " + ex.Message);
+                }
             }
         }
 
-        [HarmonyPatch(typeof(DialogDrama), nameof(DialogDrama.SetText))]
         private static class DialogDramaSetTextPatch
         {
-            private static void Prefix(ref string detail)
+            internal static void Prefix(ref string detail)
             {
-                Current?.TryReplaceRenderedText(ref detail);
+                if (!_patchesAvailable)
+                {
+                    return;
+                }
+
+                try
+                {
+                    Current?.TryReplaceRenderedText(ref detail);
+                }
+                catch (Exception ex)
+                {
+                    Current?._log.LogWarning("Brilliant Questing left vanilla Drama text unchanged after an exception: " + ex.Message);
+                }
             }
         }
     }
