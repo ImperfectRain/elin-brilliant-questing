@@ -186,17 +186,20 @@ namespace BrilliantQuesting.Plugin
                 }
             }
 
+            // Reading the case notes changes nothing, so it is deliberately outside the scope
+            // and stays clickable however many times the player wants it.
             DramaChoice notes = new DramaChoice("BQ: Review case notes", "", "bq:notes", "", "")
                 .SetOnClick(() => ShowCaseNotes(target));
             talk.AddChoice(notes);
 
+            ResolutionScope scope = new ResolutionScope(target);
             List<ActionOffer> offered = OfferPresentation.TakeForDisplay(available, MaxChoices);
             for (int i = 0; i < offered.Count; i++)
             {
                 NarrativeAction actionToRun = offered[i].Action;
                 string text = SafeChoiceText(actionToRun, context);
                 DramaChoice choice = new DramaChoice(text, "", "bq:" + actionToRun.Id, "", "")
-                    .SetOnClick(() => Perform(manager, target, actionToRun));
+                    .SetOnClick(() => Perform(manager, scope, target, actionToRun));
                 talk.AddChoice(choice);
             }
 
@@ -246,11 +249,31 @@ namespace BrilliantQuesting.Plugin
         /// outlive the situation it was built for, so the thread, the fact and the item are read
         /// again here rather than captured when the button was drawn. Only the NPC is carried
         /// across, because that is the one thing the player actually chose.
+        ///
+        /// Three things are checked before anything is written, in the order that costs least:
+        /// the offering has not already been spent, the person in front of the player is still the
+        /// person the option was drawn against, and the situation still exists.
         /// </summary>
-        private void Perform(DramaManager manager, EntityId target, NarrativeAction action)
+        private void Perform(DramaManager manager, ResolutionScope scope, EntityId target, NarrativeAction action)
         {
             try
             {
+                if (scope.IsSpent)
+                {
+                    _log.LogInfo("Drama ignored a repeat of " + action.Id + " vs "
+                                 + _world.Registry.NameOf(target) + ": " + scope.SpentBy
+                                 + " already resolved this conversation.");
+                    return;
+                }
+
+                if (!ActorStillPresent(manager, target))
+                {
+                    Msg.SayRaw(action.Label + ": you are no longer talking to them.");
+                    _log.LogInfo("Drama dropped " + action.Id + " vs " + _world.Registry.NameOf(target)
+                                 + ": the conversation moved to somebody else.");
+                    return;
+                }
+
                 NarrativeThread thread = FindThread(target);
                 if (thread == null || !TryBuildFocus(thread, out EntityId subjectFact, out EntityId subjectItem))
                 {
@@ -269,6 +292,13 @@ namespace BrilliantQuesting.Plugin
                     Msg.SayRaw(blocked);
                     _log.LogInfo("Drama refused " + action.Id + " vs " + _world.Registry.NameOf(target)
                                  + ": " + availability.Reason);
+                    return;
+                }
+
+                if (!scope.TryClaim(target, action.Id, out string refusal))
+                {
+                    _log.LogInfo("Drama refused " + action.Id + " vs " + _world.Registry.NameOf(target)
+                                 + ": " + refusal);
                     return;
                 }
 
@@ -609,6 +639,19 @@ namespace BrilliantQuesting.Plugin
                 case "frame": return ProceduralCheckProfiles.Fabrication;
                 default: return null;
             }
+        }
+
+        /// <summary>
+        /// True while the character the player is talking to is still the one an option was drawn
+        /// against. Drama can change its actor mid-sequence, and a choice already on screen would
+        /// otherwise resolve against whoever happens to be speaking now.
+        /// </summary>
+        private bool ActorStillPresent(DramaManager manager, EntityId target)
+        {
+            Chara current = manager?.tg?.chara;
+            return current != null
+                   && _bindings.TryGetEntity(current.uid, out EntityId entity)
+                   && entity == target;
         }
 
         /// <summary>
