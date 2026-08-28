@@ -69,10 +69,18 @@ persists to the save's `brilliantQuesting` chunk on `EVENT.PreSave`. Reads real 
 through the adapter — all 23 element aliases resolve, 11 of 13 capabilities available. A staged
 three-NPC theft can be entered through default talk, with procedural choices injected into Drama.
 
-**Working headless.** 46 tests. Deterministic simulation core: stable identity, event ledger,
+**Working headless.** 48 tests. Deterministic simulation core: stable identity, event ledger,
 fact/belief separation with provenance and provability, memory with consolidation, relationship
-graph, threads with milestone escalation, twelve verbs across six solution families, four-outcome
+graph, threads with milestone escalation, thirteen verbs across six solution families, four-outcome
 checks, versioned save with migration.
+
+**Latest live playtest.** On 28 Aug 2026 a tester killed the perpetrator after earlier prototype
+runs had failed to spawn the physical ring. The compatibility repair spawned the missing evidence
+loose near the player, `search` recovered it as provable evidence, `return_item` handed it to the
+victim, and the thread resolved as `property_returned`. The log saved 13 events into the
+`brilliantQuesting` chunk. Remaining jank from that pass: Elin's material prefix produced
+`a bronze silver ring`, the dead perpetrator was no longer bound to a live Chara, and the tracking
+surface is still dialogue/case-notes rather than a journal tab.
 
 **Known gaps at the code level.** No crime or witness observation from vanilla. No Home state. No
 economy. No sites. No NPC autonomy. No director. One situation archetype. Personality exists as
@@ -101,7 +109,7 @@ No system is allowed to disappear from this table.
 | Relationships | Prototype | Hardened | BQ-022, BQ-055 |
 | Vanilla adapter (`IVanillaState`) | Playable | Complete-until-launch | BQ-003, BQ-011, BQ-030 |
 | Checks (native + portable) | Playable | Complete-until-launch | BQ-004 |
-| Action library | Playable (12 verbs) | Complete-until-launch (~40) | BQ-023 … BQ-029 |
+| Action library | Playable (13 verbs) | Complete-until-launch (~40) | BQ-023 … BQ-029 |
 | Threads & escalation | Playable | Hardened | BQ-013, BQ-052 |
 | Situation archetypes | Prototype (1) | Complete-until-launch (7) | BQ-041 … BQ-047 |
 | Situation generation from world state | Absent | Playable | BQ-039, BQ-040 |

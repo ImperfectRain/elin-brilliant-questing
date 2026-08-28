@@ -50,6 +50,12 @@ varied outcomes, and now announces the case in game. The remaining Gate A risk i
 integration: `LayerJournal`, `ContentQuest`, `QuestManager`, and `Quest` exist, but a first-class
 Brilliant Questing tab still needs a focused UI spike.
 
+Live playtest on 28 Aug 2026 confirmed a janky but complete resolution path after the perpetrator
+was killed: the compatibility repair spawned missing evidence near the player, search recovered it
+as provable, return-item handed it to the victim, and the thread resolved as `property_returned`.
+The log saved 13 events into the `brilliantQuesting` chunk. Remaining rough edges are item naming
+(`a bronze silver ring`), dead-NPC binding, procedural dialogue flavor, and journal tracking.
+
 ## Phase 1 - three-NPC simulation laboratory
 
 Done. `PettyTheftSituation` generates three persistent, motivated characters, an object, a fact
