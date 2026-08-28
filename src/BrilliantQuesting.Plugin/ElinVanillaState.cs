@@ -24,6 +24,7 @@ namespace BrilliantQuesting.Plugin
         private readonly ElinBindings _bindings;
         private readonly ManualLogSource _log;
         private readonly HashSet<VanillaCapability> _capabilities = new HashSet<VanillaCapability>();
+        private readonly Dictionary<VanillaCapability, string> _capabilityEvidence = new Dictionary<VanillaCapability, string>();
 
         internal ElinVanillaState(ElinBindings bindings, ManualLogSource log)
         {
@@ -38,36 +39,170 @@ namespace BrilliantQuesting.Plugin
         internal void DetectCapabilities()
         {
             _capabilities.Clear();
+            _capabilityEvidence.Clear();
 
-            if (ElementAliases.AttributesResolved)
-            {
-                _capabilities.Add(VanillaCapability.ReadAttributes);
-            }
+            Probe(
+                VanillaCapability.ReadAttributes,
+                () =>
+                {
+                    if (!ElementAliases.TryGet(VanillaAttribute.Strength, out int elementId) || EClass.pc?.elements == null)
+                    {
+                        return null;
+                    }
 
-            if (ElementAliases.SkillsResolved)
-            {
-                _capabilities.Add(VanillaCapability.ReadSkills);
-            }
+                    return "pc.elements.Value(" + elementId + ") => STR " + EClass.pc.elements.Value(elementId);
+                });
 
-            _capabilities.Add(VanillaCapability.ReadWriteAffinity);
-            _capabilities.Add(VanillaCapability.ReadWriteKarma);
-            _capabilities.Add(VanillaCapability.ReadWriteFame);
-            _capabilities.Add(VanillaCapability.ReadWriteInfluence);
-            _capabilities.Add(VanillaCapability.ReadInventory);
-            _capabilities.Add(VanillaCapability.TransferItems);
-            _capabilities.Add(VanillaCapability.SpendMoney);
-            _capabilities.Add(VanillaCapability.ReadFaith);
-            _capabilities.Add(VanillaCapability.ReadGuildRank);
+            Probe(
+                VanillaCapability.ReadSkills,
+                () =>
+                {
+                    if (!ElementAliases.TryGet(VanillaSkill.Negotiation, out int elementId) || EClass.pc?.elements == null)
+                    {
+                        return null;
+                    }
 
-            // Not yet implemented rather than not available. Left off so no procedural route
-            // silently depends on something this adapter cannot actually do.
-            //   ReadHomeState, ObserveCrimeWitnesses
+                    return "pc.elements.Value(" + elementId + ") => negotiation " + EClass.pc.elements.Value(elementId);
+                });
+
+            Probe(
+                VanillaCapability.ReadWriteAffinity,
+                () =>
+                {
+                    if (EClass.pc == null)
+                    {
+                        return null;
+                    }
+
+                    int before = EClass.pc._affinity;
+                    EClass.pc.ModAffinity(EClass.pc, 0, false, false);
+                    return "pc.ModAffinity(pc, 0, false, false) preserved affinity " + before;
+                });
+
+            Probe(
+                VanillaCapability.ReadWriteKarma,
+                () =>
+                {
+                    if (EClass.player == null)
+                    {
+                        return null;
+                    }
+
+                    int before = EClass.player.karma;
+                    EClass.player.ModKarma(0);
+                    return "Player.ModKarma(0) preserved karma " + before;
+                });
+
+            Probe(
+                VanillaCapability.ReadWriteFame,
+                () =>
+                {
+                    if (EClass.player == null)
+                    {
+                        return null;
+                    }
+
+                    int before = EClass.player.fame;
+                    EClass.player.ModFame(0);
+                    return "Player.ModFame(0) preserved fame " + before;
+                });
+
+            Probe(
+                VanillaCapability.ReadWriteInfluence,
+                () =>
+                {
+                    if (EClass.pc == null)
+                    {
+                        return null;
+                    }
+
+                    int before = EClass.pc.GetCurrency(InfluenceCurrency);
+                    EClass.pc.ModCurrency(0, InfluenceCurrency);
+                    return "pc.GetCurrency/ModCurrency(0, 'influence') preserved " + before;
+                });
+
+            Probe(
+                VanillaCapability.ReadGuildRank,
+                () => EClass.game?.factions == null ? null : "EClass.game.factions guild membership read for Fighter/Mage/Thief/Merchant");
+
+            Probe(
+                VanillaCapability.ReadFaith,
+                () =>
+                {
+                    if (EClass.pc?.elements == null)
+                    {
+                        return null;
+                    }
+
+                    return "pc.idFaith '" + (EClass.pc.idFaith ?? string.Empty) + "', pc.elements.Value(85) => piety " + EClass.pc.elements.Value(PietyElementId);
+                });
+
+            Probe(
+                VanillaCapability.ReadInventory,
+                () => EClass.pc == null || EClass.pc.things == null ? null : "pc.things enumerated => " + EClass.pc.things.Count + " item(s)");
+
+            Probe(
+                VanillaCapability.TransferItems,
+                () => EClass.pc == null || EClass.pc.things == null ? null : "Chara.Pick transfer path available; source inventory count " + EClass.pc.things.Count);
+
+            Probe(
+                VanillaCapability.SpendMoney,
+                () =>
+                {
+                    if (EClass.pc == null)
+                    {
+                        return null;
+                    }
+
+                    int before = EClass.pc.GetCurrency(MoneyCurrency);
+                    EClass.pc.ModCurrency(0, MoneyCurrency);
+                    return "pc.GetCurrency/ModCurrency(0, 'money') preserved " + before;
+                });
+
+            MarkUnsupported(VanillaCapability.ReadHomeState, "not implemented until BQ-030 maps Home state");
+            MarkUnsupported(VanillaCapability.ObserveCrimeWitnesses, "not implemented until BQ-014/BQ-015 wire ActPerformed witnesses");
 
             _log.LogInfo("Vanilla capabilities: " + _capabilities.Count + " of "
                          + Enum.GetValues(typeof(VanillaCapability)).Length);
+            ReportCapabilities();
         }
 
         public bool Supports(VanillaCapability capability) => _capabilities.Contains(capability);
+
+        private void Probe(VanillaCapability capability, Func<string> evidence)
+        {
+            try
+            {
+                string line = evidence();
+                if (string.IsNullOrEmpty(line))
+                {
+                    MarkUnsupported(capability, "probe returned no runtime object");
+                    return;
+                }
+
+                _capabilities.Add(capability);
+                _capabilityEvidence[capability] = line;
+            }
+            catch (Exception ex)
+            {
+                MarkUnsupported(capability, ex.GetType().Name + ": " + ex.Message);
+            }
+        }
+
+        private void MarkUnsupported(VanillaCapability capability, string reason)
+        {
+            _capabilityEvidence[capability] = "unsupported: " + reason;
+        }
+
+        private void ReportCapabilities()
+        {
+            foreach (VanillaCapability capability in (VanillaCapability[])Enum.GetValues(typeof(VanillaCapability)))
+            {
+                _capabilityEvidence.TryGetValue(capability, out string evidence);
+                string state = Supports(capability) ? "available" : "unavailable";
+                _log.LogInfo("  capability " + capability + ": " + state + " - " + (evidence ?? "not probed"));
+            }
+        }
 
         public GameTime Now
         {
