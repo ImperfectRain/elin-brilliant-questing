@@ -122,7 +122,7 @@ namespace BrilliantQuesting.Plugin
                 }
 
                 NarrativeAction actionToRun = offer.Action;
-                string text = ChoiceText(actionToRun, context);
+                string text = SafeChoiceText(actionToRun, context);
                 DramaChoice choice = new DramaChoice(text, "", "bq:" + actionToRun.Id, "", "")
                     .SetOnClick(() => Perform(manager, thread, target, subjectFact, subjectItem, actionToRun));
                 talk.AddChoice(choice);
@@ -133,6 +133,19 @@ namespace BrilliantQuesting.Plugin
             {
                 _log.LogInfo("Projected " + added + " Brilliant Questing option(s) for "
                              + _world.Registry.NameOf(target) + ".");
+            }
+        }
+
+        private string SafeChoiceText(NarrativeAction action, ActionContext context)
+        {
+            try
+            {
+                return ChoiceText(action, context);
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning("Could not describe dialogue option '" + action.Id + "': " + ex.Message);
+                return action.Label;
             }
         }
 

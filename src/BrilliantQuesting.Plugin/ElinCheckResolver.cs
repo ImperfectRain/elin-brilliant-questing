@@ -101,7 +101,22 @@ namespace BrilliantQuesting.Plugin
             Chara actor = _bindings.ResolveChara(request.Actor);
             Card target = request.Target.IsNone ? null : _bindings.ResolveChara(request.Target);
             Check check = actor == null ? null : TryGetCheck(request.Profile.Id, 0);
-            return check == null ? string.Empty : check.GetText(actor, target, inDialog);
+            if (check == null)
+            {
+                return string.Empty;
+            }
+
+            try
+            {
+                return check.GetText(actor, target, inDialog);
+            }
+            catch (Exception ex)
+            {
+                _log.LogInfo("Native difficulty text for '" + request.Profile.Id + "' is unavailable ("
+                             + ex.GetType().Name + "); hiding the difficulty label.");
+                _missingRows.Add(request.Profile.Id);
+                return string.Empty;
+            }
         }
 
         private Check TryGetCheck(string id, int dcMod)
