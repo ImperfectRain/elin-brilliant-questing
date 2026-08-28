@@ -1,6 +1,6 @@
 # Implementation Roadmap
 
-The single ordered plan for Brilliant Questing, audited against all four design documents and the
+The single ordered plan for Brilliant Questing, audited against all six design documents and the
 code as it stands. Every other document describes *what* to build and *why*; this one says *in what
 order*, *how you know a step is finished*, and *where every idea went*.
 
@@ -88,7 +88,7 @@ version-drift exposure.
 
 ## 4. System ledger
 
-Every system named across the four design documents, its state today, and the steps that move it.
+Every system named across the six design documents, its state today, and the steps that move it.
 No system is allowed to disappear from this table.
 
 | System | Now | Target for 1.0 | Steps |
@@ -136,6 +136,7 @@ No system is allowed to disappear from this table.
 | Compatibility & version drift | Prototype | Hardened | BQ-109, BQ-110 |
 | Player configuration | Prototype (2 flags) | Complete-until-launch | BQ-111, BQ-120 |
 | Engagement & reward | Absent | Complete-until-launch | BQ-112 … BQ-119 |
+| Setting fidelity & player culture | Absent | Complete-until-launch | BQ-121 … BQ-128 |
 | Mod interoperability API | Absent | Post-launch | §8 |
 | Multiplayer | Absent | Post-launch, explicitly unsupported | §8 |
 | Optional LLM prose | Absent | Post-launch | §8 |
@@ -149,7 +150,8 @@ may be reordered if evidence justifies it.
 
 Notation: **Depends** is a hard prerequisite. **Done when** is the completion test. **Sources**
 cites the design documents — `MD` master-design, `PM` post-master-findings, `LW`
-living-world-priorities, `CD` character-dialogue-system. **Unblocks** is what waits on it.
+living-world-priorities, `CD` character-dialogue-system, `SP` setting-and-player-culture;
+`engagement` is engagement-and-reward. **Unblocks** is what waits on it.
 
 ---
 
@@ -1128,6 +1130,90 @@ outcomes.
 
 ---
 
+### Setting-fidelity track — added after the player-culture research
+
+Eight steps from [`design/setting-and-player-culture.md`](design/setting-and-player-culture.md),
+which asks a question none of the other five documents ask: not what the mod should build, but what
+this specific playerbase — English, Japanese and Chinese — already loves about Irva, so the mod
+amplifies it instead of competing with it. Cited as `SP` below.
+
+These are cheap. Almost none of them is a new system; most are a constraint or a weighting on a
+system already in the plan. They are recorded as their own steps because a constraint that lives
+only in a doctrine list gets forgotten, and because each has a real completion test.
+
+#### BQ-121 — Everything is declinable *(stage S1, hardened through S9)*
+No situation, arrival, conversation or thread can be entered involuntarily, and declining is never
+penalised — no affinity loss, no karma, no closed door that would otherwise have been open.
+- **Depends** BQ-005, BQ-009.
+- **Done when** an automated pass declines every surfaced situation for an in-game month and the resulting save is indistinguishable from an unmodded one in player-facing state; and a test asserts no decline path writes a penalty.
+- **Sources** SP §1; LW §10.7; standing rules §10 rule 21.
+- **Why** 自由度 — degree of freedom — is the first thing all three language communities name about this game. Pressure breaks the one quality the entire playerbase agrees on. This outranks any engagement metric.
+
+#### BQ-122 — Situations route into existing playstyles *(stage S3, extends the action library)*
+Verb coverage extends past crafting and economy to the sidetracks players actually organise their
+playthroughs around: **performing**, **museum donation**, **the ranch and breeding**, **fishing**,
+and **farming as a supply answer**.
+- **Depends** BQ-023, BQ-026, BQ-027, BQ-029.
+- **Done when** a performance can resolve a social problem, a museum donation can settle a debt of honour, a bred animal can be a gift that changes a relationship, and a fishing haul can answer a shortage — each as a real mechanical route, not a dialogue tag.
+- **Sources** SP §2; MD §26; PM §6.
+- **Why** the Japanese material describes players who specialise in growing vegetables, in performing at parties, or in stealing from everyone. The design's solution-family thesis is not a hypothesis here — the playerbase has already sorted itself into those families. Meeting them there costs a verb each.
+
+#### BQ-123 — The player's own pets and residents are narrative actors *(stage S6, extends BQ-049)*
+Casting may draw on the player's pets, residents and adventurers-turned-companions: as witness,
+victim, suspect, the subject of another actor's grudge, or the thing somebody else wants.
+- **Depends** BQ-049, BQ-114.
+- **Done when** a situation casts a named pet or resident of the player's own household, correctly, and survives that character being sold, married off, or killed.
+- **Sources** SP §3; LW §6.2; engagement §4.
+- **Why** attachment is the precondition for stakes (BQ-114), and in Elin the attachment already exists — it lives in pets and residents, in every language community. A generated stranger has to earn what the player's own chicken already has.
+
+#### BQ-124 — Losses are recoverable at a price *(stage S5, constrains every archetype)*
+A dead contact, a burned relationship, a lost heirloom or a razed shop is a priced setback, not
+deleted content. Every irreversible-looking loss has at least one expensive, uncertain route back.
+- **Depends** BQ-002, BQ-052.
+- **Done when** each archetype's worst outcome has a documented recovery route, and a test walks one situation to its worst end and back.
+- **Sources** SP §3; MD §12; standing rules §10 rule 11.
+- **Why** Elin already teaches this register: a dead pet is resurrected at a bartender for money, with its equipment and abilities intact. Loss that costs is native. Loss that deletes is not.
+
+#### BQ-125 — Family and dependents weighted in generation *(stage S5, alongside BQ-039)*
+Situation generation weights Family and Spouse edges heavily when choosing who is at risk, and
+prefers a sibling, parent, child or dependent over a business relationship where both are available.
+- **Depends** BQ-022, BQ-039.
+- **Done when** across 100 generated situations, the person at risk is a family member or dependent in a clear majority of those where the relationship graph offered the choice.
+- **Sources** SP §5; PM §32.
+- **Why** every piece of Elona's emotional content the community records is domestic: a dying sister, a brother's memorial, a mother's incurable disease, the sister of Noyel. Not epics. `false accusation`, `fugitive` and `debt` all become stronger when the person at risk is somebody's sister rather than a merchant.
+
+#### BQ-126 — Irva's own furniture as situation seeds *(stage S5, extends BQ-040)*
+Generation draws premises from the setting's existing material — the gods, the guilds, the towns,
+Nefia, the ether — rather than a parallel invented mythology. **Ether disease** is modelled
+explicitly as a seed: an NPC who has it, a family hiding it, a cure that is expensive and uncertain.
+- **Depends** BQ-039, BQ-040, BQ-028.
+- **Done when** a majority of generated premises name something that exists in vanilla Irva, and an ether-disease situation runs end to end without inventing a cure the setting does not have.
+- **Sources** SP §6; MD §2; standing rules §10 rule 7.
+- **Why** both the Japanese and Chinese communities frame Elin as the legitimate evolution of Elona, and the affection extends to Noa personally. Players are not visiting a sandbox; they are returning to a world they have known for years. A Nefia that went quiet is of this world. A generic bandit conspiracy is not.
+
+#### BQ-127 — Sincerity budget *(stage S7, pairs with the weirdness budget)*
+The director tracks sincere content the way `CD §22.2` tracks weirdness: rare, rationed, and
+surrounded by the ordinary and the absurd.
+- **Depends** BQ-065, BQ-099, BQ-100.
+- **Done when** the director can report the sincerity rate of a session, and the rate holds under long play without a hand-tuned exception.
+- **Sources** SP §4; CD §22.2.
+- **Why** Pael's mother and the Strange Diary are remembered *because* they sit in a game that wants you to die smiling and does not comment on cannibalism. Frequency would destroy the exact thing that makes them land.
+
+#### BQ-128 — Tone is never signposted *(review gate, applies from S7 onward)*
+No sincere situation is marked as one — no framing line, no tonal cue, no journal category, no
+difference in presentation. The player discovers the register from the content.
+- **Depends** BQ-074, BQ-127.
+- **Done when** a reviewer given a mixed set of surfaced situations cannot sort them by intended register from presentation alone.
+- **Sources** SP §4, §8; CD §21.
+- **Why** `character-dialogue-system.md` already forbids explaining the joke. The same rule protects the sincerity, and for the same reason: the contrast is the mechanism, and announcing it spends it.
+
+> **Setting checkpoint.** Before launch: BQ-121 holds under adversarial testing (there is no path
+> into the mod a player did not choose), and §8 of `setting-and-player-culture.md` — do not moralise,
+> do not out-write the game, do not make sincerity frequent, do not compete with the town — reads as
+> a description of the shipped mod rather than an aspiration.
+
+---
+
 ## 6. Critical path and parallel work
 
 Most of the plan is sequential by dependency, but three tracks can run in parallel once S2 is done,
@@ -1175,6 +1261,10 @@ malformed thread is quarantined. Migration fixtures cover every schema version.
 
 **Restraint.** A player can farm, build and explore for an hour without procedural interruption.
 
+**Setting fidelity.** Nothing the mod offers is compulsory, and declining costs nothing. Generated
+premises are recognisably of Irva. Sincere content is rare and unannounced. The mod does not
+moralise, does not out-write the game's terseness, and does not compete with the player's town.
+
 At launch, every system in §4 is **Complete-until-launch** and every unbuilt idea is in §8.
 
 ---
@@ -1208,7 +1298,7 @@ names why it is not in 1.0.
 
 ## 9. Idea coverage index
 
-Every substantive idea in the four design documents, mapped to where it lives in this plan. This is
+Every substantive idea in the six design documents, mapped to where it lives in this plan. This is
 the audit artifact: if an idea is not here, it was missed.
 
 ### From `master-design.md`
@@ -1456,11 +1546,30 @@ the audit artifact: if an idea is not here, it was missed.
 | Milestones 1–7 | BQ-057, BQ-076, BQ-068, BQ-080, BQ-081, BQ-094, BQ-103 |
 | Inspiration translation | Standing rules §10 |
 
+### From `setting-and-player-culture.md`
+
+| Idea | Where |
+|---|---|
+| 自由度 / freedom as the one universal community value | BQ-121; standing rules §10 rule 21z |
+| Players self-sort into farmer, performer, thief | BQ-122; checkpoint S3 |
+| Route situations into performing, museum, ranch, fishing, farming | BQ-122 |
+| Attachment lives in pets and residents | BQ-123 |
+| Resurrection economy: loss is priced, not deleted | BQ-124; standing rules §10 rule 21d |
+| Domestic loss and family weighting | BQ-125 |
+| Use Irva's own lore before inventing mythology | BQ-126; standing rules §10 rule 21e |
+| Ether disease as a situation seed | BQ-126 |
+| Cruelty as the setting for rare mercy; sincerity budget | BQ-127 |
+| Never signpost tone | BQ-128; standing rules §10 rule 21c |
+| Do not moralise | Standing rules §10; BQ-025, BQ-046 |
+| Do not out-write the game's terseness | BQ-070, BQ-074; §7 launch definition |
+| Do not compete with the town | BQ-116, BQ-121; §7 launch definition |
+| Elin as the legitimate evolution of Elona | BQ-126; §7 launch definition |
+
 ---
 
 ## 10. Standing rules
 
-The four documents each end in a doctrine list. Merged and deduplicated, they come to this. These
+The design documents each end in a doctrine list. Merged and deduplicated, they come to this. These
 bind every step above; a step that violates one is wrong even if it works.
 
 **What is true**
@@ -1492,8 +1601,12 @@ bind every step above; a step that violates one is wrong even if it works.
 19. Weirdness is one absurd premise treated sincerely with real mechanical consequence — not a joke announced.
 20. Drama must have an owner and a cause. Never manufacture escalation because a thread went quiet.
 21. Protect ordinary Elin play. The player must be able to farm, build and explore uninterrupted.
+21z. Everything is declinable, always, without penalty. Freedom is not a quality to preserve alongside the simulation; it is what the simulation exists to serve.
 21a. Reward with access, relationships, standing, information and options — never with a payout attached to a story.
 21b. Engaging must be the shortest path to something the player already wanted, not a detour from it.
+21c. Sincerity is rationed like weirdness, and neither is ever announced. The contrast is the mechanism.
+21d. Loss is priced, not deleted. Every setback has an expensive, uncertain route back.
+21e. Use Irva's own furniture — its gods, guilds, towns, Nefia and ether — before inventing a parallel mythology.
 
 **How to keep it alive**
 
