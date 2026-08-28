@@ -165,6 +165,17 @@ namespace BrilliantQuesting.Plugin
                 return;
             }
 
+            // BQ-008: the world may have moved since the thread was written. Offering a route
+            // through somebody who is dead produces a screen of options that each refuse for
+            // their own reason, which reads as a bug rather than as a situation.
+            SceneStatus scene = SceneStatus.Check(_world, _vanilla, thread, target);
+            if (!scene.IsPlayable)
+            {
+                _log.LogInfo("Drama offered nothing for " + _world.Registry.NameOf(target)
+                             + ": " + scene.Reason + ".");
+                return;
+            }
+
             if (AlreadyProjected(talk))
             {
                 return;
@@ -325,6 +336,18 @@ namespace BrilliantQuesting.Plugin
                     Msg.SayRaw(action.Label + ": that matter is settled.");
                     _log.LogInfo("Drama dropped " + action.Id + " vs " + _world.Registry.NameOf(target)
                                  + ": no live thread when the choice was clicked.");
+                    manager?.sequence?.Exit();
+                    return;
+                }
+
+                // The scene is checked again here, not only when the buttons were drawn. A choice
+                // can sit on screen while the world changes around it.
+                SceneStatus scene = SceneStatus.Check(_world, _vanilla, thread, target);
+                if (!scene.IsPlayable)
+                {
+                    Msg.SayRaw(action.Label + ": " + scene.Reason + ".");
+                    _log.LogInfo("Drama dropped " + action.Id + " vs " + _world.Registry.NameOf(target)
+                                 + ": " + scene.Reason + ".");
                     manager?.sequence?.Exit();
                     return;
                 }
@@ -572,6 +595,12 @@ namespace BrilliantQuesting.Plugin
             else
             {
                 lines.Add("Objective: learn who took " + theItem + ", find proof if possible, then decide whether to expose them, return it, keep it, or let the dispute run.");
+            }
+
+            string gone = SceneStatus.Check(_world, _vanilla, thread, EntityId.None).DescribeMissing(_world);
+            if (!string.IsNullOrEmpty(gone))
+            {
+                lines.Add(gone);
             }
 
             if (thread.OpenQuestions.Count > 0)
