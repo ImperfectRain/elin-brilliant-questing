@@ -1,6 +1,6 @@
 # Implementation Roadmap
 
-The single ordered plan for Brilliant Questing, audited against all six design documents and the
+The single ordered plan for Brilliant Questing, audited against all seven design documents and the
 code as it stands. Every other document describes *what* to build and *why*; this one says *in what
 order*, *how you know a step is finished*, and *where every idea went*.
 
@@ -103,7 +103,7 @@ never authored dialogue. Those three patches are the project's main version-drif
 
 ## 4. System ledger
 
-Every system named across the six design documents, its state today, and the steps that move it.
+Every system named across the seven design documents, its state today, and the steps that move it.
 No system is allowed to disappear from this table.
 
 | System | Now | Target for 1.0 | Steps |
@@ -152,9 +152,11 @@ No system is allowed to disappear from this table.
 | Player configuration | Prototype (2 flags) | Complete-until-launch | BQ-111, BQ-120 |
 | Engagement & reward | Absent | Complete-until-launch | BQ-112 … BQ-119 |
 | Setting fidelity & player culture | Absent | Complete-until-launch | BQ-121 … BQ-128 |
+| Content pipeline (authored data → bundle) | Absent | Complete-until-launch | BQ-129 … BQ-133 |
 | Mod interoperability API | Absent | Post-launch | §8 |
 | Multiplayer | Absent | Post-launch, explicitly unsupported | §8 |
-| Optional LLM prose | Absent | Post-launch | §8 |
+| Optional LLM prose (runtime) | Absent | Post-launch | §8 |
+| Content authoring workbench | Absent | Post-launch | §8 |
 
 ---
 
@@ -166,7 +168,7 @@ may be reordered if evidence justifies it.
 Notation: **Depends** is a hard prerequisite. **Done when** is the completion test. **Sources**
 cites the design documents — `MD` master-design, `PM` post-master-findings, `LW`
 living-world-priorities, `CD` character-dialogue-system, `SP` setting-and-player-culture;
-`engagement` is engagement-and-reward. **Unblocks** is what waits on it.
+`CP` content-pipeline; `engagement` is engagement-and-reward. **Unblocks** is what waits on it.
 
 ---
 
@@ -653,6 +655,11 @@ Note on naming: `Scene` collides with an Elin type. Use `NarrativeScene`. Check 
 
 Note on reuse: `NarrativeNpc`, `KnowledgeRecord` and `RumorSystem` already exist and are persisted.
 Extend them; do not build parallel stores.
+
+**Read the content-pipeline track before starting BQ-065.** BQ-129 … BQ-133 sit immediately ahead of
+the storylet engine and decide the form its content takes. Storylets, fragments and speech acts are
+authored data, not C#; writing the first five storylets in code and extracting them later is a
+migration this plan does not budget for.
 
 #### BQ-056 — Behavioural dimensions
 Replace the nine ad-hoc weights with the independent continuous dimensions in `CD §5.1`
@@ -1148,7 +1155,7 @@ outcomes.
 ### Setting-fidelity track — added after the player-culture research
 
 Eight steps from [`design/setting-and-player-culture.md`](design/setting-and-player-culture.md),
-which asks a question none of the other five documents ask: not what the mod should build, but what
+which asks a question none of the other design documents ask: not what the mod should build, but what
 this specific playerbase — English, Japanese and Chinese — already loves about Irva, so the mod
 amplifies it instead of competing with it. Cited as `SP` below.
 
@@ -1229,6 +1236,72 @@ difference in presentation. The player discovers the register from the content.
 
 ---
 
+### Content-pipeline track — added after the authoring-format audit
+
+Five steps from [`design/content-pipeline.md`](design/content-pipeline.md), which decides the
+serialization question `CD §41` explicitly left open. Cited as `CP` below.
+
+**These are not new systems. They are the shape three planned systems arrive in.** BQ-065's
+storylets, BQ-074's fragments and BQ-070's speech-act vocabulary are all authored content whichever
+way they are written; the only question is whether they are written as C# and extracted later, or
+as data on the first day. Extraction is a migration nobody has budgeted.
+
+So the track **opens immediately before BQ-065** — BQ-129 and BQ-130 build the format and the
+compiler, and BQ-066's five storylets are the first artefact to use them — and its remaining three
+steps interleave with the S7 steps whose content they carry: BQ-131 with BQ-065 and BQ-066, BQ-132
+with BQ-074, BQ-133 with BQ-078.
+
+This reverses one §8 deferral and leaves the other standing — see §8 and §11. It does not change
+any content *target*; §11's fragment-volume resolution is unaffected.
+
+#### BQ-129 — Content bundle format and loader *(stage S7, immediately before BQ-065)*
+A flat, versioned, already-resolved bundle shipped beside the DLL and read by Core with no external
+parser. Stable content ids; a malformed or missing bundle disables the affected content with a
+diagnostic and never throws into Elin's frame.
+- **Depends** BQ-005 (the degrade-to-diagnostic pattern), BQ-105.
+- **Done when** Core loads a bundle with no package dependency added; a bundle with a truncated tail, an unknown version and a missing file each produce a logged diagnostic and a running game; and a headless test asserts the shipped assembly references no serialization package.
+- **Sources** CP §3, §4; CD §41; standing rules §10 rule 5a.
+- **Why** `Json.cs` was hand-written to keep Core dependency-free. A YAML parser in the shipped assembly would be the project's first external dependency, taken for a job that only happens at authoring time.
+
+#### BQ-130 — Content compiler *(stage S7, with BQ-129)*
+`tools/ContentCompiler`: reads authored YAML under `content/`, resolves ids and references, emits the
+BQ-129 bundle. Build-time only — it is never referenced by the plugin and never ships.
+- **Depends** BQ-129.
+- **Done when** `dotnet run --project tools/ContentCompiler` turns `content/` into a bundle the loader accepts, the plugin build fails if the bundle is stale, and the compiler is absent from the shipped `Package/` output.
+- **Sources** CP §3; CD §41.
+- **Why** authoring wants comments, block text and reviewable diffs; the runtime wants a structure it does not have to interpret. A compiler is how both get what they want, and it is where authoring mistakes turn into build errors with a file and a line.
+
+#### BQ-131 — Storylets are authored content *(stage S7, absorbs the content half of BQ-065 and BQ-066)*
+`StoryletDefinition` is deserialized from the bundle, not constructed in C#. Preconditions, roles and
+beats are data; the engine that evaluates them is code.
+- **Depends** BQ-130, BQ-065.
+- **Done when** all five of BQ-066's storylets exist only as files under `content/storylets/`, adding a sixth requires no C# change, and a storylet referencing an undefined role fails the build rather than the game.
+- **Sources** CP §2, §5; CD §41, §11.
+- **Why** the storylet library is the largest planned body of content in the project. Writing the first five in C# sets the pattern for the rest, and the pattern would then have to be undone.
+
+#### BQ-132 — Fragments are authored content *(stage S7, with BQ-074)*
+The `DialogueFragment` table is the bundle's fragment section, filed by semantic act and position
+rather than by speaker.
+- **Depends** BQ-130, BQ-074.
+- **Done when** the realizer draws every fragment from the bundle, a new fragment reaches the game with no rebuild of the plugin assembly, and no fragment file is organised per-character.
+- **Sources** CP §5; CD §18, §41.
+- **Why** filing by speaker produces lines only one character can say — the reuse failure `engagement-and-reward.md` exists to prevent, arriving through a directory layout. Filing by meaning is the difference between a library and a script.
+
+#### BQ-133 — Content validation and coverage report *(stage S7, gate before content scale)*
+The compiler refuses dangling references, unknown semantic acts, duplicate or retired ids and
+unreachable content, and emits a coverage report over act × position × tone × formality.
+- **Depends** BQ-130, BQ-078.
+- **Done when** each malformed-content class fails the build with a located message, and the report names cells with zero and with exactly one fragment — the holes and the repetition bugs — without prescribing what to write next.
+- **Sources** CP §6; PM §6; §11 "Coverage as mandate versus report".
+- **Why** a cell with one fragment is a repetition bug a player will find before we do. Counting cells measures the library; counting lines measures the effort.
+
+> **Content checkpoint.** Before S7's 100-thefts test: no storylet, fragment or speech act is defined
+> in C#; the save chunk contains content ids and events but no authored text; and loading a save made
+> against an older bundle yields the current wording of the same history. If any authored text is
+> reachable from the save, the separation has already failed and no amount of content will fix it.
+
+---
+
 ## 6. Critical path and parallel work
 
 Most of the plan is sequential by dependency, but three tracks can run in parallel once S2 is done,
@@ -1245,6 +1318,7 @@ S0 → S1 → S2 ─┬─→ S3 → S5 ─┬─→ S6 ──┬─→ S8 → S
 - **Track A (systems):** S3 → S4 → S5 → S6. Actions, surfaces, archetypes, connections.
 - **Track B (expression):** S7. Depends only on S2 plus BQ-008 and BQ-024; can run alongside Track A.
 - **Track C (places):** S8's site steps depend on BQ-029 and BQ-032, so they start once S3 and S4 land.
+- **Content pipeline:** BQ-129 and BQ-130 depend on nothing in S3–S6 and can be built at any point once S2 is done. They must land *before* BQ-065.
 
 Four steps are hard gates that block everything downstream and should never be deferred:
 **BQ-012** (without the inspector, all later tuning is guesswork), **BQ-014** (the base game stops
@@ -1276,6 +1350,10 @@ malformed thread is quarantined. Migration fixtures cover every schema version.
 
 **Restraint.** A player can farm, build and explore for an hour without procedural interruption.
 
+**Content is fixable after release.** No storylet, fragment or speech act is defined in C#, and no
+authored text is reachable from a save. A wording fix ships as a new bundle and changes the past
+tense of every existing save without a migration.
+
 **Setting fidelity.** Nothing the mod offers is compulsory, and declining costs nothing. Generated
 premises are recognisably of Irva. Sincere content is rare and unannounced. The mod does not
 moralise, does not out-write the game's terseness, and does not compete with the player's town.
@@ -1293,13 +1371,13 @@ names why it is not in 1.0.
 |---|---|---|
 | Mod interoperability API (`RegisterAction`, `RegisterSituationArchetype`, …) | PM §58 | Internal abstractions must stabilize first; a public API frozen too early becomes a cage. |
 | Multiplayer support | PM §81; LW §81 | The save-chunk design assumes one authoritative world. Presently incompatible, not merely unproven. |
-| Optional LLM prose rendering | MD §16.2; PM §45; CD §46 | The deterministic realizer is the baseline and must be good on its own first. |
+| Optional LLM prose rendering **at runtime** | MD §16.2; PM §45; CD §46 | The deterministic realizer is the baseline and must be good on its own first. Distinct from authoring-time drafting, which is permitted now under CP §7 because its output is reviewed, committed and static. |
 | Full commodity economy | MD §14.3; PM §7.2 | Coarse pressure (BQ-050) is sufficient for narrative purposes; a real economy is a different project. |
 | Regional-scale simulation (trade route safety, migration, settlement prosperity) | MD §25 | Requires the tiering in BQ-107 to be proven at scale first. |
 | Apprentices and protégés | PM §31 | Emerges naturally from BQ-081 callbacks plus BQ-095 autonomy; revisit once both are live. |
 | Marriage, inheritance and family succession beyond BQ-052 | PM §32 | Touches vanilla relationship systems the mod does not yet safely mutate. |
 | Dynamic bounty ecosystem beyond BQ-046 | PM §20 | The single archetype proves the mechanism; a full bounty economy is content scale, not architecture. |
-| Authoring tools / YAML content pipeline | CD §41 | Needed when non-programmers author fragments; before that it is overhead. |
+| Content authoring **workbench** (GUI editor, live preview) | CD §41 | Needed when non-programmers author fragments; before that it is overhead. The *format* is no longer deferred with it — see BQ-129 … BQ-133 and §11. |
 | Signature lines and rare set-piece dialogue | CD §20 | Depends on a mature fragment library; premature investment while the realizer is young. |
 | Weirdness level 4 (fever-dream events) | CD §22.2 | Deliberately rare; add only once levels 0–2 read as reliably Elin. |
 | Cosmic absurdity category | CD §22.1 | Same reason. |
@@ -1313,7 +1391,7 @@ names why it is not in 1.0.
 
 ## 9. Idea coverage index
 
-Every substantive idea in the six design documents, mapped to where it lives in this plan. This is
+Every substantive idea in the seven design documents, mapped to where it lives in this plan. This is
 the audit artifact: if an idea is not here, it was missed.
 
 ### From `master-design.md`
@@ -1509,7 +1587,7 @@ the audit artifact: if an idea is not here, it was missed.
 | Values, needs, goal formation | BQ-061, BQ-062 |
 | Mundane needs | BQ-061 |
 | Storylet architecture | BQ-065 |
-| Storylet library (36) | BQ-066 first five; remainder is content within S7 |
+| Storylet library (36) | BQ-066 first five, authored as data at BQ-131; remainder is content within S7 |
 | Casting engine | BQ-067 |
 | Role chemistry | BQ-068 |
 | Knowledge asymmetry | BQ-064, BQ-073 |
@@ -1520,7 +1598,7 @@ the audit artifact: if an idea is not here, it was missed.
 | Disclosure and information control | BQ-071 |
 | Occupational vocabulary | BQ-076 |
 | Negative-space personality | BQ-077 |
-| Dialogue realization and fragments | BQ-074 |
+| Dialogue realization and fragments | BQ-074; authored as data at BQ-132 |
 | Voice profiles | BQ-075 |
 | Four dialogue scales | BQ-074; signature lines §8 |
 | Repetition control | BQ-078 |
@@ -1547,15 +1625,15 @@ the audit artifact: if an idea is not here, it was missed.
 | 22-step expression pipeline | S7 as a whole |
 | Phases A–J | Mapped onto BQ-056 … BQ-086 |
 | 100-thefts test | Checkpoint S7 |
-| Content production strategy | S7 content work; tooling §8 |
+| Content production strategy | S7 content work; coverage report BQ-133; workbench §8 |
 | Mature building-block targets | §7 launch definition |
-| Authoring tools | §8 |
+| Authoring tools | Format BQ-129 … BQ-133; workbench §8 |
 | Debug tooling | BQ-012, BQ-104 |
-| Save and persistence rules | BQ-105 |
+| Save and persistence rules | BQ-105; content/save separation at BQ-129 |
 | Memory decay and semantic GC | BQ-021 |
 | Elin presentation integration | BQ-035, BQ-040 |
 | Performance | BQ-108 |
-| LLM policy | Standing rules §10; §8 |
+| LLM policy | Standing rules §10; authoring-time drafting CP §7; runtime rendering §8 |
 | Failure modes to reject | Standing rules §10 |
 | Player/NPC action symmetry | BQ-093 |
 | Milestones 1–7 | BQ-057, BQ-076, BQ-068, BQ-080, BQ-081, BQ-094, BQ-103 |
@@ -1580,6 +1658,24 @@ the audit artifact: if an idea is not here, it was missed.
 | Do not compete with the town | BQ-116, BQ-121; §7 launch definition |
 | Elin as the legitimate evolution of Elona | BQ-126; §7 launch definition |
 
+### From `content-pipeline.md`
+
+| Idea | Where |
+|---|---|
+| Behaviour / content / history separation | Standing rules §10 rule 5a; BQ-129 |
+| Content never enters the save | BQ-129; content checkpoint |
+| Authored YAML, compiled bundle, no runtime parser | BQ-129, BQ-130 |
+| Build-time compiler that never ships | BQ-130 |
+| Stable, non-reusable content ids | BQ-129, BQ-133 |
+| Storylets and fragments as data from the first artefact | BQ-131, BQ-132 |
+| File by meaning, never by speaker | BQ-132 |
+| Coverage report over act × position × tone × formality | BQ-133 |
+| Coverage measures, never mandates | BQ-133; §11 |
+| Authoring-time model drafting, human promotion | CP §7; standing rules §10 rule 5 |
+| Volume targets rejected | CP §8; §11 fragment volume |
+| Workbench GUI deferred | CP §8; §8 |
+| Combinatorial output counts rejected as a metric | CP §6, §8 |
+
 ---
 
 ## 10. Standing rules
@@ -1594,6 +1690,7 @@ bind every step above; a step that violates one is wrong even if it works.
 3. Evidence is not truth. Actors can be certain and wrong.
 4. Knowledge is actor-local. Nobody knows what they could not have perceived, been told or inferred.
 5. Optional prose may describe authoritative state; it may never manufacture it.
+5a. C# is behaviour, authored data is content, the save is history. Content never enters the save; the save stores ids and events. Authored data selects, gates and words — it never computes.
 
 **What to build with**
 
@@ -1674,6 +1771,15 @@ knowledge states. The refinement wins (BQ-033).
 
 **Fragment volume.** `CD §40` proposes two thousand fragments. Resolved: fragment authoring grows
 with the storylets that need them, never ahead of them. The count is a direction, not a milestone.
+The content pipeline (BQ-129 … BQ-133) does not disturb this: it makes content cheap and checkable,
+never large.
+
+**Authoring format as tooling versus as foundation.** §8 originally deferred the whole of `CD §41` —
+tools and serialization together — as overhead until non-programmers were writing content. Resolved
+by splitting it. The **workbench** is tooling and stays deferred on the original reasoning. The
+**format** is not tooling: it is the shape BQ-066's storylets and BQ-074's fragments take on the day
+they are written, and writing them as C# first makes their eventual extraction a migration nobody
+budgeted. The format moves into S7 ahead of BQ-065; see `design/content-pipeline.md` §1.
 
 ---
 
