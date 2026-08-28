@@ -70,6 +70,26 @@ vanilla rows only where they map cleanly.
 Beware name collisions when reading these: `Zone` is both an Elin class and
 `System.Security.Policy.Zone`. `ApiDump` resolves the game's assembly first.
 
+## Elements: verified alias mapping
+
+Read from a live game on 28 Aug 2026. The sheet has **1099 rows, all aliased**, and
+`SourceData.alias` is the dictionary to look them up in - `GetRow(string)` keys on the row id and
+never matches an alias.
+
+All eight attributes confirmed:
+
+```
+70:STR  71:END  72:DEX  73:PER  74:LER  75:WIL  76:MAG  77:CHA   (78:LUC, unused so far)
+```
+
+Skills confirmed by resolving successfully: `negotiation`, `investing`, `stealing` (Pickpocket),
+`stealth`, `lockpicking`, `disarmTrap`, `anatomy`, `alchemy`, `cooking`, `faith`, `travel`,
+`mining`.
+
+Still unresolved, so the guesses below are wrong: **Spot Hidden** (not `eye`), **Literacy** (not
+`literacy`), **Appraising** (not `identify`). The plugin dumps the full table when anything fails
+to resolve.
+
 ## The event bus — the most useful thing found so far
 
 `BaseModManager` publishes the game's own lifecycle, and the bundled Scripting Kit uses it for

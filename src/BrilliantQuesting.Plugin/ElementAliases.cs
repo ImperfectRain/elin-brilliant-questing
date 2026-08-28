@@ -186,20 +186,34 @@ namespace BrilliantQuesting.Plugin
                 return;
             }
 
-            List<string> sample = new List<string>();
+            // The whole table, chunked so no single line is unreadable. It only prints when
+            // something failed to resolve, and it prints everything: a partial dump costs another
+            // launch every time the missing name happens to fall outside the sample.
+            List<string> line = new List<string>();
+            int printed = 0;
             foreach (SourceElement.Row row in source.rows)
             {
-                if (row != null && !string.IsNullOrEmpty(row.alias))
+                if (row == null || string.IsNullOrEmpty(row.alias))
                 {
-                    sample.Add(row.id + ":" + row.alias);
-                    if (sample.Count >= 60)
-                    {
-                        break;
-                    }
+                    continue;
+                }
+
+                line.Add(row.id + ":" + row.alias);
+                printed++;
+
+                if (line.Count >= 40)
+                {
+                    log.LogWarning("aliases | " + string.Join(", ", line.ToArray()));
+                    line.Clear();
                 }
             }
 
-            log.LogWarning("Actual aliases (first " + sample.Count + "): " + string.Join(", ", sample.ToArray()));
+            if (line.Count > 0)
+            {
+                log.LogWarning("aliases | " + string.Join(", ", line.ToArray()));
+            }
+
+            log.LogWarning("Dumped " + printed + " aliases. Copy the ones this mod needs into ElementAliases.");
         }
 
         /// <summary>
