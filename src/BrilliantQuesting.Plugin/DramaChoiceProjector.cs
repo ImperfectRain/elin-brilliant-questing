@@ -77,6 +77,16 @@ namespace BrilliantQuesting.Plugin
                 return;
             }
 
+            ProjectChoices(manager, manager.lastTalk);
+        }
+
+        internal void ProjectChoices(DramaManager manager, DramaEventTalk talk)
+        {
+            if (_world == null || manager?.tg?.chara == null || talk == null)
+            {
+                return;
+            }
+
             if (!_bindings.TryGetEntity(manager.tg.chara.uid, out EntityId target))
             {
                 return;
@@ -88,7 +98,7 @@ namespace BrilliantQuesting.Plugin
                 return;
             }
 
-            if (AlreadyProjected(manager.lastTalk))
+            if (AlreadyProjected(talk))
             {
                 return;
             }
@@ -115,7 +125,7 @@ namespace BrilliantQuesting.Plugin
                 string text = ChoiceText(actionToRun, context);
                 DramaChoice choice = new DramaChoice(text, "", "bq:" + actionToRun.Id, "", "")
                     .SetOnClick(() => Perform(manager, thread, target, subjectFact, subjectItem, actionToRun));
-                manager.lastTalk.AddChoice(choice);
+                talk.AddChoice(choice);
                 added++;
             }
 
@@ -299,6 +309,15 @@ namespace BrilliantQuesting.Plugin
             private static void Postfix(DramaManager __instance, Dictionary<string, string> item)
             {
                 Current?.AddChoices(__instance, item);
+            }
+        }
+
+        [HarmonyPatch(typeof(DramaEventTalk), nameof(DramaEventTalk.InitDialog))]
+        private static class DramaEventTalkInitDialogPatch
+        {
+            private static void Prefix(DramaEventTalk __instance)
+            {
+                Current?.ProjectChoices(__instance?.manager, __instance);
             }
         }
     }
