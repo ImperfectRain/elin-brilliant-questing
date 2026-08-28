@@ -46,6 +46,7 @@ namespace BrilliantQuesting.Plugin
         private DramaChoiceProjector _drama;
         private ThreadEngine _threads;
         private ElinActionObserver _actionObserver;
+        private long _lastAdvancedDay = long.MinValue;
 
         private bool _live;
         private ConfigEntry<bool> _stageTestScenario;
@@ -120,6 +121,33 @@ namespace BrilliantQuesting.Plugin
             }
 
             _actionObserver.Observe(payload);
+            AdvanceThreadsIfTheDayTurned();
+        }
+
+        /// <summary>
+        /// The narrative heartbeat.
+        ///
+        /// BQ-013 wired escalation to loading a save and to opening a Brilliant Questing
+        /// conversation, which is not a clock: a player could go a fortnight without speaking to
+        /// anyone in the cast and the theft would sit at day zero, then pay out five milestones at
+        /// once when they finally did. Order was preserved, but nothing that happened in between
+        /// ever got the chance to happen while it mattered.
+        ///
+        /// ActPerformed is now proven live - BQ-014 is reading real acts through it - so it can
+        /// carry the tick. It fires constantly, so this only does the work when the calendar day
+        /// actually turns; escalation is measured in days, and anything finer would be spending
+        /// effort to arrive at the same answer.
+        /// </summary>
+        private void AdvanceThreadsIfTheDayTurned()
+        {
+            long today = _vanilla.Now.TotalDays;
+            if (today == _lastAdvancedDay)
+            {
+                return;
+            }
+
+            _lastAdvancedDay = today;
+            AdvanceThreads();
         }
 
         private void Restart(GameIOContext context)
@@ -177,6 +205,7 @@ namespace BrilliantQuesting.Plugin
                          + _world.Ledger.Count + " events, " + _world.Threads.Count + " threads.");
 
             EnsurePrototypeEvidenceExists();
+            _lastAdvancedDay = _vanilla.Now.TotalDays;
             AdvanceThreads();
             GatherPrototypeParticipantsNearPlayer();
             ReportPlayerState();
@@ -585,6 +614,7 @@ namespace BrilliantQuesting.Plugin
         {
             _threads = null;
             _actionObserver = null;
+            _lastAdvancedDay = long.MinValue;
             _bindings?.Clear();
             if (DramaChoiceProjector.Current == _drama)
             {
