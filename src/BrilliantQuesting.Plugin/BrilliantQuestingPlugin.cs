@@ -110,7 +110,7 @@ namespace BrilliantQuesting.Plugin
             _vanilla = new ElinVanillaState(_bindings, _log);
 
             _world = Load(context);
-            _bindings.BindSavedRefs(_world);
+            _bindings.BindSavedRefs(_world, _log);
             _stager = new ElinSituationStager(_bindings, _log, _world);
 
             EntityId playerId = EntityId.Parse("npc_player");
@@ -129,6 +129,7 @@ namespace BrilliantQuesting.Plugin
                          + _world.Ledger.Count + " events, " + _world.Threads.Count + " threads.");
 
             ReportPlayerState();
+            ReportProceduralParticipants();
             MaybeStageTestScenario();
         }
 
@@ -171,6 +172,30 @@ namespace BrilliantQuesting.Plugin
                          + "/" + _vanilla.IsGuildMember(GuildId.Merchants)
                          + "  influence " + _vanilla.GetInfluence(EntityId.None)
                          + "  contribution " + _vanilla.GetContribution());
+        }
+
+        private void ReportProceduralParticipants()
+        {
+            if (_world.Registry.Npcs.Count == 0)
+            {
+                return;
+            }
+
+            _log.LogInfo("procedural people in this save:");
+            foreach (NarrativeNpc npc in _world.Registry.Npcs.Values)
+            {
+                Chara chara = _bindings.ResolveChara(npc.Id);
+                if (chara == null)
+                {
+                    _log.LogInfo("  " + npc.Name + " [" + npc.Id + "] is not bound to a loaded Chara.");
+                    continue;
+                }
+
+                Zone zone = chara.currentZone ?? EClass._zone;
+                string zoneText = zone == null ? "unknown zone" : "zone_" + zone.uid;
+                _log.LogInfo("  " + npc.Name + " [" + npc.Id + "] uid " + chara.uid
+                             + " at " + zoneText + " pos " + chara.pos);
+            }
         }
 
         /// <summary>

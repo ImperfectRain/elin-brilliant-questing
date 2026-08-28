@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using BepInEx.Logging;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.World;
 
@@ -30,13 +31,23 @@ namespace BrilliantQuesting.Plugin
             _uidToEntity[uid] = entity;
         }
 
-        internal void BindSavedRefs(NarrativeWorldState world)
+        internal void BindSavedRefs(NarrativeWorldState world, ManualLogSource log = null)
         {
             foreach (NarrativeNpc npc in world.Registry.Npcs.Values)
             {
                 if (int.TryParse(npc.VanillaCharaRef, out int uid))
                 {
                     Bind(npc.Id, uid);
+                    continue;
+                }
+
+                Chara match = FindUniqueLoadedCharaByName(npc.Name);
+                if (match != null)
+                {
+                    Bind(npc.Id, match.uid);
+                    npc.VanillaCharaRef = match.uid.ToString();
+                    log?.LogInfo("Recovered binding for " + npc.Name + " from loaded map (uid "
+                                 + match.uid + ").");
                 }
             }
         }
@@ -69,6 +80,37 @@ namespace BrilliantQuesting.Plugin
             }
 
             return EClass.game?.cards?.Find(uid);
+        }
+
+        private static Chara FindUniqueLoadedCharaByName(string name)
+        {
+            if (string.IsNullOrEmpty(name) || EClass._map?.charas == null)
+            {
+                return null;
+            }
+
+            Chara match = null;
+            foreach (Chara chara in EClass._map.charas)
+            {
+                if (chara == null || chara.isDead)
+                {
+                    continue;
+                }
+
+                if (chara.c_altName != name && chara.Name != name)
+                {
+                    continue;
+                }
+
+                if (match != null)
+                {
+                    return null;
+                }
+
+                match = chara;
+            }
+
+            return match;
         }
 
         internal Thing ResolveThing(EntityId entity, Card owner)
