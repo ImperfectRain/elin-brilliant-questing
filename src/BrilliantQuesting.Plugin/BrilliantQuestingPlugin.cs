@@ -138,6 +138,7 @@ namespace BrilliantQuesting.Plugin
             EntityId playerId = EntityId.Parse("npc_player");
             _vanilla.BindPlayer(playerId);
             _vanilla.DetectCapabilities();
+            RegisterPlayer(playerId);
 
             _checks = new ElinCheckResolver(_bindings, new VanillaStyleCheckResolver(_vanilla), _log);
             _actions = StandardActions.CreateRegistry();
@@ -200,6 +201,48 @@ namespace BrilliantQuesting.Plugin
                          + "/" + _vanilla.IsGuildMember(GuildId.Merchants)
                          + "  influence " + _vanilla.GetInfluence(EntityId.None)
                          + "  contribution " + _vanilla.GetContribution());
+        }
+
+        /// <summary>
+        /// Puts the player into the entity registry.
+        ///
+        /// The player is a character in the graph like anyone else - they can be lied to,
+        /// remembered, believed things about, and owed favours. `TheftLaboratory` has always
+        /// registered them, so every headless test ran with a player in the graph and nothing
+        /// caught that the plugin never did the same. The first live run showed what that costs:
+        /// the inspector answered "what the player knows" with `npc_player is not a known
+        /// character`, and every log line naming the player printed the raw id instead of a name.
+        ///
+        /// The name is refreshed from the live character each load, because the player can rename
+        /// themselves; identity stays the EntityId, which is the whole point of the registry.
+        /// </summary>
+        private void RegisterPlayer(EntityId playerId)
+        {
+            string name = EClass.pc?.Name;
+            if (string.IsNullOrEmpty(name))
+            {
+                name = "You";
+            }
+
+            NarrativeNpc player = _world.Registry.GetNpc(playerId);
+            if (player == null)
+            {
+                player = _world.Registry.Add(new NarrativeNpc(playerId, name)
+                {
+                    Importance = NarrativeImportance.Major
+                });
+                _log.LogInfo("Registered the player in the world as " + name + " [" + playerId + "].");
+            }
+            else
+            {
+                player.Name = name;
+            }
+
+            Chara pc = EClass.pc;
+            if (pc != null)
+            {
+                player.VanillaCharaRef = pc.uid.ToString();
+            }
         }
 
         private void ReportProceduralParticipants()

@@ -1,3 +1,4 @@
+using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
@@ -109,8 +110,25 @@ namespace BrilliantQuesting.Situations
                     .With(VanillaAttribute.Charisma, 10),
                 zone);
 
+            // -- the act itself ------------------------------------------------------------
+            // The theft is a fact, but a fact is a statement about the world, not something that
+            // happened at a time, in a place, in front of people. Without the event the ledger
+            // has no record of the founding act, the witness's belief has no observable it could
+            // have come from, and the inspector can only answer "which event caused this?" with
+            // silence - which is what the first live run reported.
+            WorldEvent origin = world.Record(
+                WorldEventType.Theft,
+                thief.Id,
+                victim.Id,
+                now,
+                magnitude: 0.6,
+                zone: zone,
+                related: new[] { situation.ItemId },
+                witnesses: new[] { witness.Id },
+                evidence: new[] { situation.ItemId });
+
             // -- what is true, and who knows it --------------------------------------------
-            Fact theft = new Fact(world.NewId("fact"), thief.Id, FactPredicates.Stole, situation.ItemId, valuable, TruthState.True, secrecy: 60);
+            Fact theft = new Fact(world.NewId("fact"), thief.Id, FactPredicates.Stole, situation.ItemId, valuable, TruthState.True, secrecy: 60, originEvent: origin.Id);
             theft.EvidenceIds.Add(situation.ItemId);
             world.Knowledge.AddFact(theft);
             situation.TheftFactId = theft.Id;
@@ -141,7 +159,8 @@ namespace BrilliantQuesting.Situations
             {
                 Tension = 20,
                 Importance = 30,
-                State = ThreadState.Active
+                State = ThreadState.Active,
+                OriginEventId = origin.Id
             };
             thread.ParticipantIds.Add(victim.Id);
             thread.ParticipantIds.Add(thief.Id);

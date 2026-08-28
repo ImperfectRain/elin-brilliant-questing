@@ -82,6 +82,35 @@ namespace BrilliantQuesting.Tests
         }
 
         /// <summary>
+        /// "Which event caused it?" answered `none recorded` in the first live run, because the
+        /// situation created the theft as a fact and never as something that happened.
+        /// </summary>
+        [Fact]
+        public void TheThreadNamesTheEventItGrewOutOf()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+
+            Assert.False(lab.Situation.Thread.OriginEventId.IsNone);
+
+            string report = Report();
+            Assert.Contains("origin event: ", report);
+            Assert.DoesNotContain("origin event: none recorded", report);
+            Assert.Contains("Theft", report);
+        }
+
+        /// <summary>The founding act is in the ledger, with the witness who saw it.</summary>
+        [Fact]
+        public void TheTheftItselfIsInTheHistory()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+
+            string history = NarrativeInspector.DescribeHistory(lab.World);
+
+            Assert.Contains("Theft", history);
+            Assert.Contains("seen by " + lab.World.Registry.NameOf(lab.Situation.WitnessId), history);
+        }
+
+        /// <summary>
         /// "Who witnessed it?" is not answered by a number. The history used to print the count,
         /// which tells a reader that somebody saw it and nothing they can act on.
         /// </summary>

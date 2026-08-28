@@ -27,6 +27,7 @@ namespace BrilliantQuesting.Plugin
         private readonly ICheckResolver _fallback;
         private readonly ManualLogSource _log;
         private readonly HashSet<string> _missingRows = new HashSet<string>();
+        private readonly HashSet<string> _pathReported = new HashSet<string>();
 
         internal ElinCheckResolver(ElinBindings bindings, ICheckResolver fallback, ManualLogSource log)
         {
@@ -53,6 +54,7 @@ namespace BrilliantQuesting.Plugin
             Chara actor = _bindings.ResolveChara(request.Actor);
             if (actor == null)
             {
+                ReportPath(request.Profile.Id, "portable", "the actor " + request.Actor + " is not bound to a live Chara");
                 return _fallback.Resolve(request, rng);
             }
 
@@ -71,6 +73,7 @@ namespace BrilliantQuesting.Plugin
             Check check = TryGetCheck(request.Profile.Id, situational);
             if (check == null)
             {
+                ReportPath(request.Profile.Id, "portable", "no usable vanilla Check row");
                 return _fallback.Resolve(request, rng);
             }
 
@@ -91,6 +94,7 @@ namespace BrilliantQuesting.Plugin
                 return _fallback.Resolve(request, rng);
             }
 
+            ReportPath(request.Profile.Id, "native", "vanilla Check row resolved it");
             terms.Add(new CheckTerm("resolved by vanilla Check", 0));
 
             // Vanilla hands back an outcome, not the face it rolled. The trace records the
@@ -129,6 +133,23 @@ namespace BrilliantQuesting.Plugin
             return profile.ActorSkills.Count <= 1
                    && profile.ActorAttributes.Count == 0
                    && profile.TargetAttributes.Count <= 1;
+        }
+
+        /// <summary>
+        /// Says which resolver actually ran, once per profile.
+        ///
+        /// The first live run installed all nine Check rows, reported each one readable through
+        /// `Check.Get`, and then produced traces that were unmistakably the portable resolver's -
+        /// composite profile terms and a roll of our own, where the native path prints "rolled by
+        /// the game". Neither of `TryGetCheck`'s failure lines appeared either, so the log could
+        /// not say where the two disagreed. It can now.
+        /// </summary>
+        private void ReportPath(string profileId, string path, string why)
+        {
+            if (_pathReported.Add(profileId))
+            {
+                _log.LogInfo("Check '" + profileId + "' resolves through the " + path + " path: " + why + ".");
+            }
         }
 
         private Check TryGetCheck(string id, int dcMod)
