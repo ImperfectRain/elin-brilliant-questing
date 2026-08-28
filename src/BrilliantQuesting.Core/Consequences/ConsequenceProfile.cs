@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Memory;
@@ -63,17 +64,49 @@ namespace BrilliantQuesting.Consequences
                 { WorldEventType.Killed, new ConsequenceProfile("killed_someone", MemoryWeight.Defining, -80, -30, karma: -12, fame: 2) },
                 { WorldEventType.Rescued, new ConsequenceProfile("was_rescued", MemoryWeight.Defining, 35, 8, karma: 3, fame: 3) },
                 { WorldEventType.Captured, new ConsequenceProfile("was_captured", MemoryWeight.Defining, -40, -5) },
+                { WorldEventType.DebtCreated, new ConsequenceProfile("debt_created", MemoryWeight.Important, -6, 0) },
                 { WorldEventType.DebtPaid, new ConsequenceProfile("debt_settled", MemoryWeight.Important, 18, 0, karma: 1) },
+                { WorldEventType.SecretLearned, new ConsequenceProfile("learned_a_secret", MemoryWeight.Routine, 0) },
                 { WorldEventType.SecretRevealed, new ConsequenceProfile("exposed_a_secret", MemoryWeight.Important, -30, 0) },
                 { WorldEventType.FalseAccusation, new ConsequenceProfile("was_falsely_accused", MemoryWeight.Defining, -35, -6, karma: -4) },
+                { WorldEventType.EvidenceCreated, new ConsequenceProfile("created_evidence", MemoryWeight.Routine, 0) },
+                { WorldEventType.EvidenceDestroyed, new ConsequenceProfile("destroyed_evidence", MemoryWeight.Important, -12, -3, karma: -1) },
+                { WorldEventType.CrimeWitnessed, new ConsequenceProfile("witnessed_a_crime", MemoryWeight.Notable, 0) },
                 { WorldEventType.CrimeReported, new ConsequenceProfile("reported_to_authorities", MemoryWeight.Important, -25, 0, karma: 2) },
-                { WorldEventType.Recruited, new ConsequenceProfile("joined_me", MemoryWeight.Defining, 10) }
+                { WorldEventType.RumorSpread, new ConsequenceProfile("heard_a_rumor", MemoryWeight.Routine, 0) },
+                { WorldEventType.Recruited, new ConsequenceProfile("joined_me", MemoryWeight.Defining, 10) },
+                { WorldEventType.OrganizationJoined, new ConsequenceProfile("joined_organization", MemoryWeight.Notable, 4, 1) },
+                { WorldEventType.OrganizationBetrayed, new ConsequenceProfile("betrayed_organization", MemoryWeight.Defining, -50, -12, karma: -2) },
+                { WorldEventType.SiteDiscovered, new ConsequenceProfile("discovered_site", MemoryWeight.Routine, 0, 0, fame: 1) },
+                { WorldEventType.SiteCleared, new ConsequenceProfile("cleared_site", MemoryWeight.Important, 8, 3, fame: 2) },
+                { WorldEventType.ThreadEscalated, new ConsequenceProfile("thread_escalated", MemoryWeight.Routine, 0) },
+                { WorldEventType.ThreadResolved, new ConsequenceProfile("thread_resolved", MemoryWeight.Notable, 4, 1) }
             };
+
+        private static readonly HashSet<WorldEventType> ProfileExemptions = new HashSet<WorldEventType>();
 
         public static ConsequenceProfile For(WorldEventType type)
         {
             Table.TryGetValue(type, out ConsequenceProfile profile);
             return profile;
+        }
+
+        public static bool HasProfileOrExemption(WorldEventType type)
+        {
+            return Table.ContainsKey(type) || ProfileExemptions.Contains(type);
+        }
+
+        public static IReadOnlyCollection<WorldEventType> Exemptions => ProfileExemptions;
+
+        public static IEnumerable<WorldEventType> MissingProfiles()
+        {
+            foreach (WorldEventType type in Enum.GetValues(typeof(WorldEventType)))
+            {
+                if (!HasProfileOrExemption(type))
+                {
+                    yield return type;
+                }
+            }
         }
     }
 }

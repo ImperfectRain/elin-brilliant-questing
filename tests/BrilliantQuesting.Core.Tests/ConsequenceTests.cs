@@ -1,4 +1,7 @@
+using System.Linq;
 using BrilliantQuesting.Checks;
+using BrilliantQuesting.Consequences;
+using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Situations;
 using Xunit;
@@ -86,6 +89,15 @@ namespace BrilliantQuesting.Tests
 
             Assert.True(lab.World.Ledger.Count > 0);
             Assert.True(lab.World.Ledger.Count < 20);
+        }
+
+        [Fact]
+        public void EveryWorldEventTypeHasAConsequenceProfileOrNamedExemption()
+        {
+            WorldEventType[] missing = ConsequenceProfiles.MissingProfiles().ToArray();
+
+            Assert.Empty(missing);
+            Assert.Empty(ConsequenceProfiles.Exemptions);
         }
     }
 }
