@@ -10,7 +10,7 @@ it does not prove it behaves, so "found" below is not the same as "works".
 
 | Item | Status |
 |---|---|
-| Confirm runtime access to elements, skills, affinity, Karma, prestige, Influence, inventory | **found**; elements/skills blocked on the alias table, the rest not yet exercised in game |
+| Confirm runtime access to elements, skills, affinity, Karma, prestige, Influence, inventory | **verified in game** - real values read back through the adapter |
 | Confirm access to guild, faith, home state | partly - `EClass.Home` / `.Branch` located, members not yet mapped |
 | Confirm creation and persistence of generated Chara and zones | partly - `Zone.AddChara` located, persistence untested |
 | Decide how mod save data attaches, with a migration version | **working in game** - chunk written on `PreSave`, read on `PostLoad` |
@@ -22,19 +22,21 @@ it does not prove it behaves, so "found" below is not the same as "works".
 against the real assemblies. **It now loads and runs inside Elin.** Observed on 28 Aug 2026:
 
 ```
-Brilliant Questing 0.1.0 loaded. Waiting for a game.
-No saved world; starting a new one from seed 7525.
-Vanilla capabilities: 9 of 13
-Simulation attached: 0 people, 0 events, 0 threads.
+Resolved all 23 element aliases.
+Vanilla capabilities: 11 of 13
+player: Solid Fairy 「Gandadaora」  level 32  karma 100  fame 1197  207664 orens  29 items
+attributes: STR 52  END 33  DEX 42  PER 31  LER 62  WIL 31  MAG 15  CHA 24
+skills: negotiation 58  stealth 10  pickpocket 0  spotHidden 0  literacy 30  appraising 15
+standing: deity 'harvest'  piety 54  guilds F/M/T/Me True/True/False/True
 Saved 0 events into chunk 'brilliantQuesting'.
-Simulation detached.
 ```
 
-That confirms three things metadata could only suggest: the event bus delivers `PostLoad` and
-`PreSave`, `GameIOContext` writes the mod's chunk into the save, and the capability probe reports
-honestly rather than assuming. It does not yet confirm any read or write of vanilla state, because
-the element aliases were all unresolved on that run and the stat capabilities correctly switched
-themselves off.
+Every number matches the character sheet, which verifies the whole chain - alias, element id,
+`ElementContainer`, `IVanillaState` - rather than merely proving the calls did not throw. The event
+bus delivers `PostLoad` and `PreSave`, and `GameIOContext` writes the mod's chunk into the save.
+
+The one wrong number was Influence, reading zero on a character with fame 1197. `expInfluence` is
+not town Influence; the spendable resource is a currency. Fixed, and pending re-verification.
 
 **Gate A** - a hard-coded scenario reads vanilla stats, performs a native-style check, updates
 affinity and Karma, saves, reloads and continues correctly.

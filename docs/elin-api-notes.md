@@ -59,13 +59,19 @@ vanilla rows only where they map cleanly.
 | entry points | `EClass.pc`, `.player`, `.game`, `.world`, `._zone`, `.Home`, `.Branch` |
 | affinity | `Chara.ModAffinity(Chara c, int a, bool show, bool showOnlyEmo)`, `Chara._affinity` |
 | karma / fame | `Player.karma`, `Player.fame`, `ModKarma(int)`, `ModFame(int)` |
-| influence | `Player.expInfluence`, `AddExpInfluence(int)`, `MaxExpInfluence` |
+| influence | `Card.GetCurrency("influence")` / `ModCurrency(a, "influence")` - **not** `Player.expInfluence` |
 | attributes / skills | `ElementContainer.Value(int ele)`, `ValueWithoutLink(string alias)`; `Chara.elements` |
 | inventory | `Card.things` (`ThingContainer`), `Chara.Pick(Thing, bool, bool)`, `Chara.DropThing(Thing, int)` |
 | money | `Card.GetCurrency(string id)`, `Card.ModCurrency(int a, string id)` |
 | zone occupants | `Zone.FindChara(int uid)`, `Zone.FindChara(string id)`, `Zone.AddChara(string, Point)` |
 
 `Chara` carries a `uid`; that is the handle `EntityId` should map to, not a name.
+
+`Player.expInfluence` is a trap. It looks like town Influence and is not: it is experience toward
+an influence level-up, wrapping at 1000 and announcing "DingInfluence". It read zero on a character
+with fame 1197 and three guild memberships, which is what exposed it. The spendable resource is a
+**currency**, alongside `money`, `contribution` (guild contribution), `medal`, `plat`, `casino_coin`
+and `deed`.
 
 Beware name collisions when reading these: `Zone` is both an Elin class and
 `System.Security.Policy.Zone`. `ApiDump` resolves the game's assembly first.

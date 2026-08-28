@@ -145,7 +145,8 @@ namespace BrilliantQuesting.Plugin
                          + "/" + _vanilla.IsGuildMember(GuildId.Mages)
                          + "/" + _vanilla.IsGuildMember(GuildId.Thieves)
                          + "/" + _vanilla.IsGuildMember(GuildId.Merchants)
-                         + "  influence " + _vanilla.GetInfluence(EntityId.None));
+                         + "  influence " + _vanilla.GetInfluence(EntityId.None)
+                         + "  contribution " + _vanilla.GetContribution());
         }
 
         private void End()

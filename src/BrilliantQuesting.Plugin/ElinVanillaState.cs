@@ -175,20 +175,36 @@ namespace BrilliantQuesting.Plugin
             }
         }
 
+        /// <summary>
+        /// Town Influence is a currency, not a player field.
+        ///
+        /// <c>Player.expInfluence</c> looks like the right thing and is not: it is experience
+        /// toward an influence level-up, wrapping at 1000 and announcing "DingInfluence". It read
+        /// zero on a character with real standing, which is what gave it away. The spendable
+        /// resource lives in the currency store beside money.
+        ///
+        /// It is held on the player rather than per town, so the town argument is accepted and
+        /// ignored until that turns out to be wrong.
+        /// </summary>
         public int GetInfluence(EntityId townId)
         {
-            // Influence is a single player-side pool in vanilla rather than per-town, so the town
-            // argument is accepted and ignored until that turns out to be wrong.
-            return EClass.player?.expInfluence ?? 0;
+            return EClass.pc?.GetCurrency(InfluenceCurrency) ?? 0;
         }
 
         public void ChangeInfluence(EntityId townId, int delta)
         {
             if (delta != 0)
             {
-                EClass.player?.AddExpInfluence(delta);
+                EClass.pc?.ModCurrency(delta, InfluenceCurrency);
             }
         }
+
+        private const string InfluenceCurrency = "influence";
+        private const string ContributionCurrency = "contribution";
+        private const string MoneyCurrency = "money";
+
+        /// <summary>Guild contribution, the currency guild rank is earned with.</summary>
+        internal int GetContribution() => EClass.pc?.GetCurrency(ContributionCurrency) ?? 0;
 
         public bool IsGuildMember(GuildId guild)
         {
@@ -223,7 +239,7 @@ namespace BrilliantQuesting.Plugin
         public int GetMoney(EntityId owner)
         {
             Chara c = _bindings.ResolveChara(owner);
-            return c?.GetCurrency("money") ?? 0;
+            return c?.GetCurrency(MoneyCurrency) ?? 0;
         }
 
         public bool TrySpendMoney(EntityId payer, EntityId payee, int amount)
@@ -234,14 +250,14 @@ namespace BrilliantQuesting.Plugin
             }
 
             Chara from = _bindings.ResolveChara(payer);
-            if (from == null || from.GetCurrency("money") < amount)
+            if (from == null || from.GetCurrency(MoneyCurrency) < amount)
             {
                 return false;
             }
 
-            from.ModCurrency(-amount, "money");
+            from.ModCurrency(-amount, MoneyCurrency);
             Chara to = _bindings.ResolveChara(payee);
-            to?.ModCurrency(amount, "money");
+            to?.ModCurrency(amount, MoneyCurrency);
             return true;
         }
 
