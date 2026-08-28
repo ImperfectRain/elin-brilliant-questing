@@ -86,9 +86,14 @@ Skills confirmed by resolving successfully: `negotiation`, `investing`, `stealin
 `stealth`, `lockpicking`, `disarmTrap`, `anatomy`, `alchemy`, `cooking`, `faith`, `travel`,
 `mining`.
 
-Still unresolved, so the guesses below are wrong: **Spot Hidden** (not `eye`), **Literacy** (not
-`literacy`), **Appraising** (not `identify`). The plugin dumps the full table when anything fails
-to resolve.
+All twenty-three now resolve. The three that were wrong: **Spot Hidden is `spotting`**, **Literacy
+is `reading`**, **Appraising is `appraising`** (`identify` is the spell `8230:SpIdentify`). Piety is
+not a separate accessor either - it is element `85`.
+
+The complete table is recorded in [`elin-element-aliases.md`](elin-element-aliases.md), including
+the Home Skill elements (`fSafety`, `fMoral`, `fFood`, `fSoil`, `fPromo`, `fAdmin`) that a future
+`ReadHomeState` would use. The plugin still dumps the whole table whenever anything fails to
+resolve, so a rename after a game update reports itself.
 
 ## The event bus — the most useful thing found so far
 

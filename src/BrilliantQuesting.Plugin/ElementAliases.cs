@@ -9,13 +9,13 @@ namespace BrilliantQuesting.Plugin
     /// Maps the mod's small stat vocabulary onto Elin's element aliases, and resolves those
     /// aliases to element ids once at startup.
     ///
-    /// UNVERIFIED. The alias strings below are the best reading available from metadata; the
-    /// authoritative list lives in the game's Element source sheet. Anything that fails to resolve
-    /// is logged by name and its capability is switched off, so a wrong guess degrades to a
-    /// missing route rather than a silent zero that quietly makes every check trivial.
+    /// VERIFIED against a live game on 28 Aug 2026 - every entry below resolved. The full table
+    /// of all 1099 element aliases is recorded in docs/elin-element-aliases.md.
     ///
-    /// Run the plugin once and read the log, or call <see cref="DumpKnownAliases"/>, then correct
-    /// this table. It is deliberately the only place in the mod where these strings appear.
+    /// The safety behaviour stays: anything that fails to resolve is logged by name and its
+    /// capability is switched off, so a future rename degrades to a missing route rather than a
+    /// silent zero that would quietly make every check trivial. This remains the only place in the
+    /// mod where these strings appear.
     /// </summary>
     internal static class ElementAliases
     {
@@ -41,9 +41,9 @@ namespace BrilliantQuesting.Plugin
                 { VanillaSkill.Stealth, "stealth" },
                 { VanillaSkill.Lockpicking, "lockpicking" },
                 { VanillaSkill.DisarmTrap, "disarmTrap" },
-                { VanillaSkill.SpotHidden, "eye" },
-                { VanillaSkill.Literacy, "literacy" },
-                { VanillaSkill.Appraising, "identify" },
+                { VanillaSkill.SpotHidden, "spotting" },
+                { VanillaSkill.Literacy, "reading" },
+                { VanillaSkill.Appraising, "appraising" },
                 { VanillaSkill.Anatomy, "anatomy" },
                 { VanillaSkill.Alchemy, "alchemy" },
                 { VanillaSkill.Cooking, "cooking" },

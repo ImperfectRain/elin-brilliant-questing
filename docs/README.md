@@ -9,6 +9,7 @@ out to disagree.
 | [`design/post-master-findings.md`](design/post-master-findings.md) | Design reasoning developed after the master document: content classes, mechanical coverage, adventurer ecology, the shared action resolver, mod-ecosystem lessons, and the implementation doctrine. Three claims in it are marked **[superseded]**. |
 | [`architecture.md`](architecture.md) | How the code is arranged and why the seams are where they are. |
 | [`elin-api-notes.md`](elin-api-notes.md) | What the shipped assemblies actually expose, read with `tools/ApiDump`. **Authoritative on runtime facts** - where a design document disagrees with this, this wins. |
+| [`elin-element-aliases.md`](elin-element-aliases.md) | The verified element alias table, read from a running game. Attributes, skills, Home Skills, policies. Data, not code - it cannot be recovered from the assembly. |
 | [`plugin-build.md`](plugin-build.md) | Populating `lib/` from your own install, building the plugin, installing it, and the two-step activation that is easy to miss. |
 | [`roadmap.md`](roadmap.md) | Phases, gates, and an honest account of what is done. |
 

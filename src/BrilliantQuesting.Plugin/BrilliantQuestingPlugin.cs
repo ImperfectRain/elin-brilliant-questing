@@ -4,6 +4,7 @@ using BepInEx.Logging;
 using BrilliantQuesting.Checks;
 using BrilliantQuesting.Consequences;
 using BrilliantQuesting.Foundation;
+using BrilliantQuesting.Integration;
 using BrilliantQuesting.Persistence;
 using BrilliantQuesting.World;
 
@@ -103,6 +104,48 @@ namespace BrilliantQuesting.Plugin
 
             _log.LogInfo("Simulation attached: " + _world.Registry.Npcs.Count + " people, "
                          + _world.Ledger.Count + " events, " + _world.Threads.Count + " threads.");
+
+            ReportPlayerState();
+        }
+
+        /// <summary>
+        /// Reads the player through the adapter and prints what came back.
+        ///
+        /// This is the read half of Gate A, and it is deliberately noisy on first attach: numbers
+        /// that match the character sheet prove the whole chain - alias to element id to
+        /// ElementContainer - rather than merely proving the calls did not throw.
+        /// </summary>
+        private void ReportPlayerState()
+        {
+            EntityId me = _vanilla.PlayerId;
+            _log.LogInfo("player: " + (EClass.pc?.Name ?? "?") + "  level " + _vanilla.GetLevel(me)
+                         + "  karma " + _vanilla.Karma + "  fame " + _vanilla.Fame
+                         + "  " + _vanilla.GetMoney(me) + " orens"
+                         + "  " + _vanilla.GetInventory(me).Count + " items");
+
+            _log.LogInfo("attributes: STR " + _vanilla.GetAttribute(me, VanillaAttribute.Strength)
+                         + "  END " + _vanilla.GetAttribute(me, VanillaAttribute.Endurance)
+                         + "  DEX " + _vanilla.GetAttribute(me, VanillaAttribute.Dexterity)
+                         + "  PER " + _vanilla.GetAttribute(me, VanillaAttribute.Perception)
+                         + "  LER " + _vanilla.GetAttribute(me, VanillaAttribute.Learning)
+                         + "  WIL " + _vanilla.GetAttribute(me, VanillaAttribute.Will)
+                         + "  MAG " + _vanilla.GetAttribute(me, VanillaAttribute.Magic)
+                         + "  CHA " + _vanilla.GetAttribute(me, VanillaAttribute.Charisma));
+
+            _log.LogInfo("skills: negotiation " + _vanilla.GetSkill(me, VanillaSkill.Negotiation)
+                         + "  stealth " + _vanilla.GetSkill(me, VanillaSkill.Stealth)
+                         + "  pickpocket " + _vanilla.GetSkill(me, VanillaSkill.Pickpocket)
+                         + "  spotHidden " + _vanilla.GetSkill(me, VanillaSkill.SpotHidden)
+                         + "  literacy " + _vanilla.GetSkill(me, VanillaSkill.Literacy)
+                         + "  appraising " + _vanilla.GetSkill(me, VanillaSkill.Appraising));
+
+            _log.LogInfo("standing: deity '" + _vanilla.GetWorshippedDeity(me) + "'  piety "
+                         + _vanilla.GetPiety(me)
+                         + "  guilds F/M/T/Me " + _vanilla.IsGuildMember(GuildId.Fighters)
+                         + "/" + _vanilla.IsGuildMember(GuildId.Mages)
+                         + "/" + _vanilla.IsGuildMember(GuildId.Thieves)
+                         + "/" + _vanilla.IsGuildMember(GuildId.Merchants)
+                         + "  influence " + _vanilla.GetInfluence(EntityId.None));
         }
 
         private void End()

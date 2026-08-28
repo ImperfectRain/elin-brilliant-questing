@@ -209,12 +209,14 @@ namespace BrilliantQuesting.Plugin
             return c?.idFaith ?? string.Empty;
         }
 
+        /// <summary>Piety is element 85, not a separate accessor - the alias dump settled it.</summary>
         public int GetPiety(EntityId chara)
         {
-            // No piety accessor located yet; reported as zero and ReadFaith deliberately still
-            // advertises, because deity identity alone drives most religious routes.
-            return 0;
+            Chara c = _bindings.ResolveChara(chara);
+            return c == null ? 0 : c.elements.Value(PietyElementId);
         }
+
+        private const int PietyElementId = 85;
 
         // -- money and things ---------------------------------------------------------------
 
