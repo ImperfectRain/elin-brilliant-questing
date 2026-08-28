@@ -15,7 +15,7 @@ it does not prove it behaves, so "found" below is not the same as "works".
 | Confirm creation and persistence of generated Chara and zones | partly - `Zone.AddChara` located, persistence untested |
 | Decide how mod save data attaches, with a migration version | **working in game** - chunk written on `PreSave`, read on `PostLoad` |
 | Prototype custom `Check` rows and `Check.Perform` from runtime | **found, untested** - `Check.Get/GetFinalDC/Perform` and the four-result enum exist; `SourceCheck.Row` schema captured |
-| Prototype Drama choice injection | hook located (`EVENT.DramaParseAction`), not yet used |
+| Prototype Drama choice injection | **compiled and installed locally** - the current Elin build exposes `EVENT.DramaParseAction` but does not publish it, so the prototype injects at `DramaManager.ParseLine` when `_choices` is processed |
 | Confirm crime/witness hooks | hook located (`EVENT.ActPerformed`), not yet used |
 
 `src/BrilliantQuesting.Plugin` implements `IVanillaState`, `ICheckResolver` and `ISituationStager`
@@ -38,10 +38,11 @@ bus delivers `PostLoad` and `PreSave`, and `GameIOContext` writes the mod's chun
 The one wrong number was Influence, reading zero on a character with fame 1197. `expInfluence` is
 not town Influence; the spendable resource is a currency. Fixed, and pending re-verification.
 
-**Gate A** - a hard-coded scenario reads vanilla stats, performs a native-style check, updates
-affinity and Karma, saves, reloads and continues correctly.
+**Gate A** - a staged scenario reads vanilla stats, offers actions through dialogue, performs a
+native-style check, updates affinity and Karma, saves, reloads and continues correctly.
 *Passed headless; partly passed in game.* The plugin loads, attaches, persists and detaches against
-a real save. Reading and writing vanilla state is next, and is blocked only on the element aliases.
+a real save. The dialogue prototype compiles, installs, and routes choices through the existing
+action library; a live click-through is the next verification step.
 
 ## Phase 1 - three-NPC simulation laboratory
 

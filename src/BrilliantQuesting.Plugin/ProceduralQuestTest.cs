@@ -18,8 +18,8 @@ namespace BrilliantQuesting.Plugin
     /// produces, then the simulation and the game agree, which is the only claim worth making
     /// before building a dialogue layer on top.
     ///
-    /// Deliberately scripted rather than interactive: presenting choices to a player needs Drama,
-    /// which is the next piece of work. This proves the machinery underneath it first.
+    /// The dialogue layer now presents the verbs interactively. This class only stages the
+    /// canonical laboratory situation and reports the available routes.
     /// </summary>
     internal sealed class ProceduralQuestTest
     {
@@ -67,8 +67,7 @@ namespace BrilliantQuesting.Plugin
 
             ReportBindings(situation);
             ReportOptions(situation);
-            PlayThrough(situation);
-            ReportAftermath(situation);
+            _log.LogInfo("Talk to any staged NPC to choose a Brilliant Questing verb through Drama.");
         }
 
         /// <summary>
@@ -119,60 +118,6 @@ namespace BrilliantQuesting.Plugin
                 _log.LogInfo("   blocked: " + string.Join("; ", blocked.ToArray()));
                 _log.LogInfo("   solution families open: " + families.Count);
             }
-        }
-
-        /// <summary>
-        /// Ask the witness, take the ring back off the thief, return it. Three verbs, three
-        /// different mechanics: a contested check, a real item transfer, a vanilla affinity change.
-        /// </summary>
-        private void PlayThrough(PettyTheftSituation situation)
-        {
-            _log.LogInfo("=== playing it ===");
-            Perform(situation, "question", situation.WitnessId);
-            Perform(situation, "pickpocket", situation.ThiefId, ctx => ctx.SubjectItem = situation.ItemId);
-            Perform(situation, "return_item", situation.VictimId);
-        }
-
-        private void Perform(PettyTheftSituation situation, string actionId, EntityId target, System.Action<ActionContext> configure = null)
-        {
-            NarrativeAction action = _actions.Get(actionId);
-            ActionContext context = Context(situation, target);
-            context.SubjectFact = situation.TheftFactId;
-            configure?.Invoke(context);
-
-            Availability availability = action.GetAvailability(context);
-            if (!availability.IsAvailable)
-            {
-                _log.LogInfo("> " + actionId + " " + _world.Registry.NameOf(target) + " - not available: " + availability.Reason);
-                return;
-            }
-
-            ActionOutcome outcome = action.Perform(context);
-            _log.LogInfo("> " + actionId + " " + _world.Registry.NameOf(target));
-            foreach (string line in outcome.Explain().Split('\n'))
-            {
-                _log.LogInfo("    " + line);
-            }
-        }
-
-        private void ReportAftermath(PettyTheftSituation situation)
-        {
-            _log.LogInfo("=== aftermath, read back out of the game ===");
-
-            foreach (EntityId id in new[] { situation.VictimId, situation.ThiefId, situation.WitnessId })
-            {
-                _log.LogInfo("  " + _world.Registry.NameOf(id).PadRight(10)
-                             + " affinity " + _vanilla.GetAffinity(id)
-                             + "  carrying " + _vanilla.GetInventory(id).Count);
-            }
-
-            _log.LogInfo("  player karma " + _vanilla.Karma + "  fame " + _vanilla.Fame
-                         + "  carrying " + _vanilla.GetInventory(_vanilla.PlayerId).Count);
-            _log.LogInfo("  thread " + situation.Thread.State + " (" + (situation.Thread.Resolution ?? "open") + ")"
-                         + ", tension " + situation.Thread.Tension);
-            _log.LogInfo("  world: " + _world.Registry.Npcs.Count + " people, " + _world.Ledger.Count
-                         + " events, " + _world.Knowledge.Facts.Count + " facts");
-            _log.LogInfo("Save and reload: all of this should come back out of the chunk unchanged.");
         }
 
         /// <summary>Witnesses come from whoever is actually standing in the zone.</summary>

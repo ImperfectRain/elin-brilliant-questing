@@ -40,6 +40,7 @@ namespace BrilliantQuesting.Plugin
         private NarrativeWorldState _world;
         private ConsequenceEngine _consequences;
         private ActionRegistry _actions;
+        private DramaChoiceProjector _drama;
 
         private bool _live;
         private ConfigEntry<bool> _stageTestScenario;
@@ -56,8 +57,9 @@ namespace BrilliantQuesting.Plugin
                 "StageScenarioOnLoad",
                 false,
                 "Stage the three-NPC theft scenario into the current zone on the next load, and "
-                + "play it. Writes to the save: spawns Charas, transfers an item, changes affinity. "
-                + "Use a throwaway save. Runs once per load, and only when no thread exists yet.");
+                + "offer its verbs through dialogue. Writes to the save: spawns Charas and creates "
+                + "procedural world state. Use a throwaway save. Runs once per load, and only when "
+                + "no thread exists yet.");
 
             // Elin publishes its own lifecycle. Subscribing to it beats both polling in Update and
             // Harmony-patching the load path: it is the same route the game's bundled Scripting
@@ -65,6 +67,7 @@ namespace BrilliantQuesting.Plugin
             BaseModManager.SubscribeEvent<GameIOContext>(EVENT.PostLoad, OnPostLoad);
             BaseModManager.SubscribeEvent<GameIOContext>(EVENT.PreSave, OnPreSave);
             BaseModManager.SubscribeEvent(EVENT.NewGame, OnNewGame);
+            DramaChoiceProjector.Install(_log);
 
             _log.LogInfo(ModInfo.Name + " " + ModInfo.Version + " loaded. Waiting for a game.");
         }
@@ -105,9 +108,10 @@ namespace BrilliantQuesting.Plugin
 
             _bindings = new ElinBindings();
             _vanilla = new ElinVanillaState(_bindings, _log);
-            _stager = new ElinSituationStager(_bindings, _log);
 
             _world = Load(context);
+            _bindings.BindSavedRefs(_world);
+            _stager = new ElinSituationStager(_bindings, _log, _world);
 
             EntityId playerId = EntityId.Parse("npc_player");
             _vanilla.BindPlayer(playerId);
@@ -115,6 +119,8 @@ namespace BrilliantQuesting.Plugin
 
             _checks = new ElinCheckResolver(_bindings, new VanillaStyleCheckResolver(_vanilla), _log);
             _actions = StandardActions.CreateRegistry();
+            _drama = new DramaChoiceProjector(_world, _vanilla, _bindings, _checks, _actions, _log);
+            DramaChoiceProjector.Current = _drama;
 
             _consequences = new ConsequenceEngine(_world, _vanilla);
             _consequences.Attach();
@@ -206,6 +212,12 @@ namespace BrilliantQuesting.Plugin
         private void End()
         {
             _bindings?.Clear();
+            if (DramaChoiceProjector.Current == _drama)
+            {
+                DramaChoiceProjector.Current = null;
+            }
+
+            _drama = null;
             _world = null;
             _log.LogInfo("Simulation detached.");
         }

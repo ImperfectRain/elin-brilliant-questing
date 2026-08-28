@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BepInEx.Logging;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
+using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Plugin
 {
@@ -18,11 +19,13 @@ namespace BrilliantQuesting.Plugin
     {
         private readonly ElinBindings _bindings;
         private readonly ManualLogSource _log;
+        private readonly NarrativeWorldState _world;
 
-        internal ElinSituationStager(ElinBindings bindings, ManualLogSource log)
+        internal ElinSituationStager(ElinBindings bindings, ManualLogSource log, NarrativeWorldState world = null)
         {
             _bindings = bindings;
             _log = log;
+            _world = world;
         }
 
         /// <summary>Archetype used when a blueprint does not name one.</summary>
@@ -66,6 +69,11 @@ namespace BrilliantQuesting.Plugin
 
             target.AddCard(chara, target.GetSpawnPos(chara) ?? EClass.pc.pos);
             _bindings.Bind(id, chara.uid);
+            NarrativeNpc npc = _world?.Registry.GetNpc(id);
+            if (npc != null)
+            {
+                npc.VanillaCharaRef = chara.uid.ToString();
+            }
 
             if (blueprint.Affinity != 0)
             {

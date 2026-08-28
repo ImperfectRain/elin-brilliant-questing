@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
+using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Plugin
 {
@@ -27,6 +28,17 @@ namespace BrilliantQuesting.Plugin
 
             _entityToUid[entity] = uid;
             _uidToEntity[uid] = entity;
+        }
+
+        internal void BindSavedRefs(NarrativeWorldState world)
+        {
+            foreach (NarrativeNpc npc in world.Registry.Npcs.Values)
+            {
+                if (int.TryParse(npc.VanillaCharaRef, out int uid))
+                {
+                    Bind(npc.Id, uid);
+                }
+            }
         }
 
         internal bool TryGetUid(EntityId entity, out int uid)

@@ -119,7 +119,10 @@ Three of those are roadmap items answered before they were started:
 
 - **`ActPerformed`** — observe what the player actually did. The intended route for crime and
   witness observation, with no patching.
-- **`DramaParseAction`** — the hook for putting procedural choices into dialogue.
+- **`DramaParseAction`** — present as a constant/event-args type, but the 28 Aug 2026 installed
+  build did not publish it from `DramaManager.ParseLine` or `CustomDramaExpansion.ParseAction`.
+  The current prototype therefore uses a narrow Harmony postfix on `DramaManager.ParseLine` when
+  the built-in `_choices` action is processed.
 - **`CharaCreated`** — bind a generated Chara to its `EntityId` at the moment it exists.
 
 ## Mod save data
