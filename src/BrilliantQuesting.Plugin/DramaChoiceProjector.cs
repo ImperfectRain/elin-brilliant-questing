@@ -98,7 +98,7 @@ namespace BrilliantQuesting.Plugin
                 return;
             }
 
-            talk.text = SituationText(thread, target, subjectFact);
+            ApplySituationText(talk, thread, target, subjectFact);
 
             if (AlreadyProjected(talk))
             {
@@ -277,6 +277,19 @@ namespace BrilliantQuesting.Plugin
             return string.IsNullOrEmpty(difficulty) ? action.Label : action.Label + " (" + difficulty + ")";
         }
 
+        private void ApplySituationText(DramaEventTalk talk, NarrativeThread thread, EntityId target, EntityId theftFactId)
+        {
+            string text = SituationText(thread, target, theftFactId);
+            if (string.IsNullOrEmpty(text) || talk.text == text)
+            {
+                return;
+            }
+
+            talk.text = text;
+            talk.funcText = () => text;
+            _log.LogInfo("Applied Brilliant Questing situation text for " + _world.Registry.NameOf(target) + ".");
+        }
+
         private string SituationText(NarrativeThread thread, EntityId target, EntityId theftFactId)
         {
             Fact theft = _world.Knowledge.GetFact(theftFactId);
@@ -421,7 +434,7 @@ namespace BrilliantQuesting.Plugin
         [HarmonyPatch(typeof(DramaEventTalk), nameof(DramaEventTalk.InitDialog))]
         private static class DramaEventTalkInitDialogPatch
         {
-            private static void Prefix(DramaEventTalk __instance)
+            private static void Postfix(DramaEventTalk __instance)
             {
                 Current?.ProjectChoices(__instance?.manager, __instance);
             }
