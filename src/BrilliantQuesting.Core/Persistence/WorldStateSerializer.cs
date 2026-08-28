@@ -50,6 +50,7 @@ namespace BrilliantQuesting.Persistence
             }
 
             root.Set("externalRefs", refs);
+            root.Set("lastRumorDay", world.LastRumorDay);
             root.Set("npcs", NpcsToJson(world));
             root.Set("organizations", OrganizationsToJson(world));
             root.Set("sites", SitesToJson(world));
@@ -73,6 +74,8 @@ namespace BrilliantQuesting.Persistence
             NarrativeWorldState world = new NarrativeWorldState(ulong.Parse(root.GetString("worldSeed", "0")));
             world.SchemaVersion = root.GetInt("schemaVersion", NarrativeWorldState.CurrentSchemaVersion);
             world.Rng.RestoreState(ulong.Parse(root.GetString("rngState", "0")));
+
+            world.LastRumorDay = root.GetLong("lastRumorDay", NarrativeWorldState.RumorsNeverCirculated);
 
             JsonValue refs = root["externalRefs"];
             if (refs != null)

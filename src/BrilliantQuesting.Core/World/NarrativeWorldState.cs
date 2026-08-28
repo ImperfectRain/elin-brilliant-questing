@@ -66,6 +66,20 @@ namespace BrilliantQuesting.World
         /// </summary>
         public Dictionary<EntityId, string> ExternalRefs { get; } = new Dictionary<EntityId, string>();
 
+        /// <summary>No round has run in this world yet. Days are never negative, so -1 is free.</summary>
+        public const long RumorsNeverCirculated = -1;
+
+        /// <summary>
+        /// The in-game day the last round of gossip belongs to.
+        ///
+        /// Lives on the world rather than in the adapter because it has to survive a reload. If
+        /// the scheduler kept its own counter, loading the same save would circulate again, and a
+        /// player who did not like what the town started saying could reroll it from the load
+        /// screen. Additive and optional in the save: an older one has no node, reads back as
+        /// never-circulated, and quietly starts from the day it is opened.
+        /// </summary>
+        public long LastRumorDay { get; set; } = RumorsNeverCirculated;
+
         public EntityId NewId(string kind) => Ids.Next(kind);
 
         /// <summary>

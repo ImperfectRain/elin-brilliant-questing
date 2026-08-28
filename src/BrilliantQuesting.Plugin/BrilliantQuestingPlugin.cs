@@ -46,6 +46,7 @@ namespace BrilliantQuesting.Plugin
         private DramaChoiceProjector _drama;
         private ThreadEngine _threads;
         private ElinActionObserver _actionObserver;
+        private RumorCirculation _gossip;
         private long _lastAdvancedDay = long.MinValue;
 
         private bool _live;
@@ -148,6 +149,45 @@ namespace BrilliantQuesting.Plugin
 
             _lastAdvancedDay = today;
             AdvanceThreads();
+            CirculateRumors();
+        }
+
+        /// <summary>
+        /// Lets the town talk.
+        ///
+        /// Called on the same day boundary as escalation, and once on load to collect whatever the
+        /// calendar owes. It is safe to call more often than that - `RumorCirculation` keeps its
+        /// own day counter on the world and does nothing twice - which is the point: a reload must
+        /// not be a way to re-roll what the neighbours started saying.
+        /// </summary>
+        private void CirculateRumors()
+        {
+            if (_world == null || _gossip == null)
+            {
+                return;
+            }
+
+            try
+            {
+                RumorRound round = _gossip.Run(_world, _vanilla, _vanilla.Now);
+                if (!round.DidAnything)
+                {
+                    return;
+                }
+
+                _log.LogInfo("Gossip: " + round.Tells + " retelling(s) over " + round.DaysRun
+                             + " day(s)" + (round.DaysOwed > round.DaysRun ? " (of " + round.DaysOwed + " owed)" : "")
+                             + "; " + round.Faded + " belief(s) faded.");
+
+                foreach (string note in round.Notes)
+                {
+                    _log.LogInfo("  " + note);
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning("Rumour circulation skipped after an exception: " + ex.Message);
+            }
         }
 
         private void Restart(GameIOContext context)
@@ -191,9 +231,11 @@ namespace BrilliantQuesting.Plugin
             DramaChoiceProjector.Current = _drama;
 
             _threads = new ThreadEngine();
+            RumorSystem rumors = new RumorSystem(_world.Knowledge, _world.Ledger, _world.Ids);
             _threads.Register(
                 PettyTheftSituation.ArchetypeId,
-                new PettyTheftEscalation(_vanilla, new RumorSystem(_world.Knowledge, _world.Ledger, _world.Ids)));
+                new PettyTheftEscalation(_vanilla, rumors));
+            _gossip = new RumorCirculation(rumors);
             _drama.AdvanceThreads = AdvanceThreads;
             _actionObserver = new ElinActionObserver(_world, _vanilla, _bindings, _log);
             ElinAuthorityRoles.RefreshAll(_world, _bindings, _log);
@@ -207,6 +249,7 @@ namespace BrilliantQuesting.Plugin
             EnsurePrototypeEvidenceExists();
             _lastAdvancedDay = _vanilla.Now.TotalDays;
             AdvanceThreads();
+            CirculateRumors();
             GatherPrototypeParticipantsNearPlayer();
             ReportPlayerState();
             ReportProceduralParticipants();

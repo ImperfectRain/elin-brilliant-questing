@@ -151,7 +151,13 @@ namespace BrilliantQuesting.Diagnostics
             return sb.ToString();
         }
 
-        /// <summary>Who currently knows a fact, and which of them could demonstrate it.</summary>
+        /// <summary>
+        /// Who currently knows a fact, which of them could demonstrate it, and who told them.
+        ///
+        /// The last part matters once gossip circulates on its own (BQ-019): the interesting
+        /// question about a rumour is not who believes it but how it got to them, and without the
+        /// chain a spread that went wrong cannot be traced back to the retelling that did it.
+        /// </summary>
         public static string DescribeFactSpread(NarrativeWorldState world, EntityId factId)
         {
             Fact fact = world.Knowledge.GetFact(factId);
@@ -163,7 +169,13 @@ namespace BrilliantQuesting.Diagnostics
                 sb.Append("  ").Append(world.Registry.NameOf(knower).PadRight(12));
                 sb.Append(belief.Source.ToString().PadRight(12));
                 sb.Append("confidence ").Append(belief.Confidence.ToString("0.00"));
-                sb.Append(belief.CanProve ? "  (can prove)" : "  (cannot prove)").Append('\n');
+                sb.Append(belief.CanProve ? "  (can prove)" : "  (cannot prove)");
+                if (!belief.ToldBy.IsNone)
+                {
+                    sb.Append("  heard from ").Append(world.Registry.NameOf(belief.ToldBy));
+                }
+
+                sb.Append('\n');
             }
 
             return sb.ToString();

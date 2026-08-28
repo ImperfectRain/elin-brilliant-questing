@@ -41,6 +41,9 @@ namespace BrilliantQuesting.Situations
 
         public RumorSystem Rumors { get; private set; }
 
+        /// <summary>The scheduled gossip round. Nothing runs it unless a test asks for a day to pass.</summary>
+        public RumorCirculation Circulation { get; private set; }
+
         public PettyTheftSituation Situation { get; private set; }
 
         /// <summary>
@@ -76,6 +79,7 @@ namespace BrilliantQuesting.Situations
             lab.Checks = new VanillaStyleCheckResolver(vanilla);
             lab.Actions = StandardActions.CreateRegistry();
             lab.Rumors = new RumorSystem(world.Knowledge, world.Ledger, world.Ids);
+            lab.Circulation = new RumorCirculation(lab.Rumors);
             lab.Consequences = new ConsequenceEngine(world, vanilla);
             lab.Consequences.Attach();
 

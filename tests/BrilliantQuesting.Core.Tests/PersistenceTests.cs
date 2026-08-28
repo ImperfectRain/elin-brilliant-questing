@@ -185,6 +185,25 @@ namespace BrilliantQuesting.Tests
 
             Assert.Empty(reloaded.ExternalRefs);
             Assert.Equal(42UL, reloaded.WorldSeed);
+            Assert.Equal(NarrativeWorldState.RumorsNeverCirculated, reloaded.LastRumorDay);
+        }
+
+        /// <summary>
+        /// The gossip clock has to be in the save, or reloading is a way to re-roll what the town
+        /// started saying. Additive for the same reason the identity map was: an older save has no
+        /// node, reads back as never-circulated, and quietly starts from the day it is opened.
+        /// </summary>
+        [Fact]
+        public void TheGossipClockSurvivesTheSave()
+        {
+            TheftLaboratory lab = PlayedScenario();
+            lab.Vanilla.AdvanceDays(9);
+            lab.Circulation.Run(lab.World, lab.Vanilla, lab.Vanilla.Now);
+
+            NarrativeWorldState reloaded = WorldStateSerializer.Load(WorldStateSerializer.Save(lab.World));
+
+            Assert.Equal(lab.World.LastRumorDay, reloaded.LastRumorDay);
+            Assert.Equal(lab.Vanilla.Now.TotalDays, reloaded.LastRumorDay);
         }
 
         /// <summary>Standing has to survive a reload, or every guard forgets they are one.</summary>
