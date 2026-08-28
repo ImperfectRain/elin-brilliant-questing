@@ -88,9 +88,11 @@ namespace BrilliantQuesting.Plugin
 
             terms.Add(new CheckTerm("resolved by vanilla Check", 0));
 
-            // Vanilla does not hand back the face it rolled, so the trace records the outcome and
-            // the difficulty it was measured against, and says where the number came from.
-            return new CheckResult(request.Profile.Id, request.Profile.BaseDifficulty, terms, finalDc, 0, Translate(result));
+            // Vanilla hands back an outcome, not the face it rolled. The trace records the
+            // difficulty it was measured against and says the roll is the game's, rather than
+            // reporting a zero that would read as a roll of zero.
+            return new CheckResult(
+                request.Profile.Id, request.Profile.BaseDifficulty, terms, finalDc, CheckResult.UnknownRoll, Translate(result));
         }
 
         /// <summary>Vanilla's own difficulty wording, for presenting an option to the player.</summary>

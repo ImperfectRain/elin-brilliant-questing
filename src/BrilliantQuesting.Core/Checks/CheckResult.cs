@@ -30,7 +30,15 @@ namespace BrilliantQuesting.Checks
 
         public int FinalDifficulty { get; }
 
+        /// <summary>
+        /// Roll value meaning "resolved elsewhere". Vanilla's Check hands back an outcome without
+        /// the face it rolled, and printing that as a zero would read as a roll of zero.
+        /// </summary>
+        public const int UnknownRoll = -1;
+
         public int Roll { get; }
+
+        public bool RollIsKnown => Roll >= 0;
 
         public CheckOutcome Outcome { get; }
 
@@ -47,7 +55,8 @@ namespace BrilliantQuesting.Checks
             }
 
             sb.Append(" => DC ").Append(FinalDifficulty);
-            sb.Append("; rolled ").Append(Roll).Append(" => ").Append(Outcome);
+            sb.Append(RollIsKnown ? "; rolled " + Roll : "; rolled by the game");
+            sb.Append(" => ").Append(Outcome);
             return sb.ToString();
         }
     }
