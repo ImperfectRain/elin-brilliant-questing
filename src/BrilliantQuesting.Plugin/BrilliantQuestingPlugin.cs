@@ -9,6 +9,7 @@ using BrilliantQuesting.Consequences;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Persistence;
+using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Plugin
@@ -44,6 +45,7 @@ namespace BrilliantQuesting.Plugin
 
         private bool _live;
         private ConfigEntry<bool> _stageTestScenario;
+        private ConfigEntry<bool> _gatherPrototypeNpcs;
 
         private void Awake()
         {
@@ -60,6 +62,13 @@ namespace BrilliantQuesting.Plugin
                 + "offer its verbs through dialogue. Writes to the save: spawns Charas and creates "
                 + "procedural world state. Use a throwaway save. Runs once per load, and only when "
                 + "no thread exists yet.");
+
+            _gatherPrototypeNpcs = Config.Bind(
+                "Testing",
+                "GatherPrototypeNpcsNearPlayer",
+                true,
+                "Move live NPCs participating in the current petty-theft prototype near the player "
+                + "on load. This is a temporary playtest aid for the prototype scenario.");
 
             // Elin publishes its own lifecycle. Subscribing to it beats both polling in Update and
             // Harmony-patching the load path: it is the same route the game's bundled Scripting
@@ -128,6 +137,7 @@ namespace BrilliantQuesting.Plugin
             _log.LogInfo("Simulation attached: " + _world.Registry.Npcs.Count + " people, "
                          + _world.Ledger.Count + " events, " + _world.Threads.Count + " threads.");
 
+            GatherPrototypeParticipantsNearPlayer();
             ReportPlayerState();
             ReportProceduralParticipants();
             MaybeStageTestScenario();
@@ -193,9 +203,117 @@ namespace BrilliantQuesting.Plugin
 
                 Zone zone = chara.currentZone ?? EClass._zone;
                 string zoneText = zone == null ? "unknown zone" : "zone_" + zone.uid;
+                string relative = DescribeRelativeToPlayer(chara);
                 _log.LogInfo("  " + npc.Name + " [" + npc.Id + "] uid " + chara.uid
-                             + " at " + zoneText + " pos " + chara.pos);
+                             + " at " + zoneText + " pos " + chara.pos + relative);
             }
+        }
+
+        private void GatherPrototypeParticipantsNearPlayer()
+        {
+            if (_gatherPrototypeNpcs == null || !_gatherPrototypeNpcs.Value
+                                             || EClass.pc?.pos == null || EClass._zone == null)
+            {
+                return;
+            }
+
+            NarrativeThread thread = FindLivePettyTheftThread();
+            if (thread == null)
+            {
+                return;
+            }
+
+            int slot = 0;
+            foreach (EntityId participant in thread.ParticipantIds)
+            {
+                Chara chara = _bindings.ResolveChara(participant);
+                if (chara == null || chara == EClass.pc || chara.currentZone != EClass._zone)
+                {
+                    continue;
+                }
+
+                Point destination = FindNearbyPrototypeSpot(slot++);
+                if (destination == null)
+                {
+                    _log.LogWarning("Could not find a nearby playtest spot for " + chara.Name + ".");
+                    continue;
+                }
+
+                try
+                {
+                    chara.MoveByForce(destination, null, false);
+                    _log.LogInfo("Gathered prototype NPC " + chara.Name + " near player at " + destination + ".");
+                }
+                catch (Exception ex)
+                {
+                    _log.LogWarning("Could not gather prototype NPC " + chara.Name + ": " + ex.Message);
+                }
+            }
+        }
+
+        private NarrativeThread FindLivePettyTheftThread()
+        {
+            for (int i = 0; i < _world.Threads.Count; i++)
+            {
+                NarrativeThread thread = _world.Threads[i];
+                if (thread.ArchetypeId == "petty_theft" && thread.IsLive)
+                {
+                    return thread;
+                }
+            }
+
+            return null;
+        }
+
+        private static Point FindNearbyPrototypeSpot(int slot)
+        {
+            Point origin = EClass.pc?.pos;
+            if (origin == null)
+            {
+                return null;
+            }
+
+            int[,] offsets =
+            {
+                { 1, 0 },
+                { -1, 0 },
+                { 0, 1 },
+                { 0, -1 },
+                { 1, 1 },
+                { -1, 1 },
+                { 1, -1 },
+                { -1, -1 },
+                { 2, 0 },
+                { -2, 0 },
+                { 0, 2 },
+                { 0, -2 }
+            };
+
+            int length = offsets.GetLength(0);
+            for (int i = 0; i < length; i++)
+            {
+                int index = (slot + i) % length;
+                Point point = new Point(origin.x + offsets[index, 0], origin.z + offsets[index, 1]);
+                if (point.IsInBounds && !point.IsBlocked && !point.HasChara)
+                {
+                    return point;
+                }
+            }
+
+            return origin.GetNearestPoint(false, false, true, false, 4);
+        }
+
+        private static string DescribeRelativeToPlayer(Chara chara)
+        {
+            Point player = EClass.pc?.pos;
+            if (player == null || chara?.pos == null)
+            {
+                return string.Empty;
+            }
+
+            int dx = chara.pos.x - player.x;
+            int dz = chara.pos.z - player.z;
+            return "  player offset (" + dx + " / " + dz + "), distance " + chara.pos.Distance(player);
         }
 
         /// <summary>
