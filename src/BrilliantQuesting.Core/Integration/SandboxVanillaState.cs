@@ -131,6 +131,25 @@ namespace BrilliantQuesting.Integration
 
         public void Kill(EntityId chara) => Ensure(chara).Alive = false;
 
+        /// <summary>
+        /// Removes an object from the world entirely - burned, eaten, sold out of reach. Evidence
+        /// being destroyed is a real move in this game, so the reference implementation has to be
+        /// able to express it.
+        /// </summary>
+        public void DestroyItem(EntityId itemId)
+        {
+            foreach (CharaState state in _charas.Values)
+            {
+                for (int i = state.Inventory.Count - 1; i >= 0; i--)
+                {
+                    if (state.Inventory[i].Id == itemId)
+                    {
+                        state.Inventory.RemoveAt(i);
+                    }
+                }
+            }
+        }
+
         // -- IVanillaState ------------------------------------------------------------------
 
         public bool IsAlive(EntityId chara) => Ensure(chara).Alive;

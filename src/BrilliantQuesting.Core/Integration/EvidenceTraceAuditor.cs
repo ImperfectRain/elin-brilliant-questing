@@ -63,13 +63,20 @@ namespace BrilliantQuesting.Integration
             }
         }
 
+        /// <summary>
+        /// Whether the object somebody is relying on to prove something is still out there.
+        ///
+        /// It used to answer yes the moment `ExternalRefs` held the id, which is a different
+        /// question: that map says which game object a BQ entity was once bound to, not that the
+        /// object still exists. BQ-010a added the map so identity would survive a reload, and
+        /// reading it as existence turned it into a licence - an item that was destroyed, eaten,
+        /// sold into the void or lost with an unloaded map would go on proving a claim forever,
+        /// which quietly undoes the point of making evidence a real object at all.
+        ///
+        /// Somebody has to actually be holding it.
+        /// </summary>
         private bool EvidenceExists(EntityId itemId)
         {
-            if (_world.ExternalRefs.ContainsKey(itemId))
-            {
-                return true;
-            }
-
             if (InventoryContains(_vanilla.PlayerId, itemId))
             {
                 return true;
