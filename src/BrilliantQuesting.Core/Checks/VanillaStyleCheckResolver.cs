@@ -83,13 +83,15 @@ namespace BrilliantQuesting.Checks
                 dc += modifier.DcDelta;
             }
 
-            int roll = rng.Roll(20);
+            // Die and critical windows come from the profile, matching SourceCheck's per-row
+            // dice / critRange / fumbleRange rather than assuming d20 with 20 and 1.
+            int roll = rng.Roll(profile.Dice);
             CheckOutcome outcome;
-            if (roll == 20)
+            if (profile.CritRange > 0 && roll > profile.Dice - profile.CritRange)
             {
                 outcome = CheckOutcome.CriticalPass;
             }
-            else if (roll == 1)
+            else if (profile.FumbleRange > 0 && roll <= profile.FumbleRange)
             {
                 outcome = CheckOutcome.CriticalFail;
             }

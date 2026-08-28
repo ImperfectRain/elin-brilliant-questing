@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Meta>
+  <title>Brilliant Questing</title>
+  <id>elin.brilliant.questing</id>
+  <author>ImperfectRain</author>
+  <loadPriority>0</loadPriority>
+  <version>0.1.0</version>
+  <description>A persistent, simulation-driven questing layer. Generates situations rather than quests and resolves them through Elin's own attributes, skills, checks, affinity, Karma and crime rules.</description>
+</Meta>

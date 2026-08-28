@@ -1,0 +1,74 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!--
+      netstandard2.0 matches what Elin's own bundled Scripting Kit targets, which is the safest
+      thing to agree with on Unity 2021.3 / Mono.
+    -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>BrilliantQuesting.Plugin</RootNamespace>
+    <AssemblyName>BrilliantQuesting.Plugin</AssemblyName>
+    <LangVersion>9.0</LangVersion>
+    <AssemblySearchPaths>$(AssemblySearchPaths);{HintPathFromItem}</AssemblySearchPaths>
+
+    <!--
+      Game and BepInEx assemblies are referenced from a local, gitignored folder. They are not
+      ours to redistribute, so this project cannot build on a machine that has not populated
+      lib/ from its own Elin install - see docs/plugin-build.md.
+    -->
+    <ElinLib Condition="'$(ElinLib)' == ''">$(MSBuildThisFileDirectory)..\..\lib\Elin</ElinLib>
+    <BepInExLib Condition="'$(BepInExLib)' == ''">$(MSBuildThisFileDirectory)..\..\lib\BepInEx\BepInEx\core</BepInExLib>
+  </PropertyGroup>
+
+  <Target Name="CheckElinReferences" BeforeTargets="BeforeBuild">
+    <Error Condition="!Exists('$(ElinLib)\Elin.dll')"
+           Text="Elin.dll not found at $(ElinLib). Copy the assemblies listed in docs/plugin-build.md out of your own Elin install, or set the ElinLib property." />
+    <Error Condition="!Exists('$(BepInExLib)\BepInEx.Core.dll')"
+           Text="BepInEx.Core.dll not found at $(BepInExLib). See docs/plugin-build.md." />
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BrilliantQuesting.Core\BrilliantQuesting.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Private=false: these ship with the game, and must never be copied next to the plugin. -->
+    <Reference Include="Elin">
+      <HintPath>$(ElinLib)\Elin.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Plugins.BaseCore">
+      <HintPath>$(ElinLib)\Plugins.BaseCore.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Plugins.Modding">
+      <HintPath>$(ElinLib)\Plugins.Modding.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ElinLib)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ElinLib)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BepInEx.Core">
+      <HintPath>$(BepInExLib)\BepInEx.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BepInEx.Unity">
+      <HintPath>$(BepInExLib)\BepInEx.Unity.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExLib)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="package.xml" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

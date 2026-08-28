@@ -2,11 +2,14 @@
 
   <PropertyGroup>
     <!--
-      netstandard2.1 is the widest surface Elin's Unity/Mono runtime consumes cleanly.
+      netstandard2.0, matching what Elin's own bundled Scripting Kit targets. The simulation uses
+      nothing outside that surface, and agreeing with the game's own kit is worth more than the
+      handful of APIs 2.1 would add.
+
       This project must never reference Elin.dll, BepInEx or UnityEngine: everything the
       simulation needs from the game is expressed as an interface under Integration/.
     -->
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>BrilliantQuesting</RootNamespace>
     <AssemblyName>BrilliantQuesting.Core</AssemblyName>
   </PropertyGroup>

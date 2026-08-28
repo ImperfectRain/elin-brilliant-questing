@@ -21,14 +21,17 @@ worth writing.
 | Simulation core | implemented, 46 passing tests |
 | Three-NPC laboratory (Gate B) | implemented, runs headless |
 | Save / load / schema migration | implemented |
-| Elin runtime adapter (BepInEx plugin) | **not written yet** - see below |
+| Elin runtime adapter (BepInEx plugin) | written and compiling against the real assemblies; **not yet run in game** |
 
-There is deliberately no `Elin.dll` reference anywhere in this repository. Everything the simulation
-needs from the game is expressed as the [`IVanillaState`](src/BrilliantQuesting.Core/Integration/IVanillaState.cs)
-interface, with a headless [`SandboxVanillaState`](src/BrilliantQuesting.Core/Integration/SandboxVanillaState.cs)
-implementing the same contract. That is what lets the whole thing be built and tested with no game
-process, no game assets and no decompiled code in the tree - and it means the in-game adapter, when
-it arrives, is one file to write and one file to repair when Early Access moves under us.
+Everything the simulation needs from the game is expressed as the
+[`IVanillaState`](src/BrilliantQuesting.Core/Integration/IVanillaState.cs) interface, with a headless
+[`SandboxVanillaState`](src/BrilliantQuesting.Core/Integration/SandboxVanillaState.cs) implementing
+the same contract. That is what lets the simulation be built and tested with no game process and no
+game assets, and it means the live adapter is one file to repair when Early Access moves under us.
+
+`src/BrilliantQuesting.Plugin` is the live half. It is not in the solution, so the root build and
+tests stay green without the game installed; see [docs/plugin-build.md](docs/plugin-build.md) for
+how to populate `lib/` from your own install and build it. No game assemblies are committed.
 
 ## Try it
 
@@ -108,19 +111,22 @@ than a narrative layer could, so `attack` records intent and reads the result ba
 
 ## Next
 
-The [roadmap](docs/roadmap.md) has the detail. The immediate next piece of work is the
-reverse-engineering spike against a current Elin build: confirming how to read player elements,
-Chara affinity, Karma, prestige, Influence, guild and home state; how to attach mod save data; and
-whether custom `Check` rows can be driven from `Check.Perform` directly rather than through the
-resolver in this repository.
+The [roadmap](docs/roadmap.md) has the detail, and [docs/elin-api-notes.md](docs/elin-api-notes.md)
+records what reading the shipped assemblies established. The adapter compiles against the real
+game, which proves its calls exist - not that they behave. Running it inside Elin is the next step,
+and the first thing it will settle is whether the element aliases are right.
 
 ## Layout
 
 ```
 src/BrilliantQuesting.Core     the simulation - no Elin, BepInEx or Unity references
+src/BrilliantQuesting.Plugin   the live adapter - the only project that touches the game
 tests/                         46 tests, including the Gate B scenario assertions
 tools/BrilliantQuesting.Lab    headless runner that prints the world and its reasoning
 docs/design/                   the master design document
 docs/architecture.md           how the pieces fit, and why the seams are where they are
 docs/roadmap.md                phases, gates, and what is done
+docs/elin-api-notes.md         what the shipped assemblies actually expose
+docs/plugin-build.md           populating lib/, building and installing the plugin
+tools/ApiDump                  prints the game's API surface without executing it
 ```

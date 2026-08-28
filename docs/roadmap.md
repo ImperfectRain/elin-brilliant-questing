@@ -18,6 +18,10 @@ it does not prove it behaves, so "found" below is not the same as "works".
 | Prototype Drama choice injection | **not started** |
 | Confirm crime/witness hooks | **not started** - modelled behind `VanillaCapability.ObserveCrimeWitnesses` |
 
+`src/BrilliantQuesting.Plugin` now implements `IVanillaState`, `ICheckResolver` and
+`ISituationStager` against the real assemblies and compiles clean. Compiling proves the calls
+exist; it proves nothing about behaviour. Nothing has been run inside Elin.
+
 **Gate A** - a hard-coded scenario reads vanilla stats, performs a native-style check, updates
 affinity and Karma, saves, reloads and continues correctly.
 *Passed headless.* Every call it would need in game is now located; running it against a live game

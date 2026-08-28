@@ -22,6 +22,13 @@ namespace BrilliantQuesting.Integration
 
         public string Name { get; }
 
+        /// <summary>
+        /// Which vanilla archetype to build this person from - a Chara source id such as
+        /// "villager". Generation decides the role and the personality; the game decides what a
+        /// villager actually is. Empty means the stager picks its configured default.
+        /// </summary>
+        public string ArchetypeId { get; set; } = string.Empty;
+
         public int Level { get; set; } = 1;
 
         public int Money { get; set; }

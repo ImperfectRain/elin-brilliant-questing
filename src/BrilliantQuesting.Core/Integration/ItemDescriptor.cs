@@ -9,12 +9,13 @@ namespace BrilliantQuesting.Integration
     /// </summary>
     public sealed class ItemDescriptor
     {
-        public ItemDescriptor(EntityId id, string name, string categoryTag, int value)
+        public ItemDescriptor(EntityId id, string name, string categoryTag, int value, string sourceId = null)
         {
             Id = id;
             Name = name;
             CategoryTag = categoryTag ?? string.Empty;
             Value = value;
+            SourceId = sourceId ?? string.Empty;
         }
 
         public EntityId Id { get; }
@@ -26,6 +27,13 @@ namespace BrilliantQuesting.Integration
 
         /// <summary>Vanilla value in orens, used for bribes, fencing and appraisal.</summary>
         public int Value { get; }
+
+        /// <summary>
+        /// The Thing source id this was or should be built from. Empty for a descriptor read back
+        /// out of a live inventory, where the object already exists; set when a generator wants
+        /// one created.
+        /// </summary>
+        public string SourceId { get; }
 
         public override string ToString() => Name + " (" + CategoryTag + ", " + Value + "g)";
     }

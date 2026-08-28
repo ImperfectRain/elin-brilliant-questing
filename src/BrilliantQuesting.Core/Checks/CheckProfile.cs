@@ -21,6 +21,9 @@ namespace BrilliantQuesting.Checks
             ActorSkills = new List<WeightedSkill>();
             ActorAttributes = new List<WeightedAttribute>();
             TargetAttributes = new List<WeightedAttribute>();
+            Dice = 20;
+            CritRange = 1;
+            FumbleRange = 1;
         }
 
         public string Id { get; }
@@ -40,6 +43,18 @@ namespace BrilliantQuesting.Checks
         /// <summary>Whether a higher-level target is inherently harder, as vanilla GetDC does.</summary>
         public double TargetLevelWeight { get; private set; }
 
+        /// <summary>
+        /// Faces on the die. Vanilla's SourceCheck row carries this per row rather than assuming
+        /// d20, so a profile has to as well or the two resolvers drift apart.
+        /// </summary>
+        public int Dice { get; private set; }
+
+        /// <summary>How many of the top faces are a critical pass. 1 means only a natural 20.</summary>
+        public int CritRange { get; private set; }
+
+        /// <summary>How many of the bottom faces are a critical fail. 1 means only a natural 1.</summary>
+        public int FumbleRange { get; private set; }
+
         public CheckProfile WithActorSkill(VanillaSkill skill, double weight = 1.0)
         {
             ActorSkills.Add(new WeightedSkill(skill, weight));
@@ -55,6 +70,15 @@ namespace BrilliantQuesting.Checks
         public CheckProfile WithTargetAttribute(VanillaAttribute attribute, double weight = 0.5)
         {
             TargetAttributes.Add(new WeightedAttribute(attribute, weight));
+            return this;
+        }
+
+        /// <summary>Overrides the die and its critical windows, mirroring a SourceCheck row.</summary>
+        public CheckProfile WithDice(int dice, int critRange = 1, int fumbleRange = 1)
+        {
+            Dice = dice < 2 ? 2 : dice;
+            CritRange = critRange < 0 ? 0 : critRange;
+            FumbleRange = fumbleRange < 0 ? 0 : fumbleRange;
             return this;
         }
 
