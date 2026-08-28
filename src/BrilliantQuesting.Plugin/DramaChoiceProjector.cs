@@ -98,6 +98,8 @@ namespace BrilliantQuesting.Plugin
                 return;
             }
 
+            talk.text = SituationText(thread, target, subjectFact);
+
             if (AlreadyProjected(talk))
             {
                 return;
@@ -273,6 +275,97 @@ namespace BrilliantQuesting.Plugin
 
             string difficulty = _checks.DescribeDifficulty(new CheckRequest(profile, context.Actor, context.Target), true);
             return string.IsNullOrEmpty(difficulty) ? action.Label : action.Label + " (" + difficulty + ")";
+        }
+
+        private string SituationText(NarrativeThread thread, EntityId target, EntityId theftFactId)
+        {
+            Fact theft = _world.Knowledge.GetFact(theftFactId);
+            if (theft == null)
+            {
+                return "Something is wrong here, but the details are still unclear.";
+            }
+
+            EntityId victim = FindVictim(thread, theft.Object);
+            EntityId witness = FindWitness(theftFactId, theft.Subject);
+            string victimName = _world.Registry.NameOf(victim);
+            string thiefName = _world.Registry.NameOf(theft.Subject);
+            string targetName = _world.Registry.NameOf(target);
+            string item = string.IsNullOrEmpty(theft.Value) ? "a missing item" : theft.Value;
+
+            List<string> lines = new List<string>
+            {
+                "A local theft is unfolding.",
+                victimName + " is missing " + item + ". Someone nearby knows more than they are saying."
+            };
+
+            if (target == victim)
+            {
+                lines.Add(targetName + " is the injured party. They want the property recovered, but cannot prove who took it.");
+            }
+            else if (target == theft.Subject)
+            {
+                lines.Add(targetName + " is tied to the missing " + item + ". Press carefully: confession, proof, theft, or leverage could all move this forward.");
+            }
+            else if (target == witness)
+            {
+                lines.Add(targetName + " may have seen what happened, but does not want to be dragged into it.");
+            }
+            else
+            {
+                lines.Add(targetName + " is connected to the dispute.");
+            }
+
+            if (_world.Knowledge.Knows(_vanilla.PlayerId, theftFactId))
+            {
+                string proof = _world.Knowledge.CanProve(_vanilla.PlayerId, theftFactId)
+                    ? "You can prove it."
+                    : "You know the claim, but still lack proof.";
+                lines.Add("Current lead: " + thiefName + " stole the " + item + ". " + proof);
+            }
+            else
+            {
+                lines.Add("Objective: learn who took the " + item + ", find proof if possible, then decide whether to expose them, return it, keep it, or let the dispute run.");
+            }
+
+            if (thread.OpenQuestions.Count > 0)
+            {
+                lines.Add("Open question: " + thread.OpenQuestions[0]);
+            }
+
+            return string.Join("\n", lines);
+        }
+
+        private EntityId FindVictim(NarrativeThread thread, EntityId item)
+        {
+            for (int i = 0; i < thread.FactIds.Count; i++)
+            {
+                Fact fact = _world.Knowledge.GetFact(thread.FactIds[i]);
+                if (fact != null && fact.Predicate == FactPredicates.Possesses && fact.Object == item)
+                {
+                    return fact.Subject;
+                }
+            }
+
+            return EntityId.None;
+        }
+
+        private EntityId FindWitness(EntityId theftFactId, EntityId thief)
+        {
+            foreach (EntityId knower in _world.Knowledge.Knowers(theftFactId))
+            {
+                if (knower == thief)
+                {
+                    continue;
+                }
+
+                if (_world.Knowledge.TryGetBelief(knower, theftFactId, out KnowledgeRecord record)
+                    && record.Source == KnowledgeSource.Witnessed)
+                {
+                    return knower;
+                }
+            }
+
+            return EntityId.None;
         }
 
         private static CheckProfile ProfileFor(string actionId)
