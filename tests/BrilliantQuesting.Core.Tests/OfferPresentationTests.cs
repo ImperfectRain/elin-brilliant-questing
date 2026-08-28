@@ -51,12 +51,14 @@ namespace BrilliantQuesting.Tests
             Assert.Contains("return_item", ids);
             Assert.Contains("keep_item", ids);
             Assert.Contains("expose", ids);
+            Assert.Contains("report", ids);
         }
 
         [Fact]
         public void InformationVerbsComeBeforePressure()
         {
-            List<string> ids = OfferPresentation.TakeForDisplay(AllAvailable(), 7)
+            List<ActionOffer> all = AllAvailable();
+            List<string> ids = OfferPresentation.TakeForDisplay(all, all.Count)
                 .ConvertAll(offer => offer.Action.Id);
 
             Assert.True(ids.IndexOf("question") < ids.IndexOf("intimidate"));

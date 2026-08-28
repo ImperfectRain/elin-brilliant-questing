@@ -28,6 +28,7 @@ namespace BrilliantQuesting.Actions
                 case "return_item":
                 case "keep_item":
                 case "expose":
+                case "report":
                     return 0;
 
                 // Earns the standing or the proof the resolutions need.

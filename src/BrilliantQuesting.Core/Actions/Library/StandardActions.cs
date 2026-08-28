@@ -3,7 +3,7 @@ namespace BrilliantQuesting.Actions.Library
     /// <summary>
     /// The verb set the three-NPC laboratory runs on.
     ///
-    /// Twelve verbs, spanning six of the eight solution families. The roadmap's next milestone is
+    /// Fourteen verbs, spanning six of the eight solution families. The roadmap's next milestone is
     /// thirty - but only once each of these has proven it can carry a situation on its own, since
     /// a verb that cannot be the whole answer to some problem is not pulling its weight.
     /// </summary>
@@ -20,6 +20,7 @@ namespace BrilliantQuesting.Actions.Library
                 .Register(new BribeAction())
                 .Register(new SearchForEvidenceAction())
                 .Register(new ExposeSecretAction())
+                .Register(new ReportToAuthorityAction())
                 .Register(new PickpocketAction())
                 .Register(new PlantEvidenceAction())
                 .Register(new ReturnItemAction())
