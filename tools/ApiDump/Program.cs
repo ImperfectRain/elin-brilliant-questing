@@ -22,6 +22,13 @@ namespace BrilliantQuesting.ApiDump
     {
         private const string LibDirectory = "lib/Elin";
 
+        /// <summary>Extra folders searched only to resolve references, never dumped.</summary>
+        private static readonly string[] SupportDirectories =
+        {
+            "lib/BepInEx/BepInEx/core",
+            "lib/Package/_ModdingKit"
+        };
+
         public static int Main(string[] args)
         {
             string[] assemblyPaths = Directory.Exists(LibDirectory)
@@ -34,10 +41,38 @@ namespace BrilliantQuesting.ApiDump
                 return 1;
             }
 
-            PathAssemblyResolver resolver = new PathAssemblyResolver(
-                assemblyPaths.Concat(RuntimeAssemblies()).ToArray());
+            // The game ships its own mscorlib. It has to win over the host runtime's, or the
+            // context refuses to load both under the same name - and it is the correct BCL to
+            // resolve Unity-era signatures against anyway.
+            Dictionary<string, string> searchPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string path in RuntimeAssemblies())
+            {
+                searchPaths[Path.GetFileNameWithoutExtension(path)] = path;
+            }
 
-            using MetadataLoadContext context = new MetadataLoadContext(resolver);
+            foreach (string directory in SupportDirectories)
+            {
+                if (!Directory.Exists(directory))
+                {
+                    continue;
+                }
+
+                foreach (string path in Directory.GetFiles(directory, "*.dll"))
+                {
+                    searchPaths[Path.GetFileNameWithoutExtension(path)] = path;
+                }
+            }
+
+            foreach (string path in assemblyPaths)
+            {
+                searchPaths[Path.GetFileNameWithoutExtension(path)] = path;
+            }
+
+            bool gameCoreLib = assemblyPaths.Any(p => Path.GetFileNameWithoutExtension(p) == "mscorlib");
+            PathAssemblyResolver resolver = new PathAssemblyResolver(searchPaths.Values.ToArray());
+
+            using MetadataLoadContext context = new MetadataLoadContext(
+                resolver, gameCoreLib ? "mscorlib" : "System.Private.CoreLib");
             List<Assembly> loaded = new List<Assembly>();
             foreach (string path in assemblyPaths)
             {
@@ -113,8 +148,7 @@ namespace BrilliantQuesting.ApiDump
                     {
                         if (type.Name.IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
-                            Console.WriteLine(assembly.GetName().Name + "  " + type.FullName
-                                              + (type.BaseType != null ? " : " + type.BaseType.Name : string.Empty));
+                            Console.WriteLine(assembly.GetName().Name + "  " + type.FullName + BaseTypeSuffix(type));
                             break;
                         }
                     }
@@ -128,7 +162,7 @@ namespace BrilliantQuesting.ApiDump
         {
             foreach (string name in names)
             {
-                Type type = loaded.SelectMany(SafeTypes).FirstOrDefault(t => t.Name == name || t.FullName == name);
+                Type type = Find(loaded, name);
                 if (type == null)
                 {
                     Console.WriteLine("### " + name + " - not found");
@@ -150,7 +184,7 @@ namespace BrilliantQuesting.ApiDump
                 return 1;
             }
 
-            Type type = loaded.SelectMany(SafeTypes).FirstOrDefault(t => t.Name == args[0] || t.FullName == args[0]);
+            Type type = Find(loaded, args[0]);
             if (type == null)
             {
                 Console.WriteLine("### " + args[0] + " - not found");
@@ -170,15 +204,34 @@ namespace BrilliantQuesting.ApiDump
             return 0;
         }
 
+        /// <summary>
+        /// Resolves a type name, preferring the game's own assembly. Several game types collide
+        /// with BCL ones - Zone is both an Elin class and System.Security.Policy.Zone - and the
+        /// BCL match is never the one anybody asking about Elin wants.
+        /// </summary>
+        private static Type Find(List<Assembly> loaded, string name)
+        {
+            List<Assembly> ordered = loaded
+                .OrderBy(a => a.GetName().Name == "mscorlib" ? 2 : a.GetName().Name.StartsWith("UnityEngine") ? 1 : 0)
+                .ToList();
+
+            foreach (Assembly assembly in ordered)
+            {
+                Type match = SafeTypes(assembly).FirstOrDefault(t => t.FullName == name || t.Name == name);
+                if (match != null)
+                {
+                    return match;
+                }
+            }
+
+            return null;
+        }
+
         private static string Describe(Type type)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("### ").Append(type.FullName);
-            if (type.BaseType != null && type.BaseType.Name != "Object")
-            {
-                sb.Append(" : ").Append(type.BaseType.Name);
-            }
-
+            sb.Append(BaseTypeSuffix(type));
             sb.Append('\n');
             foreach (string line in MemberLines(type))
             {
@@ -188,31 +241,92 @@ namespace BrilliantQuesting.ApiDump
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Members, with every signature decoded defensively.
+        ///
+        /// Not every assembly the game references is in lib/, and a signature that touches a
+        /// missing one throws when it is read. That is worth one "(unresolved)" line, not a
+        /// crashed dump: the other ninety members are still exactly what the adapter needs.
+        /// </summary>
         private static IEnumerable<string> MemberLines(Type type)
         {
             const BindingFlags Flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
-            foreach (FieldInfo field in type.GetFields(Flags).OrderBy(f => f.Name))
+            foreach (string line in Safely(type, t => t.GetFields(Flags).OrderBy(f => f.Name).Cast<MemberInfo>()))
             {
-                yield return (field.IsStatic ? "static field " : "field  ") + Short(field.FieldType) + " " + field.Name;
+                yield return line;
             }
 
-            foreach (PropertyInfo property in type.GetProperties(Flags).OrderBy(p => p.Name))
+            foreach (string line in Safely(type, t => t.GetProperties(Flags).OrderBy(p => p.Name).Cast<MemberInfo>()))
             {
-                string accessors = (property.CanRead ? "get;" : string.Empty) + (property.CanWrite ? "set;" : string.Empty);
-                yield return "prop   " + Short(property.PropertyType) + " " + property.Name + " { " + accessors + " }";
+                yield return line;
             }
 
-            foreach (MethodInfo method in type.GetMethods(Flags).OrderBy(m => m.Name))
+            foreach (string line in Safely(type, t => t.GetMethods(Flags).Where(m => !m.IsSpecialName).OrderBy(m => m.Name).Cast<MemberInfo>()))
             {
-                if (method.IsSpecialName)
+                yield return line;
+            }
+        }
+
+        private static List<string> Safely(Type type, Func<Type, IEnumerable<MemberInfo>> select)
+        {
+            List<string> lines = new List<string>();
+            IEnumerable<MemberInfo> members;
+            try
+            {
+                members = select(type).ToList();
+            }
+            catch (Exception ex)
+            {
+                lines.Add("(unresolved member group: " + ex.GetType().Name + ")");
+                return lines;
+            }
+
+            foreach (MemberInfo member in members)
+            {
+                try
                 {
-                    continue;
+                    lines.Add(Render(member));
                 }
+                catch (Exception)
+                {
+                    lines.Add("(unresolved) " + member.MemberType.ToString().ToLowerInvariant() + " " + member.Name);
+                }
+            }
 
-                string parameters = string.Join(", ", method.GetParameters().Select(p => Short(p.ParameterType) + " " + p.Name));
-                yield return (method.IsStatic ? "static " : string.Empty) + "method " + Short(method.ReturnType)
-                             + " " + method.Name + "(" + parameters + ")";
+            return lines;
+        }
+
+        private static string Render(MemberInfo member)
+        {
+            switch (member)
+            {
+                case FieldInfo field:
+                    return (field.IsStatic ? "static field " : "field  ") + Short(field.FieldType) + " " + field.Name;
+
+                case PropertyInfo property:
+                    string accessors = (property.CanRead ? "get;" : string.Empty) + (property.CanWrite ? "set;" : string.Empty);
+                    return "prop   " + Short(property.PropertyType) + " " + property.Name + " { " + accessors + " }";
+
+                case MethodInfo method:
+                    string parameters = string.Join(", ", method.GetParameters().Select(p => Short(p.ParameterType) + " " + p.Name));
+                    return (method.IsStatic ? "static " : string.Empty) + "method " + Short(method.ReturnType)
+                           + " " + method.Name + "(" + parameters + ")";
+
+                default:
+                    return member.MemberType + " " + member.Name;
+            }
+        }
+
+        private static string BaseTypeSuffix(Type type)
+        {
+            try
+            {
+                return type.BaseType != null && type.BaseType.Name != "Object" ? " : " + type.BaseType.Name : string.Empty;
+            }
+            catch (Exception)
+            {
+                return " : (unresolved base)";
             }
         }
 

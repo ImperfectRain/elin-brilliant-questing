@@ -5,9 +5,11 @@ artifacts/
 *.user
 *.suo
 
-# Local Elin references (game assemblies are never committed)
-lib/Elin/
-lib/BepInEx/
+# Local Elin references. Nothing under lib/ is ever committed: it holds game
+# assemblies, BepInEx, and unpacked third-party mod packages, none of which are
+# ours to redistribute. Ignore the whole directory rather than naming subfolders,
+# because the next thing dropped in there will not match a name listed here.
+lib/
 
 # Editor
 .vs/
