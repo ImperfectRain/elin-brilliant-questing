@@ -29,6 +29,19 @@ namespace BrilliantQuesting.Lab
                 return 0;
             }
 
+            if (args.Length > 0 && args[0] == "--questline-sweep")
+            {
+                Questline.Sweep(args.Length > 1 && int.TryParse(args[1], out int count) ? count : 50);
+                return 0;
+            }
+
+            if (args.Length > 0 && args[0] == "--questline")
+            {
+                ulong questSeed = args.Length > 1 && ulong.TryParse(args[1], out ulong given) ? given : DefaultSeed;
+                Questline.Run(questSeed);
+                return 0;
+            }
+
             ulong seed = args.Length > 0 && ulong.TryParse(args[0], out ulong parsed) ? parsed : DefaultSeed;
 
             Console.WriteLine("Elin Brilliant Questing - three-NPC laboratory");

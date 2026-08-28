@@ -33,9 +33,17 @@ it arrives, is one file to write and one file to repair when Early Access moves 
 ## Try it
 
 ```bash
-dotnet test                                       # 46 tests, ~150ms
-dotnet run --project tools/BrilliantQuesting.Lab  # the laboratory, with its reasoning shown
+dotnet test                                          # 46 tests, ~150ms
+dotnet run --project tools/BrilliantQuesting.Lab     # the laboratory, with its reasoning shown
+dotnet run --project tools/BrilliantQuesting.Lab -- --questline 15        # one seeded run, day by day
+dotnet run --project tools/BrilliantQuesting.Lab -- --questline-sweep 60  # the same policy over 60 seeds
 ```
+
+`--questline` plays a generated situation end to end with the real dice, one in-game day at a time.
+The player is not a script: each day a policy asks the world what is currently possible and what the
+player currently knows, and picks the most sensible thing available - so the player's moves and the
+situation's own escalation interleave. On an idle day it prints what the player wanted and what the
+world said about it, which is usually where the missing verb is.
 
 The laboratory generates a small situation - A stole something from B, C saw it - and plays it two
 ways. Abridged output:
