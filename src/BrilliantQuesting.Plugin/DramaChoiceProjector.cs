@@ -173,7 +173,7 @@ namespace BrilliantQuesting.Plugin
                 }
 
                 ActionOutcome outcome = action.Perform(context);
-                string summary = action.Label + ": " + outcome.Narration;
+                string summary = action.Label + ": " + outcome.Narration + " Talk again to continue.";
                 Msg.SayRaw(summary);
                 _log.LogInfo("> dialogue " + action.Id + " " + _world.Registry.NameOf(target));
                 foreach (string line in outcome.Explain().Split('\n'))
@@ -274,7 +274,8 @@ namespace BrilliantQuesting.Plugin
             }
 
             string difficulty = _checks.DescribeDifficulty(new CheckRequest(profile, context.Actor, context.Target), true);
-            return string.IsNullOrEmpty(difficulty) ? action.Label : action.Label + " (" + difficulty + ")";
+            string text = "BQ: " + action.Label;
+            return string.IsNullOrEmpty(difficulty) ? text : text + " (" + difficulty + ")";
         }
 
         private void ApplySituationText(DramaEventTalk talk, NarrativeThread thread, EntityId target, EntityId theftFactId)
@@ -288,6 +289,36 @@ namespace BrilliantQuesting.Plugin
             talk.text = text;
             talk.funcText = () => text;
             _log.LogInfo("Applied Brilliant Questing situation text for " + _world.Registry.NameOf(target) + ".");
+        }
+
+        internal bool TryReplaceRenderedText(ref string text)
+        {
+            DramaManager manager = LayerDrama.Instance?.drama;
+            if (_world == null || manager?.tg?.chara == null)
+            {
+                return false;
+            }
+
+            if (!_bindings.TryGetEntity(manager.tg.chara.uid, out EntityId target))
+            {
+                return false;
+            }
+
+            NarrativeThread thread = FindThread(target);
+            if (thread == null || !TryBuildFocus(thread, out EntityId subjectFact, out _))
+            {
+                return false;
+            }
+
+            string replacement = SituationText(thread, target, subjectFact);
+            if (string.IsNullOrEmpty(replacement))
+            {
+                return false;
+            }
+
+            text = replacement;
+            _log.LogInfo("Rendered Brilliant Questing situation text for " + _world.Registry.NameOf(target) + ".");
+            return true;
         }
 
         private string SituationText(NarrativeThread thread, EntityId target, EntityId theftFactId)
@@ -437,6 +468,15 @@ namespace BrilliantQuesting.Plugin
             private static void Postfix(DramaEventTalk __instance)
             {
                 Current?.ProjectChoices(__instance?.manager, __instance);
+            }
+        }
+
+        [HarmonyPatch(typeof(DialogDrama), nameof(DialogDrama.SetText))]
+        private static class DialogDramaSetTextPatch
+        {
+            private static void Prefix(ref string text)
+            {
+                Current?.TryReplaceRenderedText(ref text);
             }
         }
     }

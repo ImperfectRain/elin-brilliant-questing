@@ -140,6 +140,7 @@ namespace BrilliantQuesting.Plugin
             GatherPrototypeParticipantsNearPlayer();
             ReportPlayerState();
             ReportProceduralParticipants();
+            AnnouncePrototypeObjective();
             MaybeStageTestScenario();
         }
 
@@ -314,6 +315,32 @@ namespace BrilliantQuesting.Plugin
             int dx = chara.pos.x - player.x;
             int dz = chara.pos.z - player.z;
             return "  player offset (" + dx + " / " + dz + "), distance " + chara.pos.Distance(player);
+        }
+
+        private void AnnouncePrototypeObjective()
+        {
+            NarrativeThread thread = FindLivePettyTheftThread();
+            if (thread == null || thread.ParticipantIds.Count == 0)
+            {
+                return;
+            }
+
+            string names = string.Empty;
+            for (int i = 0; i < thread.ParticipantIds.Count; i++)
+            {
+                if (i > 0)
+                {
+                    names += i == thread.ParticipantIds.Count - 1 ? " or " : ", ";
+                }
+
+                names += _world.Registry.NameOf(thread.ParticipantIds[i]);
+            }
+
+            string question = thread.OpenQuestions.Count == 0 ? "Find out what happened." : thread.OpenQuestions[0];
+            string message = "Brilliant Questing: a local theft is active. Talk to "
+                             + names + ". " + question;
+            Msg.SayRaw(message);
+            _log.LogInfo(message);
         }
 
         /// <summary>
