@@ -22,7 +22,8 @@ namespace BrilliantQuesting.Foundation
 
         public void Restore(string kind, ulong counter)
         {
-            _counters[kind] = counter;
+            _counters.TryGetValue(kind, out ulong current);
+            _counters[kind] = counter > current ? counter : current;
         }
     }
 }
