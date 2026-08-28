@@ -192,8 +192,17 @@ namespace BrilliantQuesting.Actions.Library
                 }
 
                 case CheckOutcome.Fail:
-                    outcome = new ActionOutcome(Id, check, who + " does not take your word for it.");
-                    outcome.Notes.Add("try again with evidence, or find someone who already half suspects");
+                    // Both halves of this branch used to assume the player had nothing to show.
+                    // A tester with proof in hand was told, twice, to go and find evidence - the
+                    // one piece of advice that could not help, and the same class of lying
+                    // message BQ-009 was about. Somebody who produced proof and was still not
+                    // believed has a different problem, and a different route out of it.
+                    outcome = new ActionOutcome(Id, check, canProve
+                        ? who + " looks at what you have and still will not have it."
+                        : who + " does not take your word for it.");
+                    outcome.Notes.Add(canProve
+                        ? "proof was not the problem; try someone who already half suspects, or make them owe you first"
+                        : "try again with evidence, or find someone who already half suspects");
                     break;
 
                 default:

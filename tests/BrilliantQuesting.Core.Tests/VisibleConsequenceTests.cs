@@ -187,6 +187,40 @@ namespace BrilliantQuesting.Tests
             Assert.NotEmpty(kept.Witnesses);
         }
 
+        /// <summary>
+        /// A tester holding proof was told twice to "try again with evidence" - the one piece of
+        /// advice that could not possibly help. Failing with proof is a different failure and
+        /// needs a different way out.
+        /// </summary>
+        [Fact]
+        public void BeingDisbelievedWhileHoldingProofDoesNotAdviseFindingProof()
+        {
+            TheftLaboratory lab = Prepared();
+            lab.Checks = new FixedCheckResolver(CheckOutcome.Fail);
+
+            ActionContext context = FullContext(lab, lab.Situation.VictimId);
+            Assert.True(lab.World.Knowledge.CanProve(lab.Player, lab.Situation.TheftFactId));
+
+            ActionOutcome outcome = lab.Actions.Get("expose").Perform(context);
+
+            Assert.DoesNotContain("try again with evidence", string.Join(" ", outcome.Notes));
+            Assert.DoesNotContain("does not take your word for it", outcome.Narration);
+        }
+
+        /// <summary>Without proof the original advice is the right advice.</summary>
+        [Fact]
+        public void BeingDisbelievedOnYourWordAloneStillAdvisesFindingProof()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+            lab.World.Knowledge.Teach(
+                lab.Player, lab.Situation.TheftFactId, KnowledgeSource.Hearsay, 0.6, lab.Vanilla.Now, canProve: false);
+            lab.Checks = new FixedCheckResolver(CheckOutcome.Fail);
+
+            ActionOutcome outcome = lab.Actions.Get("expose").Perform(FullContext(lab, lab.Situation.VictimId));
+
+            Assert.Contains("try again with evidence", string.Join(" ", outcome.Notes));
+        }
+
         /// <summary>The offer warns before the money is spent, not after.</summary>
         [Fact]
         public void TheBribeOfferSaysWhenThereMayBeNothingToBuy()
