@@ -69,7 +69,7 @@ persists to the save's `brilliantQuesting` chunk on `EVENT.PreSave`. Reads real 
 through the adapter — all 23 element aliases resolve, 11 of 13 capabilities available. A staged
 three-NPC theft can be entered through default talk, with procedural choices injected into Drama.
 
-**Working headless.** 48 tests. Deterministic simulation core: stable identity, event ledger,
+**Working headless.** 100 tests. Deterministic simulation core: stable identity, event ledger,
 fact/belief separation with provenance and provability, memory with consolidation, relationship
 graph, threads with milestone escalation, thirteen verbs across six solution families, four-outcome
 checks, versioned save with migration.
@@ -1655,6 +1655,12 @@ events first.
 **Project boundary versus shipping constraint.** `PM §57` implies separate assemblies. The chainloader
 requires one DLL. Resolved: source separation is preserved, the shipped assembly is merged, and Core
 still may not reference Elin. Consequence: Core types must avoid the game's generic names.
+
+**Type names that collide with the game.** Elin puts a great deal in the global namespace, and the
+game's type wins at any call site inside the plugin. Resolved by renaming on our side rather than
+qualifying every use: `Goal` became `NpcGoal`, `Scene` became `NarrativeScene`, and `WorldInspector`
+became `NarrativeInspector` (BQ-012, found only because the collision is silent until a member
+lookup fails). `MD §23.2`'s `WorldInspector` name is superseded.
 
 **Character model conflict.** `CD §4` proposes a `NarrativeNpc` that differs from the one that exists
 and is persisted. Resolved: extend the existing type; migrate rather than replace.

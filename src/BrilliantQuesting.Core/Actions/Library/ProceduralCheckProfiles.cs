@@ -74,5 +74,30 @@ namespace BrilliantQuesting.Actions.Library
             .WithActorSkill(VanillaSkill.Negotiation, 0.3)
             .WithActorAttribute(VanillaAttribute.Charisma, 0.25)
             .WithTargetAttribute(VanillaAttribute.Will, 0.2);
+
+        /// <summary>
+        /// The check a verb rolls, or null where it rolls none.
+        ///
+        /// The mapping lives here rather than beside each presentation surface so that the
+        /// dialogue label, the debug inspector and the source-sheet rows all name the same check.
+        /// A verb with no profile resolves without a roll and says so, which is a real answer to
+        /// "what check runs?" rather than a gap.
+        /// </summary>
+        public static CheckProfile ForAction(string actionId)
+        {
+            switch (actionId)
+            {
+                case "question": return Interrogation;
+                case "persuade": return Persuasion;
+                case "lie": return Deception;
+                case "intimidate": return Intimidation;
+                case "bribe": return Bribery;
+                case "search": return Investigation;
+                case "expose": return Credibility;
+                case "pickpocket": return Pickpocketing;
+                case "frame": return Fabrication;
+                default: return null;
+            }
+        }
     }
 }

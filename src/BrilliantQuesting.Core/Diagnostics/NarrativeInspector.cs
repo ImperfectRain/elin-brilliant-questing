@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Text;
 using BrilliantQuesting.Actions;
+using BrilliantQuesting.Actions.Library;
+using BrilliantQuesting.Checks;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
@@ -19,7 +21,14 @@ namespace BrilliantQuesting.Diagnostics
     /// like that, why does this thread exist - should be answerable from these dumps without
     /// re-running the world.
     /// </summary>
-    public static class WorldInspector
+    /// <remarks>
+    /// Named `NarrativeInspector`, not `WorldInspector`: Elin ships a global-namespace
+    /// `WorldInspector`, and the game's type wins at any call site inside the plugin. This is the
+    /// same collision that already renamed `Goal` to `NpcGoal` and `Scene` to `NarrativeScene`,
+    /// and the standing resolution is that Core avoids the game's generic names rather than
+    /// qualifying every use.
+    /// </remarks>
+    public static class NarrativeInspector
     {
         /// <summary>Every option the registry considered, including the ones it rejected and why.</summary>
         public static string DescribeOptions(ActionRegistry registry, ActionContext context)
@@ -33,6 +42,8 @@ namespace BrilliantQuesting.Diagnostics
                 sb.Append(offer.Availability.IsAvailable ? "  [x] " : "  [ ] ");
                 sb.Append(offer.Action.Id.PadRight(14));
                 sb.Append(offer.Action.Family.ToString().PadRight(14));
+                CheckProfile profile = ProceduralCheckProfiles.ForAction(offer.Action.Id);
+                sb.Append((profile == null ? "no check" : profile.Id + " dc" + profile.BaseDifficulty).PadRight(26));
                 if (!string.IsNullOrEmpty(offer.Availability.Reason))
                 {
                     sb.Append("- ").Append(offer.Availability.Reason);
@@ -175,13 +186,107 @@ namespace BrilliantQuesting.Diagnostics
 
                 if (worldEvent.Witnesses.Count > 0)
                 {
-                    sb.Append("  (seen by ").Append(worldEvent.Witnesses.Count).Append(')');
+                    sb.Append("  (seen by");
+                    for (int w = 0; w < worldEvent.Witnesses.Count; w++)
+                    {
+                        sb.Append(' ').Append(world.Registry.NameOf(worldEvent.Witnesses[w]));
+                    }
+
+                    sb.Append(')');
                 }
 
                 sb.Append('\n');
             }
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// One report that walks every question in `living-world-priorities.md` §12, in order.
+        ///
+        /// The order matters more than the formatting: a developer reading this from the top
+        /// should never have to open the source to answer any of the twelve. Where a question
+        /// belongs to a system that does not exist yet, the report says so and names the step it
+        /// arrives at, because "not built" is a real answer and a silent omission is not.
+        /// </summary>
+        public static string Explain(
+            NarrativeWorldState world,
+            IVanillaState vanilla,
+            ActionRegistry registry,
+            ActionContext context,
+            NarrativeThread thread)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("=== Brilliant Questing: why? ===\n");
+
+            sb.Append("\n-- why does this situation exist, and which event caused it --\n");
+            if (thread == null)
+            {
+                sb.Append("  no thread in front of the player.\n");
+            }
+            else
+            {
+                sb.Append(DescribeThread(world, thread));
+                sb.Append("  created ").Append(thread.CreatedAt).Append(", last advanced ")
+                  .Append(thread.LastAdvancedAt).Append('\n');
+                sb.Append("  origin event: ").Append(DescribeEvent(world, thread.OriginEventId)).Append('\n');
+            }
+
+            sb.Append("\n-- why is this person involved, and what do they know or falsely believe --\n");
+            sb.Append(DescribeCharacter(world, vanilla, context.Target));
+            if (thread != null)
+            {
+                sb.Append("  in this thread as: ")
+                  .Append(thread.ParticipantIds.Contains(context.Target) ? "a participant" : "not a participant")
+                  .Append('\n');
+            }
+
+            sb.Append("\n-- why is each action available or unavailable, and what check runs --\n");
+            sb.Append(DescribeOptions(registry, context));
+
+            sb.Append("\n-- what the player knows --\n");
+            sb.Append(DescribeCharacter(world, vanilla, vanilla.PlayerId));
+
+            sb.Append("\n-- who witnessed what, and what consequences were emitted --\n");
+            sb.Append(DescribeHistory(world));
+
+            if (!context.SubjectFact.IsNone)
+            {
+                sb.Append("\n-- why a claim spread the way it did --\n");
+                sb.Append(DescribeFactSpread(world, context.SubjectFact));
+            }
+
+            sb.Append("\n-- questions whose systems do not exist yet --\n");
+            sb.Append("  why did an NPC choose an action?      not simulated; NPC autonomy arrives at BQ-093.\n");
+            sb.Append("  why did a shop close or NPC vanish?   not simulated; continuity arrives at BQ-051, BQ-032.\n");
+            sb.Append("  why was a site selected or generated? not simulated; sites arrive at BQ-087 onward.\n");
+            sb.Append("  why did a rumour propagate?           only spread is recorded; circulation arrives at BQ-019.\n");
+
+            return sb.ToString();
+        }
+
+        /// <summary>One line for the event a thread grew out of, or an honest blank.</summary>
+        private static string DescribeEvent(NarrativeWorldState world, EntityId eventId)
+        {
+            if (eventId.IsNone)
+            {
+                return "none recorded";
+            }
+
+            IReadOnlyList<Events.WorldEvent> events = world.Ledger.Events;
+            for (int i = 0; i < events.Count; i++)
+            {
+                if (events[i].Id != eventId)
+                {
+                    continue;
+                }
+
+                Events.WorldEvent found = events[i];
+                string line = found.Time + " " + found.Type + " by " + world.Registry.NameOf(found.Actor);
+                return found.Target.IsNone ? line : line + " -> " + world.Registry.NameOf(found.Target);
+            }
+
+            return eventId + " (no longer in the ledger)";
         }
 
         private static string Render(NarrativeWorldState world, Fact fact)

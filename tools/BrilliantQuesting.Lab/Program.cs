@@ -64,9 +64,9 @@ namespace BrilliantQuesting.Lab
                               + " took something from " + lab.World.Registry.NameOf(lab.Situation.VictimId)
                               + ", and " + lab.World.Registry.NameOf(lab.Situation.WitnessId) + " saw it.\n");
 
-            Console.Write(WorldInspector.DescribeFactSpread(lab.World, lab.Situation.TheftFactId));
+            Console.Write(NarrativeInspector.DescribeFactSpread(lab.World, lab.Situation.TheftFactId));
             Console.WriteLine();
-            Console.Write(WorldInspector.DescribeThread(lab.World, lab.Situation.Thread));
+            Console.Write(NarrativeInspector.DescribeThread(lab.World, lab.Situation.Thread));
         }
 
         private static void ShowAvailableRoutes(ulong seed)
@@ -78,7 +78,7 @@ namespace BrilliantQuesting.Lab
             {
                 ActionContext context = lab.Context(target);
                 context.SubjectFact = lab.Situation.TheftFactId;
-                Console.Write(WorldInspector.DescribeOptions(lab.Actions, context));
+                Console.Write(NarrativeInspector.DescribeOptions(lab.Actions, context));
                 Console.WriteLine();
             }
         }
@@ -93,9 +93,9 @@ namespace BrilliantQuesting.Lab
             Step(lab, "return_item", lab.Situation.VictimId);
 
             Console.WriteLine();
-            Console.Write(WorldInspector.DescribeCharacter(lab.World, lab.Vanilla, lab.Situation.VictimId));
+            Console.Write(NarrativeInspector.DescribeCharacter(lab.World, lab.Vanilla, lab.Situation.VictimId));
             Console.WriteLine();
-            Console.Write(WorldInspector.DescribeThread(lab.World, lab.Situation.Thread));
+            Console.Write(NarrativeInspector.DescribeThread(lab.World, lab.Situation.Thread));
 
             Console.WriteLine("ten more days pass...");
             lab.AdvanceDays(10);
@@ -117,11 +117,11 @@ namespace BrilliantQuesting.Lab
             }
 
             Console.WriteLine();
-            Console.Write(WorldInspector.DescribeFactSpread(lab.World, lab.Situation.TheftFactId));
+            Console.Write(NarrativeInspector.DescribeFactSpread(lab.World, lab.Situation.TheftFactId));
             Console.WriteLine();
-            Console.Write(WorldInspector.DescribeThread(lab.World, lab.Situation.Thread));
+            Console.Write(NarrativeInspector.DescribeThread(lab.World, lab.Situation.Thread));
             Console.WriteLine("history:");
-            Console.Write(WorldInspector.DescribeHistory(lab.World));
+            Console.Write(NarrativeInspector.DescribeHistory(lab.World));
         }
 
         private static void ShowPersistence(ulong seed)

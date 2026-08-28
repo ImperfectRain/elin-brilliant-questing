@@ -31,7 +31,7 @@ namespace BrilliantQuesting.Lab
                               + " from " + Name(lab, lab.Situation.VictimId)
                               + "; " + Name(lab, lab.Situation.WitnessId) + " saw it happen.");
             Console.WriteLine("  The player knows none of that.\n");
-            Console.Write(WorldInspector.DescribeFactSpread(lab.World, lab.Situation.TheftFactId));
+            Console.Write(NarrativeInspector.DescribeFactSpread(lab.World, lab.Situation.TheftFactId));
 
             Banner("SIXTEEN DAYS");
             for (int day = 0; day <= days; day++)
@@ -56,19 +56,19 @@ namespace BrilliantQuesting.Lab
             Banner("WHERE EVERYONE ENDED UP");
             foreach (EntityId id in new[] { lab.Situation.VictimId, lab.Situation.ThiefId, lab.Situation.WitnessId })
             {
-                Console.Write(WorldInspector.DescribeCharacter(lab.World, lab.Vanilla, id));
+                Console.Write(NarrativeInspector.DescribeCharacter(lab.World, lab.Vanilla, id));
                 Console.WriteLine();
             }
 
-            Console.Write(WorldInspector.DescribeFactSpread(lab.World, lab.Situation.TheftFactId));
+            Console.Write(NarrativeInspector.DescribeFactSpread(lab.World, lab.Situation.TheftFactId));
             Console.WriteLine();
-            Console.Write(WorldInspector.DescribeThread(lab.World, lab.Situation.Thread));
+            Console.Write(NarrativeInspector.DescribeThread(lab.World, lab.Situation.Thread));
             Console.WriteLine("player standing: karma " + lab.Vanilla.Karma + ", fame " + lab.Vanilla.Fame
                               + ", " + lab.Vanilla.GetMoney(lab.Player) + " orens, carrying "
                               + lab.Vanilla.GetInventory(lab.Player).Count + " item(s)");
 
             Banner("HISTORY");
-            Console.Write(WorldInspector.DescribeHistory(lab.World, 40));
+            Console.Write(NarrativeInspector.DescribeHistory(lab.World, 40));
         }
 
         /// <summary>

@@ -54,7 +54,7 @@ Situations      PettyTheftSituation, PettyTheftEscalation, TheftLaboratory
 Persistence     Json, WorldStateSerializer, SaveMigrations
                 versioned, human-readable, and restores without replaying history
 
-Diagnostics     WorldInspector
+Diagnostics     NarrativeInspector
                 the "why?" tooling: options with their rejection reasons, belief spread, history
 ```
 

@@ -47,6 +47,7 @@ namespace BrilliantQuesting.Plugin
         private bool _live;
         private ConfigEntry<bool> _stageTestScenario;
         private ConfigEntry<bool> _gatherPrototypeNpcs;
+        private ConfigEntry<bool> _explainInDialogue;
 
         private void Awake()
         {
@@ -71,6 +72,15 @@ namespace BrilliantQuesting.Plugin
                 "Move live NPCs participating in the current petty-theft prototype near the player "
                 + "on load. Relocates characters in the loaded save, so it is off by default and "
                 + "is a playtest aid for a throwaway save, not a feature.");
+
+            _explainInDialogue = Config.Bind(
+                "Debug",
+                "ExplainInDialogue",
+                false,
+                "Add a 'why?' option to Brilliant Questing dialogue that writes the full "
+                + "explanation - why the situation exists, who knows what, why each option is or "
+                + "is not offered, and which check it rolls - to BepInEx/LogOutput.log. Reads "
+                + "only; it changes nothing in the world.");
 
             // Elin publishes its own lifecycle. Subscribing to it beats both polling in Update and
             // Harmony-patching the load path: it is the same route the game's bundled Scripting
@@ -131,7 +141,10 @@ namespace BrilliantQuesting.Plugin
 
             _checks = new ElinCheckResolver(_bindings, new VanillaStyleCheckResolver(_vanilla), _log);
             _actions = StandardActions.CreateRegistry();
-            _drama = new DramaChoiceProjector(_world, _vanilla, _bindings, _checks, _actions, _log);
+            _drama = new DramaChoiceProjector(_world, _vanilla, _bindings, _checks, _actions, _log)
+            {
+                ExplainInDialogue = _explainInDialogue != null && _explainInDialogue.Value
+            };
             DramaChoiceProjector.Current = _drama;
 
             _consequences = new ConsequenceEngine(_world, _vanilla);

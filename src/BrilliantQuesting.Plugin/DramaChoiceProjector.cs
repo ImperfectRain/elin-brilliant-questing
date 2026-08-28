@@ -4,6 +4,7 @@ using BepInEx.Logging;
 using BrilliantQuesting.Actions;
 using BrilliantQuesting.Actions.Library;
 using BrilliantQuesting.Checks;
+using BrilliantQuesting.Diagnostics;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
@@ -192,6 +193,13 @@ namespace BrilliantQuesting.Plugin
                 .SetOnClick(() => ShowCaseNotes(target));
             talk.AddChoice(notes);
 
+            if (ExplainInDialogue)
+            {
+                DramaChoice why = new DramaChoice("BQ: why? (debug)", "", "bq:why", "", "")
+                    .SetOnClick(() => Explain(target));
+                talk.AddChoice(why);
+            }
+
             ResolutionScope scope = new ResolutionScope(target);
             List<ActionOffer> offered = OfferPresentation.TakeForDisplay(available, MaxChoices);
             for (int i = 0; i < offered.Count; i++)
@@ -227,6 +235,43 @@ namespace BrilliantQuesting.Plugin
             {
                 _log.LogWarning("Could not describe dialogue option '" + action.Id + "': " + ex.Message);
                 return action.Label;
+            }
+        }
+
+        /// <summary>Set from config. The inspector is a developer tool, not player-facing text.</summary>
+        internal bool ExplainInDialogue { get; set; }
+
+        /// <summary>
+        /// BQ-012 in game: the whole "why?" report for whoever the player is standing in front of,
+        /// written to the log. It goes to the log rather than to `Msg` because it is dozens of
+        /// lines and the message window would swallow it; the player gets one line telling them
+        /// where to look.
+        /// </summary>
+        private void Explain(EntityId target)
+        {
+            try
+            {
+                NarrativeThread thread = FindThread(target);
+                EntityId subjectFact = EntityId.None;
+                EntityId subjectItem = EntityId.None;
+                if (thread != null)
+                {
+                    TryBuildFocus(thread, out subjectFact, out subjectItem);
+                }
+
+                ActionContext context = Context(thread, target, subjectFact, subjectItem);
+                string report = NarrativeInspector.Explain(_world, _vanilla, _actions, context, thread);
+                foreach (string line in report.Split('\n'))
+                {
+                    _log.LogInfo(line);
+                }
+
+                Msg.SayRaw("Brilliant Questing wrote a 'why?' report to BepInEx/LogOutput.log.");
+            }
+            catch (Exception ex)
+            {
+                Msg.SayRaw("Brilliant Questing could not build the report; see the log.");
+                _log.LogError("Inspector failed: " + ex);
             }
         }
 
@@ -402,7 +447,7 @@ namespace BrilliantQuesting.Plugin
         private string ChoiceText(NarrativeAction action, ActionContext context)
         {
             string text = "BQ: " + action.Label;
-            CheckProfile profile = ProfileFor(action.Id);
+            CheckProfile profile = ProceduralCheckProfiles.ForAction(action.Id);
             if (profile == null)
             {
                 return text;
@@ -622,23 +667,6 @@ namespace BrilliantQuesting.Plugin
             }
 
             return EntityId.None;
-        }
-
-        private static CheckProfile ProfileFor(string actionId)
-        {
-            switch (actionId)
-            {
-                case "question": return ProceduralCheckProfiles.Interrogation;
-                case "persuade": return ProceduralCheckProfiles.Persuasion;
-                case "lie": return ProceduralCheckProfiles.Deception;
-                case "intimidate": return ProceduralCheckProfiles.Intimidation;
-                case "bribe": return ProceduralCheckProfiles.Bribery;
-                case "search": return ProceduralCheckProfiles.Investigation;
-                case "expose": return ProceduralCheckProfiles.Credibility;
-                case "pickpocket": return ProceduralCheckProfiles.Pickpocketing;
-                case "frame": return ProceduralCheckProfiles.Fabrication;
-                default: return null;
-            }
         }
 
         /// <summary>
