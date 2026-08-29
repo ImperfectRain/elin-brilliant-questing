@@ -79,6 +79,12 @@ namespace BrilliantQuesting.Consequences
                 { WorldEventType.CrimeWitnessed, new ConsequenceProfile("witnessed_a_crime", MemoryWeight.Notable, 0) },
                 { WorldEventType.CrimeReported, new ConsequenceProfile("reported_to_authorities", MemoryWeight.Important, -25, 0, karma: 2) },
                 { WorldEventType.RumorSpread, new ConsequenceProfile("heard_a_rumor", MemoryWeight.Routine, 0) },
+
+                // Notable rather than routine: hearing the wrong name is the moment a person
+                // acquires a belief that will make them act against somebody who did nothing, and
+                // a memory they can later be shown to have been wrong about. No standing changes
+                // hands - nobody has done anything to anybody yet.
+                { WorldEventType.RumorDistorted, new ConsequenceProfile("heard_it_wrong", MemoryWeight.Notable, 0) },
                 { WorldEventType.Recruited, new ConsequenceProfile("joined_me", MemoryWeight.Defining, 10) },
                 { WorldEventType.OrganizationJoined, new ConsequenceProfile("joined_organization", MemoryWeight.Notable, 4, 1) },
                 { WorldEventType.OrganizationBetrayed, new ConsequenceProfile("betrayed_organization", MemoryWeight.Defining, -50, -12, karma: -2) },

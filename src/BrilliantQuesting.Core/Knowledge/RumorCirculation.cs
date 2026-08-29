@@ -21,6 +21,9 @@ namespace BrilliantQuesting.Knowledge
         /// <summary>Hearsay beliefs that lost confidence because nobody repeated them.</summary>
         public int Faded { get; set; }
 
+        /// <summary>Retellings that named the wrong person.</summary>
+        public int Garbled { get; set; }
+
         /// <summary>One line per fact that actually moved. Bounded; this is a log, not a record.</summary>
         public List<string> Notes { get; } = new List<string>();
 
@@ -67,6 +70,12 @@ namespace BrilliantQuesting.Knowledge
         {
             _rumors = rumors ?? throw new ArgumentNullException(nameof(rumors));
         }
+
+        /// <summary>
+        /// How stories go wrong on the way. Settable so a test can hold it still, and null to
+        /// circulate a town that never misremembers anything.
+        /// </summary>
+        public RumorDistortion Distortion { get; set; } = new RumorDistortion();
 
         /// <summary>Facts considered in one day. The rest of the world's gossip waits its turn.</summary>
         public int MaxFactsPerDay { get; set; } = 3;
@@ -263,6 +272,7 @@ namespace BrilliantQuesting.Knowledge
             speakers.Sort(CompareIds);
 
             int reached = 0;
+            int garbled = 0;
             for (int i = 0; i < speakers.Count && reached < MaxListenersPerFact && round.Tells < MaxTellsPerDay; i++)
             {
                 EntityId speaker = speakers[i];
@@ -276,19 +286,38 @@ namespace BrilliantQuesting.Knowledge
                         continue;
                     }
 
-                    if (world.Rng.Chance(chance) && _rumors.Tell(speaker, listener, factId, now))
+                    if (!world.Rng.Chance(chance))
+                    {
+                        continue;
+                    }
+
+                    // What the speaker is left with after the chain decides both how convincing
+                    // they are and whether they still have the story straight.
+                    world.Knowledge.TryGetBelief(speaker, factId, out KnowledgeRecord held);
+                    double transmitted = held.Confidence * _rumors.TransmissionDecay;
+                    Fact said = Distortion == null
+                        ? fact
+                        : Distortion.Retell(world, vanilla, fact, speaker, listener, transmitted, world.Rng);
+
+                    if (_rumors.Tell(speaker, listener, factId, now, saidAs: said.Id))
                     {
                         round.Tells++;
                         reached++;
+                        if (said.Id != factId)
+                        {
+                            garbled++;
+                        }
                     }
                 }
             }
 
             if (reached > 0)
             {
+                round.Garbled += garbled;
                 round.Notes.Add(world.Registry.NameOf(fact.Subject) + " " + fact.Predicate
                                 + " [" + factId + "] reached " + reached + " more "
-                                + (reached == 1 ? "person" : "people") + ".");
+                                + (reached == 1 ? "person" : "people")
+                                + (garbled > 0 ? "; " + garbled + " of them heard it wrong." : "."));
             }
         }
 

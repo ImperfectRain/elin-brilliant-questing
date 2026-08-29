@@ -28,7 +28,18 @@ namespace BrilliantQuesting.Knowledge
         /// <summary>Below this, a character no longer considers the rumour worth repeating.</summary>
         public double GossipFloor { get; set; } = 0.15;
 
-        public bool Tell(EntityId speaker, EntityId listener, EntityId factId, GameTime now, bool showsProof = false)
+        /// <summary>
+        /// One retelling.
+        ///
+        /// <paramref name="factId"/> is what the speaker believes; <paramref name="saidAs"/> is
+        /// what the listener is left believing. They are the same thing in an honest retelling,
+        /// and separating them is what lets one primitive carry both ways a story goes wrong: a
+        /// tale that garbles as it travels, and a person who says something they know is untrue.
+        /// Either way the speaker's own confidence is what sets how convincing it was, because
+        /// somebody repeating a story they half-believe sounds like somebody repeating a story
+        /// they half-believe whatever words they use.
+        /// </summary>
+        public bool Tell(EntityId speaker, EntityId listener, EntityId factId, GameTime now, bool showsProof = false, EntityId saidAs = default)
         {
             if (!_knowledge.TryGetBelief(speaker, factId, out KnowledgeRecord speakerBelief))
             {
@@ -41,11 +52,18 @@ namespace BrilliantQuesting.Knowledge
                 return false;
             }
 
-            // Proof only travels when the speaker actually hands over or displays the evidence.
-            bool listenerCanProve = showsProof && speakerBelief.CanProve;
+            EntityId heard = saidAs.IsNone ? factId : saidAs;
+            if (Refuses(listener, heard))
+            {
+                return false;
+            }
+
+            // Proof never travels with a story that changed on the way: the ring in the speaker's
+            // hand proves what the speaker did, not what they said about somebody else.
+            bool listenerCanProve = showsProof && speakerBelief.CanProve && heard == factId;
             _knowledge.Teach(
                 listener,
-                factId,
+                heard,
                 KnowledgeSource.Hearsay,
                 transmitted,
                 now,
@@ -55,14 +73,130 @@ namespace BrilliantQuesting.Knowledge
 
             _ledger.Append(new WorldEvent(
                 _ids.Next("evt"),
-                WorldEventType.RumorSpread,
+                heard == factId ? WorldEventType.RumorSpread : WorldEventType.RumorDistorted,
                 speaker,
                 listener,
                 now,
                 magnitude: transmitted,
-                related: new[] { factId }));
+                related: heard == factId ? new[] { factId } : new[] { heard, factId }));
 
             return true;
+        }
+
+        /// <summary>
+        /// Says something the speaker knows is untrue, and records that they did.
+        ///
+        /// Two things separate this from a retelling that merely went wrong. The liar is not
+        /// weakened by the chain - they are asserting it themselves, to your face, and how
+        /// convincing that is comes from them rather than from how many mouths it has been
+        /// through. And the lie itself becomes a fact of the world: `X lied_about Y` is true,
+        /// nobody but the liar knows it yet, and it is what makes the lie catchable later
+        /// (BQ-073) instead of merely regrettable.
+        ///
+        /// You cannot lie about what you do not know. A speaker who genuinely believes the thing
+        /// they are saying is mistaken, not dishonest, and the world should not record otherwise.
+        /// </summary>
+        public bool Lie(EntityId speaker, EntityId listener, EntityId aboutFactId, EntityId claimFactId, GameTime now, double conviction)
+        {
+            if (claimFactId == aboutFactId
+                || _knowledge.GetFact(claimFactId) == null
+                || !_knowledge.TryGetBelief(speaker, aboutFactId, out KnowledgeRecord known)
+                || known.Confidence < 0.5)
+            {
+                return false;
+            }
+
+            if (Refuses(listener, claimFactId))
+            {
+                // The lie was still told, and it still did not take. Recording it anyway would
+                // let a liar manufacture a reputation for lying they never earned in anyone's
+                // hearing; the honest reading is that nothing happened.
+                return false;
+            }
+
+            _knowledge.Teach(listener, claimFactId, KnowledgeSource.Hearsay, Clamp01(conviction), now, false, speaker);
+            RecordTheLie(speaker, aboutFactId, now);
+
+            _ledger.Append(new WorldEvent(
+                _ids.Next("evt"),
+                WorldEventType.Deceived,
+                speaker,
+                listener,
+                now,
+                magnitude: Clamp01(conviction),
+                related: new[] { claimFactId, aboutFactId }));
+
+            return true;
+        }
+
+        /// <summary>
+        /// Writes down that the lie happened, once per speaker and subject. Reused rather than
+        /// minted per telling: a person who repeats the same lie to six people has lied about one
+        /// thing, and six identical facts would make the graph a transcript.
+        /// </summary>
+        private void RecordTheLie(EntityId speaker, EntityId aboutFactId, GameTime now)
+        {
+            foreach (Fact existing in _knowledge.Facts.Values)
+            {
+                if (existing.Subject == speaker
+                    && existing.Predicate == FactPredicates.LiedAbout
+                    && existing.Object == aboutFactId)
+                {
+                    return;
+                }
+            }
+
+            Fact lie = new Fact(_ids.Next("fact"), speaker, FactPredicates.LiedAbout, aboutFactId, secrecy: 90);
+            _knowledge.AddFact(lie);
+
+            // The liar knows what they did. Nobody else does, and that is the point.
+            _knowledge.Teach(speaker, lie.Id, KnowledgeSource.Participant, 1.0, now, false);
+        }
+
+        /// <summary>
+        /// Whether this listener will simply not have it.
+        ///
+        /// Two cases, and the first run of circulated false beliefs produced both. Townspeople
+        /// were being told they had committed the theft themselves, and believing it. And the
+        /// witness who watched Kip take the locket picked up all three rival stories about who
+        /// else had taken it, so the people who actually knew the truth held every false version
+        /// of it too - which makes "who believes the lie" a question with everybody as its answer
+        /// and empties knowledge asymmetry of any content.
+        ///
+        /// So: nobody accepts a claim about themselves that they are in a position to know is
+        /// wrong, and nobody accepts a version that contradicts something they saw or did.
+        /// Hearsay against hearsay still competes - that is how one rumour beats another, and it
+        /// is what lets the victim be talked round. This only protects first-hand knowledge,
+        /// which is the one thing a retelling has no business overwriting.
+        /// </summary>
+        private bool Refuses(EntityId listener, EntityId heardId)
+        {
+            Fact heard = _knowledge.GetFact(heardId);
+            if (heard == null || heard.DistortionOf.IsNone)
+            {
+                return false;
+            }
+
+            if (listener == heard.Subject)
+            {
+                return true;
+            }
+
+            return _knowledge.TryGetBelief(listener, heard.DistortionOf, out KnowledgeRecord firsthand)
+                   && IsFirsthand(firsthand.Source)
+                   && firsthand.Confidence >= 0.8;
+        }
+
+        private static bool IsFirsthand(KnowledgeSource source)
+        {
+            return source == KnowledgeSource.Witnessed
+                   || source == KnowledgeSource.Participant
+                   || source == KnowledgeSource.Document;
+        }
+
+        private static double Clamp01(double value)
+        {
+            return value < 0.0 ? 0.0 : value > 1.0 ? 1.0 : value;
         }
 
         /// <summary>

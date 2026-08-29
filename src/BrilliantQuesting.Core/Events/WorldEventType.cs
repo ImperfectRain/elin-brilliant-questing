@@ -58,6 +58,14 @@ namespace BrilliantQuesting.Events
         CrimeWitnessed,
         CrimeReported,
         RumorSpread,
+
+        /// <summary>
+        /// A retelling that changed the story. Distinct from `RumorSpread` because the moment a
+        /// tale mutates is a causal event in its own right: it is where a false belief entered
+        /// the world, and without it in the ledger an accusation against an innocent has no
+        /// traceable origin. Carries the garbled fact first and the true one second.
+        /// </summary>
+        RumorDistorted,
         Recruited,
         OrganizationJoined,
         OrganizationBetrayed,

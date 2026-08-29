@@ -35,11 +35,21 @@ namespace BrilliantQuesting.Tests
             Assert.True(lab.World.Knowledge.Knows(victim, lab.Situation.TheftFactId));
             Assert.False(lab.World.Knowledge.CanProve(victim, lab.Situation.TheftFactId));
 
-            // Day 10: an accusation they cannot support. Day 14: the households fall out.
-            Assert.Contains(lab.World.Ledger.OfType(WorldEventType.FalseAccusation), e => e.Actor == victim && e.Target == thief);
-            RelationshipEdge edge = lab.World.Relationships.Find(victim, thief);
-            Assert.NotNull(edge);
-            Assert.Equal(RelationKind.Enemy, edge.Kind);
+            // Day 8: the thief points at the one person who saw him. Day 10: the victim acts on
+            // the version he believes most, which is now the lie, so the accusation lands on the
+            // witness. Day 14: the households fall out.
+            WorldEvent accusation = Assert.Single(lab.World.Ledger.OfType(WorldEventType.FalseAccusation));
+            Assert.Equal(victim, accusation.Actor);
+            Assert.Equal(lab.Situation.WitnessId, accusation.Target);
+            Assert.NotEqual(thief, accusation.Target);
+
+            // The falling-out follows the accusation, not the truth. The victim ends the fortnight
+            // an enemy of the person he named and on ordinary terms with the man who robbed him,
+            // which is the whole point of separating what is true from what is believed.
+            RelationshipEdge feud = lab.World.Relationships.Find(victim, accusation.Target);
+            Assert.NotNull(feud);
+            Assert.Equal(RelationKind.Enemy, feud.Kind);
+            Assert.Null(lab.World.Relationships.Find(victim, thief));
         }
 
         [Fact]
@@ -51,14 +61,14 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(new List<string> { "victim_asks_around" }, lab.Situation.Thread.CompletedSteps);
 
             lab.AdvanceDays(5);
-            Assert.Equal(new List<string> { "victim_asks_around", "thief_hides_it", "witness_talks" }, lab.Situation.Thread.CompletedSteps);
+            Assert.Equal(new List<string> { "victim_asks_around", "thief_hides_it", "witness_talks", "thief_deflects" }, lab.Situation.Thread.CompletedSteps);
 
             lab.AdvanceDays(20);
-            Assert.Equal(5, lab.Situation.Thread.CompletedSteps.Count);
+            Assert.Equal(6, lab.Situation.Thread.CompletedSteps.Count);
 
             // Nothing left to fire: the thread goes quiet rather than nagging forever.
             lab.AdvanceDays(30);
-            Assert.Equal(5, lab.Situation.Thread.CompletedSteps.Count);
+            Assert.Equal(6, lab.Situation.Thread.CompletedSteps.Count);
             Assert.Equal(ThreadState.Dormant, lab.Situation.Thread.State);
         }
 
@@ -98,7 +108,7 @@ namespace BrilliantQuesting.Tests
             lab.AdvanceDays(15);
 
             Assert.Equal(
-                new List<string> { "victim_asks_around", "thief_hides_it", "witness_talks", "accusation", "feud" },
+                new List<string> { "victim_asks_around", "thief_hides_it", "witness_talks", "thief_deflects", "accusation", "feud" },
                 lab.Situation.Thread.CompletedSteps);
         }
 

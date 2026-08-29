@@ -232,10 +232,15 @@ namespace BrilliantQuesting.Plugin
 
             _threads = new ThreadEngine();
             RumorSystem rumors = new RumorSystem(_world.Knowledge, _world.Ledger, _world.Ids);
+
+            // One policy, shared. A story that garbles in the market and a thief who names
+            // somebody in a back room have to produce the same claim, or the town ends up
+            // holding two different beliefs about who took the ring.
+            RumorDistortion distortion = new RumorDistortion();
             _threads.Register(
                 PettyTheftSituation.ArchetypeId,
-                new PettyTheftEscalation(_vanilla, rumors));
-            _gossip = new RumorCirculation(rumors);
+                new PettyTheftEscalation(_vanilla, rumors, distortion));
+            _gossip = new RumorCirculation(rumors) { Distortion = distortion };
             _drama.AdvanceThreads = AdvanceThreads;
             _actionObserver = new ElinActionObserver(_world, _vanilla, _bindings, _log);
             ElinAuthorityRoles.RefreshAll(_world, _bindings, _log);

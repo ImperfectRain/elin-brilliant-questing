@@ -231,6 +231,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("truth", fact.Truth.ToString())
                     .Set("secrecy", fact.Secrecy)
                     .Set("originEvent", fact.OriginEvent.Value)
+                    .Set("distortionOf", fact.DistortionOf.Value)
                     .Set("evidence", Ids(fact.EvidenceIds)));
             }
 
@@ -476,7 +477,10 @@ namespace BrilliantQuesting.Persistence
                     json.GetString("value", null),
                     (TruthState)Enum.Parse(typeof(TruthState), json.GetString("truth", "True")),
                     json.GetInt("secrecy"),
-                    EntityId.Parse(json.GetString("originEvent")));
+                    EntityId.Parse(json.GetString("originEvent")))
+                {
+                    DistortionOf = EntityId.Parse(json.GetString("distortionOf"))
+                };
 
                 foreach (JsonValue evidence in json.GetArray("evidence"))
                 {
