@@ -60,6 +60,7 @@ namespace BrilliantQuesting.Persistence
             root.Set("memories", MemoriesToJson(world));
             root.Set("relationships", RelationshipsToJson(world));
             root.Set("threads", ThreadsToJson(world));
+            root.Set("absences", AbsencesToJson(world));
             return root;
         }
 
@@ -104,6 +105,7 @@ namespace BrilliantQuesting.Persistence
             ReadMemories(world, root);
             ReadRelationships(world, root);
             ReadThreads(world, root);
+            ReadAbsences(world, root);
             return world;
         }
 
@@ -148,6 +150,33 @@ namespace BrilliantQuesting.Persistence
                     .Set("personality", personality)
                     .Set("goals", goals)
                     .Set("organizations", Ids(npc.OrganizationIds)));
+            }
+
+            return array;
+        }
+
+        /// <summary>
+        /// Who is away. Additive and optional, like the identity map above: a save written before
+        /// absences existed has no node and loads with nobody away, which is the state it was in.
+        ///
+        /// What is deliberately *not* written is whether Elin currently agrees. That is a fact
+        /// about a session, not about the world, and a save that carried it would come back
+        /// insisting an absence had already been applied to a game that has since put everybody
+        /// back where it last wrote them. Reconciliation re-derives it on load instead.
+        /// </summary>
+        private static JsonValue AbsencesToJson(NarrativeWorldState world)
+        {
+            JsonValue array = JsonValue.Array();
+            foreach (ActorAbsence absence in world.Absences.Active)
+            {
+                array.Add(JsonValue.Object()
+                    .Set("actor", absence.ActorId.Value)
+                    .Set("grade", (int)absence.Grade)
+                    .Set("reason", absence.Reason)
+                    .Set("began", absence.BeganAt.TotalMinutes)
+                    .Set("expectedReturn", absence.ExpectedReturn.TotalMinutes)
+                    .Set("awayZone", absence.AwayZoneId.Value)
+                    .Set("homeZone", absence.HomeZoneId.Value));
             }
 
             return array;
@@ -388,6 +417,21 @@ namespace BrilliantQuesting.Persistence
                 }
 
                 world.Registry.Add(npc);
+            }
+        }
+
+        private static void ReadAbsences(NarrativeWorldState world, JsonValue root)
+        {
+            foreach (JsonValue json in root.GetArray("absences"))
+            {
+                world.Absences.Restore(new ActorAbsence(
+                    EntityId.Parse(json.GetString("actor")),
+                    (AbsenceGrade)json.GetInt("grade"),
+                    json.GetString("reason"),
+                    new GameTime(json.GetLong("began")),
+                    new GameTime(json.GetLong("expectedReturn", ActorAbsence.NoScheduledReturn.TotalMinutes)),
+                    EntityId.Parse(json.GetString("awayZone")),
+                    EntityId.Parse(json.GetString("homeZone"))));
             }
         }
 

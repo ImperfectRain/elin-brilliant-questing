@@ -177,8 +177,8 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.Impossible("you have no home to take anybody into");
             }
 
-            if (context.Target.IsNone || context.Target == context.Actor
-                || !context.Vanilla.IsAlive(context.Target)
+            if (!ActionSupport.Present(context, context.Target)
+                || context.Target == context.Actor
                 || context.World.Registry.GetNpc(context.Target) == null)
             {
                 return Availability.NotRelevant("there is nobody here to take in");
@@ -583,7 +583,7 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.Impossible("you have no home to send anything from");
             }
 
-            if (context.Target.IsNone || !context.Vanilla.IsAlive(context.Target))
+            if (!ActionSupport.Present(context, context.Target))
             {
                 return Availability.NotRelevant("nobody here is short of anything");
             }

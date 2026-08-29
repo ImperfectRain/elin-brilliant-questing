@@ -22,7 +22,7 @@ namespace BrilliantQuesting.Actions.Library
 
         public override Availability GetAvailability(ActionContext context)
         {
-            if (context.Target.IsNone || !context.Vanilla.IsAlive(context.Target))
+            if (!ActionSupport.Present(context, context.Target))
             {
                 return Availability.NotRelevant("nobody to steal from");
             }
@@ -554,7 +554,7 @@ namespace BrilliantQuesting.Actions.Library
 
         public override Availability GetAvailability(ActionContext context)
         {
-            if (context.Target.IsNone || !context.Vanilla.IsAlive(context.Target))
+            if (!ActionSupport.Present(context, context.Target))
             {
                 return Availability.NotRelevant("nobody here to do that to");
             }
@@ -586,7 +586,7 @@ namespace BrilliantQuesting.Actions.Library
 
         public override Availability GetAvailability(ActionContext context)
         {
-            if (context.Target.IsNone || !context.Vanilla.IsAlive(context.Target) || context.Target == context.Actor)
+            if (!ActionSupport.Present(context, context.Target) || context.Target == context.Actor)
             {
                 return Availability.NotRelevant("nobody here to squeeze");
             }
@@ -777,7 +777,7 @@ namespace BrilliantQuesting.Actions.Library
 
         public override Availability GetAvailability(ActionContext context)
         {
-            if (context.Target.IsNone || !context.Vanilla.IsAlive(context.Target) || context.Target == context.Actor)
+            if (!ActionSupport.Present(context, context.Target) || context.Target == context.Actor)
             {
                 return Availability.NotRelevant("nobody here to take you for anyone");
             }
@@ -914,7 +914,7 @@ namespace BrilliantQuesting.Actions.Library
 
         public override Availability GetAvailability(ActionContext context)
         {
-            if (context.Target.IsNone || !context.Vanilla.IsAlive(context.Target))
+            if (!ActionSupport.Present(context, context.Target))
             {
                 return Availability.NotRelevant("nobody to fight");
             }

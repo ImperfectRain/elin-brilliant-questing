@@ -13,6 +13,36 @@ namespace BrilliantQuesting.Actions.Library
     {
         private static readonly EntityId[] NoWitnesses = new EntityId[0];
 
+        /// <summary>
+        /// Whether there is a person here to act on at all.
+        ///
+        /// The one predicate behind every "nobody to steal from", "nobody to pay", "nobody here to
+        /// squeeze" in the library. It used to be written out at each of those verbs as "somebody
+        /// is named and they are alive", which was true until people could be away: a Grade B
+        /// absence means the character is in another zone entirely, and a verb that only asked
+        /// whether they were breathing would offer to pick the pocket of somebody who left town.
+        /// </summary>
+        public static bool Present(ActionContext context, EntityId who)
+        {
+            return !who.IsNone
+                   && context.Vanilla.IsAlive(who)
+                   && !context.World.Absences.IsPhysicallyAbsent(who);
+        }
+
+        /// <summary>
+        /// Whether this person is doing what they do - the trade, the office, the work they take.
+        ///
+        /// The rung above <see cref="Present"/>, and what separates the two absence grades in
+        /// practice. Grade A leaves somebody standing exactly where they were and closes their
+        /// counter: they can still be talked to, lied to, robbed and reported to, and what stops
+        /// is the fence taking work, the guard taking a statement, the specialist taking a
+        /// commission.
+        /// </summary>
+        public static bool OnDuty(ActionContext context, EntityId who)
+        {
+            return Present(context, who) && !context.World.Absences.IsAbsent(who);
+        }
+
         /// <summary>The place the actor is standing in, as the simulation understands places.</summary>
         public static NarrativeSite SiteHere(ActionContext context)
         {

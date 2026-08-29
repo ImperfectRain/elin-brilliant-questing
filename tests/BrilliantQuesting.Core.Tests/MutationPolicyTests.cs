@@ -42,6 +42,14 @@ namespace BrilliantQuesting.Tests
             "GetZoneOf", "GetCharactersInZone"
         };
 
+        /// <summary>
+        /// Every member allowed to skip the gate because it only undoes one of the mod's own
+        /// reaches. Pinned by name for the same reason the reads are: a withdrawal is a hole in
+        /// the ladder, so opening a second one has to be somebody's deliberate edit to this list
+        /// rather than an attribute quietly added to a new write.
+        /// </summary>
+        private static readonly string[] SeamWithdrawals = { "TryBringBack" };
+
         // -- the ladder ----------------------------------------------------------------------
 
         /// <summary>
@@ -137,12 +145,17 @@ namespace BrilliantQuesting.Tests
             foreach (MemberInfo member in SeamMembers())
             {
                 bool classified = member.GetCustomAttribute<VanillaMutationAttribute>() != null;
+                bool withdrawal = member.GetCustomAttribute<VanillaWithdrawalAttribute>() != null;
                 bool read = SeamReads.Contains(member.Name);
 
                 Assert.False(classified && read, member.Name + " is listed as a read and marked as a mutation");
-                Assert.True(classified || read,
-                    member.Name + " is neither a listed read nor a classified mutation: say which it is, "
-                    + "and if it writes, give it a [VanillaMutation] naming the rung it needs");
+                Assert.False(classified && withdrawal, member.Name + " is both a mutation and a withdrawal");
+                Assert.True(classified || read || withdrawal,
+                    member.Name + " is neither a listed read, a classified mutation nor a declared "
+                    + "withdrawal: say which it is, and if it writes, give it a [VanillaMutation] "
+                    + "naming the rung it needs");
+
+                Assert.Equal(withdrawal, SeamWithdrawals.Contains(member.Name));
             }
         }
 
@@ -183,13 +196,20 @@ namespace BrilliantQuesting.Tests
 
                 Assert.NotNull(implementation);
                 Assert.Equal(typeof(VanillaStateBase), implementation.DeclaringType);
+            }
 
-                // And the unguarded half really is separate, so an implementation has nowhere to
-                // put a write that skips the check.
-                MethodInfo unguarded = typeof(VanillaStateBase).GetMethod(
-                    method.Name + "Core", BindingFlags.NonPublic | BindingFlags.Instance);
-                Assert.NotNull(unguarded);
-                Assert.True(unguarded.IsAbstract, method.Name + " has an unguarded half with a body");
+            // And every unguarded half really is separate, so an implementation has nowhere to put
+            // a write that skips the check. Named by convention rather than one per write: travel
+            // is one primitive with two permissions, so `TrySendAway` and `TryBringBack` share a
+            // `MoveToZoneCore`, and requiring a `...Core` per member would only force that logic
+            // to be written twice.
+            foreach (MethodInfo unguarded in typeof(VanillaStateBase).GetMethods(
+                         BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            {
+                if (unguarded.Name.EndsWith("Core", StringComparison.Ordinal))
+                {
+                    Assert.True(unguarded.IsAbstract, unguarded.Name + " is an unguarded half with a body");
+                }
             }
         }
 
@@ -213,20 +233,32 @@ namespace BrilliantQuesting.Tests
         }
 
         /// <summary>
-        /// The mod cannot kill anybody and cannot take anybody off the map, because the contract
-        /// has no member that does either. Together with the census above - every member is a read
-        /// or a classified write - that is the "provably unkillable" half of the step: not a rule
-        /// about how the verbs behave, but the absence of the capability.
+        /// The mod cannot kill anybody, because the contract has no member that does. Together with
+        /// the census above - every member is a read, a classified write or a declared withdrawal -
+        /// that is the "provably unkillable" half of BQ-031: not a rule about how the verbs behave,
+        /// but the absence of the capability.
+        ///
+        /// BQ-032 added the rung below it, and deliberately as travel rather than as removal:
+        /// somebody who is away is in another zone, so the same one character exists throughout and
+        /// there is still nothing here that takes a person out of the world.
         /// </summary>
         [Fact]
-        public void TheSeamCannotRemoveOrKillAnybody()
+        public void TheSeamCannotKillAnybodyOrRemoveThemFromTheWorld()
         {
             foreach (MethodInfo method in Mutations())
             {
                 MutationKind kind = method.GetCustomAttribute<VanillaMutationAttribute>().Kind;
-                Assert.True(kind < MutationKind.TemporaryAbsence,
-                    method.Name + " takes somebody out of the world; that write does not exist yet "
-                    + "and cannot be added without the lifecycle proof BQ-032 owes");
+                Assert.True(kind < MutationKind.Death,
+                    method.Name + " kills somebody; that write does not exist and must not be added");
+
+                if (kind == MutationKind.TemporaryAbsence)
+                {
+                    // The one rung that moves a person, and the shape it has to keep: a
+                    // destination. A member at this rung taking nowhere to put them would be a
+                    // removal wearing an absence's name.
+                    Assert.Contains(method.GetParameters(), p => p.ParameterType == typeof(EntityId)
+                                                                 && p.Name == "zone");
+                }
             }
         }
 

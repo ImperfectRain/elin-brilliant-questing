@@ -89,13 +89,29 @@ namespace BrilliantQuesting.Actions.Library
             return AuthorityRole.None;
         }
 
+        /// <summary>
+        /// What standing this character holds *right now*.
+        ///
+        /// The same table as the overload above, with one extra question: somebody whose office is
+        /// interrupted holds no office. That is the whole of what a Grade A absence does to an
+        /// authority - the guard is still standing there and can still be talked to, and what has
+        /// stopped is their willingness to take a statement - and it lives here rather than in the
+        /// report verb so that every route through an authority closes together.
+        /// </summary>
+        public static AuthorityRole RoleOf(ActionContext context, EntityId who)
+        {
+            return ActionSupport.OnDuty(context, who)
+                ? RoleOf(context.World.Registry.GetNpc(who))
+                : AuthorityRole.None;
+        }
+
         /// <summary>Every role this policy recognises, so a refresh knows what it may withdraw.</summary>
         public static IReadOnlyList<string> AuthorityRoles { get; } =
             new List<string> { GuardRole, GuildRole, CourtRole };
 
         public static AuthorityDecision Evaluate(ActionContext context)
         {
-            AuthorityRole role = RoleOf(context.TargetNpc);
+            AuthorityRole role = RoleOf(context, context.Target);
             if (role == AuthorityRole.None
                 || context.SubjectFact.IsNone
                 || !context.World.Knowledge.TryGetBelief(context.Actor, context.SubjectFact, out KnowledgeRecord belief))

@@ -385,7 +385,44 @@ namespace BrilliantQuesting.Integration
             return true;
         }
 
-        public EntityId GetZoneOf(EntityId entity) => Ensure(entity).Zone;
+        /// <summary>
+        /// Travel, in both directions. The same move whether somebody is being sent away or
+        /// brought home, which is what the two contract members are: one primitive, two
+        /// permissions.
+        ///
+        /// Idempotent by construction - a character already in the named zone is left in it and
+        /// reported as there - because reconciliation calls this whenever the game has quietly
+        /// undone an absence, and a move that only worked the first time would be no enforcement
+        /// at all. Nobody is created and nobody is removed: the character that arrives is the
+        /// character that left.
+        /// </summary>
+        protected override bool MoveToZoneCore(EntityId chara, EntityId zone)
+        {
+            if (!Supports(VanillaCapability.MoveCharaBetweenZones)
+                || chara.IsNone || zone.IsNone || chara == PlayerId)
+            {
+                return false;
+            }
+
+            CharaState state = Ensure(chara);
+            if (!state.Alive)
+            {
+                return false;
+            }
+
+            state.Zone = zone;
+            return true;
+        }
+
+        /// <summary>
+        /// Where this entity is, or nobody for one the laboratory has never heard of. A world that
+        /// invented a zone for a stranger would answer "standing right here" to every question
+        /// about somebody who is not in it.
+        /// </summary>
+        public EntityId GetZoneOf(EntityId entity)
+        {
+            return _charas.TryGetValue(entity, out CharaState state) ? state.Zone : EntityId.None;
+        }
 
         public IReadOnlyList<EntityId> GetCharactersInZone(EntityId zoneId)
         {

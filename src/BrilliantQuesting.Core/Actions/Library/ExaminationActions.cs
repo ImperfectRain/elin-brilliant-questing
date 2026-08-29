@@ -385,14 +385,14 @@ namespace BrilliantQuesting.Actions.Library
 
         protected override IReadOnlyList<ItemDescriptor> Reachable(ActionContext context)
         {
-            return context.Target.IsNone || !context.Vanilla.IsAlive(context.Target)
+            return !ActionSupport.Present(context, context.Target)
                 ? EmptyShelf
                 : context.Vanilla.GetInventory(context.Target);
         }
 
         public override Availability GetAvailability(ActionContext context)
         {
-            if (context.Target.IsNone || !context.Vanilla.IsAlive(context.Target))
+            if (!ActionSupport.Present(context, context.Target))
             {
                 return Availability.NotRelevant("nobody here keeps records");
             }

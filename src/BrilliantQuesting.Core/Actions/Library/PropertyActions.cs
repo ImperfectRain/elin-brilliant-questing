@@ -80,7 +80,7 @@ namespace BrilliantQuesting.Actions.Library
 
         public override Availability GetAvailability(ActionContext context)
         {
-            if (context.Target.IsNone || !context.Vanilla.IsAlive(context.Target))
+            if (!ActionSupport.Present(context, context.Target))
             {
                 return Availability.NotRelevant("nobody to give it to");
             }

@@ -47,12 +47,15 @@ namespace BrilliantQuesting.Plugin
         private ThreadEngine _threads;
         private ElinActionObserver _actionObserver;
         private RumorCirculation _gossip;
+        private AbsenceLifecycle _absences;
         private long _lastAdvancedDay = long.MinValue;
+        private EntityId _lastReconciledZone;
 
         private bool _live;
         private ConfigEntry<bool> _stageTestScenario;
         private ConfigEntry<bool> _gatherPrototypeNpcs;
         private ConfigEntry<bool> _explainInDialogue;
+        private ConfigEntry<bool> _offscreenAbsence;
 
         private void Awake()
         {
@@ -77,6 +80,21 @@ namespace BrilliantQuesting.Plugin
                 "Move live NPCs participating in the current petty-theft prototype near the player "
                 + "on load. Relocates characters in the loaded save, so it is off by default and "
                 + "is a playtest aid for a throwaway save, not a feature.");
+
+            // The roadmap's own condition for BQ-032: do not ship it enabled until it has survived
+            // a deliberately adversarial test on a save nobody minds losing. Off means the
+            // capability probe reports MoveCharaBetweenZones unsupported, so a physical absence is
+            // refused before anything is written and situations fall back to the service grade,
+            // which touches nothing in the game.
+            _offscreenAbsence = Config.Bind(
+                "Testing",
+                "AllowOffscreenAbsence",
+                false,
+                "Let the simulation move a character to another zone to represent them being away, "
+                + "and move them back when they return. Writes to the save: it changes where the "
+                + "game keeps a person. Only ordinary citizens and characters this mod created are "
+                + "eligible; story-critical, unique-service and unclassifiable characters are "
+                + "refused either way. Use a throwaway save.");
 
             _explainInDialogue = Config.Bind(
                 "Debug",
@@ -123,6 +141,7 @@ namespace BrilliantQuesting.Plugin
 
             _actionObserver.Observe(payload);
             AdvanceThreadsIfTheDayTurned();
+            ReconcileIfTheZoneChanged();
         }
 
         /// <summary>
@@ -150,6 +169,65 @@ namespace BrilliantQuesting.Plugin
             _lastAdvancedDay = today;
             AdvanceThreads();
             CirculateRumors();
+        }
+
+        /// <summary>
+        /// Makes the game agree with the absence ledger, at every point the game can have disagreed
+        /// with it.
+        ///
+        /// Called on load, when the calendar day turns, and whenever the player has changed zone -
+        /// which is the cheap way to notice a zone that was unloaded and rebuilt, and a citizen
+        /// refresh along with it. It is safe to call more often than any of those: with nobody away
+        /// it returns immediately, and with somebody away it costs one read each, so the zone check
+        /// hangs off the same constant ActPerformed tick as everything else.
+        /// </summary>
+        private void ReconcileAbsences()
+        {
+            if (_world == null || _absences == null)
+            {
+                return;
+            }
+
+            try
+            {
+                AbsenceRound round = _absences.Reconcile();
+                if (!round.DidAnything)
+                {
+                    return;
+                }
+
+                _log.LogInfo("Absences: " + round + ".");
+                foreach (string note in round.Notes)
+                {
+                    _log.LogInfo("  " + note);
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning("Absence reconciliation skipped after an exception: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Notices that the player has walked into a different zone. The one event that matters for
+        /// absences and that Elin does not publish: a zone is repopulated when it is entered, and
+        /// anybody the mod sent away can be standing in it again.
+        /// </summary>
+        private void ReconcileIfTheZoneChanged()
+        {
+            if (_world == null)
+            {
+                return;
+            }
+
+            EntityId here = _vanilla.GetZoneOf(_vanilla.PlayerId);
+            if (here == _lastReconciledZone)
+            {
+                return;
+            }
+
+            _lastReconciledZone = here;
+            ReconcileAbsences();
         }
 
         /// <summary>
@@ -211,7 +289,8 @@ namespace BrilliantQuesting.Plugin
             ProceduralCheckRows.Install(_log);
 
             _bindings = new ElinBindings();
-            _vanilla = new ElinVanillaState(_bindings, _log);
+            _vanilla = new ElinVanillaState(
+                _bindings, _log, _offscreenAbsence != null && _offscreenAbsence.Value);
 
             _world = Load(context);
             _bindings.BindSavedRefs(_world, _log);
@@ -248,6 +327,10 @@ namespace BrilliantQuesting.Plugin
             _consequences = new ConsequenceEngine(_world, _vanilla);
             _consequences.Attach();
 
+            // Built after the bindings are restored, because reconciling before the save's
+            // identity map is back would ask the game about characters it cannot resolve yet.
+            _absences = new AbsenceLifecycle(_world, _vanilla);
+
             _log.LogInfo("Simulation attached: " + _world.Registry.Npcs.Count + " people, "
                          + _world.Ledger.Count + " events, " + _world.Threads.Count + " threads.");
 
@@ -255,6 +338,13 @@ namespace BrilliantQuesting.Plugin
             _lastAdvancedDay = _vanilla.Now.TotalDays;
             AdvanceThreads();
             CirculateRumors();
+
+            // Loading a save is the first and worst of the three ways the game undoes an absence:
+            // it puts everybody back where it last wrote them. Reconcile now, and take the zone the
+            // player is standing in as the baseline, so the very next act is not a second pass over
+            // the same answer.
+            ReconcileAbsences();
+            _lastReconciledZone = _vanilla.GetZoneOf(_vanilla.PlayerId);
             GatherPrototypeParticipantsNearPlayer();
             ReportPlayerState();
             ReportProceduralParticipants();

@@ -225,7 +225,7 @@ namespace BrilliantQuesting.Actions.Library
 
         public override Availability GetAvailability(ActionContext context)
         {
-            if (context.Target.IsNone || context.Target == context.Actor || !context.Vanilla.IsAlive(context.Target))
+            if (!ActionSupport.Present(context, context.Target) || context.Target == context.Actor)
             {
                 return Availability.NotRelevant("nobody here to follow");
             }

@@ -31,6 +31,7 @@ namespace BrilliantQuesting.World
             Memories = new MemoryLedger();
             Relationships = new RelationshipGraph();
             Threads = new List<NarrativeThread>();
+            Absences = new AbsenceLedger();
             Rng = new DeterministicRng(worldSeed);
         }
 
@@ -51,6 +52,17 @@ namespace BrilliantQuesting.World
         public RelationshipGraph Relationships { get; }
 
         public List<NarrativeThread> Threads { get; }
+
+        /// <summary>
+        /// Who is away and why. Procedural state in the strictest sense: for a Grade A absence
+        /// nothing in Elin has changed at all, and for a Grade B one this is the only thing that
+        /// knows the departure was deliberate rather than a character who wandered off.
+        ///
+        /// It lives on the world, and therefore in the save, because an absence the game keeps and
+        /// the simulation forgets is somebody stranded wherever the mod left them.
+        /// <see cref="AbsenceLifecycle"/> is what puts records in and takes them out.
+        /// </summary>
+        public AbsenceLedger Absences { get; }
 
         /// <summary>World-level stream. Subsystems should Fork() rather than draw from this.</summary>
         public DeterministicRng Rng { get; }

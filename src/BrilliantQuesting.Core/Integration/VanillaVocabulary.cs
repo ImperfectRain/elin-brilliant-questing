@@ -101,6 +101,22 @@ namespace BrilliantQuesting.Integration
         /// resident jobs stay vanilla's to compute (see decision D018).
         /// </summary>
         WriteHomeResidents,
+
+        /// <summary>
+        /// A character can be moved from one zone to another and left there.
+        ///
+        /// The whole of what Grade B absence needs from the game, and deliberately the whole of
+        /// it: this mod does not have, and must not acquire, a way to take a Chara out of the
+        /// world. Somebody who is away is somewhere else, which is a thing Elin's own travelling
+        /// NPCs already are - so the save keeps one character, in one place, and the worst a bug
+        /// can do is leave a villager in the wrong town.
+        ///
+        /// Separate from every other capability because it is the one write in this contract that
+        /// alters where a save keeps a person, and the roadmap requires it to stay off until it
+        /// has survived an adversarial test on a real save. An adapter that has not been through
+        /// that reports it unsupported, and Grade B is then impossible rather than unreliable.
+        /// </summary>
+        MoveCharaBetweenZones,
         ObserveCrimeWitnesses
     }
 }

@@ -123,7 +123,48 @@ namespace BrilliantQuesting.Integration
         [VanillaMutation(MutationKind.Relocate, "chara")]
         bool TryAdmitResident(EntityId chara);
 
+        // -- whereabouts --------------------------------------------------------------------
+
+        /// <summary>
+        /// Moves a character to another zone and leaves them there, and reports whether they
+        /// actually went.
+        ///
+        /// The whole of Grade B absence (LW 5.2), and deliberately expressed as travel rather than
+        /// as removal. Elin already moves characters between zones, keeps them in the save while
+        /// they are elsewhere, and hands back the same character when the player follows: reusing
+        /// that means one person exists throughout, so a citizen refresh or a reloaded zone cannot
+        /// produce a second copy of somebody the mod sent away. There is no member here that takes
+        /// a character out of the world, and there must not be.
+        ///
+        /// Never called speculatively. <see cref="AbsenceLifecycle"/> is the only caller, it names
+        /// a zone the game reported, and it records an absence only once this has returned true -
+        /// so procedural state never claims a departure the game refused.
+        /// </summary>
+        [VanillaMutation(MutationKind.TemporaryAbsence, "chara")]
+        bool TrySendAway(EntityId chara, EntityId zone);
+
+        /// <summary>
+        /// Puts a character back, and reports whether they are there afterwards.
+        ///
+        /// Mechanically the same move as <see cref="TrySendAway"/> and implemented by the same
+        /// code; what differs is permission. This one is a <see cref="VanillaWithdrawalAttribute"/>
+        /// and is never refused, because the alternative is somebody the mod moved being left
+        /// where it moved them when their classification changes underneath the absence. Bringing
+        /// a person home cannot be the call that a safety rule blocks.
+        /// </summary>
+        [VanillaWithdrawal]
+        bool TryBringBack(EntityId chara, EntityId zone);
+
         // -- world ------------------------------------------------------------------------
+
+        /// <summary>
+        /// Where the game currently keeps this entity, or nobody when it cannot say.
+        ///
+        /// <see cref="EntityId.None"/> means "unknown", never "here". Reconciliation reads this to
+        /// decide whether the game has quietly brought an absentee home, and an adapter that
+        /// answered with the player's own zone for a character it could not resolve would report
+        /// every unresolvable absentee as standing in front of the player.
+        /// </summary>
         EntityId GetZoneOf(EntityId entity);
 
         IReadOnlyList<EntityId> GetCharactersInZone(EntityId zoneId);

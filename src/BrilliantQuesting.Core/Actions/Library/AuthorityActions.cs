@@ -15,12 +15,12 @@ namespace BrilliantQuesting.Actions.Library
 
         public override Availability GetAvailability(ActionContext context)
         {
-            if (context.Target.IsNone || !context.Vanilla.IsAlive(context.Target))
+            if (!ActionSupport.Present(context, context.Target))
             {
                 return Availability.NotRelevant("nobody to report to");
             }
 
-            if (AuthorityPolicy.RoleOf(context.TargetNpc) == AuthorityRole.None)
+            if (AuthorityPolicy.RoleOf(context, context.Target) == AuthorityRole.None)
             {
                 return Availability.NotRelevant("they have no authority here");
             }

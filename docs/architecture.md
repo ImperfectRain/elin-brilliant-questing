@@ -14,6 +14,13 @@ implements all of them once, refuses any the actor's `NarrativeMutationPolicy` d
 only then calls the implementation. A character the game will not classify keeps the reversible
 reaches and loses relocation, absence and death (decision D019).
 
+Where the mod moves somebody, it stores the intent and re-derives the enforcement.
+`AbsenceLifecycle` holds the only state that says a person is away, and reconciles it against the
+game on load, on the day turn and on a zone change - because a citizen refresh, a rebuilt zone and a
+reloaded save all put people back where the game last wrote them. Absence is expressed as travel
+rather than removal, so one character exists throughout and bringing them home is never refused
+(decision D020).
+
 **One place where consequences happen.** Verbs do not adjust affinity, Karma or knowledge directly.
 They record an event. `Consequences/ConsequenceEngine.cs` derives the rest from a single table. That
 is what lets the debug inspector answer "why did she react like that" without re-running the world.
@@ -28,7 +35,8 @@ Integration     IVanillaState, VanillaStateBase, NarrativeMutationPolicy,
                 ISituationStager, SandboxVanillaState, SandboxStager
                 the only place that knows a game exists, and the one gate on changing it
 
-World           NarrativeNpc, Organization, NarrativeSite, EntityRegistry, NarrativeWorldState
+World           NarrativeNpc, Organization, NarrativeSite, EntityRegistry, NarrativeWorldState,
+                ActorAbsence, AbsenceLedger, AbsenceLifecycle
                 the procedural database; the aggregate root is NarrativeWorldState
 
 Events          WorldEvent, EventLedger, EventTags

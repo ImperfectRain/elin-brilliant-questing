@@ -112,7 +112,7 @@ namespace BrilliantQuesting.Actions.Library
 
         private static bool Holds(ActionContext context, EntityId who, string role)
         {
-            if (who.IsNone || !context.Vanilla.IsAlive(who))
+            if (!ActionSupport.OnDuty(context, who))
             {
                 return false;
             }
@@ -493,7 +493,7 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.Impossible("item transfers are unavailable on this build");
             }
 
-            if (context.ThirdParty.IsNone || !context.Vanilla.IsAlive(context.ThirdParty))
+            if (!ActionSupport.Present(context, context.ThirdParty))
             {
                 return Availability.NotRelevant("nobody chosen to receive it");
             }

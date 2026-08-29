@@ -120,4 +120,31 @@ Reason: threading a check through forty call sites means forty places to forget,
 
 The gate is a floor, not a substitute for a precondition. A verb whose write the policy will certainly refuse should be absent rather than offered and declined, which is why the bed-spending Home verbs ask `MayMutate` in `GetAvailability`.
 
+## D020 — An absence is intent that is re-derived, and coming back is never refused
+
+A Grade B absence is stored as intent - who is away, where they went, where they left from, when
+they are due - and nothing anywhere records that the game has been told. Whether Elin currently
+agrees is re-derived by `AbsenceLifecycle.Reconcile`, which runs on load, on the day turn and
+whenever the player changes zone. Where the game positively reports somebody somewhere other than
+their away zone, the move is re-issued; where the game cannot say where they are, nothing happens,
+because an unanswered question is not evidence.
+
+Absence is expressed as travel, not removal. The seam has no member that takes a character out of
+the world; `TrySendAway` and `TryBringBack` are one move with two permissions, so the same one
+character exists throughout and there is nothing to duplicate. The ledger holds one record per
+person, which is where "no duplication" is enforced for the load path as well as the live one.
+
+The return is a `[VanillaWithdrawal]` and is never gated. Every other write into Elin passes the
+mutation ladder; a withdrawal only takes back a reach this mod already made.
+
+Reason: a persisted "already applied" flag is exactly the fact a reload invalidates - the game puts
+everybody where it last wrote them, so a save that remembered the absence had been enforced would
+never enforce it again, and the simulation would describe a town the player is not looking at. And
+gating the return would let a classification that changed while somebody was away - a build
+updated, a flag that starts reading differently, a character a vanilla quest line has since claimed
+- strand that person wherever the mod left them for the rest of the save. That is the save
+corruption this step is written to avoid, so protection must not be the thing that causes it. Where
+the mod can no longer keep somebody away, the record is demoted to Grade A rather than kept:
+the smaller true claim beats the larger false one.
+
 Add a new entry only when the decision is both load-bearing and durable.

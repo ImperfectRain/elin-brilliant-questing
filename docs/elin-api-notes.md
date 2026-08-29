@@ -67,6 +67,7 @@ vanilla rows only where they map cleanly.
 | deity / piety | `Chara.idFaith` (string), `Chara.elements.Value(85)` — the id **vocabulary** is unread, see below |
 | zone occupants | `Zone.FindChara(int uid)`, `Zone.FindChara(string id)`, `Zone.AddChara(string, Point)` |
 | Home | `EClass.Branch` — the branch object only; residents, capacity, jobs and the element container are read **by name**, see below |
+| whereabouts | `Chara.currentZone`, `Zone.uid`; moving somebody is `Chara.MoveZone(Zone)` and a zone lookup on `EClass.game.spatials`, both read **by name**, see below |
 | actor classification | `Chara` and its source row, read **by name** — `IsUnique`/`isUnique`/`IsUniqueName`, `IsMainCharacter`/`IsUniqueCharacter`/`IsImportantNPC`, and the source row's `tag`. None runtime-verified, see below |
 
 `Chara` carries a `uid`; that is the handle `EntityId` should map to, not a name.
@@ -378,6 +379,40 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
   The investigation verbs therefore match category *and* item name against a keyword list, and the
   generalist `inspect` reads anything, so an unrecognised tag costs a specialist route rather than
   the whole investigation. Worth replacing with the real ids once a live inventory is dumped.
+- **How a character is moved to another zone, and how a zone is found by uid.** `ElinPresence` is
+  the whole of Grade B absence in game, and it resolves two members by name: a one-argument member
+  on `Chara` taking a `Zone` (`MoveZone`, `SetZone`, `ChangeZone`) and a one-argument member on
+  `EClass.game.spatials` taking an `int` and returning a `Zone` (`Find`, `FindZone`, `GetZone` -
+  deliberately no bare `Get`). Neither has been read off a running game. A build missing either
+  reports `MoveCharaBetweenZones` unsupported and logs the names it tried once.
+
+  The mechanic is travel rather than removal on purpose: nothing here destroys a Chara or spawns a
+  replacement, so the character who comes back is the character who left and no citizen refresh,
+  rebuilt zone or reloaded save can produce a second. The move is verified by re-reading
+  `Chara.currentZone` afterwards, so a member that resolves and quietly does nothing reports false
+  rather than leaving an absence recorded over somebody still standing in the market.
+
+  What being wrong costs is a route, not a save: with the capability unsupported a physical absence
+  is refused before anything is written and the situation falls back to Grade A, which touches
+  nothing in the game at all. Verified only headlessly, against Elin-shaped stubs across two build
+  shapes: a build with both members moves and un-moves a character and reports where they actually
+  are, a move that silently does nothing reports false, a dead character and an unknown zone are
+  refused, and a build missing either member reports unsupported and moves nobody. That proves the
+  reflection and the failure direction, not the member names.
+
+  It is off by default regardless. The roadmap's condition for BQ-032 is an adversarial run on a
+  disposable save, which is a thing a person does rather than something a probe can find out, so
+  the capability is granted only when `Testing.AllowOffscreenAbsence` is on **and** both members
+  resolve. The first live run should be read for the one-time "BQ presence:" line.
+
+- **`GetZoneOf` no longer falls back to the current zone for an unresolved entity.** It used to
+  answer `EClass._zone` for anything `ResolveChara` could not find, which reads as "standing in
+  front of the player": `follow` would offer to tail somebody who was not there, and absence
+  reconciliation would read an absentee it could not resolve as having come home. It now answers
+  nobody, and only the player keeps the fallback. The practical change in play is that
+  `GetZoneOf(item)` is `EntityId.None` rather than the current zone - which was never a true answer
+  either, since `ResolveChara` only ever resolved characters (see above).
+
 - **Which member of `Chara` says a character is unique, and which says they belong to the main
   story.** `ElinActorClasses` decides how far the mutation policy will let the mod reach into
   somebody, and it resolves both flags by name against a candidate list - `IsUnique`, `isUnique`,

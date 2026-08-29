@@ -28,10 +28,13 @@ namespace BrilliantQuesting.Plugin
         private readonly HashSet<VanillaCapability> _capabilities = new HashSet<VanillaCapability>();
         private readonly Dictionary<VanillaCapability, string> _capabilityEvidence = new Dictionary<VanillaCapability, string>();
 
-        internal ElinVanillaState(ElinBindings bindings, ManualLogSource log)
+        private readonly bool _offscreenAbsenceAllowed;
+
+        internal ElinVanillaState(ElinBindings bindings, ManualLogSource log, bool offscreenAbsenceAllowed = false)
         {
             _bindings = bindings;
             _log = log;
+            _offscreenAbsenceAllowed = offscreenAbsenceAllowed;
         }
 
         /// <summary>
@@ -188,6 +191,18 @@ namespace BrilliantQuesting.Plugin
                         : "EClass.Branch." + member + "(Chara) resolved; residency confirmed by re-reading the branch after the call";
                 },
                 "no Home on this save, or its branch exposes no member that takes a Chara");
+
+            // Off unless the player has said otherwise, whatever this build can do. BQ-032 is the
+            // one step in the plan that can corrupt a save, and the roadmap's condition for
+            // shipping it enabled is an adversarial run on a disposable save - which is a thing a
+            // person does, not a thing a probe can find out. Until then a Grade B absence is
+            // impossible in game and the situations fall back to Grade A, which writes nothing.
+            Probe(
+                VanillaCapability.MoveCharaBetweenZones,
+                () => _offscreenAbsenceAllowed ? ElinPresence.ResolvedMembers(_log) : null,
+                _offscreenAbsenceAllowed
+                    ? "this build exposes no member that moves a Chara to a named Zone"
+                    : "off-screen absence is disabled in the configuration");
 
             Probe(
                 VanillaCapability.ObserveCrimeWitnesses,
@@ -808,13 +823,46 @@ namespace BrilliantQuesting.Plugin
             return ElinHomeState.TryAdmit(_bindings, PlayerId, chara, _log);
         }
 
+        // -- whereabouts ------------------------------------------------------------------------
+
+        /// <summary>
+        /// Travel, in both directions - the same move whether somebody is being sent away or
+        /// brought home. Gated on the capability like the Home write, and for the same reason: this
+        /// one alters where a save keeps a person, so a build whose probe found no member to call
+        /// must not try the call anyway.
+        /// </summary>
+        protected override bool MoveToZoneCore(EntityId chara, EntityId zone)
+        {
+            if (!Supports(VanillaCapability.MoveCharaBetweenZones) || chara == PlayerId)
+            {
+                return false;
+            }
+
+            return ElinPresence.TryMove(_bindings.ResolveChara(chara), zone, _log);
+        }
+
         // -- world ----------------------------------------------------------------------------
 
+        /// <summary>
+        /// Where the game keeps this entity. Nobody when it cannot say - never the zone the player
+        /// happens to be standing in.
+        ///
+        /// The fallback used to be <c>EClass._zone</c> for anything unresolved, which reads as "in
+        /// front of you" and is the one answer this must never invent: it made every unresolvable
+        /// character co-located with the player, so `follow` offered to tail somebody who was not
+        /// there and reconciliation would have read an absentee it could not resolve as having come
+        /// home. The player keeps the fallback, because their zone is the current one by definition
+        /// and they may be asked about before their binding exists.
+        /// </summary>
         public EntityId GetZoneOf(EntityId entity)
         {
             Chara c = _bindings.ResolveChara(entity);
-            Zone zone = c?.currentZone ?? EClass._zone;
-            return zone == null ? EntityId.None : EntityId.Parse("zone_" + zone.uid);
+            if (c != null)
+            {
+                return ElinPresence.IdOf(c.currentZone);
+            }
+
+            return entity == PlayerId ? ElinPresence.IdOf(EClass._zone) : EntityId.None;
         }
 
         public IReadOnlyList<EntityId> GetCharactersInZone(EntityId zoneId)

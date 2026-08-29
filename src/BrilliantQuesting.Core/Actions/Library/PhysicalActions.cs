@@ -337,7 +337,7 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.Impossible("items cannot be moved on this build");
             }
 
-            if (context.Target.IsNone || !context.Vanilla.IsAlive(context.Target))
+            if (!ActionSupport.Present(context, context.Target))
             {
                 return Availability.NotRelevant("nobody to receive it");
             }
@@ -417,7 +417,7 @@ namespace BrilliantQuesting.Actions.Library
 
         public override Availability GetAvailability(ActionContext context)
         {
-            if (context.Target.IsNone || !context.Vanilla.IsAlive(context.Target) || context.Target == context.Actor)
+            if (!ActionSupport.Present(context, context.Target) || context.Target == context.Actor)
             {
                 return Availability.NotRelevant("nobody here to " + Label.ToLowerInvariant());
             }
@@ -427,7 +427,7 @@ namespace BrilliantQuesting.Actions.Library
 
         public override ActionOutcome Perform(ActionContext context)
         {
-            if (context.Target.IsNone || !context.Vanilla.IsAlive(context.Target))
+            if (!ActionSupport.Present(context, context.Target))
             {
                 return new ActionOutcome(Id, null, "There is nobody here for that.");
             }

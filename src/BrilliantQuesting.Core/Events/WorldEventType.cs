@@ -98,6 +98,17 @@ namespace BrilliantQuesting.Events
         /// traceable origin. Carries the garbled fact first and the true one second.
         /// </summary>
         RumorDistorted,
+        /// <summary>
+        /// Somebody stopped being available - their trade shut, or they left town.
+        ///
+        /// One event for both grades, because the causal shape is the same: the world lost
+        /// something it had, and everything that depended on it has to find another route. Which
+        /// grade it was is on the absence record, not in a second name here.
+        /// </summary>
+        WentAbsent,
+
+        /// <summary>They are back, and whatever they do they are doing again.</summary>
+        Returned,
         Recruited,
         OrganizationJoined,
         OrganizationBetrayed,

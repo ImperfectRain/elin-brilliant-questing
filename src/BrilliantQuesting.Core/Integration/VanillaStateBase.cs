@@ -106,6 +106,23 @@ namespace BrilliantQuesting.Integration
                    && TryAdmitResidentCore(chara);
         }
 
+        public bool TrySendAway(EntityId chara, EntityId zone)
+        {
+            // The highest rung the mod reaches, and the only one that changes where a save keeps
+            // a person. Refused for a story-critical actor, for a named service NPC, and for
+            // anybody this build could not classify.
+            return Allows(MutationKind.TemporaryAbsence, "send away", chara)
+                   && MoveToZoneCore(chara, zone);
+        }
+
+        public bool TryBringBack(EntityId chara, EntityId zone)
+        {
+            // Declared a withdrawal and therefore not gated. Somebody this mod moved must always
+            // be movable home, whatever the game has since decided they are; a refusal here would
+            // strand them for the rest of the save.
+            return MoveToZoneCore(chara, zone);
+        }
+
         // -- what an implementation supplies ------------------------------------------------
 
         protected abstract NarrativeActorClass GetActorClassCore(EntityId chara);
@@ -131,6 +148,14 @@ namespace BrilliantQuesting.Integration
         protected abstract bool TryDestroyItemCore(EntityId itemId, EntityId holder);
 
         protected abstract bool TryAdmitResidentCore(EntityId chara);
+
+        /// <summary>
+        /// Moves a character into a zone and reports whether they are in it afterwards. One
+        /// unguarded half for both directions of travel: sending somebody away and bringing them
+        /// back are the same move, and an implementation that wrote them twice could get them
+        /// subtly different - which is how a person comes back as somebody else.
+        /// </summary>
+        protected abstract bool MoveToZoneCore(EntityId chara, EntityId zone);
 
         // -- the check ----------------------------------------------------------------------
 

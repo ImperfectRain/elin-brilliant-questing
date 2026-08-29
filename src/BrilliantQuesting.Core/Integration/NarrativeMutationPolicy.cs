@@ -125,6 +125,28 @@ namespace BrilliantQuesting.Integration
     }
 
     /// <summary>
+    /// Names a seam member that only takes back a reach this mod already made.
+    ///
+    /// The gate exists to stop the mod reaching into somebody it should not touch. Undoing one of
+    /// its own reaches is the opposite motion, and gating it would be actively unsafe: an actor
+    /// whose classification changes while they are away - a build updated, a flag that starts
+    /// reading differently, a character a vanilla quest line has since claimed - could not be
+    /// brought back, and would stay wherever this mod left them for the rest of the save. That is
+    /// the corruption this whole step is written to avoid, so a withdrawal is never refused
+    /// (decision D020).
+    ///
+    /// It is a licence to *undo*, not a way around the ladder. Two things keep it honest: the
+    /// census in <c>MutationPolicyTests</c> pins the exact list of members allowed to carry it, so
+    /// a new one is a deliberate edit rather than an oversight, and a withdrawal is implemented on
+    /// <see cref="VanillaStateBase"/> like every other write, so it cannot become an implementation's
+    /// private back door.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
+    public sealed class VanillaWithdrawalAttribute : Attribute
+    {
+    }
+
+    /// <summary>
     /// The classification itself: which rung each kind of actor stands on.
     ///
     /// This is the whole of LW 5.1 and the only place it is written down. The verbs do not carry
@@ -136,11 +158,14 @@ namespace BrilliantQuesting.Integration
         /// The rung an actor of this class stands on.
         ///
         /// Two of these are deliberately lower than the design's eventual ceiling.
-        /// <see cref="NarrativeActorClass.UniqueService"/> stops at inventory because taking a
-        /// named shopkeeper out of the world needs the lifecycle proof BQ-032 owes, not because
-        /// their gold is sacred. <see cref="NarrativeActorClass.OrdinaryCitizen"/> stops short of
-        /// death because dying is the one change nothing can walk back, and no procedural route
-        /// has yet earned it over somebody the game made.
+        /// <see cref="NarrativeActorClass.UniqueService"/> stops at inventory, so the canonical
+        /// missing shopkeeper is currently a Grade A absence: LW 5.2 wants a named service NPC
+        /// physically gone only after dedicated lifecycle testing, and the lifecycle is so far
+        /// proved against the reference implementation rather than on a real save. Raising this
+        /// rung is the one edit that turns that proof into shipped behaviour, and it belongs with
+        /// the adversarial run, not before it. <see cref="NarrativeActorClass.OrdinaryCitizen"/>
+        /// stops short of death because dying is the one change nothing can walk back, and no
+        /// procedural route has yet earned it over somebody the game made.
         /// </summary>
         public static NarrativeMutationPolicy PolicyFor(NarrativeActorClass actorClass)
         {
