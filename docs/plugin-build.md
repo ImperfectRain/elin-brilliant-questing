@@ -125,6 +125,8 @@ all-or-nothing with a diagnostic, and every callback is guarded.
   links across save/load so accusations can explain what backs them.
 - Adds a `Report it` authority route for guard, guild and court-style NPCs. Physical proof,
   witness-backed proof, unprovable belief and rumor produce different outcomes.
+- Compacts long-save memory with an explicit budget: repeated routine memories fold, old trivia
+  decays, and Defining memories are preserved.
 - Offers its verbs through ordinary Elin dialogue. Talking to a staged NPC adds Brilliant
   Questing options to the generic conversation, each labelled with vanilla's own difficulty
   wording, resolving through the action library and changing the world.

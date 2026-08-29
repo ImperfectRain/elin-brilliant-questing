@@ -3,6 +3,27 @@ using BrilliantQuesting.Foundation;
 
 namespace BrilliantQuesting.Memory
 {
+    public sealed class MemoryCompactionPolicy
+    {
+        public int MaxMemoriesPerOwner { get; set; } = 128;
+
+        public long TrivialRetentionDays { get; set; } = 30;
+
+        public long RoutineRetentionDays { get; set; } = 180;
+
+        /// <summary>Repeated routines become part of a relationship pattern and survive longer.</summary>
+        public int ReinforcedRoutineOccurrenceFloor { get; set; } = 3;
+    }
+
+    public sealed class MemoryCompactionReport
+    {
+        public int Removed { get; set; }
+
+        public int Kept { get; set; }
+
+        public int OwnersOverBudget { get; set; }
+    }
+
     /// <summary>
     /// Per-character memory with consolidation. Without this, a long save accumulates tens of
     /// thousands of "player bought bread" rows; with it, repetition becomes a single trait memory
@@ -109,6 +130,39 @@ namespace BrilliantQuesting.Memory
             return removed;
         }
 
+        /// <summary>
+        /// Long-save retention pass. Defining memories are permanent; lower weights survive by
+        /// recency, reinforcement and severity, not by arrival order.
+        /// </summary>
+        public MemoryCompactionReport Compact(GameTime now, MemoryCompactionPolicy policy = null)
+        {
+            policy = policy ?? new MemoryCompactionPolicy();
+            MemoryCompactionReport report = new MemoryCompactionReport();
+
+            foreach (List<MemoryRecord> memories in _byOwner.Values)
+            {
+                RemoveExpired(memories, now, policy, report);
+                EnforceOwnerBudget(memories, policy, report);
+                report.Kept += memories.Count;
+            }
+
+            return report;
+        }
+
+        public int Count
+        {
+            get
+            {
+                int count = 0;
+                foreach (List<MemoryRecord> memories in _byOwner.Values)
+                {
+                    count += memories.Count;
+                }
+
+                return count;
+            }
+        }
+
         public IEnumerable<KeyValuePair<EntityId, List<MemoryRecord>>> All => _byOwner;
 
         private List<MemoryRecord> ListFor(EntityId owner)
@@ -120,6 +174,69 @@ namespace BrilliantQuesting.Memory
             }
 
             return memories;
+        }
+
+        private static void RemoveExpired(List<MemoryRecord> memories, GameTime now, MemoryCompactionPolicy policy, MemoryCompactionReport report)
+        {
+            for (int i = memories.Count - 1; i >= 0; i--)
+            {
+                MemoryRecord memory = memories[i];
+                if (memory.Weight == MemoryWeight.Defining)
+                {
+                    continue;
+                }
+
+                long age = now.DaysSince(memory.When);
+                bool expires = memory.Weight == MemoryWeight.Trivial && age > policy.TrivialRetentionDays;
+                expires = expires || memory.Weight == MemoryWeight.Routine
+                    && memory.Occurrences < policy.ReinforcedRoutineOccurrenceFloor
+                    && age > policy.RoutineRetentionDays;
+
+                if (expires)
+                {
+                    memories.RemoveAt(i);
+                    report.Removed++;
+                }
+            }
+        }
+
+        private static void EnforceOwnerBudget(List<MemoryRecord> memories, MemoryCompactionPolicy policy, MemoryCompactionReport report)
+        {
+            if (policy.MaxMemoriesPerOwner <= 0 || memories.Count <= policy.MaxMemoriesPerOwner)
+            {
+                return;
+            }
+
+            memories.Sort(CompareForRetention);
+            while (memories.Count > policy.MaxMemoriesPerOwner)
+            {
+                int last = memories.Count - 1;
+                if (memories[last].Weight == MemoryWeight.Defining)
+                {
+                    report.OwnersOverBudget++;
+                    return;
+                }
+
+                memories.RemoveAt(last);
+                report.Removed++;
+            }
+        }
+
+        private static int CompareForRetention(MemoryRecord a, MemoryRecord b)
+        {
+            int byWeight = b.Weight.CompareTo(a.Weight);
+            if (byWeight != 0)
+            {
+                return byWeight;
+            }
+
+            int byOccurrences = b.Occurrences.CompareTo(a.Occurrences);
+            if (byOccurrences != 0)
+            {
+                return byOccurrences;
+            }
+
+            return b.When.CompareTo(a.When);
         }
 
         private static readonly MemoryRecord[] Empty = new MemoryRecord[0];

@@ -58,5 +58,86 @@ namespace BrilliantQuesting.Tests
             MemoryRecord top = Assert.Single(ledger.Strongest(Shopkeeper, Player, 1));
             Assert.Equal("was_rescued", top.SummaryTag);
         }
+
+        [Fact]
+        public void SyntheticTwoHundredHourLedgerStaysWithinMemoryBudget()
+        {
+            MemoryLedger ledger = new MemoryLedger();
+            EntityId[] townspeople = new EntityId[40];
+            for (int i = 0; i < townspeople.Length; i++)
+            {
+                townspeople[i] = EntityId.Parse("npc_town_" + i);
+            }
+
+            for (int hour = 0; hour < 200; hour++)
+            {
+                for (int i = 0; i < townspeople.Length; i++)
+                {
+                    EntityId owner = townspeople[i];
+                    ledger.Add(new MemoryRecord(
+                        EntityId.Parse("mem_routine_" + hour + "_" + i),
+                        owner,
+                        Player,
+                        WorldEventType.Conversed,
+                        MemoryWeight.Routine,
+                        GameTime.FromDays(hour / 24),
+                        1,
+                        "spoke_with"));
+
+                    ledger.Add(new MemoryRecord(
+                        EntityId.Parse("mem_trivia_" + hour + "_" + i),
+                        owner,
+                        Player,
+                        WorldEventType.Met,
+                        MemoryWeight.Trivial,
+                        GameTime.FromDays(hour / 24),
+                        0,
+                        "saw_player_" + hour));
+                }
+            }
+
+            MemoryCompactionReport report = ledger.Compact(
+                GameTime.FromDays(200),
+                new MemoryCompactionPolicy
+                {
+                    MaxMemoriesPerOwner = 16,
+                    TrivialRetentionDays = 7,
+                    RoutineRetentionDays = 90,
+                    ReinforcedRoutineOccurrenceFloor = 3
+                });
+
+            Assert.True(ledger.Count <= 640, "kept " + ledger.Count + " memories after compaction");
+            Assert.True(report.Removed > 7000);
+            Assert.Equal(0, report.OwnersOverBudget);
+            foreach (EntityId owner in townspeople)
+            {
+                Assert.Contains(ledger.MemoriesOf(owner), m => m.SummaryTag == "spoke_with" && m.Occurrences == 200);
+            }
+        }
+
+        [Fact]
+        public void CompactionNeverDeletesDefiningMemories()
+        {
+            MemoryLedger ledger = new MemoryLedger();
+            for (int i = 0; i < 20; i++)
+            {
+                ledger.Add(new MemoryRecord(
+                    EntityId.Parse("mem_defining_" + i),
+                    Shopkeeper,
+                    Player,
+                    WorldEventType.Killed,
+                    MemoryWeight.Defining,
+                    GameTime.FromDays(i),
+                    -80,
+                    "killed_someone_" + i));
+            }
+
+            MemoryCompactionReport report = ledger.Compact(
+                GameTime.FromDays(200),
+                new MemoryCompactionPolicy { MaxMemoriesPerOwner = 5 });
+
+            Assert.Equal(20, ledger.MemoriesOf(Shopkeeper).Count);
+            Assert.Equal(1, report.OwnersOverBudget);
+        }
     }
 }
