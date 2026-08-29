@@ -4,7 +4,6 @@ using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
-using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions.Library
@@ -163,9 +162,7 @@ namespace BrilliantQuesting.Actions.Library
                 }
             }
 
-            context.Thread.State = ThreadState.Resolved;
-            context.Thread.Resolution = "passage_opened";
-            outcome.Notes.Add("thread resolved: passage_opened");
+            ActionSupport.Resolve(context, outcome, "passage_opened", 0.7);
         }
 
         private Fact FindBlockage(ActionContext context, out ItemDescriptor barrier, out NarrativeSite blockedSite, out PhysicalObstacleSpec spec)

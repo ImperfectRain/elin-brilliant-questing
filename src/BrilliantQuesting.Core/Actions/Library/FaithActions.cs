@@ -661,9 +661,7 @@ namespace BrilliantQuesting.Actions.Library
                 return;
             }
 
-            context.Thread.State = ThreadState.Resolved;
-            context.Thread.Resolution = "blessing_granted";
-            outcome.Notes.Add("thread resolved: blessing_granted");
+            ActionSupport.Resolve(context, outcome, "blessing_granted", 0.7);
         }
 
         private static string Trouble(Fact trouble)

@@ -4,7 +4,6 @@ using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
-using BrilliantQuesting.Threads;
 
 namespace BrilliantQuesting.Actions.Library
 {
@@ -137,12 +136,7 @@ namespace BrilliantQuesting.Actions.Library
                 witnesses: ActionSupport.Bystanders(context, true),
                 threadId: context.Thread?.Id ?? EntityId.None));
 
-            if (context.Thread != null)
-            {
-                context.Thread.State = ThreadState.Resolved;
-                context.Thread.Resolution = "debt_paid";
-                outcome.Notes.Add("thread resolved: debt paid");
-            }
+            ActionSupport.Resolve(context, outcome, "debt_paid", 0.8);
 
             outcome.Notes.Add("paid " + amount + " orens");
             return outcome;

@@ -261,6 +261,9 @@ namespace BrilliantQuesting.Diagnostics
             sb.Append("\n-- what the player knows --\n");
             sb.Append(NarrativeJournal.Describe(world, vanilla.PlayerId));
 
+            sb.Append("\n-- what the player has finished --\n");
+            sb.Append(Chronicle.Describe(world, vanilla.PlayerId));
+
             sb.Append("\n-- who witnessed what, and what consequences were emitted --\n");
             sb.Append(DescribeHistory(world));
 

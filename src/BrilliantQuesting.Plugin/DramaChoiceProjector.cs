@@ -210,6 +210,10 @@ namespace BrilliantQuesting.Plugin
                 .SetOnClick(ShowJournal);
             talk.AddChoice(journal);
 
+            DramaChoice chronicle = new DramaChoice("BQ: Chronicle", "", "bq:chronicle", "", "")
+                .SetOnClick(ShowChronicle);
+            talk.AddChoice(chronicle);
+
             if (ExplainInDialogue)
             {
                 DramaChoice why = new DramaChoice("BQ: why? (debug)", "", "bq:why", "", "")
@@ -328,6 +332,30 @@ namespace BrilliantQuesting.Plugin
             {
                 Msg.SayRaw("Brilliant Questing could not build the journal; see the log.");
                 _log.LogError("Journal failed: " + ex);
+            }
+        }
+
+        /// <summary>
+        /// What is finished, as against the journal's account of what is open. Same surface and
+        /// same failure behaviour as the journal: a reader that throws must not take a
+        /// conversation down with it.
+        /// </summary>
+        private void ShowChronicle()
+        {
+            try
+            {
+                string chronicle = Chronicle.Describe(_world, _vanilla.PlayerId);
+                foreach (string line in chronicle.Split('\n'))
+                {
+                    _log.LogInfo(line);
+                }
+
+                Msg.SayRaw("Brilliant Questing wrote the chronicle to BepInEx/LogOutput.log.");
+            }
+            catch (Exception ex)
+            {
+                Msg.SayRaw("Brilliant Questing could not build the chronicle; see the log.");
+                _log.LogError("Chronicle failed: " + ex);
             }
         }
 

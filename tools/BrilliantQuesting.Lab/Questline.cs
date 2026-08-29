@@ -67,6 +67,11 @@ namespace BrilliantQuesting.Lab
                               + ", " + lab.Vanilla.GetMoney(lab.Player) + " orens, carrying "
                               + lab.Vanilla.GetInventory(lab.Player).Count + " item(s)");
 
+            Banner("WHAT THE PLAYER CAN READ BACK");
+            Console.Write(NarrativeJournal.Describe(lab.World, lab.Player));
+            Console.WriteLine();
+            Console.Write(Chronicle.Describe(lab.World, lab.Player));
+
             Banner("HISTORY");
             Console.Write(NarrativeInspector.DescribeHistory(lab.World, 40));
         }

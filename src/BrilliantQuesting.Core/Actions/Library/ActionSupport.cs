@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions.Library
@@ -120,6 +122,28 @@ namespace BrilliantQuesting.Actions.Library
             }
 
             return best;
+        }
+
+        /// <summary>
+        /// Ends the situation this action was performed inside, if there is one.
+        ///
+        /// Every verb that can close a thread goes through here so the ending is written the same
+        /// way each time: the thread's state, the outcome name, and the ledger entry the Chronicle
+        /// reads. Silent when there is no thread, and silent on a thread that is already resolved,
+        /// so a verb that closes the last of several open demands cannot post two endings.
+        /// </summary>
+        public static void Resolve(ActionContext context, ActionOutcome outcome, string resolution, double magnitude = 0.5)
+        {
+            WorldEvent resolved = ThreadResolution.Resolve(
+                context.World, context.Thread, resolution, context.Actor, context.Now, magnitude, context.Zone);
+
+            if (resolved == null)
+            {
+                return;
+            }
+
+            outcome?.Events.Add(resolved);
+            outcome?.Notes.Add("thread resolved: " + resolution);
         }
 
         /// <summary>

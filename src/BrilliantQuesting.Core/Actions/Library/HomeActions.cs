@@ -4,7 +4,6 @@ using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
-using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions.Library
@@ -375,9 +374,7 @@ namespace BrilliantQuesting.Actions.Library
                 }
             }
 
-            context.Thread.State = ThreadState.Resolved;
-            context.Thread.Resolution = "sheltered";
-            outcome.Notes.Add("thread resolved: sheltered");
+            ActionSupport.Resolve(context, outcome, "sheltered", 0.7);
         }
     }
 
@@ -678,9 +675,7 @@ namespace BrilliantQuesting.Actions.Library
 
             if (context.Thread != null && !ProductionDemand.AnyOpenIn(context.Thread, context.World.Knowledge))
             {
-                context.Thread.State = ThreadState.Resolved;
-                context.Thread.Resolution = "supplied";
-                outcome.Notes.Add("thread resolved: supplied");
+                ActionSupport.Resolve(context, outcome, "supplied", 0.7);
             }
 
             return outcome;

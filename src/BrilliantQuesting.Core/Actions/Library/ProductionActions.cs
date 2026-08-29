@@ -414,9 +414,7 @@ namespace BrilliantQuesting.Actions.Library
 
             if (context.Thread != null && !ProductionDemand.AnyOpenIn(context.Thread, context.World.Knowledge))
             {
-                context.Thread.State = ThreadState.Resolved;
-                context.Thread.Resolution = Resolution;
-                outcome.Notes.Add("thread resolved: " + Resolution);
+                ActionSupport.Resolve(context, outcome, Resolution, magnitude);
             }
         }
 
@@ -712,9 +710,7 @@ namespace BrilliantQuesting.Actions.Library
 
             if (context.Thread != null && !ProductionDemand.AnyOpenIn(context.Thread, context.World.Knowledge))
             {
-                context.Thread.State = ThreadState.Resolved;
-                context.Thread.Resolution = "cause_removed";
-                outcome.Notes.Add("thread resolved: cause_removed");
+                ActionSupport.Resolve(context, outcome, "cause_removed", 0.7);
             }
 
             return outcome;

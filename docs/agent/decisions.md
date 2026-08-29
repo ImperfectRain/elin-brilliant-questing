@@ -170,4 +170,22 @@ disagreeing with the one the player can see - the same failure `D014` prevents f
 need. Reading instead is also cheaper to keep working across game updates, and it lets vanilla's
 own surprises become content rather than contradictions.
 
+## D022 — A situation's ending is an event; the record of it is a projection
+
+Closing a thread goes through one primitive (`ThreadResolution.Resolve`), which writes the state,
+the outcome name, and a `ThreadResolved` event carrying who ended it and when. Resolving an
+already-resolved thread is a no-op rather than a second ending.
+
+Player-facing history - journal, Chronicle, and whatever later reads them - is derived from the
+ledger, the threads and the player's own beliefs. It is never a separately stored narrative, so it
+survives save/load for the same reason the ledger does and cannot drift from what happened.
+
+The resolution event names no target and no facts: the deed that ended the matter was already
+recorded with its own witnesses, affinity and evidence, and repeating it there would pay the same
+act twice and teach bystanders the facts the thread rested on.
+
+Reason: a resolution held only in a thread's fields has no time, no author, and nothing to say if
+the thread is ever reopened, and a stored history is a second copy of the truth to keep in step
+with the first.
+
 Add a new entry only when the decision is both load-bearing and durable.
