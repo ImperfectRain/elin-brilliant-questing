@@ -90,6 +90,11 @@ namespace BrilliantQuesting.Integration
             _vanilla.Define(id, blueprint.Level, blueprint.Money, zone);
             _vanilla.SetAffinity(id, blueprint.Affinity);
 
+            // Somebody this mod made. Nothing in the vanilla game refers to them, which is what
+            // makes them the safe place for death, relocation and long causal histories - so the
+            // staged actor is the one class the mutation policy lets everything through for.
+            _vanilla.SetActorClass(id, NarrativeActorClass.Generated);
+
             foreach (KeyValuePair<VanillaAttribute, int> attribute in blueprint.Attributes)
             {
                 _vanilla.SetAttribute(id, attribute.Key, attribute.Value);

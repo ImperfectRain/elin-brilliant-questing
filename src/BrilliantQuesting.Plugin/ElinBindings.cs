@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using BepInEx.Logging;
 using BrilliantQuesting.Foundation;
@@ -156,7 +157,23 @@ namespace BrilliantQuesting.Plugin
                 return EntityId.None;
             }
 
-            return chara.IsPC ? playerId : EntityId.Parse("npc_vanilla_" + chara.uid);
+            return chara.IsPC ? playerId : EntityId.Parse(VanillaCharaPrefix + chara.uid);
+        }
+
+        private const string VanillaCharaPrefix = "npc_vanilla_";
+
+        /// <summary>
+        /// Whether this id names somebody the *game* made, as opposed to somebody this mod staged.
+        ///
+        /// The same convention as <see cref="MintCharaId"/>, read backwards, and deliberately in
+        /// the same place: the observer mints this prefix for every character it finds already in
+        /// the world, and the stager binds world-model ids to the characters it creates. So the
+        /// prefix is the one durable record of which of the two a bound character is - it survives
+        /// a reload with the binding map, where a set built at spawn time would not.
+        /// </summary>
+        internal static bool IsVanillaMinted(EntityId entity)
+        {
+            return entity.Value.StartsWith(VanillaCharaPrefix, StringComparison.Ordinal);
         }
 
         internal Thing ResolveThing(EntityId entity, Card owner)

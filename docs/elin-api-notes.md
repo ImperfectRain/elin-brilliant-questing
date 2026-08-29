@@ -67,6 +67,7 @@ vanilla rows only where they map cleanly.
 | deity / piety | `Chara.idFaith` (string), `Chara.elements.Value(85)` — the id **vocabulary** is unread, see below |
 | zone occupants | `Zone.FindChara(int uid)`, `Zone.FindChara(string id)`, `Zone.AddChara(string, Point)` |
 | Home | `EClass.Branch` — the branch object only; residents, capacity, jobs and the element container are read **by name**, see below |
+| actor classification | `Chara` and its source row, read **by name** — `IsUnique`/`isUnique`/`IsUniqueName`, `IsMainCharacter`/`IsUniqueCharacter`/`IsImportantNPC`, and the source row's `tag`. None runtime-verified, see below |
 
 `Chara` carries a `uid`; that is the handle `EntityId` should map to, not a name.
 
@@ -377,3 +378,24 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
   The investigation verbs therefore match category *and* item name against a keyword list, and the
   generalist `inspect` reads anything, so an unrecognised tag costs a specialist route rather than
   the whole investigation. Worth replacing with the real ids once a live inventory is dumped.
+- **Which member of `Chara` says a character is unique, and which says they belong to the main
+  story.** `ElinActorClasses` decides how far the mutation policy will let the mod reach into
+  somebody, and it resolves both flags by name against a candidate list - `IsUnique`, `isUnique`,
+  `IsUniqueName` for one, `IsMainCharacter`, `isMainCharacter`, `IsUniqueCharacter`,
+  `IsImportantNPC`, `isImportant` for the other, on the `Chara` and on its `source` row - plus a
+  narrow story tag (`story`, `mainquest`, `main_quest`) on the source row. Not one of them has been
+  read off a running game, and Elin may express "this NPC matters" some other way entirely.
+
+  What being wrong costs is deliberately asymmetric. `OrdinaryCitizen`, the only class that opens
+  relocation and removal, is returned **only** when both flags were actually readable and both said
+  no; one unreadable flag makes the character `Unknown`, which keeps dialogue, standing, things and
+  money and refuses relocation, absence and death. So a build with none of these names loses the
+  shelter and recruit routes for everybody - visible, and the safe direction - rather than quietly
+  moving a story NPC into the player's settlement. A live run should be read for the one-time
+  "BQ actor classification: story flag ... unique flag ..." line, which says which of the two this
+  build could actually read; if it says UNREADABLE, the candidate lists are the thing to correct.
+
+  Verified only headlessly, against `Chara`-shaped stubs: a type carrying both flags classifies
+  ordinary, unique or story-critical correctly, a source row tagged `story` classifies
+  story-critical, and a type missing either flag - or no character at all - classifies `Unknown`.
+  That proves the reflection and the failure direction, not the member names.

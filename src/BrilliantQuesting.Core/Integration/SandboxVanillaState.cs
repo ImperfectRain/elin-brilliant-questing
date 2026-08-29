@@ -15,7 +15,7 @@ namespace BrilliantQuesting.Integration
     /// The in-game adapter must behave identically from the outside; where it cannot, it should
     /// report the missing <see cref="VanillaCapability"/> rather than lie.
     /// </summary>
-    public sealed class SandboxVanillaState : IVanillaState
+    public sealed class SandboxVanillaState : VanillaStateBase, IVanillaState
     {
         private sealed class CharaState
         {
@@ -29,12 +29,20 @@ namespace BrilliantQuesting.Integration
             public string Deity = string.Empty;
             public int Piety;
             public EntityId Zone;
+
+            /// <summary>
+            /// What the laboratory made. Ordinary by default because a headless world is fully
+            /// authored - nothing in it is unclassified by accident, and a test that wants an
+            /// untellable actor says so with <see cref="SandboxVanillaState.SetActorClass"/>.
+            /// </summary>
+            public NarrativeActorClass ActorClass = NarrativeActorClass.OrdinaryCitizen;
         }
 
         private readonly Dictionary<EntityId, CharaState> _charas = new Dictionary<EntityId, CharaState>();
         private readonly Dictionary<EntityId, int> _influence = new Dictionary<EntityId, int>();
         private readonly Dictionary<GuildId, int> _guildRanks = new Dictionary<GuildId, int>();
         private readonly HashSet<VanillaCapability> _capabilities = new HashSet<VanillaCapability>();
+        private readonly List<string> _refusals = new List<string>();
         private HomeState _home;
 
         public SandboxVanillaState(EntityId playerId)
@@ -50,7 +58,13 @@ namespace BrilliantQuesting.Integration
 
         public GameTime Now { get; set; } = GameTime.Zero;
 
-        public EntityId PlayerId { get; }
+        public override EntityId PlayerId { get; }
+
+        /// <summary>
+        /// Every write the mutation policy turned down, in order. The headless equivalent of the
+        /// adapter's refusal log: a write that quietly did nothing has to be findable.
+        /// </summary>
+        public IReadOnlyList<string> Refusals => _refusals;
 
         public int Karma { get; private set; }
 
@@ -124,6 +138,17 @@ namespace BrilliantQuesting.Integration
             return this;
         }
 
+        /// <summary>
+        /// Says what kind of person this is, and so how far the mod may reach into them. The
+        /// laboratory's way of putting a story-critical NPC or an actor this build cannot
+        /// classify into a test.
+        /// </summary>
+        public SandboxVanillaState SetActorClass(EntityId chara, NarrativeActorClass actorClass)
+        {
+            Ensure(chara).ActorClass = actorClass;
+            return this;
+        }
+
         public SandboxVanillaState SetZone(EntityId entity, EntityId zone)
         {
             Ensure(entity).Zone = zone;
@@ -184,7 +209,7 @@ namespace BrilliantQuesting.Integration
 
         public int GetAffinity(EntityId chara) => Ensure(chara).Affinity;
 
-        public void ChangeAffinity(EntityId chara, int delta)
+        protected override void ChangeAffinityCore(EntityId chara, int delta)
         {
             if (delta == 0 || !Supports(VanillaCapability.ReadWriteAffinity))
             {
@@ -195,7 +220,7 @@ namespace BrilliantQuesting.Integration
             state.Affinity = Clamp(state.Affinity + delta, -200, 1000);
         }
 
-        public void ChangeKarma(int delta)
+        protected override void ChangeKarmaCore(int delta)
         {
             if (delta != 0 && Supports(VanillaCapability.ReadWriteKarma))
             {
@@ -203,7 +228,7 @@ namespace BrilliantQuesting.Integration
             }
         }
 
-        public void ChangeFame(int delta)
+        protected override void ChangeFameCore(int delta)
         {
             if (delta != 0 && Supports(VanillaCapability.ReadWriteFame))
             {
@@ -217,7 +242,7 @@ namespace BrilliantQuesting.Integration
             return value;
         }
 
-        public void ChangeInfluence(EntityId townId, int delta)
+        protected override void ChangeInfluenceCore(EntityId townId, int delta)
         {
             if (delta != 0 && Supports(VanillaCapability.ReadWriteInfluence))
             {
@@ -243,7 +268,7 @@ namespace BrilliantQuesting.Integration
         /// Money is conserved or the call is refused; it is never half-applied. An unnamed payee
         /// is a deliberate sink - a fine, a tithe, money that leaves the world.
         /// </summary>
-        public bool TrySpendMoney(EntityId payer, EntityId payee, int amount)
+        protected override bool TrySpendMoneyCore(EntityId payer, EntityId payee, int amount)
         {
             if (amount < 0 || !Supports(VanillaCapability.SpendMoney))
             {
@@ -272,7 +297,7 @@ namespace BrilliantQuesting.Integration
         /// An item is in exactly one inventory before and after. A transfer that cannot happen
         /// reports false and moves nothing.
         /// </summary>
-        public bool TryTransferItem(EntityId itemId, EntityId from, EntityId to)
+        protected override bool TryTransferItemCore(EntityId itemId, EntityId from, EntityId to)
         {
             // Both ends must be somebody. An item handed to nobody is a real object deleted from
             // the world, and the fact written about it afterwards would name a person who is not
@@ -303,7 +328,7 @@ namespace BrilliantQuesting.Integration
         /// The object is gone or the call is refused. Destroying something the named holder is not
         /// carrying reports false and leaves every inventory alone.
         /// </summary>
-        public bool TryDestroyItem(EntityId itemId, EntityId holder)
+        protected override bool TryDestroyItemCore(EntityId itemId, EntityId holder)
         {
             if (!Supports(VanillaCapability.DestroyItems) || itemId.IsNone || holder.IsNone)
             {
@@ -341,7 +366,7 @@ namespace BrilliantQuesting.Integration
         /// elements; the reference implementation must not answer a question the game answers, so
         /// the new resident arrives with an unread job and the metrics do not move (decision D018).
         /// </summary>
-        public bool TryAdmitResident(EntityId chara)
+        protected override bool TryAdmitResidentCore(EntityId chara)
         {
             if (!Supports(VanillaCapability.WriteHomeResidents) || chara.IsNone || chara == PlayerId)
             {
@@ -375,6 +400,17 @@ namespace BrilliantQuesting.Integration
 
             return result;
         }
+
+        /// <summary>
+        /// The laboratory knows exactly what it made, so it answers for everybody. The player is
+        /// the player; everyone else is what a test said, or an ordinary citizen.
+        /// </summary>
+        protected override NarrativeActorClass GetActorClassCore(EntityId chara)
+        {
+            return chara == PlayerId ? NarrativeActorClass.Player : Ensure(chara).ActorClass;
+        }
+
+        protected override void OnMutationRefused(string message) => _refusals.Add(message);
 
         private CharaState Ensure(EntityId chara)
         {

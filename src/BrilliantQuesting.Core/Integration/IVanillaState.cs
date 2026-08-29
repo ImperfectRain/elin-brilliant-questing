@@ -20,6 +20,16 @@ namespace BrilliantQuesting.Integration
 
         bool Supports(VanillaCapability capability);
 
+        /// <summary>
+        /// What kind of actor this is, so the mod knows how far it may reach into them.
+        ///
+        /// A read, and the only input the mutation policy has. The game is the authority: only it
+        /// knows whether a Chara is somebody a vanilla quest line depends on. A build that cannot
+        /// tell answers <see cref="NarrativeActorClass.Unknown"/>, which keeps the reversible
+        /// reaches and closes the irreversible ones - never a guess in either direction.
+        /// </summary>
+        NarrativeActorClass GetActorClass(EntityId chara);
+
         // -- characters -------------------------------------------------------------------
         bool IsAlive(EntityId chara);
 
@@ -32,19 +42,23 @@ namespace BrilliantQuesting.Integration
         /// <summary>Vanilla affinity of <paramref name="chara"/> toward the player.</summary>
         int GetAffinity(EntityId chara);
 
+        [VanillaMutation(MutationKind.Social, "chara")]
         void ChangeAffinity(EntityId chara, int delta);
 
         // -- player standing --------------------------------------------------------------
         int Karma { get; }
 
+        [VanillaMutation(MutationKind.Social)]
         void ChangeKarma(int delta);
 
         int Fame { get; }
 
+        [VanillaMutation(MutationKind.Social)]
         void ChangeFame(int delta);
 
         int GetInfluence(EntityId townId);
 
+        [VanillaMutation(MutationKind.Social)]
         void ChangeInfluence(EntityId townId, int delta);
 
         bool IsGuildMember(GuildId guild);
@@ -58,10 +72,12 @@ namespace BrilliantQuesting.Integration
         // -- money and things -------------------------------------------------------------
         int GetMoney(EntityId owner);
 
+        [VanillaMutation(MutationKind.Inventory, "payer", "payee")]
         bool TrySpendMoney(EntityId payer, EntityId payee, int amount);
 
         IReadOnlyList<ItemDescriptor> GetInventory(EntityId owner);
 
+        [VanillaMutation(MutationKind.Inventory, "from", "to")]
         bool TryTransferItem(EntityId itemId, EntityId from, EntityId to);
 
         /// <summary>
@@ -72,6 +88,7 @@ namespace BrilliantQuesting.Integration
         /// that id - and so a request to destroy something the holder is not carrying fails
         /// instead of quietly reaching across the world for it.
         /// </summary>
+        [VanillaMutation(MutationKind.Inventory, "holder")]
         bool TryDestroyItem(EntityId itemId, EntityId holder);
 
         // -- home -------------------------------------------------------------------------
@@ -103,6 +120,7 @@ namespace BrilliantQuesting.Integration
         /// them rather than setting them: writing Public Safety directly would be a second
         /// settlement economy disagreeing with the one the player watches (decision D018).
         /// </summary>
+        [VanillaMutation(MutationKind.Relocate, "chara")]
         bool TryAdmitResident(EntityId chara);
 
         // -- world ------------------------------------------------------------------------

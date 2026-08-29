@@ -8,6 +8,12 @@ everything it needs to *create* in the game goes through `Integration/ISituation
 in active Early Access; when it moves, one file is repaired and the world model, verb library and
 tests do not notice.
 
+Because every write converges there, the seam is also where the mod's licence to change the game is
+decided. Each write on `IVanillaState` declares what it does and to whom; `VanillaStateBase`
+implements all of them once, refuses any the actor's `NarrativeMutationPolicy` does not permit, and
+only then calls the implementation. A character the game will not classify keeps the reversible
+reaches and loses relocation, absence and death (decision D019).
+
 **One place where consequences happen.** Verbs do not adjust affinity, Karma or knowledge directly.
 They record an event. `Consequences/ConsequenceEngine.cs` derives the rest from a single table. That
 is what lets the debug inspector answer "why did she react like that" without re-running the world.
@@ -18,8 +24,9 @@ is what lets the debug inspector answer "why did she react like that" without re
 Foundation      EntityId, deterministic RNG, GameTime
                 stable identity and reproducible seeds; everything else depends on these
 
-Integration     IVanillaState, ISituationStager, SandboxVanillaState, SandboxStager
-                the only place that knows a game exists
+Integration     IVanillaState, VanillaStateBase, NarrativeMutationPolicy,
+                ISituationStager, SandboxVanillaState, SandboxStager
+                the only place that knows a game exists, and the one gate on changing it
 
 World           NarrativeNpc, Organization, NarrativeSite, EntityRegistry, NarrativeWorldState
                 the procedural database; the aggregate root is NarrativeWorldState

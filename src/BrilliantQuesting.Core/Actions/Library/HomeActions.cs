@@ -196,6 +196,19 @@ namespace BrilliantQuesting.Actions.Library
                     return Availability.Impossible("nobody can be moved into a home on this build");
                 }
 
+                // Moving somebody onto the settlement roll is a permanent relocation, and the
+                // mutation policy is what decides whether this person may be relocated at all.
+                // Asking here rather than only at the seam is the difference between an offer that
+                // is absent and one that is made and then refused: the game will never move a
+                // story-critical NPC, nor anybody this build cannot classify, so the route is
+                // impossible rather than unlikely. Hosting and standing a watch are untouched -
+                // they move nobody.
+                if (!context.Vanilla.MayMutate(context.Target, MutationKind.Relocate))
+                {
+                    return Availability.Impossible(context.NameOf(context.Target)
+                                                   + " is not somebody this world will let you move house");
+                }
+
                 if (home.IsResident(context.Target))
                 {
                     return Availability.NotRelevant(context.NameOf(context.Target) + " already lives here");

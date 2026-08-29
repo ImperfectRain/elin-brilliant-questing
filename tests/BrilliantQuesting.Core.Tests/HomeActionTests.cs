@@ -175,6 +175,46 @@ namespace BrilliantQuesting.Tests
         }
 
         /// <summary>
+        /// BQ-031. Moving somebody onto the settlement roll is a permanent relocation, and the
+        /// mutation policy decides who may be relocated at all. Somebody the game's own story
+        /// depends on is not offered a bed - impossible, not unlikely - and the routes that move
+        /// nobody are untouched, which is the point of separating the four verbs in the first
+        /// place: she can still be hosted for the night and still be given a watch.
+        /// </summary>
+        [Fact]
+        public void SomebodyTheWorldWillNotLetYouMoveIsOfferedEverythingExceptABed()
+        {
+            SanctuaryLab lab = SanctuaryLab.Create(CheckOutcome.Pass);
+            lab.Vanilla.SetActorClass(lab.Witness, NarrativeActorClass.StoryCritical);
+
+            Availability shelter = lab.Can("shelter", lab.Witness);
+            ActionOutcome outcome = lab.Run("shelter", lab.Witness);
+
+            Assert.False(shelter.IsAvailable);
+            Assert.Contains("move house", shelter.Reason);
+            Assert.Empty(outcome.Events);
+            Assert.False(lab.Vanilla.GetHomeState().IsResident(lab.Witness));
+
+            Assert.True(lab.Can("host", lab.Witness).IsAvailable);
+            Assert.True(lab.Can("assign_protection", lab.Witness).IsAvailable);
+        }
+
+        /// <summary>
+        /// The same refusal when the build simply could not say who she is. An unclassified actor
+        /// is not a licence, so the bed closes and nothing else does.
+        /// </summary>
+        [Fact]
+        public void ABuildThatCannotSayWhoSomebodyIsWillNotMoveThemIn()
+        {
+            SanctuaryLab lab = SanctuaryLab.Create(CheckOutcome.Pass);
+            lab.Vanilla.SetActorClass(lab.Witness, NarrativeActorClass.Unknown);
+
+            Assert.False(lab.Can("shelter", lab.Witness).IsAvailable);
+            Assert.False(lab.Vanilla.TryAdmitResident(lab.Witness));
+            Assert.True(lab.Can("host", lab.Witness).IsAvailable);
+        }
+
+        /// <summary>
         /// Background simulation must not hand the player omniscience. A plight nobody has told
         /// them about is not an offer, even though the fact is sitting in the graph.
         /// </summary>

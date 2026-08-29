@@ -21,7 +21,7 @@ namespace BrilliantQuesting.Plugin
     /// anything the player would not see happen - affinity moves through <c>ModAffinity</c> so the
     /// game shows its own reaction.
     /// </summary>
-    internal sealed class ElinVanillaState : IVanillaState
+    internal sealed class ElinVanillaState : VanillaStateBase, IVanillaState
     {
         private readonly ElinBindings _bindings;
         private readonly ManualLogSource _log;
@@ -235,6 +235,43 @@ namespace BrilliantQuesting.Plugin
             _log.LogWarning("Refused to " + what + ": " + why + ".");
         }
 
+        /// <summary>
+        /// The mutation policy turned a write down. Same log as every other refusal, because from
+        /// the player's side there is no difference between "the game would not" and "the mod
+        /// would not": both are a thing that did not happen and has to be findable.
+        /// </summary>
+        protected override void OnMutationRefused(string message) => _log.LogWarning(message);
+
+        /// <summary>
+        /// How far the mod may reach into this character. A character this build cannot resolve
+        /// is Unknown rather than ordinary - a stale binding must never be the thing that makes
+        /// somebody relocatable.
+        /// </summary>
+        protected override NarrativeActorClass GetActorClassCore(EntityId chara)
+        {
+            if (chara == PlayerId)
+            {
+                return NarrativeActorClass.Player;
+            }
+
+            Chara resolved = _bindings.ResolveChara(chara);
+            if (resolved == null)
+            {
+                return NarrativeActorClass.Unknown;
+            }
+
+            // Somebody this mod staged. The game made the Chara, but nothing in the game refers to
+            // them, so they carry none of the obligations classification exists to protect - and
+            // asking Elin whether one of our own refugees is story-critical would answer "not
+            // readable" on many builds and quietly close the shelter routes she exists for.
+            if (!ElinBindings.IsVanillaMinted(chara))
+            {
+                return NarrativeActorClass.Generated;
+            }
+
+            return ElinActorClasses.Classify(resolved, _log);
+        }
+
         /// <param name="absentReason">
         /// Why an empty probe means "not here" for this capability. Most reads are missing only
         /// when the runtime object is; a Home is also legitimately absent on a save where the
@@ -292,11 +329,13 @@ namespace BrilliantQuesting.Plugin
             }
         }
 
-        public EntityId PlayerId { get; private set; }
+        public override EntityId PlayerId => _playerId;
+
+        private EntityId _playerId;
 
         internal void BindPlayer(EntityId playerId)
         {
-            PlayerId = playerId;
+            _playerId = playerId;
             Chara pc = EClass.pc;
             if (pc != null)
             {
@@ -346,7 +385,7 @@ namespace BrilliantQuesting.Plugin
             return c?._affinity ?? 0;
         }
 
-        public void ChangeAffinity(EntityId chara, int delta)
+        protected override void ChangeAffinityCore(EntityId chara, int delta)
         {
             if (delta == 0 || !Supports(VanillaCapability.ReadWriteAffinity))
             {
@@ -374,7 +413,7 @@ namespace BrilliantQuesting.Plugin
 
         public int Karma => EClass.player?.karma ?? 0;
 
-        public void ChangeKarma(int delta)
+        protected override void ChangeKarmaCore(int delta)
         {
             if (delta == 0 || !Supports(VanillaCapability.ReadWriteKarma) || !WithinBand("karma", delta))
             {
@@ -386,7 +425,7 @@ namespace BrilliantQuesting.Plugin
 
         public int Fame => EClass.player?.fame ?? 0;
 
-        public void ChangeFame(int delta)
+        protected override void ChangeFameCore(int delta)
         {
             if (delta == 0 || !Supports(VanillaCapability.ReadWriteFame) || !WithinBand("fame", delta))
             {
@@ -412,7 +451,7 @@ namespace BrilliantQuesting.Plugin
             return EClass.pc?.GetCurrency(InfluenceCurrency) ?? 0;
         }
 
-        public void ChangeInfluence(EntityId townId, int delta)
+        protected override void ChangeInfluenceCore(EntityId townId, int delta)
         {
             if (delta == 0 || !Supports(VanillaCapability.ReadWriteInfluence) || !WithinBand("influence", delta))
             {
@@ -481,7 +520,7 @@ namespace BrilliantQuesting.Plugin
         /// found is now a refusal. An unnamed one is a deliberate sink, which is how the contract
         /// reads in <c>SandboxVanillaState</c>: a fine or a bribe can leave the world.
         /// </summary>
-        public bool TrySpendMoney(EntityId payer, EntityId payee, int amount)
+        protected override bool TrySpendMoneyCore(EntityId payer, EntityId payee, int amount)
         {
             if (amount < 0 || !Supports(VanillaCapability.SpendMoney))
             {
@@ -644,7 +683,7 @@ namespace BrilliantQuesting.Plugin
         /// would tell the simulation an item changed hands when it did not, and every fact,
         /// consequence and piece of evidence downstream would be built on that.
         /// </summary>
-        public bool TryTransferItem(EntityId itemId, EntityId from, EntityId to)
+        protected override bool TryTransferItemCore(EntityId itemId, EntityId from, EntityId to)
         {
             if (!Supports(VanillaCapability.TransferItems) || from == to)
             {
@@ -696,7 +735,7 @@ namespace BrilliantQuesting.Plugin
         /// and a burned ledger that is somehow still in the pack would leave a case unprovable
         /// while the evidence for it sat in the player's inventory.
         /// </summary>
-        public bool TryDestroyItem(EntityId itemId, EntityId holder)
+        protected override bool TryDestroyItemCore(EntityId itemId, EntityId holder)
         {
             if (!Supports(VanillaCapability.DestroyItems))
             {
@@ -759,7 +798,7 @@ namespace BrilliantQuesting.Plugin
         /// afterwards. Gated on the capability, unlike the read: this one alters a save, so a
         /// build whose probe found no member to call must not try the call anyway.
         /// </summary>
-        public bool TryAdmitResident(EntityId chara)
+        protected override bool TryAdmitResidentCore(EntityId chara)
         {
             if (!Supports(VanillaCapability.WriteHomeResidents) || chara.IsNone || chara == PlayerId)
             {

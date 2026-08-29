@@ -110,4 +110,14 @@ The write is verified rather than trusted: the adapter tells the branch and then
 
 Reason: the six Home Skill elements are vanilla's arithmetic over who lives at the settlement and what they do, and they are what the player watches on the Home board. A procedural layer that wrote them directly would be a second settlement economy disagreeing with the visible one, in the same way a procedural crafting roll would disagree with Elin's (D014). Taking somebody in changes the settlement because the game recomputes it from the new resident, not because the mod decided what a refugee is worth. And an unverified write would leave a `sheltered_by` fact standing over a Home that never took anybody - the stale-binding failure D011 exists to prevent, wearing a different hat.
 
+## D019 — The mutation gate is the seam, and an unclassified actor never gains a reach
+
+Every write into Elin is declared on `IVanillaState` with `[VanillaMutation]`, naming the `MutationKind` it performs and which parameters are the actor it performs it on. The public writes are implemented once, on `VanillaStateBase`, which checks `MutationPolicies` and only then calls the implementation's unguarded half. Both `SandboxVanillaState` and `ElinVanillaState` derive from it, so the verbs and the consequence engine consult the policy by construction rather than by remembering to.
+
+The classification comes from the game (`IVanillaState.GetActorClass`), never from the world model, and a build that cannot answer reports `Unknown`. `Unknown` keeps the reversible reaches - dialogue, standing, things and money - and is refused relocation, absence and death. So an unreadable build costs no content and still cannot move or remove a story-critical NPC.
+
+Reason: threading a check through forty call sites means forty places to forget, and the risk is precisely the write nobody remembered. Putting the check where the call sites converge makes "every mutation consults a policy" a property of the contract, testable by walking the seam rather than by enumerating verbs. Failing towards the actor's protection rather than towards the mod's convenience is the same rule as D017, applied to permission instead of to data: an answer the game did not give must never be read as consent.
+
+The gate is a floor, not a substitute for a precondition. A verb whose write the policy will certainly refuse should be absent rather than offered and declined, which is why the bed-spending Home verbs ask `MayMutate` in `GetAvailability`.
+
 Add a new entry only when the decision is both load-bearing and durable.
