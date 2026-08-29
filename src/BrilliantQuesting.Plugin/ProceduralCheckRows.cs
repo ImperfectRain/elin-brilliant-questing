@@ -87,6 +87,30 @@ namespace BrilliantQuesting.Plugin
                 log, source, ProceduralCheckProfiles.Corroboration,
                 ActorAttribute(VanillaAttribute.Learning, 0.35f),
                 ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Burglary,
+                ActorSkill(VanillaSkill.Lockpicking, 0.35f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.CoveringTracks,
+                ActorSkill(VanillaSkill.Stealth, 0.4f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Sabotage,
+                ActorAttribute(VanillaAttribute.Dexterity, 0.3f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Extortion,
+                ActorSkill(VanillaSkill.Negotiation, 0.25f),
+                TargetAttribute(VanillaAttribute.Will, 0.4f));
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Fencing,
+                ActorSkill(VanillaSkill.Appraising, 0.3f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Smuggling,
+                ActorSkill(VanillaSkill.Stealth, 0.3f),
+                ElementProjection.None);
 
             log.LogInfo("Installed " + installed + " procedural Check row(s) for native difficulty text.");
         }

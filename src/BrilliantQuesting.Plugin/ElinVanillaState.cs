@@ -146,6 +146,10 @@ namespace BrilliantQuesting.Plugin
                 () => EClass.pc == null || EClass.pc.things == null ? null : "Chara.Pick transfer path available; source inventory count " + EClass.pc.things.Count);
 
             Probe(
+                VanillaCapability.DestroyItems,
+                () => EClass.pc == null || EClass.pc.things == null ? null : "Thing.Destroy path available; holder inventory read back after the call");
+
+            Probe(
                 VanillaCapability.SpendMoney,
                 () =>
                 {
@@ -564,6 +568,55 @@ namespace BrilliantQuesting.Plugin
             }
 
             return arrived;
+        }
+
+        /// <summary>
+        /// Takes a real object out of the world, and reports whether it actually went.
+        ///
+        /// <c>Destroy</c> is checked the same way <see cref="TryTransferItem"/> checks
+        /// <c>Pick</c>: by asking the holder afterwards rather than by trusting the call. The
+        /// simulation revokes every proof that rested on this object the moment this returns true,
+        /// and a burned ledger that is somehow still in the pack would leave a case unprovable
+        /// while the evidence for it sat in the player's inventory.
+        /// </summary>
+        public bool TryDestroyItem(EntityId itemId, EntityId holder)
+        {
+            if (!Supports(VanillaCapability.DestroyItems))
+            {
+                return false;
+            }
+
+            Chara owner = _bindings.ResolveChara(holder);
+            if (owner == null)
+            {
+                Refuse("destroy item", holder + " is not bound to a live character");
+                return false;
+            }
+
+            Thing thing = _bindings.ResolveThing(itemId, owner);
+            if (thing == null)
+            {
+                return false;
+            }
+
+            string name = thing.Name;
+            try
+            {
+                thing.Destroy();
+            }
+            catch (Exception ex)
+            {
+                Refuse("destroy item", name + " could not be destroyed (" + ex.GetType().Name + ")");
+                return false;
+            }
+
+            bool gone = _bindings.ResolveThing(itemId, owner) == null;
+            if (!gone)
+            {
+                Refuse("destroy item", name + " is still in " + owner.Name + "'s keeping");
+            }
+
+            return gone;
         }
 
         // -- world ----------------------------------------------------------------------------

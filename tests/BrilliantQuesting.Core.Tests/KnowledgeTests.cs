@@ -101,6 +101,45 @@ namespace BrilliantQuesting.Tests
             Assert.False(knowledge.CanProve(Victim, theft.Id));
         }
 
+        /// <summary>
+        /// A claim standing on two objects loses one leg when one of them burns, and keeps the
+        /// other. The fact-keyed revocation cannot express that - it takes every physical proof
+        /// the claim has - which is why destroying a thing is keyed by the thing.
+        /// </summary>
+        [Fact]
+        public void BurningOneObjectLeavesTheOtherEvidenceStanding()
+        {
+            (KnowledgeGraph knowledge, Fact theft) = Scene();
+            EntityId ledger = EntityId.Parse("item_2");
+            theft.EvidenceIds.Add(ledger);
+            knowledge.Teach(Victim, theft.Id, KnowledgeSource.Document, 0.9, GameTime.Zero, canProve: true);
+            Assert.Equal(2, knowledge.ProofsFor(Victim, theft.Id).Count);
+
+            knowledge.RevokeProofOfItem(EntityId.Parse("item_1"));
+
+            Assert.True(knowledge.CanProve(Victim, theft.Id));
+            Assert.Equal(ledger, Assert.Single(knowledge.ProofsFor(Victim, theft.Id)).Entity);
+        }
+
+        /// <summary>
+        /// Selling a thing is not unmaking it. The seller cannot produce it any more; whoever has
+        /// it now still can, and both people still know perfectly well what it showed.
+        /// </summary>
+        [Fact]
+        public void PartingWithAnObjectCostsOnlyTheSellerTheirProof()
+        {
+            (KnowledgeGraph knowledge, Fact theft) = Scene();
+            EntityId ring = EntityId.Parse("item_1");
+            knowledge.Teach(Victim, theft.Id, KnowledgeSource.Document, 0.9, GameTime.Zero, canProve: true);
+            knowledge.Teach(Guard, theft.Id, KnowledgeSource.Document, 0.9, GameTime.Zero, canProve: true);
+
+            knowledge.RevokeProofOfItem(Victim, ring);
+
+            Assert.False(knowledge.CanProve(Victim, theft.Id));
+            Assert.True(knowledge.Knows(Victim, theft.Id));
+            Assert.True(knowledge.CanProve(Guard, theft.Id));
+        }
+
         [Fact]
         public void AStrongerSourceUpgradesABeliefButWeakGossipDoesNotDowngradeIt()
         {

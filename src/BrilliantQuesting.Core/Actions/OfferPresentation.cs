@@ -43,6 +43,14 @@ namespace BrilliantQuesting.Actions
                 case "search_records":
                 case "compare_testimony":
                 case "track":
+                // Criminal routes to the same two things. Breaking in is what makes a locked
+                // place searchable and having papers made is what makes an unprovable belief
+                // provable, so on the "earns the proof" tier they sit exactly where the honest
+                // verbs that do the same job sit. A surface that quietly hid them would be
+                // telling a criminal build it had no route, which is the failure this whole
+                // table exists to prevent.
+                case "trespass":
+                case "forge":
                     return 1;
 
                 // Moves someone who is not yet willing.
@@ -50,6 +58,8 @@ namespace BrilliantQuesting.Actions
                 case "intimidate":
                 case "bribe":
                 case "pickpocket":
+                case "extort":
+                case "impersonate":
                     return 2;
 
                 // Real routes - standing rule 14, a valid ugly solution is still a solution - but
@@ -62,6 +72,13 @@ namespace BrilliantQuesting.Actions
                 // in front of the player, so they never displace a verb that moves the situation.
                 case "follow":
                 case "eavesdrop":
+                // Disposal and damage. Each is somebody's whole answer to some problem, and none
+                // of them advances the one in front of the player - covering your tracks is what
+                // you do instead of solving it.
+                case "fence":
+                case "smuggle":
+                case "sabotage":
+                case "destroy_evidence":
                     return 3;
 
                 default:

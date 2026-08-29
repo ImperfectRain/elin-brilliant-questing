@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
+using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions.Library
 {
@@ -8,6 +11,51 @@ namespace BrilliantQuesting.Actions.Library
     internal static class ActionSupport
     {
         private static readonly EntityId[] NoWitnesses = new EntityId[0];
+
+        /// <summary>The place the actor is standing in, as the simulation understands places.</summary>
+        public static NarrativeSite SiteHere(ActionContext context)
+        {
+            return context.World.Registry.GetSite(context.Zone);
+        }
+
+        /// <summary>
+        /// One object out of somebody's keeping.
+        ///
+        /// An explicitly named <see cref="ActionContext.SubjectItem"/> wins outright when it is
+        /// there and acceptable, and is never silently replaced with something else: a player who
+        /// pointed at the ledger did not mean "or whatever else is in the bag". With nothing named,
+        /// the first acceptable object in carry order is taken, so the same pack answers the same
+        /// way twice.
+        /// </summary>
+        public static ItemDescriptor FindItem(ActionContext context, EntityId owner, Func<ItemDescriptor, bool> accepts = null)
+        {
+            if (owner.IsNone)
+            {
+                return null;
+            }
+
+            IReadOnlyList<ItemDescriptor> inventory = context.Vanilla.GetInventory(owner);
+            for (int i = 0; i < inventory.Count; i++)
+            {
+                ItemDescriptor item = inventory[i];
+                if (item == null || (accepts != null && !accepts(item)))
+                {
+                    continue;
+                }
+
+                if (context.SubjectItem.IsNone)
+                {
+                    return item;
+                }
+
+                if (item.Id == context.SubjectItem)
+                {
+                    return item;
+                }
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Something the target knows that the actor does not. This is what makes a conversation

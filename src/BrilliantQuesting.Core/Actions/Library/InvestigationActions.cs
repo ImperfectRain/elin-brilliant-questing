@@ -4,6 +4,7 @@ using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions.Library
 {
@@ -130,7 +131,17 @@ namespace BrilliantQuesting.Actions.Library
                 return fact.Subject;
             }
 
-            return Carries(context, context.Zone, evidenceId) ? context.Zone : EntityId.None;
+            // What the place itself keeps - a shelf, a strongbox, a locked cabinet - is reachable
+            // only if the place opens to you. A shop does; a counting house behind a lock does not,
+            // until somebody either lets you in or you let yourself in. Sites say nothing about
+            // this unless a situation makes a point of it, so the ordinary room is unchanged.
+            if (!Carries(context, context.Zone, evidenceId))
+            {
+                return EntityId.None;
+            }
+
+            NarrativeSite site = ActionSupport.SiteHere(context);
+            return site == null || site.Admits(context.Actor) ? context.Zone : EntityId.None;
         }
 
         private static bool Carries(ActionContext context, EntityId owner, EntityId itemId)

@@ -135,6 +135,9 @@ namespace BrilliantQuesting.Integration
         /// Removes an object from the world entirely - burned, eaten, sold out of reach. Evidence
         /// being destroyed is a real move in this game, so the reference implementation has to be
         /// able to express it.
+        ///
+        /// The authoring form, which does not care who was holding it.
+        /// <see cref="TryDestroyItem"/> is the contract form, and names a holder.
         /// </summary>
         public void DestroyItem(EntityId itemId)
         {
@@ -278,6 +281,30 @@ namespace BrilliantQuesting.Integration
                     ItemDescriptor item = source[i];
                     source.RemoveAt(i);
                     Ensure(to).Inventory.Add(item);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// The object is gone or the call is refused. Destroying something the named holder is not
+        /// carrying reports false and leaves every inventory alone.
+        /// </summary>
+        public bool TryDestroyItem(EntityId itemId, EntityId holder)
+        {
+            if (!Supports(VanillaCapability.DestroyItems) || itemId.IsNone || holder.IsNone)
+            {
+                return false;
+            }
+
+            List<ItemDescriptor> inventory = Ensure(holder).Inventory;
+            for (int i = 0; i < inventory.Count; i++)
+            {
+                if (inventory[i].Id == itemId)
+                {
+                    inventory.RemoveAt(i);
                     return true;
                 }
             }

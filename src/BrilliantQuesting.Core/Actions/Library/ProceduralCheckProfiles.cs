@@ -120,6 +120,59 @@ namespace BrilliantQuesting.Actions.Library
             .WithActorAttribute(VanillaAttribute.Learning, 0.2)
             .WithTargetAttribute(VanillaAttribute.Perception, 0.3);
 
+        /// <summary>
+        /// Getting past a lock, a shutter or a back door that is not yours.
+        ///
+        /// Uncontested, because a strongbox is not a person. The difficulty is the thing itself
+        /// and whoever happens to be standing about, and both arrive as situational terms.
+        /// </summary>
+        public static readonly CheckProfile Burglary = new CheckProfile("proc_burglary", 13)
+            .WithActorSkill(VanillaSkill.Lockpicking, 0.35)
+            .WithActorSkill(VanillaSkill.Stealth, 0.25)
+            .WithActorAttribute(VanillaAttribute.Dexterity, 0.2);
+
+        /// <summary>
+        /// Getting rid of something without leaving the getting-rid-of behind.
+        ///
+        /// Easier than <see cref="Sabotage"/>, because destroying a paper takes no craft at all -
+        /// what takes some is being nowhere near it when anybody thinks to look.
+        /// </summary>
+        public static readonly CheckProfile CoveringTracks = new CheckProfile("proc_covering_tracks", 10)
+            .WithActorSkill(VanillaSkill.Stealth, 0.4)
+            .WithActorAttribute(VanillaAttribute.Dexterity, 0.2);
+
+        /// <summary>Breaking the thing somebody depends on, in a way that is not obviously breaking.</summary>
+        public static readonly CheckProfile Sabotage = new CheckProfile("proc_sabotage", 13)
+            .WithActorSkill(VanillaSkill.Stealth, 0.25)
+            .WithActorAttribute(VanillaAttribute.Dexterity, 0.3)
+            .WithActorAttribute(VanillaAttribute.Learning, 0.15);
+
+        /// <summary>
+        /// Naming your price for staying quiet. Leans on the target's Will and their standing,
+        /// because squeezing somebody with a great deal to lose is a different job to squeezing
+        /// somebody with nothing.
+        /// </summary>
+        public static readonly CheckProfile Extortion = new CheckProfile("proc_extortion", 13)
+            .WithActorSkill(VanillaSkill.Negotiation, 0.25)
+            .WithActorAttribute(VanillaAttribute.Will, 0.2)
+            .WithTargetAttribute(VanillaAttribute.Will, 0.4)
+            .WithTargetLevel(0.2);
+
+        /// <summary>
+        /// Agreeing a price for something that cannot be sold over a counter. Appraising earns its
+        /// place here: knowing what a thing is worth is the whole of not being cheated.
+        /// </summary>
+        public static readonly CheckProfile Fencing = new CheckProfile("proc_fencing", 11)
+            .WithActorSkill(VanillaSkill.Negotiation, 0.3)
+            .WithActorSkill(VanillaSkill.Appraising, 0.3)
+            .WithActorAttribute(VanillaAttribute.Charisma, 0.1);
+
+        /// <summary>Putting a thing on a road nobody watches.</summary>
+        public static readonly CheckProfile Smuggling = new CheckProfile("proc_smuggling", 12)
+            .WithActorSkill(VanillaSkill.Stealth, 0.3)
+            .WithActorSkill(VanillaSkill.Travel, 0.2)
+            .WithActorSkill(VanillaSkill.Negotiation, 0.15);
+
         /// <summary>Being believed when you make a public claim.</summary>
         public static readonly CheckProfile Credibility = new CheckProfile("proc_credibility", 12)
             .WithActorSkill(VanillaSkill.Negotiation, 0.3)
@@ -157,6 +210,17 @@ namespace BrilliantQuesting.Actions.Library
                 case "expose": return Credibility;
                 case "pickpocket": return Pickpocketing;
                 case "frame": return Fabrication;
+                case "forge": return Fabrication;
+                case "trespass": return Burglary;
+                case "destroy_evidence": return CoveringTracks;
+                case "sabotage": return Sabotage;
+                case "extort": return Extortion;
+                case "fence": return Fencing;
+                case "smuggle": return Smuggling;
+
+                // Passing yourself off as somebody else is not a separate craft from lying; it is
+                // lying with a prop, and it is read off the same vanilla values.
+                case "impersonate": return Deception;
                 default: return null;
             }
         }

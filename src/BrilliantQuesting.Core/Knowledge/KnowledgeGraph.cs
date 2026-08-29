@@ -199,6 +199,54 @@ namespace BrilliantQuesting.Knowledge
             }
         }
 
+        /// <summary>
+        /// One object has left the world, so nobody can produce it any more - whatever it was
+        /// being used to prove, and whoever was relying on it.
+        ///
+        /// Keyed by the object rather than by a fact, which is the distinction
+        /// <see cref="RevokeProof(EntityId)"/> cannot make: a claim resting on two objects loses
+        /// one leg when one of them burns, and should keep the other. Passing an item id to the
+        /// fact-keyed overload silently matches nothing and revokes nothing at all, which is a
+        /// destroyed ledger that everybody can still somehow produce.
+        /// </summary>
+        public void RevokeProofOfItem(EntityId itemId)
+        {
+            if (itemId.IsNone)
+            {
+                return;
+            }
+
+            foreach (Dictionary<EntityId, KnowledgeRecord> byFact in _beliefs.Values)
+            {
+                foreach (KnowledgeRecord record in byFact.Values)
+                {
+                    record.Proofs.RemoveAll(proof => proof.Kind == ProofKind.PhysicalEvidence && proof.Entity == itemId);
+                }
+            }
+        }
+
+        /// <summary>
+        /// One person no longer has one object, so anything of theirs that rested on it is no
+        /// longer something they can demonstrate.
+        ///
+        /// The narrow counterpart to <see cref="RevokeProofOfItem(EntityId)"/>: the ring still
+        /// exists, and whoever holds it now can still produce it. What has changed is that this
+        /// person cannot, which is the state selling, smuggling or losing a piece of evidence
+        /// leaves behind. Their belief is untouched - they know perfectly well what they sold.
+        /// </summary>
+        public void RevokeProofOfItem(EntityId knower, EntityId itemId)
+        {
+            if (itemId.IsNone || !_beliefs.TryGetValue(knower, out Dictionary<EntityId, KnowledgeRecord> byFact))
+            {
+                return;
+            }
+
+            foreach (KnowledgeRecord record in byFact.Values)
+            {
+                record.Proofs.RemoveAll(proof => proof.Kind == ProofKind.PhysicalEvidence && proof.Entity == itemId);
+            }
+        }
+
         private static readonly KnowledgeRecord[] EmptyBeliefs = new KnowledgeRecord[0];
         private static readonly ProofLink[] EmptyProofs = new ProofLink[0];
 

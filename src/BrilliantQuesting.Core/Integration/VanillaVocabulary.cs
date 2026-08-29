@@ -66,6 +66,16 @@ namespace BrilliantQuesting.Integration
         ReadFaith,
         ReadInventory,
         TransferItems,
+
+        /// <summary>
+        /// Objects can be taken out of the world for good.
+        ///
+        /// Separate from <see cref="TransferItems"/> because destruction is the irreversible one:
+        /// a build where moving a thing works but unmaking it does not is perfectly ordinary, and
+        /// a burned ledger that quietly stayed in somebody's pack would leave the simulation
+        /// believing evidence was gone while the game still had it.
+        /// </summary>
+        DestroyItems,
         SpendMoney,
         ReadHomeState,
         ObserveCrimeWitnesses

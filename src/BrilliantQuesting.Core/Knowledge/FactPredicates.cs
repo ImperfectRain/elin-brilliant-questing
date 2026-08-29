@@ -32,6 +32,19 @@ namespace BrilliantQuesting.Knowledge
         public const string Investigating = "investigating";
 
         /// <summary>
+        /// Somebody made a document say a thing it was never party to.
+        ///
+        /// Subject is whoever did the work, object is the paper. It is a fact in its own right and
+        /// a true one, which is the whole point: a forgery that only existed as a flag on the
+        /// document it produced could never be found out, and the thing that makes forging
+        /// interesting is that it can be.
+        /// </summary>
+        public const string Forged = "forged";
+
+        /// <summary>One person is squeezing another over something they would rather stayed quiet.</summary>
+        public const string Extorted = "extorted";
+
+        /// <summary>
         /// Whether this is the kind of thing people repeat to each other.
         ///
         /// Gossip is about what happened, not about how the world is arranged. "Kip stole the
@@ -57,6 +70,8 @@ namespace BrilliantQuesting.Knowledge
                 case IsDead:
                 case Witnessed:
                 case Investigating:
+                case Forged:
+                case Extorted:
                 // How somebody died travels for the same reason the death does, and it is the
                 // half that changes what anyone does about it.
                 case KilledBy:

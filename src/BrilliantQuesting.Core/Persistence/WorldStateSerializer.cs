@@ -187,8 +187,10 @@ namespace BrilliantQuesting.Persistence
                     .Set("danger", site.DangerLevel)
                     .Set("persistence", (int)site.Persistence)
                     .Set("seed", site.GenerationSeed.ToString())
+                    .Set("restricted", site.Restricted)
                     .Set("occupants", Ids(site.OccupantIds))
-                    .Set("objects", Ids(site.ImportantObjectIds)));
+                    .Set("objects", Ids(site.ImportantObjectIds))
+                    .Set("admitted", Ids(site.AdmittedIds)));
             }
 
             return array;
@@ -425,7 +427,11 @@ namespace BrilliantQuesting.Persistence
                     ControllingOrganizationId = EntityId.Parse(json.GetString("controller")),
                     DangerLevel = json.GetInt("danger"),
                     Persistence = (SitePersistence)json.GetInt("persistence"),
-                    GenerationSeed = ulong.Parse(json.GetString("seed", "0"))
+                    GenerationSeed = ulong.Parse(json.GetString("seed", "0")),
+
+                    // Additive and optional: a save written before locked places existed has no
+                    // node here, reads back as an open site, and behaves exactly as it did.
+                    Restricted = json.GetBool("restricted")
                 };
 
                 foreach (JsonValue occupant in json.GetArray("occupants"))
@@ -436,6 +442,11 @@ namespace BrilliantQuesting.Persistence
                 foreach (JsonValue thing in json.GetArray("objects"))
                 {
                     site.ImportantObjectIds.Add(EntityId.Parse(thing.StringValue));
+                }
+
+                foreach (JsonValue admitted in json.GetArray("admitted"))
+                {
+                    site.Admit(EntityId.Parse(admitted.StringValue));
                 }
 
                 world.Registry.Add(site);

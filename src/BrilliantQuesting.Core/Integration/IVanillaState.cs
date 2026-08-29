@@ -64,6 +64,16 @@ namespace BrilliantQuesting.Integration
 
         bool TryTransferItem(EntityId itemId, EntityId from, EntityId to);
 
+        /// <summary>
+        /// Takes an object out of the world permanently, and reports whether it actually went.
+        ///
+        /// Burning a ledger, melting a ring, feeding a note to a fire. The caller names the holder
+        /// so the adapter looks in one inventory rather than searching the map for anything with
+        /// that id - and so a request to destroy something the holder is not carrying fails
+        /// instead of quietly reaching across the world for it.
+        /// </summary>
+        bool TryDestroyItem(EntityId itemId, EntityId holder);
+
         // -- world ------------------------------------------------------------------------
         EntityId GetZoneOf(EntityId entity);
 

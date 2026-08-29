@@ -62,6 +62,7 @@ vanilla rows only where they map cleanly.
 | influence | `Card.GetCurrency("influence")` / `ModCurrency(a, "influence")` - **not** `Player.expInfluence` |
 | attributes / skills | `ElementContainer.Value(int ele)`, `ValueWithoutLink(string alias)`; `Chara.elements` |
 | inventory | `Card.things` (`ThingContainer`), `Chara.Pick(Thing, bool, bool)`, `Chara.DropThing(Thing, int)` |
+| destroying a thing | `Card.Destroy()` — **not runtime-verified**, see below |
 | money | `Card.GetCurrency(string id)`, `Card.ModCurrency(int a, string id)` |
 | zone occupants | `Zone.FindChara(int uid)`, `Zone.FindChara(string id)`, `Zone.AddChara(string, Point)` |
 
@@ -287,6 +288,12 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
 - Drama choice injection — `EVENT.DramaParseAction` located, not yet used.
 - Crime witness observation — `EVENT.ActPerformed` located, not yet used.
 - Whether the element aliases in `ElementAliases.cs` are correct.
+- Whether `Card.Destroy()` actually removes a thing from its holder's `things`, and whether it is
+  safe on an object a quest or a container still references. `TryDestroyItem` therefore reads the
+  holder's inventory back afterwards and reports false unless the object really went, exactly as
+  the transfer path does — a destructive verb that lied would leave a case unprovable while the
+  evidence sat in the player's pack. `DestroyItems` is probed separately from `TransferItems`
+  because a build where moving works and unmaking does not is an ordinary thing to find.
 - Elin's `Thing.category.id` vocabulary. The adapter reads it into `ItemDescriptor.CategoryTag`,
   but the actual ids for corpses, documents and drinkables have not been read off a running game.
   The investigation verbs therefore match category *and* item name against a keyword list, and the
