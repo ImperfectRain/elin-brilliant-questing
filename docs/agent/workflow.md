@@ -78,7 +78,22 @@ Continue the same context when:
 
 If a long task must survive a reset, temporarily fill `docs/agent/active-task.md`.
 
-## 7. Handoffs
+## 7. Branch flow
+
+The authoritative primary development branch is `claude/elin-procedural-narrative-tkctw9`.
+
+Start normal development from the current primary development branch. Temporary agent/task
+branches are disposable workspaces, not independent long-lived development lines, and old task
+branches should not become the starting point for future work after their commits are integrated.
+
+One coherent BQ step should normally produce one commit. Once validated, a completed linear task
+branch should be fast-forwarded into the primary development branch before starting the next
+unrelated BQ step whenever the environment permits.
+
+Never force-update the central branch unless explicitly required and reviewed. Never discard unique
+commits merely to simplify branch topology.
+
+## 8. Handoffs
 
 Use `active-task.md` only when Git and the user prompt are insufficient to resume unfinished work.
 
@@ -94,7 +109,7 @@ Record:
 
 Keep it short. Reset/delete the filled handoff when the task is complete. Never treat it as authoritative current project state.
 
-## 8. Audits and subagents
+## 9. Audits and subagents
 
 Do not perform a global audit on every implementation step.
 
@@ -107,7 +122,7 @@ Use subagents only for separable investigations such as:
 
 Do not split Core, Plugin, tests, docs, and synthesis across agents merely for parallelism if each must reconstruct the same repository context.
 
-## 9. Model/effort routing
+## 10. Model/effort routing
 
 Use the least expensive reasoning level that reliably preserves quality.
 
@@ -122,7 +137,7 @@ Escalate for:
 
 A strong model can decide the architecture; implementation can often proceed with a cheaper model once the decision is recorded.
 
-## 10. Completion
+## 11. Completion
 
 Before declaring completion:
 - check the relevant done-when criterion;
@@ -133,7 +148,7 @@ Before declaring completion:
 
 Do not write a new permanent state summary after every commit.
 
-## 11. Commit messages
+## 12. Commit messages
 
 Routine BQ commit bodies should normally be concise: roughly 100-250 words, or equivalent. Include
 the behavior changed, important constraints, validation run, and non-obvious decisions. Use longer
