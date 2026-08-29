@@ -18,6 +18,7 @@ namespace BrilliantQuesting.Actions.Library
                 .Register(new LieAction())
                 .Register(new IntimidateAction())
                 .Register(new BribeAction())
+                .Register(new PayDebtAction())
                 .Register(new SearchForEvidenceAction())
                 .Register(new ExposeSecretAction())
                 .Register(new ReportToAuthorityAction())
