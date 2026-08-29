@@ -108,6 +108,12 @@ And the same situation with the player never turning up at all:
   not. Goods Elin already finished are handed over with no roll at all, because the game decided
   what came out and how good it is; the check exists only for working from raw stock, where the
   standard being asked for sets both the difficulty and how much stock the work eats.
+- **Devotion is a route, not a modifier.** Which god a matter is in the gift of is a fact the
+  situation states, so a worshipper of his has a way through it and a follower of another god is
+  refused by name rather than handed longer odds. What it takes is real Elin state - who you
+  follow, your piety, and goods laid on an altar and gone for good - and a botched asking takes
+  the matter out of that god's gift for everybody. Nothing in the simulation knows what Kumiromi
+  is the god of; it only reads who the player follows and compares.
 - **Standing opens doors, not dice.** Thieves Guild rank and Karma decide who will do criminal work
   *for* you - a receiver, a forger, a carrier. They never decide whether you may pick a lock, lean
   on somebody or break their cart. That is the difference between a build having fewer options and

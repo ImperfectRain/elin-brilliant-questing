@@ -128,23 +128,10 @@ namespace BrilliantQuesting.Actions.Library
             }
 
             string[] words = value.Trim().Split(' ');
-            string category = words[0];
-            int quality = 0;
-            int worth = 0;
-
-            for (int i = 1; i < words.Length - 1; i++)
-            {
-                if (words[i] == "quality")
-                {
-                    int.TryParse(words[i + 1], NumberStyles.Integer, CultureInfo.InvariantCulture, out quality);
-                }
-                else if (words[i] == "worth")
-                {
-                    int.TryParse(words[i + 1], NumberStyles.Integer, CultureInfo.InvariantCulture, out worth);
-                }
-            }
-
-            return new ProductionSpec(category, quality, worth);
+            return new ProductionSpec(
+                words[0],
+                ActionSupport.ReadNumber(words, "quality"),
+                ActionSupport.ReadNumber(words, "worth"));
         }
     }
 
@@ -718,7 +705,7 @@ namespace BrilliantQuesting.Actions.Library
                 evidence: new[] { broken.Id },
                 threadId: context.Thread?.Id ?? EntityId.None));
 
-            int closed = CloseDemandsOn(context, broken.Id, outcome);
+            int closed = ActionSupport.CloseDemandsOn(context, broken.Id, outcome);
             outcome.Notes.Add(closed == 0
                 ? "nobody was waiting on the " + broken.Name
                 : closed + " shortage(s) the " + broken.Name + " was causing are over");
@@ -759,31 +746,6 @@ namespace BrilliantQuesting.Actions.Library
             context.World.Knowledge.RevokeProofOfItem(broken.Id);
             outcome.Notes.Add("the " + broken.Name + " is gone; nothing can be mended and nothing proved by it");
             return outcome;
-        }
-
-        private static int CloseDemandsOn(ActionContext context, EntityId cause, ActionOutcome outcome)
-        {
-            if (context.Thread == null)
-            {
-                return 0;
-            }
-
-            int closed = 0;
-            for (int i = 0; i < context.Thread.FactIds.Count; i++)
-            {
-                Fact fact = context.World.Knowledge.GetFact(context.Thread.FactIds[i]);
-                if (fact != null
-                    && fact.Predicate == FactPredicates.Needs
-                    && fact.Truth == TruthState.True
-                    && fact.Object == cause)
-                {
-                    fact.Truth = TruthState.Superseded;
-                    outcome.Notes.Add("no longer wanted: " + ActionSupport.Describe(context, fact.Id));
-                    closed++;
-                }
-            }
-
-            return closed;
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
@@ -195,6 +196,67 @@ namespace BrilliantQuesting.Actions.Library
         {
             return !string.IsNullOrEmpty(haystack)
                    && haystack.IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        /// <summary>
+        /// Reads a "&lt;key&gt; &lt;number&gt;" pair out of a specification value, tolerantly.
+        ///
+        /// Every constraint the situation layer states lives in a fact's free value - what goods
+        /// have to be, what a god asks of whoever asks him - and they are all read back the same
+        /// way. Anything unparseable is worth zero rather than throwing, because a malformed
+        /// specification should cost its thresholds, not the whole route.
+        /// </summary>
+        public static int ReadNumber(string[] words, string key)
+        {
+            if (words == null)
+            {
+                return 0;
+            }
+
+            for (int i = 1; i < words.Length - 1; i++)
+            {
+                if (words[i] == key
+                    && int.TryParse(words[i + 1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int value))
+                {
+                    return value;
+                }
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Closes whatever this thing's failing was causing, and reports how many.
+        ///
+        /// The shared half of "answer the cause rather than the symptom". A shortage that names a
+        /// broken mill wheel and a hamlet that names a blighted field are the same shape: the
+        /// demand is a consequence of the object, so removing the object's trouble removes the
+        /// demand, once, rather than leaving it to be filled again next month. Shared because a
+        /// second copy of it would be a second answer to the question of what a cause closes.
+        /// </summary>
+        public static int CloseDemandsOn(ActionContext context, EntityId cause, ActionOutcome outcome)
+        {
+            if (context.Thread == null || cause.IsNone)
+            {
+                return 0;
+            }
+
+            int closed = 0;
+            for (int i = 0; i < context.Thread.FactIds.Count; i++)
+            {
+                Fact fact = context.World.Knowledge.GetFact(context.Thread.FactIds[i]);
+                if (fact != null
+                    && fact.Predicate == FactPredicates.Needs
+                    && fact.Truth == TruthState.True
+                    && fact.Object == cause)
+                {
+                    fact.Truth = TruthState.Superseded;
+                    outcome?.Notes.Add("no longer wanted: " + Describe(context, fact.Id));
+                    closed++;
+                }
+            }
+
+            return closed;
         }
 
         public static string Describe(ActionContext context, EntityId factId)

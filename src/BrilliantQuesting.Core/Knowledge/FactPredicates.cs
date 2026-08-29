@@ -65,6 +65,31 @@ namespace BrilliantQuesting.Knowledge
         public const string Produced = "produced";
 
         /// <summary>
+        /// Something falls within the domain of a deity, named in <see cref="Fact.Value"/>.
+        ///
+        /// Subject is either a place - ground an altar has made the god's - or the matter itself:
+        /// a blighted field, a barren herd, a spring that has stopped. The value is a
+        /// <c>DevotionSpec</c>, so the same predicate says both "this is Kumiromi's ground" and
+        /// "lifting this is in Kumiromi's gift, and he asks this much of whoever asks him".
+        ///
+        /// Stating it as a fact rather than as a table of gods and their portfolios is what keeps
+        /// the faith routes generatable: the situation says whose matter this is, and any
+        /// worshipper of that god can answer it. Nothing in the simulation has to know what
+        /// Kumiromi is the god of.
+        /// </summary>
+        public const string SacredTo = "sacred_to";
+
+        /// <summary>
+        /// Somebody has laid goods on a god's ground and they have not been spent yet.
+        ///
+        /// Subject is the giver, object is the ground, and <see cref="Fact.Value"/> carries the
+        /// deity and what the offering was worth. Standing rather than accumulated on a counter,
+        /// so that a petition can spend it, a save can carry it, and two small offerings can add
+        /// up to one the god will hear.
+        /// </summary>
+        public const string OfferedTo = "offered_to";
+
+        /// <summary>
         /// A thing is not working. Subject is the object itself, as with <see cref="IsDead"/>.
         ///
         /// The state a repair removes, and the state sabotage would leave behind if breaking

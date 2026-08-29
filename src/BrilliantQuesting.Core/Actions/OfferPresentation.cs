@@ -35,6 +35,10 @@ namespace BrilliantQuesting.Actions
                 // production verb whose absence would leave a maker with no route at all, and the
                 // one that belongs on the tier that must never be dropped.
                 case "craft_to_property":
+                // Where a matter is in a god's gift, asking him is the ending, and for a build
+                // that follows him it is frequently the only one. A surface that dropped it would
+                // be telling a devout player their situation has no way out.
+                case "invoke_blessing":
                     return 0;
 
                 // Earns the standing or the proof the resolutions need.
@@ -66,6 +70,9 @@ namespace BrilliantQuesting.Actions
                 case "alchemy":
                 case "build":
                 case "repair":
+                // Buys the standing the petition spends, the way searching buys the proof an
+                // accusation spends. Real, and never itself the ending.
+                case "make_offering":
                     return 1;
 
                 // Moves someone who is not yet willing.

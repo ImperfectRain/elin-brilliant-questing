@@ -79,6 +79,10 @@ namespace BrilliantQuesting.Consequences
                 // Making something is ordinary life. It is on the record because provenance
                 // matters later, not because anybody's opinion of anybody moves.
                 { WorldEventType.GoodsProduced, new ConsequenceProfile("made_something", MemoryWeight.Trivial, 0) },
+                // Devotion is ordinary life in Elin and nobody's opinion of anybody moves for
+                // it. It is on the record because a petition later spends it, and because what
+                // somebody gave up is worth being able to look back at.
+                { WorldEventType.OfferingMade, new ConsequenceProfile("made_an_offering", MemoryWeight.Routine, 0) },
                 { WorldEventType.CrimeWitnessed, new ConsequenceProfile("witnessed_a_crime", MemoryWeight.Notable, 0) },
                 { WorldEventType.CrimeReported, new ConsequenceProfile("reported_to_authorities", MemoryWeight.Important, -25, 0, karma: 2) },
                 { WorldEventType.RumorSpread, new ConsequenceProfile("heard_a_rumor", MemoryWeight.Routine, 0) },

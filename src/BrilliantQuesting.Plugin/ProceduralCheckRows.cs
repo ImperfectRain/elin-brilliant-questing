@@ -139,6 +139,15 @@ namespace BrilliantQuesting.Plugin
                 ActorSkill(VanillaSkill.Handicraft, 0.4f),
                 ElementProjection.None);
 
+            // Asking a god. Uncontested for the same reason the crafts are - the other party is
+            // not a character the resolver can read stats off - and what decides whether the
+            // attempt exists at all (who you follow, your piety, what is on the altar) is settled
+            // before any row is consulted.
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Devotion,
+                ActorSkill(VanillaSkill.Faith, 0.45f),
+                ElementProjection.None);
+
             log.LogInfo("Installed " + installed + " procedural Check row(s) for native difficulty text.");
         }
 

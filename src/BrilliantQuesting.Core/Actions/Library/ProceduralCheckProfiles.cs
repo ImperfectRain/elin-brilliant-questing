@@ -231,6 +231,20 @@ namespace BrilliantQuesting.Actions.Library
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.25)
             .WithActorAttribute(VanillaAttribute.Learning, 0.15);
 
+        /// <summary>
+        /// Asking a god for something in their gift.
+        ///
+        /// Uncontested, and deliberately so: a god is not a person you roll against, and whether
+        /// this one will hear you at all is settled by who you follow and what you have laid on
+        /// their ground before the dice come out. What is left for the check is how well the
+        /// asking goes, which is Elin's own Faith skill, the Will to ask for something large, and
+        /// the Magic that a granted power runs through.
+        /// </summary>
+        public static readonly CheckProfile Devotion = new CheckProfile("proc_devotion", 13)
+            .WithActorSkill(VanillaSkill.Faith, 0.45)
+            .WithActorAttribute(VanillaAttribute.Will, 0.2)
+            .WithActorAttribute(VanillaAttribute.Magic, 0.15);
+
         /// <summary>Being believed when you make a public claim.</summary>
         public static readonly CheckProfile Credibility = new CheckProfile("proc_credibility", 12)
             .WithActorSkill(VanillaSkill.Negotiation, 0.3)
@@ -286,6 +300,11 @@ namespace BrilliantQuesting.Actions.Library
                 // for a demand no kitchen or building site covers, read off the skill Elin already
                 // gives a jack-of-all-trades maker.
                 case "craft_to_property": return Craftsmanship;
+
+                // Asking is the only half of the faith family that can go wrong. Laying goods on
+                // an altar is not a skill test - either you have something to give and the god is
+                // yours, or you do not - so `make_offering` deliberately has no profile at all.
+                case "invoke_blessing": return Devotion;
 
                 // Passing yourself off as somebody else is not a separate craft from lying; it is
                 // lying with a prop, and it is read off the same vanilla values.

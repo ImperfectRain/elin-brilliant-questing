@@ -65,6 +65,16 @@ namespace BrilliantQuesting.Events
         /// to a thing somebody can be shown.
         /// </summary>
         GoodsProduced,
+
+        /// <summary>
+        /// Real goods were laid on a god's ground and are gone.
+        ///
+        /// The cost side of the faith routes, and the reason they are not a free menu entry: a
+        /// petition is paid for in things the player could have eaten, sold or given to somebody
+        /// who would have thanked them for it. Target is nobody - a god is not a character the
+        /// simulation holds standing with - so what the ledger records is the act and its price.
+        /// </summary>
+        OfferingMade,
         CrimeWitnessed,
         CrimeReported,
         RumorSpread,

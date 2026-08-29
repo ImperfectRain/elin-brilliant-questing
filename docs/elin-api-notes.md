@@ -64,6 +64,7 @@ vanilla rows only where they map cleanly.
 | inventory | `Card.things` (`ThingContainer`), `Chara.Pick(Thing, bool, bool)`, `Chara.DropThing(Thing, int)` |
 | destroying a thing | `Card.Destroy()` — **not runtime-verified**, see below |
 | money | `Card.GetCurrency(string id)`, `Card.ModCurrency(int a, string id)` |
+| deity / piety | `Chara.idFaith` (string), `Chara.elements.Value(85)` — the id **vocabulary** is unread, see below |
 | zone occupants | `Zone.FindChara(int uid)`, `Zone.FindChara(string id)`, `Zone.AddChara(string, Point)` |
 
 `Chara` carries a `uid`; that is the handle `EntityId` should map to, not a name.
@@ -313,6 +314,26 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
   property-constrained demands accept the wrong objects. Nothing found means quality reads zero,
   which every threshold refuses - the safe direction, and the same degraded behaviour described
   above. The candidate list is the first thing to correct off a live inventory dump.
+- What `Chara.idFaith` actually contains. The member resolves and the plugin reads it, but no
+  running game has been read for the *value*, so whether a Kumiromi worshipper reports
+  `"Kumiromi"`, a religion id such as `"harvest"`, or something else again is unknown. This is
+  now load-bearing: the faith routes compare that string against the deity a situation names, and
+  a vocabulary mismatch costs the whole route rather than degrading it. `DevotionSpec.SameDeity`
+  is therefore containment-tolerant and case-insensitive in both directions, so `"Kumiromi"`
+  matches `"godKumiromi"`, but it cannot bridge `"Kumiromi"` to `"harvest"`. The one-line fix, once
+  a live `idFaith` is read, is in the situation that names the god - not in the verb. An unread
+  deity is the empty string, which matches nobody including another empty string, so a build that
+  cannot report faith loses the family rather than being handed everyone's routes.
+- Whether piety (element `85`) reads non-zero on a devout character in play. A demand for piety is
+  a precondition rather than a modifier, so an element that silently reads zero would close the
+  faith routes for everybody rather than making them easier - visible, and the safe direction.
+- **`GetInventory` resolves a `Chara` and nothing else.** Things standing loose in a place are
+  invisible to the live adapter: `ElinBindings.ResolveChara` looks the id up as a character, so
+  `GetInventory(zone)` returns empty in game where the headless reference implementation returns
+  the room's contents. `repair` reaches a broken object that way and would find nothing in play.
+  Consecrated ground is therefore modelled as a fact about the *zone* rather than as an altar
+  `Thing` to be found standing in it, which keeps the faith verbs off that path entirely. Reading
+  a zone's things (`Zone.things` / the map's card list) is the fix when a step needs it.
 - Elin's `Thing.category.id` vocabulary. The adapter reads it into `ItemDescriptor.CategoryTag`,
   but the actual ids for corpses, documents and drinkables have not been read off a running game.
   The investigation verbs therefore match category *and* item name against a keyword list, and the
