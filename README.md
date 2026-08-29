@@ -96,9 +96,10 @@ And the same situation with the player never turning up at all:
   certain of something false; and believing a thing is not the same as being able to prove it.
   Rumour transmission loses confidence and never carries proof. This is the subsystem that makes
   witnesses, blackmail, alibis, coverups and framing work without a single bespoke quest script.
-- **Twelve reusable verbs** spanning six solution families, each of which resolves through a
+- **A library of reusable verbs** spanning six solution families, each resolving through a
   vanilla-shaped check with four outcomes. Options are hidden only for genuine impossibility - a
-  hopeless liar can still lie, and the critical failure is the interesting part.
+  hopeless liar can still lie, and the critical failure is the interesting part. A case can be
+  closed on physical evidence alone, without a single character being willing to talk.
 - **Escalation over time.** Situations deteriorate on milestones, not countdowns. Ignoring one
   changes the world rather than deleting the content.
 - **Save, migrate, reload.** Restored events are not re-dispatched, so loading a save never

@@ -132,6 +132,40 @@ namespace BrilliantQuesting.Knowledge
             return EmptyBeliefs;
         }
 
+        /// <summary>
+        /// The facts these real objects could substantiate - the inverse of
+        /// <see cref="Fact.EvidenceIds"/>.
+        ///
+        /// Investigation reads objects, not fact ids: somebody who picks up a vial has an object
+        /// and no idea what it is about, and the only honest way to answer "what does this tell
+        /// me?" is to ask the graph which facts hang off it. Without this query every examination
+        /// verb would have to be handed the answer by whatever surface offered it, which is the
+        /// same as being told.
+        ///
+        /// Takes a set rather than one id because the caller is normally holding a pack. Asking
+        /// per object would walk the whole fact store once per item, on a path that runs every
+        /// time the game asks what can be attempted here.
+        /// </summary>
+        public IEnumerable<Fact> FactsEvidencedBy(ICollection<EntityId> evidenceIds)
+        {
+            if (evidenceIds == null || evidenceIds.Count == 0)
+            {
+                yield break;
+            }
+
+            foreach (Fact fact in _facts.Values)
+            {
+                for (int i = 0; i < fact.EvidenceIds.Count; i++)
+                {
+                    if (evidenceIds.Contains(fact.EvidenceIds[i]))
+                    {
+                        yield return fact;
+                        break;
+                    }
+                }
+            }
+        }
+
         /// <summary>Everyone who currently believes a fact. Used for exposure and blackmail scope.</summary>
         public IEnumerable<EntityId> Knowers(EntityId factId)
         {

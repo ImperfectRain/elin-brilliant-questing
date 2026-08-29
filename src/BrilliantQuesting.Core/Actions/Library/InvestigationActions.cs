@@ -81,6 +81,13 @@ namespace BrilliantQuesting.Actions.Library
         /// <summary>
         /// Evidence is an ordinary Elin item sitting somewhere. If it is loose at the scene the
         /// player simply picks it up; if someone is carrying it, finding it is not taking it.
+        ///
+        /// Only what is *here* can be picked up. Searching a room used to reach through the world
+        /// to whoever the fact was about and take the object off them wherever they happened to
+        /// be, which made every other way of getting hold of evidence - going where it is,
+        /// following the person carrying it, lifting it out of a pocket - redundant, and quietly
+        /// contradicted the trace the search was supposed to be reading. A search that finds the
+        /// story but not the object still teaches the fact; it just cannot prove it.
         /// </summary>
         private static bool TryRecoverEvidence(ActionContext context, Fact fact)
         {
@@ -93,7 +100,7 @@ namespace BrilliantQuesting.Actions.Library
             {
                 EntityId evidenceId = fact.EvidenceIds[i];
                 EntityId holder = EvidenceHolder(context, evidenceId, fact);
-                if (context.Vanilla.TryTransferItem(evidenceId, holder, context.Actor))
+                if (!holder.IsNone && context.Vanilla.TryTransferItem(evidenceId, holder, context.Actor))
                 {
                     return true;
                 }
@@ -102,22 +109,47 @@ namespace BrilliantQuesting.Actions.Library
             return false;
         }
 
+        /// <summary>Whoever in this zone has the object, or nobody.</summary>
         private static EntityId EvidenceHolder(ActionContext context, EntityId evidenceId, Fact fact)
         {
             IReadOnlyList<EntityId> present = context.Vanilla.GetCharactersInZone(context.Zone);
             for (int i = 0; i < present.Count; i++)
             {
-                IReadOnlyList<ItemDescriptor> inventory = context.Vanilla.GetInventory(present[i]);
-                for (int j = 0; j < inventory.Count; j++)
+                if (Carries(context, present[i], evidenceId))
                 {
-                    if (inventory[j].Id == evidenceId)
-                    {
-                        return present[i];
-                    }
+                    return present[i];
                 }
             }
 
-            return fact.Subject.IsNone ? context.Zone : fact.Subject;
+            // A dead owner is not listed among the people in a zone, and a body with the evidence
+            // still on it is the ordinary case for anything that killed somebody.
+            if (!fact.Subject.IsNone
+                && context.Vanilla.GetZoneOf(fact.Subject) == context.Zone
+                && Carries(context, fact.Subject, evidenceId))
+            {
+                return fact.Subject;
+            }
+
+            return Carries(context, context.Zone, evidenceId) ? context.Zone : EntityId.None;
+        }
+
+        private static bool Carries(ActionContext context, EntityId owner, EntityId itemId)
+        {
+            if (owner.IsNone)
+            {
+                return false;
+            }
+
+            IReadOnlyList<ItemDescriptor> inventory = context.Vanilla.GetInventory(owner);
+            for (int i = 0; i < inventory.Count; i++)
+            {
+                if (inventory[i].Id == itemId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 
@@ -210,18 +242,9 @@ namespace BrilliantQuesting.Actions.Library
                     // The accusation rebounds: you have announced your interest to your target.
                     outcome = new ActionOutcome(Id, check, who + " thinks you are inventing it - and word gets back.");
                     outcome.Events.Add(context.World.Record(WorldEventType.FalseAccusation, context.Actor, fact.Subject, context.Now, 0.5, context.Zone, new[] { factId }, seen));
-                    if (!fact.Subject.IsNone && context.World.Registry.GetNpc(fact.Subject) != null)
-                    {
-                        Fact investigating = context.World.Knowledge.FindFact(context.Actor, FactPredicates.Investigating);
-                        if (investigating == null)
-                        {
-                            investigating = new Fact(context.World.NewId("fact"), context.Actor, FactPredicates.Investigating, fact.Subject);
-                            context.World.Knowledge.AddFact(investigating);
-                        }
-
-                        context.World.Knowledge.Teach(fact.Subject, investigating.Id, KnowledgeSource.Hearsay, 0.8, context.Now, false, context.Target);
-                        outcome.Notes.Add(context.NameOf(fact.Subject) + " learns you are accusing them");
-                    }
+                    ActionSupport.WarnUnderInvestigation(
+                        context, fact.Subject, context.Target, outcome,
+                        note: context.NameOf(fact.Subject) + " learns you are accusing them");
 
                     break;
                 }

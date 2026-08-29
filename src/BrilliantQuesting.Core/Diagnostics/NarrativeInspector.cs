@@ -40,7 +40,9 @@ namespace BrilliantQuesting.Diagnostics
             foreach (ActionOffer offer in offers)
             {
                 sb.Append(offer.Availability.IsAvailable ? "  [x] " : "  [ ] ");
-                sb.Append(offer.Action.Id.PadRight(14));
+                // Wide enough for the longest verb id; a column that runs into the next one makes
+                // the one surface that has to explain a procedural decision harder to read.
+                sb.Append(offer.Action.Id.PadRight(20));
                 sb.Append(offer.Action.Family.ToString().PadRight(14));
                 CheckProfile profile = ProceduralCheckProfiles.ForAction(offer.Action.Id);
                 sb.Append((profile == null ? "no check" : profile.Id + " dc" + profile.BaseDifficulty).PadRight(26));

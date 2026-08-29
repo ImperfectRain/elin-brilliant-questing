@@ -54,4 +54,10 @@ C# expresses behavior. Authored data expresses content. Saves store history/cont
 
 If an existing Elin mechanic can constitute a valid solution, use/integrate it instead of creating a Brilliant Questing-only duplicate.
 
+## D011 — Physical proof stays attached to a physical object
+
+Reading an object for what it proves requires having that object: examination verbs work on the actor's own inventory, and a search recovers only what is in the actor's current zone.
+
+Reason: keeps evidence something a player can carry, lose, sell or have taken, and keeps acquiring it — searching, following, lifting a pocket — real gameplay rather than a formality. Knowing an unprovable thing is a legitimate and distinct state.
+
 Add a new entry only when the decision is both load-bearing and durable.

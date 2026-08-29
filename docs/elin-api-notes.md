@@ -286,4 +286,9 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
 - Whether a mod-supplied `Check` row is picked up without CWL.
 - Drama choice injection — `EVENT.DramaParseAction` located, not yet used.
 - Crime witness observation — `EVENT.ActPerformed` located, not yet used.
-- Whether the element aliases in `ElementAliases.cs` are correct. Nothing else is guessed.
+- Whether the element aliases in `ElementAliases.cs` are correct.
+- Elin's `Thing.category.id` vocabulary. The adapter reads it into `ItemDescriptor.CategoryTag`,
+  but the actual ids for corpses, documents and drinkables have not been read off a running game.
+  The investigation verbs therefore match category *and* item name against a keyword list, and the
+  generalist `inspect` reads anything, so an unrecognised tag costs a specialist route rather than
+  the whole investigation. Worth replacing with the real ids once a live inventory is dumped.

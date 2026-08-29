@@ -1,11 +1,11 @@
 namespace BrilliantQuesting.Actions.Library
 {
     /// <summary>
-    /// The verb set the three-NPC laboratory runs on.
+    /// The verb set the headless laboratories run on.
     ///
-    /// Fourteen verbs, spanning six of the eight solution families. The roadmap's next milestone is
-    /// thirty - but only once each of these has proven it can carry a situation on its own, since
-    /// a verb that cannot be the whole answer to some problem is not pulling its weight.
+    /// Twenty-five verbs, spanning six of the eight solution families. The target is roughly forty
+    /// - but only once each verb has proven it can carry a situation on its own, since a verb that
+    /// cannot be the whole answer to some problem is not pulling its weight.
     /// </summary>
     public static class StandardActions
     {
@@ -20,6 +20,16 @@ namespace BrilliantQuesting.Actions.Library
                 .Register(new BribeAction())
                 .Register(new PayDebtAction())
                 .Register(new SearchForEvidenceAction())
+                .Register(new InspectAction())
+                .Register(new ExamineCorpseAction())
+                .Register(new ReadDocumentAction())
+                .Register(new TranslateDocumentAction())
+                .Register(new IdentifySubstanceAction())
+                .Register(new SearchRecordsAction())
+                .Register(new TrackAction())
+                .Register(new FollowAction())
+                .Register(new EavesdropAction())
+                .Register(new CompareTestimonyAction())
                 .Register(new ExposeSecretAction())
                 .Register(new ReportToAuthorityAction())
                 .Register(new PickpocketAction())

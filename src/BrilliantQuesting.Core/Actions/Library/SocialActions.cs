@@ -146,15 +146,7 @@ namespace BrilliantQuesting.Actions.Library
                 return;
             }
 
-            Fact investigating = context.World.Knowledge.FindFact(context.Actor, FactPredicates.Investigating);
-            if (investigating == null)
-            {
-                investigating = new Fact(context.World.NewId("fact"), context.Actor, FactPredicates.Investigating, fact.Subject);
-                context.World.Knowledge.AddFact(investigating);
-            }
-
-            context.World.Knowledge.Teach(fact.Subject, investigating.Id, KnowledgeSource.Hearsay, 0.7, context.Now, false, context.Target);
-            outcome.Notes.Add(context.NameOf(fact.Subject) + " now knows someone is asking about them");
+            ActionSupport.WarnUnderInvestigation(context, fact.Subject, context.Target, outcome, confidence: 0.7);
         }
     }
 

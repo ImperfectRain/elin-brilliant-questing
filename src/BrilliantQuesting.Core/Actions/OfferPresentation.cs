@@ -35,6 +35,14 @@ namespace BrilliantQuesting.Actions
                 // Earns the standing or the proof the resolutions need.
                 case "question":
                 case "search":
+                case "inspect":
+                case "examine_corpse":
+                case "read":
+                case "translate":
+                case "identify_substance":
+                case "search_records":
+                case "compare_testimony":
+                case "track":
                     return 1;
 
                 // Moves someone who is not yet willing.
@@ -50,6 +58,10 @@ namespace BrilliantQuesting.Actions
                 case "lie":
                 case "frame":
                 case "attack":
+                // Reconnaissance. Real routes to proof, but speculative and aimed past the person
+                // in front of the player, so they never displace a verb that moves the situation.
+                case "follow":
+                case "eavesdrop":
                     return 3;
 
                 default:

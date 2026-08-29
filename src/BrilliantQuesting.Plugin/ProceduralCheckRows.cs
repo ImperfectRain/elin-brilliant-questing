@@ -59,6 +59,34 @@ namespace BrilliantQuesting.Plugin
                 log, source, ProceduralCheckProfiles.Credibility,
                 ActorSkill(VanillaSkill.Negotiation, 0.3f),
                 TargetAttribute(VanillaAttribute.Will, 0.2f));
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Forensics,
+                ActorSkill(VanillaSkill.Anatomy, 0.4f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Documents,
+                ActorSkill(VanillaSkill.Literacy, 0.45f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Translation,
+                ActorSkill(VanillaSkill.Literacy, 0.35f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.SubstanceAnalysis,
+                ActorSkill(VanillaSkill.Alchemy, 0.4f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Tracking,
+                ActorSkill(VanillaSkill.SpotHidden, 0.35f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Shadowing,
+                ActorSkill(VanillaSkill.Stealth, 0.4f),
+                TargetAttribute(VanillaAttribute.Perception, 0.35f));
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Corroboration,
+                ActorAttribute(VanillaAttribute.Learning, 0.35f),
+                ElementProjection.None);
 
             log.LogInfo("Installed " + installed + " procedural Check row(s) for native difficulty text.");
         }

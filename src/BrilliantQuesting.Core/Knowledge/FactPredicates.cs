@@ -19,6 +19,16 @@ namespace BrilliantQuesting.Knowledge
         public const string RelatedTo = "related_to";
         public const string IsDead = "is_dead";
         public const string Witnessed = "witnessed";
+
+        /// <summary>
+        /// What actually killed somebody, in <see cref="Fact.Value"/>: a blade, a fall, a poison.
+        ///
+        /// Separate from <see cref="IsDead"/> because the two are known by different people for
+        /// different reasons. That a person is dead is public the moment the body is found; what
+        /// killed them is a reading of the body, and a poisoner's whole plan is that the second
+        /// one never gets made.
+        /// </summary>
+        public const string KilledBy = "killed_by";
         public const string Investigating = "investigating";
 
         /// <summary>
@@ -47,6 +57,9 @@ namespace BrilliantQuesting.Knowledge
                 case IsDead:
                 case Witnessed:
                 case Investigating:
+                // How somebody died travels for the same reason the death does, and it is the
+                // half that changes what anyone does about it.
+                case KilledBy:
                 // Where a thing ended up is worth repeating precisely because it is actionable -
                 // it is what turns hearing about a theft into being able to go and look.
                 case LocatedAt:

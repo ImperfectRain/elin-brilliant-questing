@@ -62,6 +62,57 @@ namespace BrilliantQuesting.Actions.Library
             .WithActorAttribute(VanillaAttribute.Perception, 0.3)
             .WithActorAttribute(VanillaAttribute.Learning, 0.1);
 
+        /// <summary>
+        /// Reading a body. `MD 10.2` names this one outright: Anatomy plus Learning plus
+        /// Perception, with the state of the remains as the situational term.
+        /// </summary>
+        public static readonly CheckProfile Forensics = new CheckProfile("proc_forensics", 13)
+            .WithActorSkill(VanillaSkill.Anatomy, 0.4)
+            .WithActorAttribute(VanillaAttribute.Learning, 0.2)
+            .WithActorAttribute(VanillaAttribute.Perception, 0.2);
+
+        /// <summary>Getting a document to give up what it says.</summary>
+        public static readonly CheckProfile Documents = new CheckProfile("proc_documents", 11)
+            .WithActorSkill(VanillaSkill.Literacy, 0.45)
+            .WithActorAttribute(VanillaAttribute.Learning, 0.25)
+            .WithActorAttribute(VanillaAttribute.Perception, 0.1);
+
+        /// <summary>
+        /// Getting a document to give up what it says when it was written not to. Harder than
+        /// <see cref="Documents"/> and leans on Learning rather than Perception, because a cipher
+        /// or a dead script is a thing you work out, not a thing you notice.
+        /// </summary>
+        public static readonly CheckProfile Translation = new CheckProfile("proc_translation", 15)
+            .WithActorSkill(VanillaSkill.Literacy, 0.35)
+            .WithActorAttribute(VanillaAttribute.Learning, 0.35);
+
+        /// <summary>Working out what a substance is, and therefore what it did.</summary>
+        public static readonly CheckProfile SubstanceAnalysis = new CheckProfile("proc_substance", 13)
+            .WithActorSkill(VanillaSkill.Alchemy, 0.4)
+            .WithActorAttribute(VanillaAttribute.Learning, 0.2)
+            .WithActorAttribute(VanillaAttribute.Perception, 0.15);
+
+        /// <summary>Reading what a place still shows of what happened in it. `MD 10.2` tracking.</summary>
+        public static readonly CheckProfile Tracking = new CheckProfile("proc_tracking", 12)
+            .WithActorSkill(VanillaSkill.SpotHidden, 0.35)
+            .WithActorSkill(VanillaSkill.Travel, 0.2)
+            .WithActorAttribute(VanillaAttribute.Perception, 0.3);
+
+        /// <summary>
+        /// Staying with someone, or near them, without being the thing they notice. The one
+        /// investigation profile that is contested, because the other side is a person.
+        /// </summary>
+        public static readonly CheckProfile Shadowing = new CheckProfile("proc_shadowing", 12)
+            .WithActorSkill(VanillaSkill.Stealth, 0.4)
+            .WithActorAttribute(VanillaAttribute.Dexterity, 0.2)
+            .WithTargetAttribute(VanillaAttribute.Perception, 0.35);
+
+        /// <summary>Holding two accounts side by side until one of them stops fitting.</summary>
+        public static readonly CheckProfile Corroboration = new CheckProfile("proc_corroboration", 12)
+            .WithActorSkill(VanillaSkill.Literacy, 0.15)
+            .WithActorAttribute(VanillaAttribute.Learning, 0.35)
+            .WithActorAttribute(VanillaAttribute.Perception, 0.25);
+
         /// <summary>Making a false thing look true, and the target's Literacy arguing back.</summary>
         public static readonly CheckProfile Fabrication = new CheckProfile("proc_fabrication", 14)
             .WithActorSkill(VanillaSkill.Literacy, 0.3)
@@ -93,6 +144,16 @@ namespace BrilliantQuesting.Actions.Library
                 case "intimidate": return Intimidation;
                 case "bribe": return Bribery;
                 case "search": return Investigation;
+                case "inspect": return Investigation;
+                case "examine_corpse": return Forensics;
+                case "read": return Documents;
+                case "search_records": return Documents;
+                case "translate": return Translation;
+                case "identify_substance": return SubstanceAnalysis;
+                case "track": return Tracking;
+                case "follow": return Shadowing;
+                case "eavesdrop": return Shadowing;
+                case "compare_testimony": return Corroboration;
                 case "expose": return Credibility;
                 case "pickpocket": return Pickpocketing;
                 case "frame": return Fabrication;

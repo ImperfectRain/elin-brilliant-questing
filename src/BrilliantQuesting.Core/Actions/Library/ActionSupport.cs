@@ -67,6 +67,50 @@ namespace BrilliantQuesting.Actions.Library
             return seen;
         }
 
+        /// <summary>
+        /// Records that the actor is looking into somebody, and lets that somebody find out.
+        ///
+        /// The risk that makes investigation a real choice rather than free information, and it
+        /// arrives from three different directions - a question that went badly, an accusation
+        /// that rebounded, a tail that was noticed - so it lives once. The claim is keyed to who
+        /// is being looked into as well as who is doing it: reusing one "investigating" fact per
+        /// actor told the second suspect that the player was after the first.
+        /// </summary>
+        public static Fact WarnUnderInvestigation(
+            ActionContext context, EntityId accused, EntityId toldBy, ActionOutcome outcome, double confidence = 0.8, string note = null)
+        {
+            if (accused.IsNone || accused == context.Actor || context.World.Registry.GetNpc(accused) == null)
+            {
+                return null;
+            }
+
+            Fact investigating = FindInvestigation(context, accused);
+            if (investigating == null)
+            {
+                investigating = new Fact(context.World.NewId("fact"), context.Actor, FactPredicates.Investigating, accused);
+                context.World.Knowledge.AddFact(investigating);
+            }
+
+            context.World.Knowledge.Teach(accused, investigating.Id, KnowledgeSource.Hearsay, confidence, context.Now, false, toldBy);
+            outcome?.Notes.Add(note ?? context.NameOf(accused) + " now knows someone is asking about them");
+            return investigating;
+        }
+
+        private static Fact FindInvestigation(ActionContext context, EntityId accused)
+        {
+            foreach (Fact fact in context.World.Knowledge.Facts.Values)
+            {
+                if (fact.Subject == context.Actor
+                    && fact.Predicate == FactPredicates.Investigating
+                    && fact.Object == accused)
+                {
+                    return fact;
+                }
+            }
+
+            return null;
+        }
+
         public static string Describe(ActionContext context, EntityId factId)
         {
             Fact fact = context.World.Knowledge.GetFact(factId);

@@ -211,20 +211,14 @@ namespace BrilliantQuesting.Actions.Library
 
         private static void WarnAccused(ActionContext context, Fact fact, ActionOutcome outcome)
         {
-            if (fact == null || fact.Subject.IsNone || fact.Subject == context.Actor)
+            if (fact == null)
             {
                 return;
             }
 
-            Fact accusation = context.World.Knowledge.FindFact(context.Actor, FactPredicates.Investigating);
-            if (accusation == null)
-            {
-                accusation = new Fact(context.World.NewId("fact"), context.Actor, FactPredicates.Investigating, fact.Subject);
-                context.World.Knowledge.AddFact(accusation);
-            }
-
-            context.World.Knowledge.Teach(fact.Subject, accusation.Id, KnowledgeSource.Hearsay, 0.8, context.Now, false, context.Target);
-            outcome.Notes.Add(context.NameOf(fact.Subject) + " learns you made an accusation");
+            ActionSupport.WarnUnderInvestigation(
+                context, fact.Subject, context.Target, outcome,
+                note: context.NameOf(fact.Subject) + " learns you made an accusation");
         }
     }
 }
