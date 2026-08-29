@@ -76,6 +76,9 @@ namespace BrilliantQuesting.Consequences
                 { WorldEventType.InquiryOpened, new ConsequenceProfile("under_inquiry", MemoryWeight.Important, -8) },
                 { WorldEventType.EvidenceCreated, new ConsequenceProfile("created_evidence", MemoryWeight.Routine, 0) },
                 { WorldEventType.EvidenceDestroyed, new ConsequenceProfile("destroyed_evidence", MemoryWeight.Important, -12, -3, karma: -1) },
+                // Making something is ordinary life. It is on the record because provenance
+                // matters later, not because anybody's opinion of anybody moves.
+                { WorldEventType.GoodsProduced, new ConsequenceProfile("made_something", MemoryWeight.Trivial, 0) },
                 { WorldEventType.CrimeWitnessed, new ConsequenceProfile("witnessed_a_crime", MemoryWeight.Notable, 0) },
                 { WorldEventType.CrimeReported, new ConsequenceProfile("reported_to_authorities", MemoryWeight.Important, -25, 0, karma: 2) },
                 { WorldEventType.RumorSpread, new ConsequenceProfile("heard_a_rumor", MemoryWeight.Routine, 0) },

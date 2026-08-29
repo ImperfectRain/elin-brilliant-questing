@@ -93,6 +93,10 @@ Skills confirmed by resolving successfully: `negotiation`, `investing`, `stealin
 `stealth`, `lockpicking`, `disarmTrap`, `anatomy`, `alchemy`, `cooking`, `faith`, `travel`,
 `mining`.
 
+`carpentry`, `building` and `handicraft` were added later for the crafting verbs. They are read
+off the same verified table below (255, 288 and 261) rather than guessed, but unlike the twelve
+above they have not themselves been resolved against a running game.
+
 All twenty-three now resolve. The three that were wrong: **Spot Hidden is `spotting`**, **Literacy
 is `reading`**, **Appraising is `appraising`** (`identify` is the spell `8230:SpIdentify`). Piety is
 not a separate accessor either - it is element `85`.
@@ -294,6 +298,21 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
   the transfer path does — a destructive verb that lied would leave a case unprovable while the
   evidence sat in the player's pack. `DestroyItems` is probed separately from `TransferItems`
   because a build where moving works and unmaking does not is an ordinary thing to find.
+- Whether a finished cook, brew, compound or build reaches `EVENT.ActPerformed` at all. The
+  observer matches act type and source ids containing `craft`, `cook`, `brew`, `build` and `mix`,
+  and reads the produced Thing off the same `TC`/`TOOL`/`target` fields theft observation uses.
+  None of that is confirmed, and Elin's crafting may not go through `Act` at any point. Being
+  wrong costs a route rather than breaking one: no match means no provenance record, the crafting
+  verbs still work from raw stock, and only the branch that hands over ready-made goods with no
+  roll is lost. A live run should be read for the one-time
+  "Production-like act ... carried no readable product" line, and for whether nothing at all is
+  logged during a cook.
+- Which member of `Thing` carries "how well was this made". The adapter searches `quality`,
+  `encLv`, `rarity` and `LV` in that order, uses the first that resolves to a number, and logs
+  which once. Not one of them is verified, and reading the wrong one would quietly make
+  property-constrained demands accept the wrong objects. Nothing found means quality reads zero,
+  which every threshold refuses - the safe direction, and the same degraded behaviour described
+  above. The candidate list is the first thing to correct off a live inventory dump.
 - Elin's `Thing.category.id` vocabulary. The adapter reads it into `ItemDescriptor.CategoryTag`,
   but the actual ids for corpses, documents and drinkables have not been read off a running game.
   The investigation verbs therefore match category *and* item name against a keyword list, and the

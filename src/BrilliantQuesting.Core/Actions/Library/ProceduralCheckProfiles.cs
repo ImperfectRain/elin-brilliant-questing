@@ -173,6 +173,64 @@ namespace BrilliantQuesting.Actions.Library
             .WithActorSkill(VanillaSkill.Travel, 0.2)
             .WithActorSkill(VanillaSkill.Negotiation, 0.15);
 
+        /// <summary>
+        /// Making food out of what is to hand, to somebody else's standard.
+        ///
+        /// Elin already has Cooking, and this is the first thing in the library that reads it. The
+        /// difficulty is what is being asked for, which arrives as a situational term, so cooking
+        /// something ordinary and cooking something a physician would accept are the same craft at
+        /// two difficulties rather than two crafts.
+        /// </summary>
+        public static readonly CheckProfile Cookery = new CheckProfile("proc_cookery", 10)
+            .WithActorSkill(VanillaSkill.Cooking, 0.45)
+            .WithActorAttribute(VanillaAttribute.Dexterity, 0.2)
+            .WithActorAttribute(VanillaAttribute.Learning, 0.1);
+
+        /// <summary>
+        /// Fermenting and distilling. Elin has no brewing skill, so this is where its two
+        /// neighbours meet: the kitchen work is Cooking and the chemistry is Alchemy, and reading
+        /// both is nearer the truth than inventing a third.
+        /// </summary>
+        public static readonly CheckProfile Brewing = new CheckProfile("proc_brewing", 11)
+            .WithActorSkill(VanillaSkill.Cooking, 0.25)
+            .WithActorSkill(VanillaSkill.Alchemy, 0.25)
+            .WithActorAttribute(VanillaAttribute.Learning, 0.2);
+
+        /// <summary>
+        /// Compounding a remedy to a standard somebody will be judged against.
+        ///
+        /// The making counterpart to <see cref="SubstanceAnalysis"/>, and harder: telling what is
+        /// in a bottle is not the same job as getting a bottle to be worth drinking.
+        /// </summary>
+        public static readonly CheckProfile Compounding = new CheckProfile("proc_compounding", 13)
+            .WithActorSkill(VanillaSkill.Alchemy, 0.45)
+            .WithActorAttribute(VanillaAttribute.Learning, 0.25)
+            .WithActorAttribute(VanillaAttribute.Dexterity, 0.1);
+
+        /// <summary>Raising something that has to stand up. Elin's own Building skill.</summary>
+        public static readonly CheckProfile Construction = new CheckProfile("proc_construction", 12)
+            .WithActorSkill(VanillaSkill.Building, 0.4)
+            .WithActorSkill(VanillaSkill.Carpentry, 0.2)
+            .WithActorAttribute(VanillaAttribute.Strength, 0.15);
+
+        /// <summary>
+        /// Putting a broken thing back into service, which is a different skill from building one
+        /// - working out what went wrong is most of it, so Learning weighs as heavily as the hands.
+        /// </summary>
+        public static readonly CheckProfile Repairs = new CheckProfile("proc_repairs", 12)
+            .WithActorSkill(VanillaSkill.Carpentry, 0.35)
+            .WithActorAttribute(VanillaAttribute.Learning, 0.25)
+            .WithActorAttribute(VanillaAttribute.Dexterity, 0.15);
+
+        /// <summary>
+        /// Making a thing to somebody's specification when no named craft covers it. Elin's own
+        /// Handicraft, which is exactly the generalist's skill.
+        /// </summary>
+        public static readonly CheckProfile Craftsmanship = new CheckProfile("proc_craftsmanship", 12)
+            .WithActorSkill(VanillaSkill.Handicraft, 0.4)
+            .WithActorAttribute(VanillaAttribute.Dexterity, 0.25)
+            .WithActorAttribute(VanillaAttribute.Learning, 0.15);
+
         /// <summary>Being believed when you make a public claim.</summary>
         public static readonly CheckProfile Credibility = new CheckProfile("proc_credibility", 12)
             .WithActorSkill(VanillaSkill.Negotiation, 0.3)
@@ -217,6 +275,17 @@ namespace BrilliantQuesting.Actions.Library
                 case "extort": return Extortion;
                 case "fence": return Fencing;
                 case "smuggle": return Smuggling;
+
+                case "cook": return Cookery;
+                case "brew": return Brewing;
+                case "alchemy": return Compounding;
+                case "build": return Construction;
+                case "repair": return Repairs;
+
+                // The generalist. Not a fallback for the named crafts - a route in its own right,
+                // for a demand no kitchen or building site covers, read off the skill Elin already
+                // gives a jack-of-all-trades maker.
+                case "craft_to_property": return Craftsmanship;
 
                 // Passing yourself off as somebody else is not a separate craft from lying; it is
                 // lying with a prop, and it is read off the same vanilla values.

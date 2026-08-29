@@ -24,6 +24,7 @@ namespace BrilliantQuesting.Plugin
         private readonly VanillaActionRecorder _recorder;
         private readonly ManualLogSource _log;
         private bool _reportedUnknownShape;
+        private bool _reportedUnmatchedProduction;
 
         internal ElinActionObserver(
             NarrativeWorldState world,
@@ -85,7 +86,47 @@ namespace BrilliantQuesting.Plugin
                 return ToObservedViolence(act, sourceId);
             }
 
+            if (IsProduction(act, sourceId))
+            {
+                return ToObservedProduction(act, sourceId);
+            }
+
             return null;
+        }
+
+        /// <summary>
+        /// Something the game finished making.
+        ///
+        /// Whether Elin routes a completed cook, brew or build through ActPerformed at all is not
+        /// verified, and this is written so that being wrong costs a route rather than breaking
+        /// one: no match means no record, the procedural crafting verbs still work from raw stock,
+        /// and the only thing lost is the branch that hands over ready-made goods with no roll.
+        /// The one-time log line below is what a live run should be read for.
+        /// </summary>
+        private ObservedVanillaAction ToObservedProduction(Act act, string sourceId)
+        {
+            Chara actor = ActorOf(act);
+            Thing product = ItemOf(act);
+            if (actor == null || product == null)
+            {
+                if (!_reportedUnmatchedProduction)
+                {
+                    _reportedUnmatchedProduction = true;
+                    _log.LogInfo("Production-like act " + sourceId + " carried no readable "
+                                 + (actor == null ? "actor" : "product") + "; provenance not recorded.");
+                }
+
+                return null;
+            }
+
+            return new ObservedVanillaAction(
+                ObservedVanillaActionKind.Crafted,
+                EntityIdFor(actor),
+                EntityId.None,
+                EntityIdFor(product),
+                product.Name,
+                _vanilla.GetZoneOf(EntityIdFor(actor)),
+                sourceId);
         }
 
         private ObservedVanillaAction ToObservedTheft(Act act, string sourceId)
@@ -186,6 +227,22 @@ namespace BrilliantQuesting.Plugin
             return string.Equals(typeName, "AI_Steal", StringComparison.Ordinal)
                    || Contains(sourceId, "steal")
                    || Contains(typeName, "steal");
+        }
+
+        /// <summary>
+        /// Names that plausibly mean "this made something". Deliberately broad and deliberately
+        /// harmless: the worst a false positive does is record who is holding an object it did not
+        /// make, which is a wrong provenance line rather than a wrong consequence, and the alias
+        /// list is the thing a live run is meant to correct.
+        /// </summary>
+        private static bool IsProduction(Act act, string sourceId)
+        {
+            string typeName = act.GetType().Name;
+            return Contains(typeName, "craft") || Contains(sourceId, "craft")
+                   || Contains(typeName, "cook") || Contains(sourceId, "cook")
+                   || Contains(typeName, "brew") || Contains(sourceId, "brew")
+                   || Contains(typeName, "build") || Contains(sourceId, "build")
+                   || Contains(typeName, "mix") || Contains(sourceId, "mix");
         }
 
         private static bool IsHostile(Act act, string sourceId)

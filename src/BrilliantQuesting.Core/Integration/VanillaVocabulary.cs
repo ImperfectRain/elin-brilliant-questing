@@ -37,7 +37,19 @@ namespace BrilliantQuesting.Integration
         Cooking,
         Faith,
         Travel,
-        Mining
+        Mining,
+
+        /// <summary>Working wood. The spine of putting a broken thing back into service.</summary>
+        Carpentry,
+
+        /// <summary>Elin's own construction skill, and the spine of raising something new.</summary>
+        Building,
+
+        /// <summary>
+        /// Elin's generic making skill, and the spine of the verb that makes to a specification
+        /// nobody's named craft covers.
+        /// </summary>
+        Handicraft
     }
 
     public enum GuildId

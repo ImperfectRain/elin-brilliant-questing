@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Reflection;
 using BepInEx.Logging;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
@@ -486,6 +488,87 @@ namespace BrilliantQuesting.Plugin
             return true;
         }
 
+        /// <summary>
+        /// Members that could carry "how well was this made", best first.
+        ///
+        /// None of them is verified against a running build, which is why this is a search rather
+        /// than a field access: the shipped metadata has several plausible candidates and reading
+        /// the wrong one would quietly make every property-constrained demand answerable by the
+        /// wrong objects. The first one that resolves to a number is used and named in the log
+        /// once, so a live run says which it settled on.
+        /// </summary>
+        private static readonly string[] QualityMembers = { "quality", "encLv", "rarity", "LV" };
+
+        private static MemberInfo _qualityMember;
+        private static bool _qualityMemberSearched;
+        private bool _reportedQualitySource;
+
+        /// <summary>
+        /// How well an object was made, or zero when this build will not say.
+        ///
+        /// Zero is the safe answer rather than a guess: a demand with a threshold refuses it, so a
+        /// build whose quality cannot be read loses the route that hands over ready-made goods and
+        /// keeps the one that works from raw stock. Inventing a number would instead have people
+        /// accept things they should not.
+        /// </summary>
+        private int QualityOf(Thing thing)
+        {
+            MemberInfo member = ResolveQualityMember(thing);
+            if (member == null)
+            {
+                return 0;
+            }
+
+            try
+            {
+                object value = member is PropertyInfo property
+                    ? property.GetValue(thing, null)
+                    : ((FieldInfo)member).GetValue(thing);
+                if (value == null)
+                {
+                    return 0;
+                }
+
+                int quality = Convert.ToInt32(value, CultureInfo.InvariantCulture);
+                if (!_reportedQualitySource)
+                {
+                    _reportedQualitySource = true;
+                    _log.LogInfo("Reading item quality from Thing." + member.Name + ".");
+                }
+
+                return quality < 0 ? 0 : quality;
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+        }
+
+        private MemberInfo ResolveQualityMember(Thing thing)
+        {
+            if (_qualityMemberSearched)
+            {
+                return _qualityMember;
+            }
+
+            _qualityMemberSearched = true;
+            Type type = thing.GetType();
+            for (int i = 0; i < QualityMembers.Length && _qualityMember == null; i++)
+            {
+                _qualityMember = (MemberInfo)type.GetProperty(QualityMembers[i], BindingFlags.Public | BindingFlags.Instance)
+                                 ?? type.GetField(QualityMembers[i], BindingFlags.Public | BindingFlags.Instance);
+            }
+
+            if (_qualityMember == null)
+            {
+                _log.LogWarning("No item quality member found on Thing (tried "
+                                + string.Join(", ", QualityMembers)
+                                + "). Property-constrained demands will not accept ready-made goods.");
+            }
+
+            return _qualityMember;
+        }
+
         public IReadOnlyList<ItemDescriptor> GetInventory(EntityId owner)
         {
             List<ItemDescriptor> items = new List<ItemDescriptor>();
@@ -505,7 +588,13 @@ namespace BrilliantQuesting.Plugin
                 try
                 {
                     EntityId id = EntityIdFor(thing);
-                    items.Add(new ItemDescriptor(id, BareName(thing.Name), thing.category?.id ?? string.Empty, thing.GetPrice(CurrencyType.Money, false, PriceType.Default, null)));
+                    items.Add(new ItemDescriptor(
+                        id,
+                        BareName(thing.Name),
+                        thing.category?.id ?? string.Empty,
+                        thing.GetPrice(CurrencyType.Money, false, PriceType.Default, null),
+                        null,
+                        QualityOf(thing)));
                 }
                 catch (Exception ex)
                 {

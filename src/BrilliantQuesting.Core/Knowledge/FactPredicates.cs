@@ -45,6 +45,36 @@ namespace BrilliantQuesting.Knowledge
         public const string Extorted = "extorted";
 
         /// <summary>
+        /// Somebody wants goods they cannot get, described by what the goods must be rather than
+        /// by which object would do.
+        ///
+        /// Subject is whoever is short, and <see cref="Fact.Value"/> carries the specification -
+        /// the category, and the quality and worth the goods have to reach. Stating the demand as
+        /// a property constraint rather than a named item is the whole of what makes it answerable
+        /// by production: any object that meets it answers it, and no object that does not.
+        /// </summary>
+        public const string Needs = "needs";
+
+        /// <summary>
+        /// Who made a particular object. Subject is the maker, object is the thing.
+        ///
+        /// Written when the game says a production finished, not when the simulation decides one
+        /// did. It is provenance, which is a different question from ownership: a pie somebody
+        /// baked and then sold is still a pie they baked.
+        /// </summary>
+        public const string Produced = "produced";
+
+        /// <summary>
+        /// A thing is not working. Subject is the object itself, as with <see cref="IsDead"/>.
+        ///
+        /// The state a repair removes, and the state sabotage would leave behind if breaking
+        /// something short of destroying it were on the table. Kept as a fact rather than a flag
+        /// on the item so that it can be believed, doubted, evidenced and superseded like
+        /// everything else the world knows.
+        /// </summary>
+        public const string Damaged = "damaged";
+
+        /// <summary>
         /// Whether this is the kind of thing people repeat to each other.
         ///
         /// Gossip is about what happened, not about how the world is arranged. "Kip stole the
@@ -72,6 +102,11 @@ namespace BrilliantQuesting.Knowledge
                 case Investigating:
                 case Forged:
                 case Extorted:
+                // A town short of something, and the thing it depends on being broken, are both
+                // exactly what people tell each other - and both are what turns hearing about a
+                // shortage into being able to do something about it.
+                case Needs:
+                case Damaged:
                 // How somebody died travels for the same reason the death does, and it is the
                 // half that changes what anyone does about it.
                 case KilledBy:
@@ -81,7 +116,8 @@ namespace BrilliantQuesting.Knowledge
                     return true;
 
                 // Standing arrangements. True, queryable, and nobody's news: who owns what, who
-                // is in which guild, who is whose cousin.
+                // is in which guild, who is whose cousin. Who baked a loaf belongs here too: it
+                // is provenance, worth having on the record and worth nobody's breath.
                 default:
                     return false;
             }

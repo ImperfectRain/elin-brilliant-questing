@@ -55,6 +55,17 @@ namespace BrilliantQuesting.Integration
     {
         Theft,
         Attacked,
-        Killed
+        Killed,
+
+        /// <summary>
+        /// The game finished producing something. <see cref="ObservedVanillaAction.Item"/> is what
+        /// came out.
+        ///
+        /// The reason the crafting verbs have no roll for work Elin already did: cooking, brewing,
+        /// compounding and building are systems the game owns, and a procedural layer that rolled
+        /// its own dice over the top of them would be inventing a second, worse crafting mechanic
+        /// and disagreeing with the first.
+        /// </summary>
+        Crafted
     }
 }

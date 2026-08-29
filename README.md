@@ -96,12 +96,18 @@ And the same situation with the player never turning up at all:
   certain of something false; and believing a thing is not the same as being able to prove it.
   Rumour transmission loses confidence and never carries proof. This is the subsystem that makes
   witnesses, blackmail, alibis, coverups and framing work without a single bespoke quest script.
-- **A library of reusable verbs** spanning six solution families, each resolving through a
+- **A library of reusable verbs** spanning seven solution families, each resolving through a
   vanilla-shaped check with four outcomes. Options are hidden only for genuine impossibility - a
   hopeless liar can still lie, and the critical failure is the interesting part. A case can be
   closed on physical evidence alone, without a single character being willing to talk - or closed
   by breaking in and having the proof made, which is a route only somebody the underworld will
-  deal with can walk.
+  deal with can walk. A village with no bread can be fed by baking it, or by mending the mill that
+  stopped.
+- **Production is the game's, not ours.** A shortage is stated as a property constraint - this
+  kind of thing, this well made - so any object that meets it answers it and no object that does
+  not. Goods Elin already finished are handed over with no roll at all, because the game decided
+  what came out and how good it is; the check exists only for working from raw stock, where the
+  standard being asked for sets both the difficulty and how much stock the work eats.
 - **Standing opens doors, not dice.** Thieves Guild rank and Karma decide who will do criminal work
   *for* you - a receiver, a forger, a carrier. They never decide whether you may pick a lock, lean
   on somebody or break their cart. That is the difference between a build having fewer options and

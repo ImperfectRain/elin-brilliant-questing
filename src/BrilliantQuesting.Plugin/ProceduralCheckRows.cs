@@ -112,6 +112,33 @@ namespace BrilliantQuesting.Plugin
                 ActorSkill(VanillaSkill.Stealth, 0.3f),
                 ElementProjection.None);
 
+            // The crafts. All uncontested - a pot is not a person - so the target projection is
+            // none and the standard being asked for arrives as a situational term instead.
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Cookery,
+                ActorSkill(VanillaSkill.Cooking, 0.45f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Brewing,
+                ActorSkill(VanillaSkill.Cooking, 0.25f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Compounding,
+                ActorSkill(VanillaSkill.Alchemy, 0.45f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Construction,
+                ActorSkill(VanillaSkill.Building, 0.4f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Repairs,
+                ActorSkill(VanillaSkill.Carpentry, 0.35f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Craftsmanship,
+                ActorSkill(VanillaSkill.Handicraft, 0.4f),
+                ElementProjection.None);
+
             log.LogInfo("Installed " + installed + " procedural Check row(s) for native difficulty text.");
         }
 

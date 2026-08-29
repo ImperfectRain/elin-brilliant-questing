@@ -159,6 +159,44 @@ namespace BrilliantQuesting.Actions.Library
             return null;
         }
 
+        /// <summary>
+        /// Whether an object reads as one of a list of kinds.
+        ///
+        /// Elin's own category id is the first answer and the object's name is the fallback,
+        /// because the shipped category vocabulary has not been verified against a live build and
+        /// a verb that silently disappears over a tag this project has never heard of is worse
+        /// than one that occasionally offers itself where it is useless.
+        /// </summary>
+        public static bool LooksLike(ItemDescriptor item, string[] words)
+        {
+            return item != null && (LooksLike(item.CategoryTag, words) || LooksLike(item.Name, words));
+        }
+
+        /// <summary>The same reading, for a kind named on its own rather than carried by an object.</summary>
+        public static bool LooksLike(string text, string[] words)
+        {
+            if (words == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < words.Length; i++)
+            {
+                if (Contains(text, words[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool Contains(string haystack, string needle)
+        {
+            return !string.IsNullOrEmpty(haystack)
+                   && haystack.IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         public static string Describe(ActionContext context, EntityId factId)
         {
             Fact fact = context.World.Knowledge.GetFact(factId);

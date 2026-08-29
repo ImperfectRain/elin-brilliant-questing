@@ -55,6 +55,16 @@ namespace BrilliantQuesting.Events
         FalseAccusation,
         EvidenceCreated,
         EvidenceDestroyed,
+
+        /// <summary>
+        /// The game finished making something, and the simulation noticed.
+        ///
+        /// Recorded from observation rather than from any procedural roll: Elin's own cooking,
+        /// brewing and building decide what came out and how good it is, and the ledger's job is
+        /// to remember who made it. Carries the object as evidence, so provenance stays attached
+        /// to a thing somebody can be shown.
+        /// </summary>
+        GoodsProduced,
         CrimeWitnessed,
         CrimeReported,
         RumorSpread,

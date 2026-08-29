@@ -30,6 +30,11 @@ namespace BrilliantQuesting.Actions
                 case "expose":
                 case "report":
                 case "pay_debt":
+                // The crafting family's guaranteed route. It answers any demand and works from
+                // anything, so it is available wherever a named craft is - which makes it the one
+                // production verb whose absence would leave a maker with no route at all, and the
+                // one that belongs on the tier that must never be dropped.
+                case "craft_to_property":
                     return 0;
 
                 // Earns the standing or the proof the resolutions need.
@@ -51,6 +56,16 @@ namespace BrilliantQuesting.Actions
                 // table exists to prevent.
                 case "trespass":
                 case "forge":
+                // The named crafts. Each is a better route than the generalist where it applies -
+                // a cook reads Cooking rather than Handicraft - but never the only one, because
+                // `craft_to_property` is available everywhere they are. Dropping one costs the
+                // player the specialist's odds, not the ending, so they rank below the verbs whose
+                // absence would hide a route entirely.
+                case "cook":
+                case "brew":
+                case "alchemy":
+                case "build":
+                case "repair":
                     return 1;
 
                 // Moves someone who is not yet willing.

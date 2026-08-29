@@ -256,35 +256,11 @@ namespace BrilliantQuesting.Actions.Library
         private static readonly string[] DocumentWords = { "book", "scroll", "note", "letter", "ledger", "record", "map", "tablet", "document" };
         private static readonly string[] SubstanceWords = { "potion", "drink", "powder", "poison", "dust", "vial", "flask", "reagent", "herb", "seed", "oil" };
 
-        public static bool IsRemains(ItemDescriptor item) => Matches(item, RemainsWords);
+        public static bool IsRemains(ItemDescriptor item) => ActionSupport.LooksLike(item, RemainsWords);
 
-        public static bool IsDocument(ItemDescriptor item) => Matches(item, DocumentWords);
+        public static bool IsDocument(ItemDescriptor item) => ActionSupport.LooksLike(item, DocumentWords);
 
-        public static bool IsSubstance(ItemDescriptor item) => Matches(item, SubstanceWords);
-
-        private static bool Matches(ItemDescriptor item, string[] words)
-        {
-            if (item == null)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < words.Length; i++)
-            {
-                if (Contains(item.CategoryTag, words[i]) || Contains(item.Name, words[i]))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool Contains(string haystack, string needle)
-        {
-            return !string.IsNullOrEmpty(haystack)
-                   && haystack.IndexOf(needle, StringComparison.OrdinalIgnoreCase) >= 0;
-        }
+        public static bool IsSubstance(ItemDescriptor item) => ActionSupport.LooksLike(item, SubstanceWords);
     }
 
     /// <summary>

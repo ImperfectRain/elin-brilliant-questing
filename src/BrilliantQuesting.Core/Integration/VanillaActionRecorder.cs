@@ -32,6 +32,8 @@ namespace BrilliantQuesting.Integration
                     return RecordViolence(action, WorldEventType.Attacked, EntityId.None);
                 case ObservedVanillaActionKind.Killed:
                     return RecordKilling(action);
+                case ObservedVanillaActionKind.Crafted:
+                    return RecordProduction(action);
                 default:
                     return null;
             }
@@ -64,6 +66,43 @@ namespace BrilliantQuesting.Integration
                 action.Zone,
                 related: new[] { theft.Id },
                 witnesses: action.Witnesses,
+                evidence: new[] { action.Item },
+                tags: new[] { EventTags.Observed, action.SourceActionId });
+        }
+
+        /// <summary>
+        /// Who made this thing, on the word of the game that made it.
+        ///
+        /// Deliberately quiet: no witnesses, no secrecy, no judgement. Production is not a story
+        /// beat, it is the record that lets a later question - where did this come from, who could
+        /// have made it - be answered by something other than a guess.
+        /// </summary>
+        private WorldEvent RecordProduction(ObservedVanillaAction action)
+        {
+            if (action.Item.IsNone)
+            {
+                return null;
+            }
+
+            Fact made = new Fact(
+                _world.NewId("fact"),
+                action.Actor,
+                FactPredicates.Produced,
+                action.Item,
+                action.ItemName,
+                secrecy: 0);
+            made.EvidenceIds.Add(action.Item);
+            _world.Knowledge.AddFact(made);
+            _world.Knowledge.Teach(action.Actor, made.Id, KnowledgeSource.Participant, 1.0, _vanilla.Now, true);
+
+            return _world.Record(
+                WorldEventType.GoodsProduced,
+                action.Actor,
+                EntityId.None,
+                _vanilla.Now,
+                0.2,
+                action.Zone,
+                related: new[] { made.Id },
                 evidence: new[] { action.Item },
                 tags: new[] { EventTags.Observed, action.SourceActionId });
         }

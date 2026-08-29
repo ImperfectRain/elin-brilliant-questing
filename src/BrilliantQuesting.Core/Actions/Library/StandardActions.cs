@@ -3,9 +3,9 @@ namespace BrilliantQuesting.Actions.Library
     /// <summary>
     /// The verb set the headless laboratories run on.
     ///
-    /// Thirty-three verbs, spanning six of the eight solution families. The target is roughly forty
-    /// - but only once each verb has proven it can carry a situation on its own, since a verb that
-    /// cannot be the whole answer to some problem is not pulling its weight.
+    /// Thirty-nine verbs, spanning seven of the eight solution families. The target is roughly
+    /// forty - but only once each verb has proven it can carry a situation on its own, since a
+    /// verb that cannot be the whole answer to some problem is not pulling its weight.
     /// </summary>
     public static class StandardActions
     {
@@ -42,6 +42,12 @@ namespace BrilliantQuesting.Actions.Library
                 .Register(new FenceGoodsAction())
                 .Register(new ForgeAction())
                 .Register(new SmuggleAction())
+                .Register(new CookAction())
+                .Register(new BrewAction())
+                .Register(new AlchemyAction())
+                .Register(new BuildAction())
+                .Register(new CraftToPropertyAction())
+                .Register(new RepairAction())
                 .Register(new ReturnItemAction())
                 .Register(new KeepItemAction())
                 .Register(new AttackAction());

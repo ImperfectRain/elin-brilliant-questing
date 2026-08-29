@@ -49,7 +49,10 @@ namespace BrilliantQuesting.Plugin
                 { VanillaSkill.Cooking, "cooking" },
                 { VanillaSkill.Faith, "faith" },
                 { VanillaSkill.Travel, "travel" },
-                { VanillaSkill.Mining, "mining" }
+                { VanillaSkill.Mining, "mining" },
+                { VanillaSkill.Carpentry, "carpentry" },
+                { VanillaSkill.Building, "building" },
+                { VanillaSkill.Handicraft, "handicraft" }
             };
 
         private static readonly Dictionary<VanillaAttribute, int> ResolvedAttributes = new Dictionary<VanillaAttribute, int>();
