@@ -206,6 +206,10 @@ namespace BrilliantQuesting.Plugin
                 .SetOnClick(() => ShowCaseNotes(target));
             talk.AddChoice(notes);
 
+            DramaChoice journal = new DramaChoice("BQ: Journal", "", "bq:journal", "", "")
+                .SetOnClick(ShowJournal);
+            talk.AddChoice(journal);
+
             if (ExplainInDialogue)
             {
                 DramaChoice why = new DramaChoice("BQ: why? (debug)", "", "bq:why", "", "")
@@ -306,6 +310,25 @@ namespace BrilliantQuesting.Plugin
             string notes = CaseNotes(thread, subjectFact);
             Msg.SayRaw(notes);
             _log.LogInfo("Case notes shown: " + notes);
+        }
+
+        private void ShowJournal()
+        {
+            try
+            {
+                string journal = NarrativeJournal.Describe(_world, _vanilla.PlayerId);
+                foreach (string line in journal.Split('\n'))
+                {
+                    _log.LogInfo(line);
+                }
+
+                Msg.SayRaw("Brilliant Questing wrote the journal to BepInEx/LogOutput.log.");
+            }
+            catch (Exception ex)
+            {
+                Msg.SayRaw("Brilliant Questing could not build the journal; see the log.");
+                _log.LogError("Journal failed: " + ex);
+            }
         }
 
         /// <summary>
