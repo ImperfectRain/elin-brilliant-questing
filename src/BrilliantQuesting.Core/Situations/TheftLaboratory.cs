@@ -44,6 +44,12 @@ namespace BrilliantQuesting.Situations
         /// <summary>The scheduled gossip round. Nothing runs it unless a test asks for a day to pass.</summary>
         public RumorCirculation Circulation { get; private set; }
 
+        /// <summary>
+        /// What the people standing near the player would mention. Nothing speaks unless a test
+        /// asks, because in the game the presentation layer is what decides a line was heard.
+        /// </summary>
+        public AmbientTalk Ambient { get; private set; }
+
         public PettyTheftSituation Situation { get; private set; }
 
         /// <summary>
@@ -80,6 +86,7 @@ namespace BrilliantQuesting.Situations
             lab.Actions = StandardActions.CreateRegistry();
             lab.Rumors = new RumorSystem(world.Knowledge, world.Ledger, world.Ids);
             lab.Circulation = new RumorCirculation(lab.Rumors);
+            lab.Ambient = new AmbientTalk(lab.Rumors);
             lab.Consequences = new ConsequenceEngine(world, vanilla);
             lab.Consequences.Attach();
 

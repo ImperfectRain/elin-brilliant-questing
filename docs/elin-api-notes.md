@@ -506,3 +506,19 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
   game. Being wrong costs visibility of the lowest-priority projected options, not correctness:
   both readers write their full text to `BepInEx/LogOutput.log` regardless, and neither changes
   any state.
+
+- **How a character speaks a sentence the mod wrote.** BQ-035 delivers ambient remarks through
+  `ElinBark`, which searches the live `Chara` type for a raw-text speech method (`SayRaw`, then
+  `TalkRaw`) taking a `string` first parameter with every later parameter carrying a stated
+  default, and otherwise falls back to `Msg.SayRaw` with the speaker's name in front of the line.
+  Neither the names nor the signatures have been read off a running build. A method taking a
+  language key - `Card.Say` and anything shaped like it - is deliberately not a candidate: handing
+  it a written sentence would print the key or nothing, which reads as the mod having broken rather
+  than as somebody having spoken.
+
+  Being wrong costs presentation and not correctness. The fallback always renders, and the log line
+  reaches the player the same way an Elin bark does; what is lost is the balloon over the speaker's
+  head. A live run should be read for the one-time "BQ bark: ambient remarks are spoken through ..."
+  line, which names the route this build actually took. Nothing is taught to the player unless the
+  chosen route returned without throwing, so a build where neither route works goes quiet rather
+  than filling the journal with things nobody said.

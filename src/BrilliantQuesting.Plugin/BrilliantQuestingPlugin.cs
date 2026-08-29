@@ -47,8 +47,10 @@ namespace BrilliantQuesting.Plugin
         private ThreadEngine _threads;
         private ElinActionObserver _actionObserver;
         private RumorCirculation _gossip;
+        private AmbientTalk _ambient;
         private AbsenceLifecycle _absences;
         private long _lastAdvancedDay = long.MinValue;
+        private long _lastAmbientCheck = long.MinValue;
         private EntityId _lastReconciledZone;
 
         private bool _live;
@@ -142,6 +144,7 @@ namespace BrilliantQuesting.Plugin
             _actionObserver.Observe(payload);
             AdvanceThreadsIfTheDayTurned();
             ReconcileIfTheZoneChanged();
+            LetSomebodyMentionSomething();
         }
 
         /// <summary>
@@ -268,6 +271,55 @@ namespace BrilliantQuesting.Plugin
             }
         }
 
+        /// <summary>
+        /// Lets somebody standing near the player mention what the town has been saying.
+        ///
+        /// The order is the whole of BQ-035's safety: the line is spoken first, and only a line
+        /// that actually reached the player is allowed to teach them anything. A belief that
+        /// arrived because the bark route was missing would be knowledge from nowhere, which is
+        /// what standing rule 22 exists to stop.
+        ///
+        /// `AmbientTalk` keeps the in-game cooldown, on the world, so it survives a reload and a
+        /// player cannot walk in and out of a market to empty it. The check here is a second,
+        /// cheaper gate on a hot event: ActPerformed fires constantly, and scanning the zone's
+        /// beliefs on every act would cost more as the save grows, for an answer that cannot
+        /// change in a single step.
+        /// </summary>
+        private void LetSomebodyMentionSomething()
+        {
+            if (_world == null || _ambient == null)
+            {
+                return;
+            }
+
+            // Never subtract from the sentinel: on the first act, and on a clock that has gone
+            // backwards, ask rather than overflow into silence.
+            long minute = _vanilla.Now.TotalMinutes;
+            if (_lastAmbientCheck != long.MinValue && minute >= _lastAmbientCheck && minute - _lastAmbientCheck < 15)
+            {
+                return;
+            }
+
+            _lastAmbientCheck = minute;
+
+            try
+            {
+                AmbientRemark remark = _ambient.Next(_world, _vanilla, _vanilla.Now);
+                if (remark == null || !ElinBark.Speak(_bindings, remark, _log))
+                {
+                    return;
+                }
+
+                bool took = _ambient.Deliver(_world, _vanilla, remark, _vanilla.Now);
+                _log.LogInfo("Ambient: " + remark.SpeakerName + " mentioned " + remark.FactId
+                             + (took ? "; the player now half-believes it." : "; it did not take."));
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning("Ambient remark skipped after an exception: " + ex.Message);
+            }
+        }
+
         private void Restart(GameIOContext context)
         {
             try
@@ -320,6 +372,7 @@ namespace BrilliantQuesting.Plugin
                 PettyTheftSituation.ArchetypeId,
                 new PettyTheftEscalation(_vanilla, rumors, distortion));
             _gossip = new RumorCirculation(rumors) { Distortion = distortion };
+            _ambient = new AmbientTalk(rumors);
             _drama.AdvanceThreads = AdvanceThreads;
             _actionObserver = new ElinActionObserver(_world, _vanilla, _bindings, _log);
             ElinAuthorityRoles.RefreshAll(_world, _bindings, _log);
@@ -713,6 +766,19 @@ namespace BrilliantQuesting.Plugin
             return "  player offset (" + dx + " / " + dz + "), distance " + chara.pos.Distance(player);
         }
 
+        /// <summary>
+        /// The staged scenario's pointer at who to talk to.
+        ///
+        /// This used to be shown to everybody with a live theft in their town, and BQ-035 is the
+        /// reason it no longer is: a message naming the participants and the open question is
+        /// precisely the UI element announcing a situation that this step exists to do without,
+        /// and it hands the player three names their character has not been told. The world says
+        /// it now, in somebody's voice, when they are standing near somebody who is repeating it.
+        ///
+        /// It stays behind the staging switch because a playtester who deliberately staged the
+        /// prototype into a throwaway save wants to be pointed at it. The log line is unconditional:
+        /// a log is evidence, not a surface the player reads.
+        /// </summary>
         private void AnnouncePrototypeObjective()
         {
             NarrativeThread thread = FindLivePettyTheftThread();
@@ -735,7 +801,11 @@ namespace BrilliantQuesting.Plugin
             string question = thread.OpenQuestions.Count == 0 ? "Find out what happened." : thread.OpenQuestions[0];
             string message = "Brilliant Questing: a local theft is active. Talk to "
                              + names + ". " + question;
-            Msg.SayRaw(message);
+            if (_stageTestScenario != null && _stageTestScenario.Value)
+            {
+                Msg.SayRaw(message);
+            }
+
             _log.LogInfo(message);
         }
 

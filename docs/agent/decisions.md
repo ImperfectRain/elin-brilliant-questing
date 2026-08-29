@@ -188,4 +188,30 @@ Reason: a resolution held only in a thread's fields has no time, no author, and 
 the thread is ever reopened, and a stored history is a second copy of the truth to keep in step
 with the first.
 
+## D023 — Ambient talk carries gossip, and a belief never arrives without a line
+
+The player learns things by being present only through `AmbientTalk`, and two rules bind it.
+
+**It carries what the town repeats, never what somebody knows first-hand.** A speaker may mention
+a belief only when they hold it as hearsay. First-hand knowledge - witnessed, participated in, read
+- is testimony, and testimony is asked for: questioning and eavesdropping reach it, cost a check,
+and expose the player socially. So the witness who watched a theft says nothing about it in the
+street, and the neighbour who heard about it secondhand is the one who mentions it. That is also
+what makes this step rest on circulation rather than merely follow it: with no gossip in the town,
+an honest ambient layer has nothing to say.
+
+**The line comes first, and only a line the player heard may teach them anything.** Choosing the
+remark and delivering it are separate calls; the presentation layer speaks it, and the caller
+teaches the player only once that succeeded. A belief that arrived because a bark route was missing
+is knowledge from nowhere.
+
+It never draws from the world RNG. It runs whenever the player acts, which is not a schedule a save
+can reproduce, so a die drawn here would make every downstream roll depend on how many steps the
+player took. Who speaks and what they say is a deterministic read of who is standing where; the
+pacing is a cooldown stamped on the world, which is what stops a reload from being a way to hear the
+whole town at once.
+
+Reason: this is the one route by which the player gains knowledge without choosing to, so it has to
+be the most conservative one in the mod, not the most convenient.
+
 Add a new entry only when the decision is both load-bearing and durable.

@@ -41,22 +41,14 @@ namespace BrilliantQuesting.Knowledge
         /// </summary>
         public bool Tell(EntityId speaker, EntityId listener, EntityId factId, GameTime now, bool showsProof = false, EntityId saidAs = default)
         {
-            if (!_knowledge.TryGetBelief(speaker, factId, out KnowledgeRecord speakerBelief))
+            if (!CanTell(speaker, listener, factId, saidAs)
+                || !_knowledge.TryGetBelief(speaker, factId, out KnowledgeRecord speakerBelief))
             {
                 return false;
             }
 
             double transmitted = speakerBelief.Confidence * TransmissionDecay;
-            if (transmitted < GossipFloor)
-            {
-                return false;
-            }
-
             EntityId heard = saidAs.IsNone ? factId : saidAs;
-            if (Refuses(listener, heard))
-            {
-                return false;
-            }
 
             // Proof never travels with a story that changed on the way: the ring in the speaker's
             // hand proves what the speaker did, not what they said about somebody else.
@@ -81,6 +73,32 @@ namespace BrilliantQuesting.Knowledge
                 related: heard == factId ? new[] { factId } : new[] { heard, factId }));
 
             return true;
+        }
+
+        /// <summary>
+        /// Whether that retelling would take, asked before anybody opens their mouth.
+        ///
+        /// <see cref="Tell"/> answers the same question by doing it, which is fine for a
+        /// scheduler that can shrug and try somebody else tomorrow. It is not fine for a caller
+        /// that has to render the line in the game before the listener may have it: a remark the
+        /// player hears and does not learn is a wasted beat, and a remark the player learns and
+        /// never hears is the omniscience the whole knowledge layer exists to prevent. Asking
+        /// first is also what stops a deterministic picker from choosing the same doomed retelling
+        /// every time and starving everything behind it.
+        /// </summary>
+        public bool CanTell(EntityId speaker, EntityId listener, EntityId factId, EntityId saidAs = default)
+        {
+            if (!_knowledge.TryGetBelief(speaker, factId, out KnowledgeRecord speakerBelief))
+            {
+                return false;
+            }
+
+            if (speakerBelief.Confidence * TransmissionDecay < GossipFloor)
+            {
+                return false;
+            }
+
+            return !Refuses(listener, saidAs.IsNone ? factId : saidAs);
         }
 
         /// <summary>

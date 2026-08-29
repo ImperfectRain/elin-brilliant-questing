@@ -92,6 +92,21 @@ namespace BrilliantQuesting.World
         /// </summary>
         public long LastRumorDay { get; set; } = RumorsNeverCirculated;
 
+        /// <summary>Nobody near the player has said anything yet. Minutes are never negative.</summary>
+        public const long NothingSaidYet = -1;
+
+        /// <summary>
+        /// The in-game minute somebody last mentioned something within the player's hearing.
+        ///
+        /// On the world for the same reason <see cref="LastRumorDay"/> is: it paces something the
+        /// player cannot be allowed to pump. Ambient talk is the one route by which the player
+        /// gains knowledge simply by being present, so a counter the adapter kept would reset every
+        /// load and turn a save-and-reload into a way to empty the town's news into the journal in
+        /// one standing. Additive and optional in the save: an older one has no node and reads back
+        /// as nothing said yet.
+        /// </summary>
+        public long LastAmbientRemarkMinute { get; set; } = NothingSaidYet;
+
         public EntityId NewId(string kind) => Ids.Next(kind);
 
         /// <summary>

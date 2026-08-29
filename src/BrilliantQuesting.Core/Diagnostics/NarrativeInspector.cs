@@ -264,6 +264,9 @@ namespace BrilliantQuesting.Diagnostics
             sb.Append("\n-- what the player has finished --\n");
             sb.Append(Chronicle.Describe(world, vanilla.PlayerId));
 
+            sb.Append("\n-- what somebody standing here would say out loud --\n");
+            sb.Append(DescribeAmbientTalk(world, vanilla));
+
             sb.Append("\n-- who witnessed what, and what consequences were emitted --\n");
             sb.Append(DescribeHistory(world));
 
@@ -277,9 +280,40 @@ namespace BrilliantQuesting.Diagnostics
             sb.Append("  why did an NPC choose an action?      not simulated; NPC autonomy arrives at BQ-093.\n");
             sb.Append("  why did a shop close or NPC vanish?   not simulated; continuity arrives at BQ-051, BQ-032.\n");
             sb.Append("  why was a site selected or generated? not simulated; sites arrive at BQ-087 onward.\n");
-            sb.Append("  why did a rumour propagate?           only spread is recorded; circulation arrives at BQ-019.\n");
+            sb.Append("  why did this person choose to tell you? not decided; disclosure arrives at BQ-071.\n");
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Whether anybody near the player is about to mention something, and if not, why not.
+        ///
+        /// Reading only: <see cref="AmbientTalk.Next"/> touches nothing, and the throwaway
+        /// <see cref="RumorSystem"/> built here is used for the question "would that retelling
+        /// take" and never to make one happen. Silence has two quite different causes and a debug
+        /// report that ran them together would be useless - a town with nothing new to say and a
+        /// town that said something twenty minutes ago look identical from the outside.
+        /// </summary>
+        public static string DescribeAmbientTalk(NarrativeWorldState world, IVanillaState vanilla)
+        {
+            AmbientTalk talk = new AmbientTalk(new RumorSystem(world.Knowledge, world.Ledger, world.Ids));
+            AmbientRemark remark = talk.Next(world, vanilla, vanilla.Now);
+            if (remark != null)
+            {
+                return "  " + remark.SpeakerName + ": \"" + remark.Line + "\"  [" + remark.FactId + "]\n";
+            }
+
+            long last = world.LastAmbientRemarkMinute;
+            if (last != NarrativeWorldState.NothingSaidYet
+                && vanilla.Now.TotalMinutes - last < talk.MinutesBetweenRemarks)
+            {
+                return "  nothing yet: somebody spoke " + (vanilla.Now.TotalMinutes - last)
+                       + " minute(s) ago, and the next remark is due after "
+                       + talk.MinutesBetweenRemarks + ".\n";
+            }
+
+            return "  nothing: nobody in this zone is repeating anything the player has not already"
+                   + " heard. First-hand knowledge is not repeated here - it is asked for.\n";
         }
 
         /// <summary>One line for the event a thread grew out of, or an honest blank.</summary>

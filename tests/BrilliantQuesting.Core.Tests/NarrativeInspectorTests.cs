@@ -31,6 +31,7 @@ namespace BrilliantQuesting.Tests
         [InlineData("why is each action available or unavailable")]
         [InlineData("who witnessed what")]
         [InlineData("why a claim spread")]
+        [InlineData("what somebody standing here would say out loud")]
         public void TheReportAnswersTheQuestionsItsSystemsCanAnswer(string heading)
         {
             Assert.Contains(heading, Report());
@@ -40,7 +41,7 @@ namespace BrilliantQuesting.Tests
         [InlineData("BQ-093")]
         [InlineData("BQ-051")]
         [InlineData("BQ-087")]
-        [InlineData("BQ-019")]
+        [InlineData("BQ-071")]
         public void UnbuiltSystemsSaySoAndNameTheStepTheyArriveAt(string step)
         {
             Assert.Contains(step, Report());

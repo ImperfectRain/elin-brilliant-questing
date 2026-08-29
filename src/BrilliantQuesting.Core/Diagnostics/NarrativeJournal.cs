@@ -184,11 +184,7 @@ namespace BrilliantQuesting.Diagnostics
 
         private static string Render(NarrativeWorldState world, Fact fact)
         {
-            string subject = world.Registry.NameOf(fact.Subject);
-            string obj = world.Registry.Npcs.ContainsKey(fact.Object)
-                ? world.Registry.NameOf(fact.Object)
-                : !string.IsNullOrEmpty(fact.Value) ? fact.Value : fact.Object.Value;
-            return subject + " " + fact.Predicate.Replace('_', ' ') + " " + obj;
+            return FactPhrasing.Claim(world.Registry, fact);
         }
 
         private static int CompareEntries(JournalEntry left, JournalEntry right)
