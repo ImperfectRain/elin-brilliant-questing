@@ -332,6 +332,34 @@ namespace BrilliantQuesting.Integration
             return Supports(VanillaCapability.ReadHomeState) ? _home : null;
         }
 
+        /// <summary>
+        /// Somebody moves in, or the call is refused and the settlement is untouched. Refused for
+        /// a build that cannot write residency, for a player with no Home, for a Home whose room
+        /// this build will not report, for a full one, and for anybody already living there.
+        ///
+        /// No job is set. Elin computes what a resident does and what that does to the Home Skill
+        /// elements; the reference implementation must not answer a question the game answers, so
+        /// the new resident arrives with an unread job and the metrics do not move (decision D018).
+        /// </summary>
+        public bool TryAdmitResident(EntityId chara)
+        {
+            if (!Supports(VanillaCapability.WriteHomeResidents) || chara.IsNone || chara == PlayerId)
+            {
+                return false;
+            }
+
+            HomeState home = GetHomeState();
+            if (home == null || home.FreeCapacity <= 0 || home.IsResident(chara))
+            {
+                return false;
+            }
+
+            // Listed under their id: the reference implementation holds no names, the world model
+            // does, and inventing one here would be the same lie an invented job would be.
+            _home = home.WithResident(new HomeResident(chara, chara.ToString()));
+            return true;
+        }
+
         public EntityId GetZoneOf(EntityId entity) => Ensure(entity).Zone;
 
         public IReadOnlyList<EntityId> GetCharactersInZone(EntityId zoneId)

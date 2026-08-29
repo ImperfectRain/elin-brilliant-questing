@@ -75,6 +75,18 @@ namespace BrilliantQuesting.Events
         /// simulation holds standing with - so what the ledger records is the act and its price.
         /// </summary>
         OfferingMade,
+
+        /// <summary>
+        /// The player's Home took somebody, or something, into its keeping.
+        ///
+        /// One event for the whole family because it is one causal shape: a household accepted an
+        /// exposure it did not have before. What was undertaken - a bed, a guest's night, a watch
+        /// posted, an object held - is the fact written beside it, not a separate kind of history,
+        /// and the target is a person or an object depending on which. Nobody's standing is
+        /// *judged* here: taking a hunted witness in and taking a blacksmith on are the same act
+        /// to the ledger, and what the law makes of it is decided where the law is (BQ-046).
+        /// </summary>
+        TakenIn,
         CrimeWitnessed,
         CrimeReported,
         RumorSpread,

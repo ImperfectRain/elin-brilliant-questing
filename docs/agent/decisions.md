@@ -102,4 +102,12 @@ Where a read can partly fail, the snapshot says which parts it got. `HomeState` 
 
 Reason: capability honesty (a whole integration reports unsupported) is too coarse once one read returns several numbers. A Home whose capacity silently defaulted to zero would look permanently full and close every shelter route; one whose Public Safety defaulted to zero would look like a slum and open the wrong ones. Callers with a threshold must ask whether the number was read, and the refusing direction is the safe one when it was not.
 
+## D018 — The mod admits residents; vanilla keeps the settlement's numbers
+
+The Home has exactly one write, `IVanillaState.TryAdmitResident`, and it puts a person on Elin's own resident roll. Nothing above the seam sets a resident's job, and nothing sets Public Safety, Public Morality, Food Supply, Soil, Publicity or Administration. Those are read.
+
+The write is verified rather than trusted: the adapter tells the branch and then asks it who lives there, and reports false if the person is not on the roll afterwards.
+
+Reason: the six Home Skill elements are vanilla's arithmetic over who lives at the settlement and what they do, and they are what the player watches on the Home board. A procedural layer that wrote them directly would be a second settlement economy disagreeing with the visible one, in the same way a procedural crafting roll would disagree with Elin's (D014). Taking somebody in changes the settlement because the game recomputes it from the new resident, not because the mod decided what a refugee is worth. And an unverified write would leave a `sheltered_by` fact standing over a Home that never took anybody - the stale-binding failure D011 exists to prevent, wearing a different hat.
+
 Add a new entry only when the decision is both load-bearing and durable.

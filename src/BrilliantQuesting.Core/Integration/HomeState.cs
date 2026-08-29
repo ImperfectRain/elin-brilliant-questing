@@ -70,7 +70,7 @@ namespace BrilliantQuesting.Integration
     /// A read-only snapshot of the player's Home: who lives there, what they do, how many more it
     /// can hold, and the six Home Skill elements.
     ///
-    /// Two rules hold the whole type together, and both exist because a later step will refuse or
+    /// Two rules hold the whole type together, and both exist because the Home verbs refuse or
     /// allow a shelter offer on these numbers.
     ///
     /// A datum this build could not read is *absent*, not zero. <see cref="TryGetMetric"/> says so
@@ -146,6 +146,25 @@ namespace BrilliantQuesting.Integration
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// The same Home with one more person living in it.
+        ///
+        /// A snapshot transform, not a write: what is known stays known and what was never read
+        /// stays absent, so admitting somebody cannot quietly invent a capacity or a metric the
+        /// game never answered. The live adapter has no use for it - it tells Elin and reads the
+        /// settlement again - and the headless reference implementation moves somebody in with it.
+        /// </summary>
+        internal HomeState WithResident(HomeResident resident)
+        {
+            if (resident == null || resident.Id.IsNone || IsResident(resident.Id))
+            {
+                return this;
+            }
+
+            List<HomeResident> residents = new List<HomeResident>(_residents) { resident };
+            return new HomeState(ZoneId, Name, residents, Capacity, CapacityKnown, new Dictionary<HomeMetric, int>(_metrics));
         }
 
         /// <summary>

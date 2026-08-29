@@ -174,6 +174,21 @@ namespace BrilliantQuesting.Plugin
                 },
                 "no Home on this save, or EClass.Branch could not be read");
 
+            // A write that must not be exercised to be probed: moving somebody into the player's
+            // Home is not a no-op the way ModCurrency(0) is. What is checked is that the branch
+            // exposes a member this build can call, and the call itself is verified where it
+            // happens, by asking the settlement who lives there afterwards.
+            Probe(
+                VanillaCapability.WriteHomeResidents,
+                () =>
+                {
+                    string member = ElinHomeState.AdmitMemberName(_log);
+                    return member == null
+                        ? null
+                        : "EClass.Branch." + member + "(Chara) resolved; residency confirmed by re-reading the branch after the call";
+                },
+                "no Home on this save, or its branch exposes no member that takes a Chara");
+
             Probe(
                 VanillaCapability.ObserveCrimeWitnesses,
                 () =>
@@ -732,11 +747,26 @@ namespace BrilliantQuesting.Plugin
         /// see. Deliberately not gated on <see cref="VanillaCapability.ReadHomeState"/>, which is
         /// what the probe found at attach: a player who buys land in hour nine has a Home, and a
         /// capability line written before they did must not be what refuses to see it. Callers ask
-        /// the direct question by reading the snapshot. Nothing here writes: BQ-030 is all read.
+        /// the direct question by reading the snapshot.
         /// </summary>
         public HomeState GetHomeState()
         {
             return ElinHomeState.Read(_bindings, PlayerId, _log);
+        }
+
+        /// <summary>
+        /// Moves somebody onto the player's settlement roll, and reports whether they are on it
+        /// afterwards. Gated on the capability, unlike the read: this one alters a save, so a
+        /// build whose probe found no member to call must not try the call anyway.
+        /// </summary>
+        public bool TryAdmitResident(EntityId chara)
+        {
+            if (!Supports(VanillaCapability.WriteHomeResidents) || chara.IsNone || chara == PlayerId)
+            {
+                return false;
+            }
+
+            return ElinHomeState.TryAdmit(_bindings, PlayerId, chara, _log);
         }
 
         // -- world ----------------------------------------------------------------------------

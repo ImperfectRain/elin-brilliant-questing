@@ -298,6 +298,45 @@ namespace BrilliantQuesting.Actions.Library
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.25)
             .WithTargetAttribute(VanillaAttribute.Strength, 0.25);
 
+        /// <summary>
+        /// Getting somebody to come under your roof, and getting your household to have them.
+        ///
+        /// Contested by the target's Will because the person being offered a bed is the one who
+        /// decides: a frightened witness is not an object to be placed, and a specialist with a
+        /// trade has somewhere else to be. Charisma and Negotiation are Elin's own reading of
+        /// whether a stranger's word is worth trusting.
+        /// </summary>
+        public static readonly CheckProfile Hospitality = new CheckProfile("proc_hospitality", 11)
+            .WithActorAttribute(VanillaAttribute.Charisma, 0.35)
+            .WithActorSkill(VanillaSkill.Negotiation, 0.25)
+            .WithActorAttribute(VanillaAttribute.Will, 0.1)
+            .WithTargetAttribute(VanillaAttribute.Will, 0.25);
+
+        /// <summary>
+        /// Standing a watch over somebody, using the settlement rather than your own arms.
+        ///
+        /// Uncontested: the person being guarded is not resisting, and whoever they are hiding
+        /// from is not in the room. What decides it is whether the watch is organised and whether
+        /// the place is the kind of place that can keep one - the second of which arrives as the
+        /// Home's own Public Safety, not as a term on this row.
+        /// </summary>
+        public static readonly CheckProfile Vigilance = new CheckProfile("proc_vigilance", 12)
+            .WithActorAttribute(VanillaAttribute.Will, 0.3)
+            .WithActorAttribute(VanillaAttribute.Perception, 0.2)
+            .WithActorSkill(VanillaSkill.Negotiation, 0.2);
+
+        /// <summary>
+        /// Getting a settlement's own stores where somebody needs them, in time.
+        ///
+        /// Not a craft: nothing is made, and the difficulty is entirely in the standard demanded
+        /// and in how well the place is run. Learning and Negotiation are what a person organising
+        /// a shipment reads off, and Travel is the road it has to cover.
+        /// </summary>
+        public static readonly CheckProfile Logistics = new CheckProfile("proc_logistics", 11)
+            .WithActorAttribute(VanillaAttribute.Learning, 0.25)
+            .WithActorSkill(VanillaSkill.Negotiation, 0.3)
+            .WithActorSkill(VanillaSkill.Travel, 0.15);
+
         /// <summary>Being believed when you make a public claim.</summary>
         public static readonly CheckProfile Credibility = new CheckProfile("proc_credibility", 12)
             .WithActorSkill(VanillaSkill.Negotiation, 0.3)
@@ -368,6 +407,17 @@ namespace BrilliantQuesting.Actions.Library
                 case "escort": return Escort;
                 case "capture": return Capture;
                 case "restrain": return Restrain;
+
+                case "shelter": return Hospitality;
+                case "recruit_specialist": return Hospitality;
+                case "host": return Hospitality;
+                case "assign_protection": return Vigilance;
+                case "provide_supplies": return Logistics;
+
+                // Putting something into your own household's keeping is not a skill test. Either
+                // there is a Home with somebody in it to hold the thing, or there is not, and both
+                // of those are settled before any roll would happen - the same reason
+                // `make_offering` has no profile.
 
                 // Passing yourself off as somebody else is not a separate craft from lying; it is
                 // lying with a prop, and it is read off the same vanilla values.

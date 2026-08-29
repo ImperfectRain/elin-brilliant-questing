@@ -73,6 +73,14 @@ namespace BrilliantQuesting.Actions
                 // Buys the standing the petition spends, the way searching buys the proof an
                 // accusation spends. Real, and never itself the ending.
                 case "make_offering":
+                // The Home routes that end a situation in their own right - a bed, a watch posted
+                // instead of a bed, a settlement's stores instead of a craft. They sit below the
+                // cross-situation resolutions for the same reason the physical endings do: each is
+                // the ending of the situation it belongs to, and displacing `return_item` for one
+                // is the regression this table was written to stop.
+                case "shelter":
+                case "assign_protection":
+                case "provide_supplies":
                 // Physical endings in their own situations. They sit below the cross-situation
                 // resolution tier so a capped synthetic "everything is available" surface still
                 // keeps the older global endings it was built to protect.
@@ -94,6 +102,10 @@ namespace BrilliantQuesting.Actions
                 case "capture":
                 case "restrain":
                 case "escort":
+                // Offers of a place: real routes that move somebody who is not yet under your
+                // roof, and neither of them ends anything on its own.
+                case "host":
+                case "recruit_specialist":
                     return 2;
 
                 // Real routes - standing rule 14, a valid ugly solution is still a solution - but
@@ -113,6 +125,9 @@ namespace BrilliantQuesting.Actions
                 case "smuggle":
                 case "sabotage":
                 case "destroy_evidence":
+                // Putting proof beyond reach is the mirror of destroying it, and belongs on the
+                // same tier: it protects a case without advancing the one in front of the player.
+                case "store_evidence":
                     return 3;
 
                 default:

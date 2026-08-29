@@ -348,6 +348,27 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
   reader's own logic was exercised headlessly against a stub shaped like a branch; that proves the
   reflection, not the shape. A live run should be read for the one-time "Home branch is ..." line
   and any "Unread Home data" warning, and the winning names copied into the candidate lists.
+- **Moving somebody into the Home.** `ElinHomeState.TryAdmit` calls a one-argument member of the
+  branch that takes a `Chara`, resolved from `AddMember`/`AddResident`/`AddChara`. None of those
+  has been seen on a running game either, and unlike every other candidate list here this one
+  names a method that changes a save - which is why there is deliberately no bare `Add` in it, and
+  why the call is verified by re-reading the branch and asking whether the person is on the roll
+  rather than by trusting that it returned. A build with none of those names reports
+  `WriteHomeResidents` unsupported, logs the names it tried once, and loses `shelter` and
+  `recruit_specialist` while keeping `host`, `assign_protection`, `provide_supplies` and
+  `store_evidence`. The capability probe resolves the member and does **not** call it: unlike
+  `ModCurrency(0)`, there is no harmless version of moving a person into somebody's house.
+  The write's own logic was exercised headlessly against a branch-shaped stub with and without an
+  `AddMember(Chara)` on it; that proves the reflection and the verify-by-re-read, not the shape.
+- Whether Elin recomputes the Home Skill elements from a resident added this way, and whether it
+  assigns that resident a job on its own. The mod sets neither (decision D018), so if the game
+  does not, a sheltered person is a name on the roll and nothing more. A live run should compare
+  the `home:` line before and after a `shelter`.
+- Whether `assign_protection` and `provide_supplies` are reachable at all in play. Both refuse on
+  an unread Home Skill element - a watch needs Public Safety, a shipment needs Food Supply or
+  Administration - so if the six elements do not resolve on a running game, those two routes are
+  closed in game while passing headlessly. That is the intended direction (D017), but it means the
+  first live run decides whether half the Home family exists.
 - Whether `fSafety`, `fMoral`, `fFood`, `fSoil`, `fPromo` and `fAdmin` resolve on a running game.
   They come from the recorded alias table rather than from a live resolution, unlike the twelve
   skills that have been resolved in play.

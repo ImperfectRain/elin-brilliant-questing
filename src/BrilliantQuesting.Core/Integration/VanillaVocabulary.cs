@@ -90,6 +90,17 @@ namespace BrilliantQuesting.Integration
         DestroyItems,
         SpendMoney,
         ReadHomeState,
+
+        /// <summary>
+        /// Somebody can be moved into the player's Home as a resident.
+        ///
+        /// Separate from <see cref="ReadHomeState"/> for the same reason destruction is separate
+        /// from transfer: reading a settlement and altering its roll are different reaches into
+        /// the game, and a build that lists residents perfectly well may have no member this mod
+        /// can call to add one. It covers residency and nothing else - Home Skill elements and
+        /// resident jobs stay vanilla's to compute (see decision D018).
+        /// </summary>
+        WriteHomeResidents,
         ObserveCrimeWitnesses
     }
 }

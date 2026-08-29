@@ -82,15 +82,28 @@ namespace BrilliantQuesting.Integration
         ///
         /// Null is the honest answer for "no Home", and an empty <see cref="HomeState"/> is never
         /// used to stand in for it: a settlement with nobody in it and a player who owns no land
-        /// are different situations, and a later step decides whether somebody can be sheltered on
-        /// exactly that difference. Read-only by contract - nothing above this seam writes a
-        /// resident, a job or a Home Skill element.
+        /// are different situations, and the Home verbs refuse or allow on exactly that
+        /// difference. A snapshot, not a handle: the only thing above this seam that changes a
+        /// Home is <see cref="TryAdmitResident"/>, and a caller that has admitted somebody asks
+        /// again rather than assuming what the game did with them.
         ///
         /// This snapshot, not <see cref="VanillaCapability.ReadHomeState"/>, is what a caller acts
         /// on: the capability says what a probe found when the game was attached, and a Home can be
         /// acquired, emptied or lost long after that.
         /// </summary>
         HomeState GetHomeState();
+
+        /// <summary>
+        /// Moves somebody into the player's Home as a resident, and reports whether they actually
+        /// went. False for a build that cannot write residency, for a Home with no room, and for
+        /// anybody the game refused - never a claim that has to be taken on trust.
+        ///
+        /// This is the only write the Home has. A resident's job and the six Home Skill elements
+        /// are vanilla's own arithmetic over who lives there and what they do, and the mod reads
+        /// them rather than setting them: writing Public Safety directly would be a second
+        /// settlement economy disagreeing with the one the player watches (decision D018).
+        /// </summary>
+        bool TryAdmitResident(EntityId chara);
 
         // -- world ------------------------------------------------------------------------
         EntityId GetZoneOf(EntityId entity);

@@ -83,6 +83,12 @@ namespace BrilliantQuesting.Consequences
                 // it. It is on the record because a petition later spends it, and because what
                 // somebody gave up is worth being able to look back at.
                 { WorldEventType.OfferingMade, new ConsequenceProfile("made_an_offering", MemoryWeight.Routine, 0) },
+                // Being taken into somebody's house is one of the largest things that can happen
+                // to a person, and it is public: the neighbours see who is suddenly living at the
+                // player's Home, and the player's name travels for it. Karma stays zero because
+                // the ledger does not know whether the household just did a kindness or harboured
+                // a fugitive - that is a judgment, and judgments wait for BQ-046.
+                { WorldEventType.TakenIn, new ConsequenceProfile("was_taken_in", MemoryWeight.Defining, 28, 3, fame: 2) },
                 { WorldEventType.CrimeWitnessed, new ConsequenceProfile("witnessed_a_crime", MemoryWeight.Notable, 0) },
                 { WorldEventType.CrimeReported, new ConsequenceProfile("reported_to_authorities", MemoryWeight.Important, -25, 0, karma: 2) },
                 { WorldEventType.RumorSpread, new ConsequenceProfile("heard_a_rumor", MemoryWeight.Routine, 0) },

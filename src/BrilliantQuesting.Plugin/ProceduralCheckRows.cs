@@ -188,6 +188,23 @@ namespace BrilliantQuesting.Plugin
                 ActorAttribute(VanillaAttribute.Strength, 0.25f),
                 TargetAttribute(VanillaAttribute.Strength, 0.25f));
 
+            // Home and community. Hospitality is the only contested one: the person being offered
+            // a bed decides. A watch and a shipment are not resisted by anybody in the room, and
+            // what actually decides them - the settlement's own Public Safety and Administration -
+            // is a situational term rather than an element on the row.
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Hospitality,
+                ActorAttribute(VanillaAttribute.Charisma, 0.35f),
+                TargetAttribute(VanillaAttribute.Will, 0.25f));
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Vigilance,
+                ActorAttribute(VanillaAttribute.Will, 0.3f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Logistics,
+                ActorSkill(VanillaSkill.Negotiation, 0.3f),
+                ElementProjection.None);
+
             log.LogInfo("Installed " + installed + " procedural Check row(s) for native difficulty text.");
         }
 

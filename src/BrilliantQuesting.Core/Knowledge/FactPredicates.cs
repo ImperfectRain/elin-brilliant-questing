@@ -108,6 +108,31 @@ namespace BrilliantQuesting.Knowledge
         public const string BlocksAccessTo = "blocks_access_to";
 
         /// <summary>
+        /// Somebody is not safe where they are. Subject is the person, object is whoever or
+        /// whatever they are not safe from (nobody, when the danger has no face), and
+        /// <see cref="Fact.Value"/> says what kind of exposure it is - a witness, a refugee, a
+        /// fugitive, somebody burned out of their house.
+        ///
+        /// Deliberately not a <see cref="Needs"/> demand, which is a *property constraint on
+        /// goods*: a person with nowhere safe to sleep is not a shortage a handicraft roll can
+        /// fill, and stating it as one would have let the generalist craft answer it. Stating it
+        /// as its own claim is what makes it generatable - a situation says once that somebody is
+        /// exposed, and every route that can answer exposure becomes available at once.
+        /// </summary>
+        public const string AtRisk = "at_risk";
+
+        /// <summary>
+        /// A person is under somebody's roof and protection. Subject is the person taken in,
+        /// object is whoever took them in, and <see cref="Fact.Value"/> names the undertaking -
+        /// a resident, a guest, a specialist taken on, somebody being watched over.
+        ///
+        /// One predicate for the whole family because it is one claim with four strengths, and
+        /// because what it costs the person who made it is the same either way: it is public,
+        /// it travels, and it tells anyone who hears it exactly where to look.
+        /// </summary>
+        public const string ShelteredBy = "sheltered_by";
+
+        /// <summary>
         /// Whether this is the kind of thing people repeat to each other.
         ///
         /// Gossip is about what happened, not about how the world is arranged. "Kip stole the
@@ -141,6 +166,12 @@ namespace BrilliantQuesting.Knowledge
                 case Needs:
                 case Damaged:
                 case BlocksAccessTo:
+                // Both halves of a sanctuary travel, and they are the reason it is a decision
+                // rather than a free good deed. That somebody is exposed is what a town talks
+                // about; where they went afterwards is what the person they are hiding from is
+                // listening for.
+                case AtRisk:
+                case ShelteredBy:
                 // How somebody died travels for the same reason the death does, and it is the
                 // half that changes what anyone does about it.
                 case KilledBy:

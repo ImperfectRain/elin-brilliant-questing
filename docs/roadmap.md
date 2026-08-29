@@ -15,7 +15,7 @@ it does not prove it behaves, so "found" below is not the same as "works".
 | Item | Status |
 |---|---|
 | Confirm runtime access to elements, skills, affinity, Karma, prestige, Influence, inventory | **verified in game** - real values read back through the adapter |
-| Confirm access to guild, faith, home state | partly - guild and faith verified in game; the Home is read through `EClass.Branch` but every member below it is resolved by name and unconfirmed in play |
+| Confirm access to guild, faith, home state | partly - guild and faith verified in game; the Home is read through `EClass.Branch`, and residents are added through it, but every member below it is resolved by name and unconfirmed in play |
 | Confirm creation and persistence of generated Chara and zones | partly - `Zone.AddChara` located, persistence untested |
 | Decide how mod save data attaches, with a migration version | **working in game** - chunk written on `PreSave`, read on `PostLoad` |
 | Prototype custom `Check` rows and `Check.Perform` from runtime | **found, untested** - `Check.Get/GetFinalDC/Perform` and the four-result enum exist; `SourceCheck.Row` schema captured |
@@ -82,9 +82,10 @@ Not started. Needs the Phase 0 spike first: a site is only interesting once it i
 
 ## Phase 3 - universal action library
 
-Twelve of a target thirty. Each new verb needs testable preconditions, real vanilla mechanics,
-four-outcome behaviour where checked, exposure rules and consequence outputs. Families still thin or
-absent: Crafting, MagicFaith, HomeCommunity, and most of Economic beyond bribery.
+Fifty-six verbs against a target thirty, and all eight solution families now have at least one
+real route. Each verb needs testable preconditions, real vanilla mechanics, four-outcome behaviour
+where checked, exposure rules and consequence outputs; the count is not the measure - a verb counts
+only once some situation can be solved by it alone.
 
 ## Phase 4 - director and multiple archetypes
 

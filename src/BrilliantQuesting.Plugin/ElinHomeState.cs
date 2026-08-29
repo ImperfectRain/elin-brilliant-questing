@@ -10,9 +10,12 @@ using BrilliantQuesting.Integration;
 namespace BrilliantQuesting.Plugin
 {
     /// <summary>
-    /// Reads the player's Home out of Elin, and nothing else. BQ-030 is read-only by design: the
-    /// step that lets a procedural offer put somebody in a bed comes later, and it will refuse or
-    /// allow on the numbers this file reports.
+    /// Reads the player's Home out of Elin, and moves one thing in it.
+    ///
+    /// Reading is the bulk of the file and the reason it exists. The one write is
+    /// <see cref="TryAdmit"/>, which puts a person on the settlement's resident roll and stops
+    /// there: what that resident then does, and what it does to the six Home Skill elements, is
+    /// Elin's own arithmetic and is read back rather than set (decision D018).
     ///
     /// The entry point is `EClass.Branch`, the player's own settlement branch. Its members are the
     /// residents, the Home Skill elements (`fSafety`, `fMoral`, `fFood`, `fSoil`, `fPromo`,
@@ -57,6 +60,21 @@ namespace BrilliantQuesting.Plugin
         /// <summary>What a resident does at Home.</summary>
         private static readonly string[] JobNames = { "job", "idJob", "Job", "hobby", "work" };
 
+        /// <summary>
+        /// The call that puts somebody on the settlement's roll. Resolved by name against the
+        /// branch, like everything else below <c>EClass.Branch</c>, and like everything else here
+        /// it is unconfirmed on a running game - so a build with none of these names loses the
+        /// residency write and says so, rather than reporting a move that never happened.
+        ///
+        /// Deliberately no bare "Add": every other candidate list here guesses at a *read*, where
+        /// a wrong guess costs a datum, and this one calls a method that changes a save. A branch
+        /// with some unrelated `Add(Chara)` on it would be handed a person on the strength of a
+        /// name, so the write would rather not exist than be wrong.
+        /// </summary>
+        private static readonly string[] AdmitNames = { "AddMember", "AddResident", "AddChara" };
+
+        private static bool _reportedNoAdmit;
+
         private static bool _reportedShape;
 
         /// <summary>
@@ -65,19 +83,7 @@ namespace BrilliantQuesting.Plugin
         /// </summary>
         internal static HomeState Read(ElinBindings bindings, EntityId playerId, ManualLogSource log)
         {
-            object branch;
-            try
-            {
-                // Typed as object on purpose: the branch class is not otherwise mentioned in this
-                // assembly, so an Early Access rename of the type costs nothing here.
-                branch = EClass.Branch;
-            }
-            catch (Exception ex)
-            {
-                log?.LogWarning("Could not reach EClass.Branch (" + ex.GetType().Name + "). Home state reads as unavailable.");
-                return null;
-            }
-
+            object branch = Branch(log);
             if (branch == null)
             {
                 return null;
@@ -102,6 +108,115 @@ namespace BrilliantQuesting.Plugin
             HomeState home = builder.Build();
             ReportShapeOnce(branch, home, residentsListed, log);
             return home;
+        }
+
+        /// <summary>
+        /// Moves somebody into the player's Home, and reports whether the game actually took them.
+        ///
+        /// The branch is told, and then asked. Trusting the call would be the same mistake a
+        /// destroy that never happened would be: a `sheltered_by` fact written over a settlement
+        /// that never took anybody is exactly the stale binding the evidence rules exist to stop,
+        /// and it would be invisible until the player walked home and found nobody there.
+        ///
+        /// Nothing here sets a job. A resident's work, and what it does to Public Safety, Food
+        /// Supply and the rest, is the game's own arithmetic; writing either would put a second
+        /// settlement economy beside the one on the player's Home board (decision D018).
+        /// </summary>
+        internal static bool TryAdmit(ElinBindings bindings, EntityId playerId, EntityId chara, ManualLogSource log)
+        {
+            Chara person = bindings?.ResolveChara(chara);
+            if (person == null || person.isDead)
+            {
+                return false;
+            }
+
+            object branch = Branch(log);
+            if (branch == null)
+            {
+                return false;
+            }
+
+            MethodInfo add = ResolveAdmit(branch.GetType());
+            if (add == null)
+            {
+                if (!_reportedNoAdmit)
+                {
+                    _reportedNoAdmit = true;
+                    log?.LogWarning("No member of " + branch.GetType().Name + " matched "
+                                    + string.Join("/", AdmitNames) + ", so nobody can be moved into the Home on this build.");
+                }
+
+                return false;
+            }
+
+            try
+            {
+                add.Invoke(branch, new object[] { person });
+            }
+            catch (Exception ex)
+            {
+                log?.LogWarning("Moving " + person.Name + " into the Home through " + add.Name
+                                + " failed (" + ex.GetType().Name + ").");
+                return false;
+            }
+
+            HomeState after = Read(bindings, playerId, log);
+            bool moved = after != null && after.IsResident(chara);
+            if (!moved)
+            {
+                log?.LogWarning(person.Name + " is not on the Home's roll after " + add.Name + ".");
+            }
+
+            return moved;
+        }
+
+        /// <summary>
+        /// What this build calls the residency write, or null when it has none. Read for the
+        /// capability probe, which must not actually move anybody to find out.
+        /// </summary>
+        internal static string AdmitMemberName(ManualLogSource log)
+        {
+            object branch = Branch(log);
+            return branch == null ? null : ResolveAdmit(branch.GetType())?.Name;
+        }
+
+        /// <summary>
+        /// The player's settlement branch, or null when there is none and when it cannot be
+        /// reached. Typed as object on purpose: the branch class is not otherwise mentioned in
+        /// this assembly, so an Early Access rename of the type costs nothing here.
+        /// </summary>
+        private static object Branch(ManualLogSource log)
+        {
+            try
+            {
+                return EClass.Branch;
+            }
+            catch (Exception ex)
+            {
+                log?.LogWarning("Could not reach EClass.Branch (" + ex.GetType().Name + ").");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// A one-argument method on the branch that will take a <c>Chara</c>. Kept apart from
+        /// <see cref="Resolve"/>, which deliberately only ever finds parameterless members: a read
+        /// that accidentally resolved to something taking arguments would be a bug, and a write
+        /// that has to take a person cannot use that rule.
+        /// </summary>
+        private static MethodInfo ResolveAdmit(Type type)
+        {
+            const BindingFlags Flags = BindingFlags.Public | BindingFlags.Instance;
+            for (int i = 0; i < AdmitNames.Length; i++)
+            {
+                MethodInfo method = type.GetMethod(AdmitNames[i], Flags, null, new[] { typeof(Chara) }, null);
+                if (method != null)
+                {
+                    return method;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>Fills in the residents, and reports whether the game listed them at all.</summary>

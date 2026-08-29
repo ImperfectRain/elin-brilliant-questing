@@ -73,6 +73,26 @@ namespace BrilliantQuesting.Actions.Library
             return new CheckRequestExtensions.Modifier("bad history", Clamp(delta, 0, 6));
         }
 
+        /// <summary>
+        /// One of the settlement's own Home Skill elements, as difficulty.
+        ///
+        /// A well-run, well-fed, well-watched place makes the work it is being asked for easier,
+        /// and the number is Elin's own - the mod reads what the player watches on the Home board
+        /// rather than scoring settlements privately. An element this build never answered
+        /// contributes nothing and says so by name, so the inspector distinguishes "the Home is
+        /// mediocre at this" from "nobody could read it" (decision D017).
+        /// </summary>
+        public static CheckRequestExtensions.Modifier Settlement(HomeState home, HomeMetric metric)
+        {
+            string label = metric.ToString().ToLowerInvariant();
+            if (home == null || !home.TryGetMetric(metric, out int value))
+            {
+                return new CheckRequestExtensions.Modifier("home " + label + " (unread)", 0);
+            }
+
+            return new CheckRequestExtensions.Modifier("home " + label, -Clamp(value / 20, -4, 4));
+        }
+
         /// <summary>Guild standing as social authority, where the guild is relevant to the ask.</summary>
         public static CheckRequestExtensions.Modifier GuildAuthority(ActionContext context, GuildId guild)
         {
