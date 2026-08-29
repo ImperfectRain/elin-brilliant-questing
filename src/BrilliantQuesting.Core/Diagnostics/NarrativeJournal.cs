@@ -107,14 +107,11 @@ namespace BrilliantQuesting.Diagnostics
                 return JournalTag.Disputed;
             }
 
-            if (WasReportedByPlayer(world, player, fact.Id))
-            {
-                return JournalTag.Reported;
-            }
-
             if (belief.Source == KnowledgeSource.Hearsay)
             {
-                return JournalTag.Rumour;
+                return WasHeardAsRumour(world, player, fact.Id) || belief.ToldBy.IsNone
+                    ? JournalTag.Rumour
+                    : JournalTag.Reported;
             }
 
             if (belief.Source == KnowledgeSource.Inference || belief.Confidence < 0.7)
@@ -156,20 +153,19 @@ namespace BrilliantQuesting.Diagnostics
                    && (left.Object != right.Object || !string.Equals(left.Value, right.Value, StringComparison.Ordinal));
         }
 
-        private static bool WasReportedByPlayer(NarrativeWorldState world, EntityId player, EntityId factId)
+        private static bool WasHeardAsRumour(NarrativeWorldState world, EntityId player, EntityId factId)
         {
             IReadOnlyList<WorldEvent> events = world.Ledger.Events;
             for (int i = 0; i < events.Count; i++)
             {
                 WorldEvent worldEvent = events[i];
-                if (worldEvent.Actor != player)
+                if (worldEvent.Target != player)
                 {
                     continue;
                 }
 
-                if (worldEvent.Type != WorldEventType.CrimeReported
-                    && worldEvent.Type != WorldEventType.AccusationMade
-                    && worldEvent.Type != WorldEventType.AccusationRejected)
+                if (worldEvent.Type != WorldEventType.RumorSpread
+                    && worldEvent.Type != WorldEventType.RumorDistorted)
                 {
                     continue;
                 }

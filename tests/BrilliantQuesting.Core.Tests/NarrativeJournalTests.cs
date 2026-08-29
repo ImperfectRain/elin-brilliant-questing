@@ -35,7 +35,19 @@ namespace BrilliantQuesting.Tests
         }
 
         [Fact]
-        public void ReportedClaimsAreTaggedAfterThePlayerTakesThemToAuthority()
+        public void AClaimReportedByANamedSourceIsTaggedReported()
+        {
+            NarrativeWorldState world = World();
+            Fact theft = AddFact(world, FactPredicates.Stole, Thief, Ring);
+            world.Knowledge.Teach(Player, theft.Id, KnowledgeSource.Hearsay, 0.9, GameTime.Zero, false, Guard);
+
+            JournalEntry entry = Assert.Single(NarrativeJournal.Entries(world, Player));
+
+            Assert.Equal(JournalTag.Reported, entry.Tag);
+        }
+
+        [Fact]
+        public void TakingAClaimToAuthorityDoesNotTurnItsKnowledgeStatusIntoReported()
         {
             NarrativeWorldState world = World();
             Fact theft = AddFact(world, FactPredicates.Stole, Thief, Ring);
@@ -44,16 +56,17 @@ namespace BrilliantQuesting.Tests
 
             JournalEntry entry = Assert.Single(NarrativeJournal.Entries(world, Player));
 
-            Assert.Equal(JournalTag.Reported, entry.Tag);
+            Assert.Equal(JournalTag.Known, entry.Tag);
         }
 
         [Fact]
-        public void HearsayIsRumourAndInferenceIsSuspicion()
+        public void CirculatingHearsayIsRumourAndInferenceIsSuspicion()
         {
             NarrativeWorldState world = World();
             Fact rumour = AddFact(world, FactPredicates.Owes, Victim, EntityId.None, "400 orens");
             Fact suspicion = AddFact(world, FactPredicates.Funds, Thief, Victim);
             world.Knowledge.Teach(Player, rumour.Id, KnowledgeSource.Hearsay, 0.6, GameTime.Zero, false, Victim);
+            world.Record(WorldEventType.RumorSpread, Victim, Player, GameTime.Zero, related: new[] { rumour.Id });
             world.Knowledge.Teach(Player, suspicion.Id, KnowledgeSource.Inference, 0.8, GameTime.Zero.PlusMinutes(1), false);
 
             Dictionary<EntityId, JournalEntry> entries = NarrativeJournal.Entries(world, Player).ToDictionary(e => e.FactId);
