@@ -1,11 +1,15 @@
 # Documentation
 
-Read in this order. Later documents assume the earlier ones and correct them where the game turned
-out to disagree.
+This is the reading order **when you are reading**, not a queue to load before starting work. Later
+documents assume the earlier ones and correct them where the game turned out to disagree, so read
+them in this order — but for a scoped implementation task, retrieve only the sections your step
+cites. [`../AGENTS.md`](../AGENTS.md) says how.
 
 | | |
 |---|---|
-| [`implementation-roadmap.md`](implementation-roadmap.md) | **The plan.** Ordered, commit-sized steps from here to launch, with checkpoints, a system ledger, and an index proving every idea in every design document has a place. Start here. |
+| [`../AGENTS.md`](../AGENTS.md) | **Agents start here.** How to establish current state from Git, the authority order when sources disagree, the architectural invariants, and the retrieval discipline that keeps a scoped task from loading the whole corpus. Human readers can skip to the next row. |
+| [`agent/workflow.md`](agent/workflow.md) · [`agent/decisions.md`](agent/decisions.md) | The development procedure and the durable architectural decisions behind it. `agent/active-task.md` beside them is an ephemeral handoff template, not project status. |
+| [`implementation-roadmap.md`](implementation-roadmap.md) | **The plan.** Ordered, commit-sized steps from here to launch, with checkpoints, a system ledger, and an index proving every idea in every design document has a place. Queried by step, not read front to back. |
 | [`design/master-design.md`](design/master-design.md) | The vision and the non-negotiable principles. Everything else serves this. A generated mirror of the `.docx` beside it, which is the source of truth. |
 | [`design/post-master-findings.md`](design/post-master-findings.md) | Design reasoning developed after the master document: content classes, mechanical coverage, adventurer ecology, the shared action resolver, mod-ecosystem lessons, and the implementation doctrine. Three claims in it are marked **[superseded]**. |
 | [`design/living-world-priorities.md`](design/living-world-priorities.md) | Third design reference: runtime-grounded priorities, player-facing UX doctrine, safe vanilla mutation, procedural locations, fun-first rules, and a priority roadmap from the current state. |

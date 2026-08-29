@@ -4,8 +4,17 @@ The single ordered plan for Brilliant Questing, audited against all seven design
 code as it stands. Every other document describes *what* to build and *why*; this one says *in what
 order*, *how you know a step is finished*, and *where every idea went*.
 
-If you are an agent picking this project up cold, read this file first, then
-[`docs/README.md`](README.md) for the reading order of the rest.
+If you are an agent picking this project up cold, read [`AGENTS.md`](../AGENTS.md) first. It says
+how to establish current state from Git and how to retrieve only what a task needs.
+
+**This file is queried, not read front to back.** For an ordinary implementation task, search for the
+step you are on (`rg -n "BQ-021" docs/implementation-roadmap.md`) and read that section plus any
+standing rule or track it cites. Read it whole only when planning, auditing, or deciding where new
+work belongs — §5 is the route, §7 the definition of launch, §8 what is deferred, §9 proves every
+design idea has a home, §10 the standing rules that bind every step.
+
+See [`docs/README.md`](README.md) for the reading order of the design corpus, which is likewise
+retrieved on demand rather than preloaded.
 
 ---
 

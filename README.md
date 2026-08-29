@@ -12,9 +12,10 @@ not a parallel roleplaying ruleset bolted on beside them.
 
 ## Current status
 
-This repository contains the **simulation core and its headless laboratory**. It corresponds to
-Phase 0 and Phase 1 of the roadmap: the parts that had to be proven before any game integration was
-worth writing.
+Read it from the repository rather than from here: `git log --oneline` names the last step landed,
+`dotnet test` says what is proven, and §3 of [the roadmap](docs/implementation-roadmap.md) carries
+the audited picture. The table below is the original Phase 0/Phase 1 milestone and is kept for
+shape, not as a current count — a status block in a README goes stale faster than anyone updates it.
 
 | | |
 |---|---|
