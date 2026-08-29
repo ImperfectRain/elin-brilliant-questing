@@ -22,7 +22,7 @@ Normal unit of work: one BQ roadmap step or one tightly scoped defect.
 Find the step with targeted search, for example:
 
 ```bash
-rg -n "BQ-021" docs/implementation-roadmap.md
+rg -n "BQ-XXX" docs/implementation-roadmap.md
 ```
 
 Read the surrounding section only. Expand outward only when the section explicitly depends on another rule/track.
@@ -132,3 +132,10 @@ Before declaring completion:
 - keep the final report concise.
 
 Do not write a new permanent state summary after every commit.
+
+## 11. Commit messages
+
+Routine BQ commit bodies should normally be concise: roughly 100-250 words, or equivalent. Include
+the behavior changed, important constraints, validation run, and non-obvious decisions. Use longer
+bodies only for genuinely important architectural findings. Do not duplicate the full implementation
+diff or the design rationale already present in docs.

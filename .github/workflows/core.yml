@@ -1,0 +1,27 @@
+name: Core
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore Core tests
+        run: dotnet restore tests/BrilliantQuesting.Core.Tests/BrilliantQuesting.Core.Tests.csproj
+
+      - name: Build Core tests
+        run: dotnet build tests/BrilliantQuesting.Core.Tests/BrilliantQuesting.Core.Tests.csproj --no-restore
+
+      - name: Run Core tests
+        run: dotnet test tests/BrilliantQuesting.Core.Tests/BrilliantQuesting.Core.Tests.csproj --no-build
