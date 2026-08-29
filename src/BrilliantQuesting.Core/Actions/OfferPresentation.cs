@@ -73,6 +73,12 @@ namespace BrilliantQuesting.Actions
                 // Buys the standing the petition spends, the way searching buys the proof an
                 // accusation spends. Real, and never itself the ending.
                 case "make_offering":
+                // Physical endings in their own situations. They sit below the cross-situation
+                // resolution tier so a capped synthetic "everything is available" surface still
+                // keeps the older global endings it was built to protect.
+                case "clear_obstruction":
+                case "mine_bypass":
+                case "break_barrier":
                     return 1;
 
                 // Moves someone who is not yet willing.
@@ -82,6 +88,12 @@ namespace BrilliantQuesting.Actions
                 case "pickpocket":
                 case "extort":
                 case "impersonate":
+                case "carry":
+                case "transport":
+                case "rescue":
+                case "capture":
+                case "restrain":
+                case "escort":
                     return 2;
 
                 // Real routes - standing rule 14, a valid ugly solution is still a solution - but

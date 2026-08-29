@@ -245,6 +245,59 @@ namespace BrilliantQuesting.Actions.Library
             .WithActorAttribute(VanillaAttribute.Will, 0.2)
             .WithActorAttribute(VanillaAttribute.Magic, 0.15);
 
+        /// <summary>Moving a physical obstruction by strength and stamina.</summary>
+        public static readonly CheckProfile Clearing = new CheckProfile("proc_clearing", 12)
+            .WithActorAttribute(VanillaAttribute.Strength, 0.35)
+            .WithActorAttribute(VanillaAttribute.Endurance, 0.3)
+            .WithActorSkill(VanillaSkill.Mining, 0.15);
+
+        /// <summary>Making a way around stone with Elin's own mining skill.</summary>
+        public static readonly CheckProfile MiningBypass = new CheckProfile("proc_mine_bypass", 13)
+            .WithActorSkill(VanillaSkill.Mining, 0.45)
+            .WithActorAttribute(VanillaAttribute.Strength, 0.2)
+            .WithActorAttribute(VanillaAttribute.Endurance, 0.15);
+
+        /// <summary>Forcing a barrier where subtle access is not the problem.</summary>
+        public static readonly CheckProfile Breaking = new CheckProfile("proc_breaking", 13)
+            .WithActorAttribute(VanillaAttribute.Strength, 0.45)
+            .WithActorAttribute(VanillaAttribute.Endurance, 0.2);
+
+        /// <summary>Getting a heavy or awkward thing under control.</summary>
+        public static readonly CheckProfile Carrying = new CheckProfile("proc_carrying", 11)
+            .WithActorAttribute(VanillaAttribute.Strength, 0.35)
+            .WithActorAttribute(VanillaAttribute.Endurance, 0.25);
+
+        /// <summary>Moving something through the world without losing or ruining it.</summary>
+        public static readonly CheckProfile Transport = new CheckProfile("proc_transport", 11)
+            .WithActorSkill(VanillaSkill.Travel, 0.3)
+            .WithActorAttribute(VanillaAttribute.Endurance, 0.25)
+            .WithActorAttribute(VanillaAttribute.Strength, 0.15);
+
+        /// <summary>Getting someone out of danger by reaching and moving them.</summary>
+        public static readonly CheckProfile Rescue = new CheckProfile("proc_rescue", 12)
+            .WithActorAttribute(VanillaAttribute.Strength, 0.25)
+            .WithActorAttribute(VanillaAttribute.Endurance, 0.25)
+            .WithActorSkill(VanillaSkill.Travel, 0.15);
+
+        /// <summary>Keeping someone moving with you through a bad route.</summary>
+        public static readonly CheckProfile Escort = new CheckProfile("proc_escort", 11)
+            .WithActorSkill(VanillaSkill.Travel, 0.3)
+            .WithActorAttribute(VanillaAttribute.Endurance, 0.2)
+            .WithActorAttribute(VanillaAttribute.Will, 0.15);
+
+        /// <summary>Taking control of a resisting person.</summary>
+        public static readonly CheckProfile Capture = new CheckProfile("proc_capture", 13)
+            .WithActorAttribute(VanillaAttribute.Strength, 0.3)
+            .WithActorAttribute(VanillaAttribute.Dexterity, 0.2)
+            .WithTargetAttribute(VanillaAttribute.Dexterity, 0.25)
+            .WithTargetLevel(0.25);
+
+        /// <summary>Holding somebody in place once close enough.</summary>
+        public static readonly CheckProfile Restrain = new CheckProfile("proc_restrain", 12)
+            .WithActorAttribute(VanillaAttribute.Strength, 0.25)
+            .WithActorAttribute(VanillaAttribute.Dexterity, 0.25)
+            .WithTargetAttribute(VanillaAttribute.Strength, 0.25);
+
         /// <summary>Being believed when you make a public claim.</summary>
         public static readonly CheckProfile Credibility = new CheckProfile("proc_credibility", 12)
             .WithActorSkill(VanillaSkill.Negotiation, 0.3)
@@ -305,6 +358,16 @@ namespace BrilliantQuesting.Actions.Library
                 // an altar is not a skill test - either you have something to give and the god is
                 // yours, or you do not - so `make_offering` deliberately has no profile at all.
                 case "invoke_blessing": return Devotion;
+
+                case "clear_obstruction": return Clearing;
+                case "mine_bypass": return MiningBypass;
+                case "break_barrier": return Breaking;
+                case "carry": return Carrying;
+                case "transport": return Transport;
+                case "rescue": return Rescue;
+                case "escort": return Escort;
+                case "capture": return Capture;
+                case "restrain": return Restrain;
 
                 // Passing yourself off as somebody else is not a separate craft from lying; it is
                 // lying with a prop, and it is read off the same vanilla values.

@@ -148,6 +148,46 @@ namespace BrilliantQuesting.Plugin
                 ActorSkill(VanillaSkill.Faith, 0.45f),
                 ElementProjection.None);
 
+            // Physical/world work. These are ordinary Elin capabilities - moving, mining,
+            // forcing, hauling and handling people - expressed through existing attributes and
+            // skills rather than a quest-only athletics sheet.
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Clearing,
+                ActorAttribute(VanillaAttribute.Strength, 0.35f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.MiningBypass,
+                ActorSkill(VanillaSkill.Mining, 0.45f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Breaking,
+                ActorAttribute(VanillaAttribute.Strength, 0.45f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Carrying,
+                ActorAttribute(VanillaAttribute.Strength, 0.35f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Transport,
+                ActorSkill(VanillaSkill.Travel, 0.3f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Rescue,
+                ActorAttribute(VanillaAttribute.Strength, 0.25f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Escort,
+                ActorSkill(VanillaSkill.Travel, 0.3f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Capture,
+                ActorAttribute(VanillaAttribute.Strength, 0.3f),
+                TargetAttribute(VanillaAttribute.Dexterity, 0.25f));
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Restrain,
+                ActorAttribute(VanillaAttribute.Strength, 0.25f),
+                TargetAttribute(VanillaAttribute.Strength, 0.25f));
+
             log.LogInfo("Installed " + installed + " procedural Check row(s) for native difficulty text.");
         }
 

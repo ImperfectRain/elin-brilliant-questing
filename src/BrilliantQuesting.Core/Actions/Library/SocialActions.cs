@@ -4,6 +4,7 @@ using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions.Library
 {
@@ -184,6 +185,7 @@ namespace BrilliantQuesting.Actions.Library
                     ActionOutcome outcome = new ActionOutcome(Id, check, who + " agrees, and seems glad to have been asked.");
                     outcome.Events.Add(context.World.Record(WorldEventType.PromiseMade, context.Target, context.Actor, context.Now, 0.6, context.Zone, threadId: ThreadId(context)));
                     outcome.Events.Add(context.World.Record(WorldEventType.Helped, context.Actor, context.Target, context.Now, 0.4, context.Zone));
+                    AdmitRestrictedSite(context, outcome);
                     return outcome;
                 }
 
@@ -191,6 +193,7 @@ namespace BrilliantQuesting.Actions.Library
                 {
                     ActionOutcome outcome = new ActionOutcome(Id, check, who + " agrees.");
                     outcome.Events.Add(context.World.Record(WorldEventType.PromiseMade, context.Target, context.Actor, context.Now, 0.5, context.Zone, threadId: ThreadId(context)));
+                    AdmitRestrictedSite(context, outcome);
                     return outcome;
                 }
 
@@ -210,6 +213,43 @@ namespace BrilliantQuesting.Actions.Library
         private static EntityId ThreadId(ActionContext context)
         {
             return context.Thread?.Id ?? EntityId.None;
+        }
+
+        private static void AdmitRestrictedSite(ActionContext context, ActionOutcome outcome)
+        {
+            NarrativeSite site = RestrictedSiteInReach(context);
+            if (site == null || site.Admits(context.Actor))
+            {
+                return;
+            }
+
+            site.Admit(context.Actor);
+            outcome.Notes.Add("talked your way into " + site.Name);
+        }
+
+        private static NarrativeSite RestrictedSiteInReach(ActionContext context)
+        {
+            NarrativeSite here = ActionSupport.SiteHere(context);
+            if (here != null && !here.Admits(context.Actor))
+            {
+                return here;
+            }
+
+            if (context.Thread == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < context.Thread.SiteIds.Count; i++)
+            {
+                NarrativeSite site = context.World.Registry.GetSite(context.Thread.SiteIds[i]);
+                if (site != null && !site.Admits(context.Actor))
+                {
+                    return site;
+                }
+            }
+
+            return null;
         }
     }
 

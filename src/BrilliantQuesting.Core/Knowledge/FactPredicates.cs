@@ -100,6 +100,14 @@ namespace BrilliantQuesting.Knowledge
         public const string Damaged = "damaged";
 
         /// <summary>
+        /// A physical thing bars access to a site. Subject is the site whose kept things are out
+        /// of reach, object is the obstruction, and <see cref="Fact.Value"/> names what kind of
+        /// work can answer it. It is not a permission problem: a guard can be talked past, but a
+        /// rockfall has to be moved, broken, mined around or otherwise answered in the world.
+        /// </summary>
+        public const string BlocksAccessTo = "blocks_access_to";
+
+        /// <summary>
         /// Whether this is the kind of thing people repeat to each other.
         ///
         /// Gossip is about what happened, not about how the world is arranged. "Kip stole the
@@ -132,6 +140,7 @@ namespace BrilliantQuesting.Knowledge
                 // shortage into being able to do something about it.
                 case Needs:
                 case Damaged:
+                case BlocksAccessTo:
                 // How somebody died travels for the same reason the death does, and it is the
                 // half that changes what anyone does about it.
                 case KilledBy:
