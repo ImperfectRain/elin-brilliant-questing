@@ -301,6 +301,33 @@ namespace BrilliantQuesting.Plugin
                          + "/" + _vanilla.IsGuildMember(GuildId.Merchants)
                          + "  influence " + _vanilla.GetInfluence(EntityId.None)
                          + "  contribution " + _vanilla.GetContribution());
+
+            ReportHomeState();
+        }
+
+        /// <summary>
+        /// Prints the player's real Home, or says plainly that there is none.
+        ///
+        /// The read half of BQ-030, and the same shape as the attribute dump above: numbers that
+        /// match the Home board prove the chain - branch, member list, alias, element container -
+        /// rather than merely proving the calls did not throw. A datum this build would not answer
+        /// prints as "?", never as zero, so the line cannot be mistaken for a measurement.
+        /// </summary>
+        private void ReportHomeState()
+        {
+            HomeState home = _vanilla.GetHomeState();
+            if (home == null)
+            {
+                _log.LogInfo("home: none readable on this save.");
+                return;
+            }
+
+            _log.LogInfo("home: " + home.Describe());
+            foreach (HomeResident resident in home.Residents)
+            {
+                _log.LogInfo("  resident " + resident.Name + " [" + resident.Id + "]"
+                             + (resident.HasJob ? " - " + resident.Job : " - no job read"));
+            }
         }
 
         /// <summary>

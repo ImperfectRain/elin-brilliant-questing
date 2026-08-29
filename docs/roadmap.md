@@ -15,7 +15,7 @@ it does not prove it behaves, so "found" below is not the same as "works".
 | Item | Status |
 |---|---|
 | Confirm runtime access to elements, skills, affinity, Karma, prestige, Influence, inventory | **verified in game** - real values read back through the adapter |
-| Confirm access to guild, faith, home state | partly - `EClass.Home` / `.Branch` located, members not yet mapped |
+| Confirm access to guild, faith, home state | partly - guild and faith verified in game; the Home is read through `EClass.Branch` but every member below it is resolved by name and unconfirmed in play |
 | Confirm creation and persistence of generated Chara and zones | partly - `Zone.AddChara` located, persistence untested |
 | Decide how mod save data attaches, with a migration version | **working in game** - chunk written on `PreSave`, read on `PostLoad` |
 | Prototype custom `Check` rows and `Check.Perform` from runtime | **found, untested** - `Check.Get/GetFinalDC/Perform` and the four-result enum exist; `SourceCheck.Row` schema captured |

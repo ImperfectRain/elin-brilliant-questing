@@ -35,6 +35,7 @@ namespace BrilliantQuesting.Integration
         private readonly Dictionary<EntityId, int> _influence = new Dictionary<EntityId, int>();
         private readonly Dictionary<GuildId, int> _guildRanks = new Dictionary<GuildId, int>();
         private readonly HashSet<VanillaCapability> _capabilities = new HashSet<VanillaCapability>();
+        private HomeState _home;
 
         public SandboxVanillaState(EntityId playerId)
         {
@@ -126,6 +127,16 @@ namespace BrilliantQuesting.Integration
         public SandboxVanillaState SetZone(EntityId entity, EntityId zone)
         {
             Ensure(entity).Zone = zone;
+            return this;
+        }
+
+        /// <summary>
+        /// Gives the player a Home. Built through <see cref="HomeStateBuilder"/> so a headless
+        /// laboratory expresses "this was never read" the same way the live adapter does.
+        /// </summary>
+        public SandboxVanillaState SetHome(HomeState home)
+        {
+            _home = home;
             return this;
         }
 
@@ -310,6 +321,15 @@ namespace BrilliantQuesting.Integration
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Null unless this world was given a Home and the build can read one. A player with no
+        /// Home is not a player with an empty one.
+        /// </summary>
+        public HomeState GetHomeState()
+        {
+            return Supports(VanillaCapability.ReadHomeState) ? _home : null;
         }
 
         public EntityId GetZoneOf(EntityId entity) => Ensure(entity).Zone;

@@ -142,6 +142,23 @@ namespace BrilliantQuesting.Plugin
             return match;
         }
 
+        /// <summary>
+        /// The id this character would be known by, without registering anything.
+        ///
+        /// One convention, in one place: the observer enrols people in the world model when it
+        /// mints an id, and the Home read must not, but both have to arrive at the same string or
+        /// a resident who is later seen acting would come back as a second person.
+        /// </summary>
+        internal static EntityId MintCharaId(Chara chara, EntityId playerId)
+        {
+            if (chara == null)
+            {
+                return EntityId.None;
+            }
+
+            return chara.IsPC ? playerId : EntityId.Parse("npc_vanilla_" + chara.uid);
+        }
+
         internal Thing ResolveThing(EntityId entity, Card owner)
         {
             if (owner?.things == null || !TryGetUid(entity, out int uid))

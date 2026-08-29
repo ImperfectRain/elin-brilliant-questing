@@ -9,8 +9,10 @@ namespace BrilliantQuesting.Plugin
     /// Maps the mod's small stat vocabulary onto Elin's element aliases, and resolves those
     /// aliases to element ids once at startup.
     ///
-    /// VERIFIED against a live game on 28 Aug 2026 - every entry below resolved. The full table
-    /// of all 1099 element aliases is recorded in docs/elin-element-aliases.md.
+    /// VERIFIED against a live game on 28 Aug 2026 - every attribute and skill below resolved.
+    /// The full table of all 1099 element aliases is recorded in docs/elin-element-aliases.md; the
+    /// six Home Skill elements were added from that table and have not themselves been resolved
+    /// against a running game.
     ///
     /// The safety behaviour stays: anything that fails to resolve is logged by name and its
     /// capability is switched off, so a future rename degrades to a missing route rather than a
@@ -55,8 +57,25 @@ namespace BrilliantQuesting.Plugin
                 { VanillaSkill.Handicraft, "handicraft" }
             };
 
+        /// <summary>
+        /// The six Home Skill elements. Read off the same verified table as everything else
+        /// rather than hardcoded ids: a rename costs the metric, which reads as absent, not as a
+        /// settlement whose safety is suddenly zero.
+        /// </summary>
+        private static readonly Dictionary<HomeMetric, string> HomeMetricAliases =
+            new Dictionary<HomeMetric, string>
+            {
+                { HomeMetric.Safety, "fSafety" },
+                { HomeMetric.Morality, "fMoral" },
+                { HomeMetric.Food, "fFood" },
+                { HomeMetric.Soil, "fSoil" },
+                { HomeMetric.Publicity, "fPromo" },
+                { HomeMetric.Administration, "fAdmin" }
+            };
+
         private static readonly Dictionary<VanillaAttribute, int> ResolvedAttributes = new Dictionary<VanillaAttribute, int>();
         private static readonly Dictionary<VanillaSkill, int> ResolvedSkills = new Dictionary<VanillaSkill, int>();
+        private static readonly Dictionary<HomeMetric, int> ResolvedHomeMetrics = new Dictionary<HomeMetric, int>();
 
         /// <summary>True once resolution has run and at least the attributes were found.</summary>
         internal static bool AttributesResolved { get; private set; }
@@ -70,6 +89,7 @@ namespace BrilliantQuesting.Plugin
         {
             ResolvedAttributes.Clear();
             ResolvedSkills.Clear();
+            ResolvedHomeMetrics.Clear();
 
             List<string> missing = new List<string>();
 
@@ -97,6 +117,18 @@ namespace BrilliantQuesting.Plugin
                 }
             }
 
+            foreach (KeyValuePair<HomeMetric, string> pair in HomeMetricAliases)
+            {
+                if (TryResolveAlias(pair.Value, out int id))
+                {
+                    ResolvedHomeMetrics[pair.Key] = id;
+                }
+                else
+                {
+                    missing.Add(pair.Key + " (\"" + pair.Value + "\")");
+                }
+            }
+
             AttributesResolved = ResolvedAttributes.Count == AttributeAliases.Count;
             SkillsResolved = ResolvedSkills.Count == SkillAliases.Count;
 
@@ -111,7 +143,9 @@ namespace BrilliantQuesting.Plugin
             }
             else
             {
-                log.LogInfo("Resolved all " + (ResolvedAttributes.Count + ResolvedSkills.Count) + " element aliases.");
+                log.LogInfo("Resolved all "
+                            + (ResolvedAttributes.Count + ResolvedSkills.Count + ResolvedHomeMetrics.Count)
+                            + " element aliases.");
             }
         }
 
@@ -123,6 +157,11 @@ namespace BrilliantQuesting.Plugin
         internal static bool TryGet(VanillaSkill skill, out int elementId)
         {
             return ResolvedSkills.TryGetValue(skill, out elementId);
+        }
+
+        internal static bool TryGet(HomeMetric metric, out int elementId)
+        {
+            return ResolvedHomeMetrics.TryGetValue(metric, out elementId);
         }
 
         /// <summary>

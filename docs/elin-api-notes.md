@@ -66,6 +66,7 @@ vanilla rows only where they map cleanly.
 | money | `Card.GetCurrency(string id)`, `Card.ModCurrency(int a, string id)` |
 | deity / piety | `Chara.idFaith` (string), `Chara.elements.Value(85)` — the id **vocabulary** is unread, see below |
 | zone occupants | `Zone.FindChara(int uid)`, `Zone.FindChara(string id)`, `Zone.AddChara(string, Point)` |
+| Home | `EClass.Branch` — the branch object only; residents, capacity, jobs and the element container are read **by name**, see below |
 
 `Chara` carries a `uid`; that is the handle `EntityId` should map to, not a name.
 
@@ -334,6 +335,22 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
   Consecrated ground is therefore modelled as a fact about the *zone* rather than as an altar
   `Thing` to be found standing in it, which keeps the faith verbs off that path entirely. Reading
   a zone's things (`Zone.things` / the map's card list) is the fix when a step needs it.
+- **Everything below `EClass.Branch`.** `ElinHomeState` reads the Home through a candidate list of
+  member names rather than compiling against members: residents (`members`/`Members`/`charas`),
+  capacity (`maxResident`/`maxMember`/`capacity` and the capitalised forms — deliberately no
+  "worker" name, which counts a different thing), the branch
+  name, `uidZone`, the element container (`elements`) and its `Value(int)`, and a resident's job
+  (`job`/`idJob`/`hobby`/`work`). Not one of those names has been read off a running game, and
+  whether the six Home Skill elements live in the branch's own container at all is likewise
+  unconfirmed. The failure is deliberately visible rather than quiet: a name this build does not
+  have makes the datum absent — `?` in the `home:` log line, `CapacityKnown` false,
+  `TryGetMetric` false — never a zero that reads as a measurement (see decision D017). The
+  reader's own logic was exercised headlessly against a stub shaped like a branch; that proves the
+  reflection, not the shape. A live run should be read for the one-time "Home branch is ..." line
+  and any "Unread Home data" warning, and the winning names copied into the candidate lists.
+- Whether `fSafety`, `fMoral`, `fFood`, `fSoil`, `fPromo` and `fAdmin` resolve on a running game.
+  They come from the recorded alias table rather than from a live resolution, unlike the twelve
+  skills that have been resolved in play.
 - Elin's `Thing.category.id` vocabulary. The adapter reads it into `ItemDescriptor.CategoryTag`,
   but the actual ids for corpses, documents and drinkables have not been read off a running game.
   The investigation verbs therefore match category *and* item name against a keyword list, and the

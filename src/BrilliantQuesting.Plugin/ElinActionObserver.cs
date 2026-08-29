@@ -428,7 +428,7 @@ namespace BrilliantQuesting.Plugin
                 return existing;
             }
 
-            EntityId id = chara.IsPC ? _vanilla.PlayerId : EntityId.Parse("npc_vanilla_" + chara.uid);
+            EntityId id = ElinBindings.MintCharaId(chara, _vanilla.PlayerId);
             _bindings.Bind(id, chara.uid);
 
             NarrativeNpc npc = _world.Registry.GetNpc(id);

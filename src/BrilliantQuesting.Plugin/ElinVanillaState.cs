@@ -165,7 +165,15 @@ namespace BrilliantQuesting.Plugin
                     return "pc.GetCurrency/ModCurrency(0, 'money') preserved " + before;
                 });
 
-            MarkUnsupported(VanillaCapability.ReadHomeState, "not implemented until BQ-030 maps Home state");
+            Probe(
+                VanillaCapability.ReadHomeState,
+                () =>
+                {
+                    HomeState home = ElinHomeState.Read(_bindings, PlayerId, _log);
+                    return home == null ? null : "EClass.Branch => " + home.Describe();
+                },
+                "no Home on this save, or EClass.Branch could not be read");
+
             Probe(
                 VanillaCapability.ObserveCrimeWitnesses,
                 () =>
@@ -212,14 +220,19 @@ namespace BrilliantQuesting.Plugin
             _log.LogWarning("Refused to " + what + ": " + why + ".");
         }
 
-        private void Probe(VanillaCapability capability, Func<string> evidence)
+        /// <param name="absentReason">
+        /// Why an empty probe means "not here" for this capability. Most reads are missing only
+        /// when the runtime object is; a Home is also legitimately absent on a save where the
+        /// player owns no land, and the log should not call that a failure.
+        /// </param>
+        private void Probe(VanillaCapability capability, Func<string> evidence, string absentReason = null)
         {
             try
             {
                 string line = evidence();
                 if (string.IsNullOrEmpty(line))
                 {
-                    MarkUnsupported(capability, "probe returned no runtime object");
+                    MarkUnsupported(capability, absentReason ?? "probe returned no runtime object");
                     return;
                 }
 
@@ -706,6 +719,24 @@ namespace BrilliantQuesting.Plugin
             }
 
             return gone;
+        }
+
+        // -- home -----------------------------------------------------------------------------
+
+        /// <summary>
+        /// The player's Home, re-read on every call because residents move in, jobs change and the
+        /// Home Skill elements drift with the settlement.
+        ///
+        /// Null when this build could not read a branch and when the player simply has no Home -
+        /// the two are the same answer to the simulation, which may not act on a Home it cannot
+        /// see. Deliberately not gated on <see cref="VanillaCapability.ReadHomeState"/>, which is
+        /// what the probe found at attach: a player who buys land in hour nine has a Home, and a
+        /// capability line written before they did must not be what refuses to see it. Callers ask
+        /// the direct question by reading the snapshot. Nothing here writes: BQ-030 is all read.
+        /// </summary>
+        public HomeState GetHomeState()
+        {
+            return ElinHomeState.Read(_bindings, PlayerId, _log);
         }
 
         // -- world ----------------------------------------------------------------------------

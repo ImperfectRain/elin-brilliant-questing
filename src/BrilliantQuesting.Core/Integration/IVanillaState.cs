@@ -74,6 +74,24 @@ namespace BrilliantQuesting.Integration
         /// </summary>
         bool TryDestroyItem(EntityId itemId, EntityId holder);
 
+        // -- home -------------------------------------------------------------------------
+
+        /// <summary>
+        /// The player's Home as the game currently has it, or null when there is no Home or this
+        /// build cannot read one.
+        ///
+        /// Null is the honest answer for "no Home", and an empty <see cref="HomeState"/> is never
+        /// used to stand in for it: a settlement with nobody in it and a player who owns no land
+        /// are different situations, and a later step decides whether somebody can be sheltered on
+        /// exactly that difference. Read-only by contract - nothing above this seam writes a
+        /// resident, a job or a Home Skill element.
+        ///
+        /// This snapshot, not <see cref="VanillaCapability.ReadHomeState"/>, is what a caller acts
+        /// on: the capability says what a probe found when the game was attached, and a Home can be
+        /// acquired, emptied or lost long after that.
+        /// </summary>
+        HomeState GetHomeState();
+
         // -- world ------------------------------------------------------------------------
         EntityId GetZoneOf(EntityId entity);
 
