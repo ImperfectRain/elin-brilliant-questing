@@ -5,6 +5,7 @@ using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Memory;
+using BrilliantQuesting.Relationships;
 using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 
@@ -62,6 +63,7 @@ namespace BrilliantQuesting.Consequences
 
             ApplyToTarget(worldEvent, profile, magnitude, actorIsPlayer);
             ApplyToWitnesses(worldEvent, profile, magnitude, actorIsPlayer);
+            ApplyToTies(worldEvent, profile, magnitude, actorIsPlayer);
 
             // Karma and fame are the world's verdict on what somebody did. An observed act has
             // not been judged yet - the observer can see that the player killed something, not
@@ -155,6 +157,90 @@ namespace BrilliantQuesting.Consequences
             }
         }
 
+        /// <summary>
+        /// The people tied to whoever it happened to.
+        ///
+        /// Harm has always stopped at the person it landed on plus whoever was standing there.
+        /// That makes a town a collection of strangers who happen to share a map: hurting the
+        /// shopkeeper costs the shopkeeper's opinion and nothing else, however many people in the
+        /// room are her family. The reaction is derived entirely from the tie graph, so there is
+        /// no rule anywhere naming a shopkeeper and a brother - only a Family edge that was put
+        /// there for its own reasons, and which now turns out to have been a consequence all
+        /// along.
+        ///
+        /// The reactor's own memory is what makes it explicable later: they did not see it, but
+        /// they know it happened to somebody they care about, and they know who did it.
+        /// </summary>
+        private void ApplyToTies(WorldEvent worldEvent, ConsequenceProfile profile, double magnitude, bool actorIsPlayer)
+        {
+            // Nobody takes sides against nobody: an event with no actor has no one to resent, and
+            // an actor cannot be resented for what they did to themselves.
+            if (worldEvent.Target.IsNone || worldEvent.Actor.IsNone || worldEvent.Target == worldEvent.Actor)
+            {
+                return;
+            }
+
+            IReadOnlyList<TieReaction> reactions = HarmPropagation.Reactions(
+                _world.Relationships,
+                worldEvent.Target,
+                profile.TargetAffinity,
+                magnitude,
+                CanReactOnBehalfOf(worldEvent.Actor));
+
+            for (int i = 0; i < reactions.Count; i++)
+            {
+                TieReaction reaction = reactions[i];
+
+                if (actorIsPlayer && _vanilla.Supports(VanillaCapability.ReadWriteAffinity))
+                {
+                    _vanilla.ChangeAffinity(reaction.Reactor, reaction.Delta);
+                }
+                else if (!actorIsPlayer)
+                {
+                    // Vanilla affinity only tracks the player, so an NPC's opinion of another NPC
+                    // has to land on the tie graph. A first offence creates the tie: they now
+                    // hold a view of somebody they may never have met, which is exactly what
+                    // hearing about it means.
+                    RelationshipEdge toward = _world.Relationships.Find(reaction.Reactor, worldEvent.Actor)
+                                              ?? _world.Relationships.Connect(reaction.Reactor, worldEvent.Actor, RelationKind.Acquaintance, 0);
+                    toward.Sentiment = ClampSentiment(toward.Sentiment + reaction.Delta);
+                }
+
+                _world.Memories.Add(new MemoryRecord(
+                    _world.NewId("mem"),
+                    reaction.Reactor,
+                    worldEvent.Actor,
+                    worldEvent.Type,
+                    profile.Weight == MemoryWeight.Defining ? MemoryWeight.Important : profile.Weight,
+                    worldEvent.Time,
+                    actorIsPlayer ? reaction.Delta : 0,
+                    "kin_" + profile.SummaryTag));
+
+                Trace.Add(_world.Registry.NameOf(reaction.Reactor) + " " + Signed(reaction.Delta)
+                          + " as " + reaction.Through + " of " + _world.Registry.NameOf(worldEvent.Target)
+                          + " (" + profile.SummaryTag + ")");
+            }
+        }
+
+        /// <summary>
+        /// Who is allowed to take somebody else's side. Not the person who did it, not the
+        /// player - background simulation may move NPC opinion, never the player's own - and
+        /// nobody who is not a living character in the registry.
+        /// </summary>
+        private Func<EntityId, bool> CanReactOnBehalfOf(EntityId actor)
+        {
+            return candidate =>
+            {
+                if (candidate == actor || candidate == _vanilla.PlayerId)
+                {
+                    return false;
+                }
+
+                NarrativeNpc npc = _world.Registry.GetNpc(candidate);
+                return npc != null && npc.Alive;
+            };
+        }
+
         private void ApplyToPlayerStanding(ConsequenceProfile profile, double magnitude)
         {
             int karma = Scale(profile.Karma, magnitude);
@@ -245,6 +331,11 @@ namespace BrilliantQuesting.Consequences
             // A consequence that rounds away to nothing is worse than a small one: the player
             // should always feel that something moved.
             return rounded == 0 ? Math.Sign(value) : rounded;
+        }
+
+        private static int ClampSentiment(int value)
+        {
+            return value < -100 ? -100 : value > 100 ? 100 : value;
         }
 
         private static double Clamp(double value, double min, double max)
