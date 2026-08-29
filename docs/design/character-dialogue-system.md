@@ -1222,6 +1222,152 @@ Prefer natural language over exposed raw probabilities.
 
 ---
 
+# 29.5 Contextual interaction and nested intent menus
+
+The action library is larger than the menu the player should see. The player-facing projection should organize available actions through this grammar:
+
+```text
+Interaction surface
+-> Intent family
+-> Contextual action
+-> Subject, only when the action needs one
+```
+
+Examples:
+
+```text
+Talk
++-- Inquire
+|   +-- Ask what they know
+|   +-- Ask about <known person>
+|   +-- Ask about <known event>
+|   +-- Ask about <known object>
++-- Persuade
+|   +-- Reassure
+|   +-- Appeal to reason
+|   +-- Offer incentive
++-- Aggressive
+|   +-- Intimidate
+|   +-- Threaten
+|   +-- Extort
++-- Deception
+|   +-- Lie
+|   +-- Bluff
+|   +-- Impersonate
++-- Other
+    +-- Report
+    +-- Expose secret
+    +-- Leave
+```
+
+This is an illustrative taxonomy, not a hardcoded permanent tree. The categories are stable enough for the player to learn as interaction grammar:
+
+```text
+Inquire    = information gathering
+Persuade   = cooperative influence
+Aggressive = coercion
+Deception  = dishonest manipulation
+```
+
+The hierarchy should normally be no deeper than surface -> family -> action/subject. Avoid file-browser trees such as `Talk -> Inquire -> People -> Criminal contacts -> Vurl -> Ask about employment`.
+
+Collapse unnecessary levels:
+
+```text
+1 relevant option:   show it directly
+2-4 relevant options: show them flat
+5+ relevant options: introduce a semantic submenu
+```
+
+Families with no relevant actions disappear. If there is no meaningful aggressive action against the target, `Aggressive` is absent. If there is nothing specific to ask, `Inquire` may disappear or contain only a broad option like `Ask what they know`.
+
+Filter every option by player knowledge, current target, actor state, thread state, inventory, relationship, guild/faith/Home authority, current world state and concrete affordance. Unknown subjects must never appear as menu choices. The menu can evolve as the player learns:
+
+```text
+Talk -> Inquire -> Ask what happened
+Talk -> Inquire -> Ask about Vurl
+Talk -> Inquire -> Ask about Dassen
+```
+
+The subject step does not always need to be a separate menu. If only one subject is relevant, show `Ask about Vurl`; if several subjects are relevant, use a subject picker.
+
+Non-social verbs belong on their natural world surfaces rather than being forced into Talk:
+
+```text
+Object
+  Examine
+    Inspect
+    Read
+    Identify
+    Compare
+
+Corpse
+  Examine
+    Inspect body
+    Examine wounds
+    Search belongings
+    Identify substance
+
+Location
+  Investigate
+    Search
+    Search records
+    Look for tracks
+    Eavesdrop
+
+Suspicious NPC
+  Interact
+    Talk
+    Observe
+    Follow
+    Crime
+      Pickpocket
+      Plant evidence
+      Sabotage
+      Attack
+
+Criminal contact
+  Talk
+    Services
+      Forge
+      Fence
+      Smuggle
+```
+
+Option text should describe what the player means to do, not expose internal action ids. This is wrong:
+
+```text
+Talk
++-- SocialActions
++-- InvestigationActions
++-- CrimeActions
+```
+
+This is better:
+
+```text
+Talk
++-- Inquire
++-- Persuade
++-- Aggressive
++-- Deception
++-- Business
+```
+
+Every action must be classifiable for contextual projection without the UI maintaining a growing switch statement keyed on action ids. The storage mechanism may be metadata on `NarrativeAction`, a separate descriptor, or an affordance registry, but the property must hold:
+
+```text
+intimidate: surface = Talk, family = Aggressive
+question:   surface = Talk, family = Inquire
+lie:        surface = Talk, family = Deception
+read:       surface = Examine, family = Study
+forge:      surface = UnderworldService, family = Deception
+```
+
+The system may rank actions inside each family. Unavailable actions are normally hidden, except when the reason for unavailability itself communicates useful gameplay information. Projection is presentation only: selection must revalidate state before execution, because the world may change between showing a menu and resolving an action.
+
+---
+
 # 30. Dialogue and world actions coexist
 
 Do not convert all gameplay into dialogue choices.

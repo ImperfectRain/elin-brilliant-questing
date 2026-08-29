@@ -124,6 +124,7 @@ No system is allowed to disappear from this table.
 | Situation archetypes | Prototype | Complete-until-launch (7) | BQ-041 … BQ-047 |
 | Situation generation from world state | Absent | Playable | BQ-039, BQ-040 |
 | Drama projection | Prototype | Hardened | BQ-005 … BQ-010 |
+| Contextual interaction projection | Absent | Playable | BQ-134 |
 | Journal / Chronicle | Absent | Playable | BQ-033, BQ-034 |
 | Ambient delivery (barks, talk, leads) | Absent | Playable | BQ-035, BQ-036 |
 | Crime & witness observation | Absent | Playable | BQ-014, BQ-015 |
@@ -651,7 +652,8 @@ Debts, promises, sponsorships, sanctuary and grudges as first-class records — 
 
 `character-dialogue-system.md` in full. The order matters more here than anywhere else: personality
 must change **decisions** before it changes **wording**, or the whole layer becomes adjectives on
-boilerplate. Its Phase A–J maps onto BQ-056 … BQ-086.
+boilerplate. Its Phase A–J maps onto BQ-056 … BQ-086, with BQ-134 inserted before semantic speech
+acts to turn the growing verb library into a player-facing contextual interaction grammar.
 
 Note on naming: `Scene` collides with an Elin type. Use `NarrativeScene`. Check every new type with
 `dotnet run --project tools/ApiDump -- --find <Name>` before adopting it.
@@ -758,9 +760,29 @@ storylet system cannot quietly become a quest generator.
 - **Done when** a Development exists that never becomes a scene and never becomes a quest, and the world is still coherent.
 - **Sources** CD §36.5.
 
+#### BQ-134 — Project verbs through contextual affordances *(stage S7, immediately before BQ-070)*
+Generalize player-facing action projection so registered verbs become contextual candidates grouped
+by interaction surface and semantic intent family, not a flat Drama list or a hand-maintained switch
+over action ids.
+- **Depends** BQ-008, BQ-024, BQ-025, BQ-069.
+- **Done when** registered `NarrativeAction`s expose or can be mapped to a presentation surface and
+  intent family; action discovery produces contextual candidates independently of UI; the
+  presentation layer groups candidates into shallow nested menus; `Talk` no longer exposes the
+  complete social/investigation/crime registry as one flat list; at least one non-dialogue action
+  projects through a non-`Talk` surface; menu contents depend on player knowledge and cannot reveal
+  unknown facts or subjects; empty families are omitted; unnecessary single-option nesting is
+  collapsed; large candidate sets remain navigable without silently discarding meaningful routes;
+  selection revalidates changed world state before execution; the existing petty-theft Drama
+  projection is migrated onto the generalized mechanism; focused tests prove grouping, knowledge
+  filtering, empty-family suppression, single-option collapse and stale-state revalidation.
+- **Out of scope** final authored prose, journal redesign, controller-specific visual polish,
+  animation, and complete taxonomy coverage for every future verb.
+- **Sources** CD §29, §29.5, §30; D016; PM §61; LW §3.4.
+- **Unblocks** BQ-070, BQ-083, BQ-093.
+
 #### BQ-070 — Semantic speech acts
 Ask, Answer, Accuse, Deny, Admit, Request, Refuse, Threaten, Apologize, Gossip — meaning before wording.
-- **Depends** BQ-006, BQ-066.
+- **Depends** BQ-006, BQ-066, BQ-134.
 - **Done when** a speech act is produced with no text attached, and the log shows its full semantic content.
 - **Sources** CD §17, §17.1, §38 Phase B.
 
@@ -1613,7 +1635,8 @@ the audit artifact: if an idea is not here, it was missed.
 | Beat system | BQ-065, BQ-066 |
 | Scene interruption | BQ-008 |
 | Conversation state and commitments | BQ-083 |
-| Player options from semantic state | BQ-070, BQ-006 |
+| Player options from semantic state | BQ-134, BQ-070, BQ-006 |
+| Nested contextual interaction menus | BQ-134 |
 | Dialogue and world actions coexist | Standing rules §10 |
 | Scene discovery channels | BQ-035, BQ-036 |
 | Direction without markers | BQ-033, BQ-085 |
