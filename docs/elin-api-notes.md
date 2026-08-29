@@ -287,6 +287,69 @@ rows is a first-class concept rather than something to patch in. The community "
 Loader" also auto-loads sheets from a mod folder without a DLL. Which route we take for the
 procedural `Check` rows is worth testing at runtime before committing to either.
 
+## Vanilla actor activity — source-observed, runtime-unverified
+
+Everything in this section came from the decompiled Elin documentation on 29 August 2026, **not**
+from `tools/ApiDump` against the installed assemblies and not from a running game. That is a weaker
+evidence level than the rest of this file: the decompile is generated from a nightly that may be
+ahead of the player's build, so a member listed here may be absent, renamed or differently shaped in
+play. Treat this as a research index for `BQ-135`, not as adapter targets. Nothing here has a
+`VanillaCapability`, and none of it should get one until a live log line says the read worked.
+
+Design reasoning is in
+[`design/vanilla-simulation-integration.md`](design/vanilla-simulation-integration.md); the
+authority rule it establishes is decision `D021`.
+
+**Routine and current activity.**
+
+| Member | What the source shows | What is unknown on the live build |
+|---|---|---|
+| `Chara.idTimeTable` | A timetable id; at least `default` and `owl` exist | Whether ordinary citizens carry one, and the full id vocabulary |
+| `Chara.CurrentSpan` | The current span, over at least `Sleep`, `Eat`, `Work`, `Free` | The enum's real name, shape and full member list |
+| `Chara.GetGoalFromTimeTable(int hour)` | Maps an hour's span onto a goal — Sleep can give `GoalSleep`, Eat gives `GoalIdle`, Work calls `GetGoalWork()`, Free calls `GetGoalHobby()`; guests idle through Work and Free | Whether calling it is side-effect-free, which is the only thing that matters for a read-only adapter |
+| `Chara.GetGoalWork()` / `Chara.GetGoalHobby()` | Produce the actual work and hobby goals | Cost, and whether either allocates or mutates |
+| `Chara.ai` | The current `AIAct`; the hierarchy includes `GoalIdle`, `GoalSleep`, `GoalNeeds`, `GoalWork`, `GoalHobby`, `GoalTask`, `GoalCombat`, `GoalSiege` and visitor goals | Which concrete types appear in ordinary play, and how stable those names are across updates |
+
+`GoalNeeds` dispatches from real `Chara` state — hunger reaching `AI_Eat`, bladder reaching
+`AI_Bladder`. Bodily need is therefore a vanilla mechanism, not a gap for the mod to fill.
+
+**Off-screen global actors.**
+
+| Member | What the source shows | What is unknown on the live build |
+|---|---|---|
+| `TraitChara.UseGlobalGoal` | The eligibility flag `GameDate.AdvanceHour()` tests | **Which real traits return true.** Whether ordinary town citizens are global actors at all is the single most load-bearing open question here |
+| `Chara.global.goal` | The actor's current global goal | Whether `global` is populated for anything the mod would care about |
+| `GlobalGoal.AdvanceHour` | Advanced once per game hour for a non-party global actor outside the active zone | Whether it is observable without patching a hot path |
+| `GlobalGoalAdv` | Assignable to an eligible non-player-faction actor with no global goal; can eventually move that actor to a random town via `Chara.MoveZone(...)`, gated on alive, not player faction, not in the active zone, not `StayHomeZone`, elapsed global-goal time and a random trigger | Everything about frequency and which actors it actually picks |
+| `GlobalData.transition`, `ZoneTransition` | A pending zone transition exists as readable state | Field names, and whether a transition is visible at the moments the mod would look |
+
+The consequence for this repository is concrete rather than academic: **Elin can move some actors
+between zones on its own**, so `ElinPresence` and the absence ledger are not the only writers of a
+character's whereabouts. `BQ-032` reconciles against `Chara.currentZone` rather than against BQ's
+own record for exactly this class of reason (`D020`), and that reconciliation is what makes an
+independent vanilla move show up as a fact instead of a contradiction.
+
+**Zone catch-up.**
+
+| Member | What the source shows | What is unknown on the live build |
+|---|---|---|
+| `Zone.Simulate()` | Called from `Zone.OnVisit()`; measures time since the zone was last active and runs catch-up when enough has passed | The threshold, and what it does on a non-player-faction zone |
+| `AIAct.SimulateZone(...)` | For player-faction zones, runs residents through work and hobby goals, restores an ordinary goal and simulates the resulting position | Whether it runs on the player's Home in practice, and what it actually changes |
+
+So Elin already owns part of "what did the residents do while I was away". Anything BQ advances for
+the same interval on the same Home is counted twice — the reconciliation `BQ-107` has to make, and
+the reason `BQ-048`/`BQ-049` must read the Home after a revisit rather than model its production.
+
+**Already carried elsewhere in this file.** `Chara.currentZone` and `Chara.MoveZone` are read by
+name by `ElinPresence` and are covered under *Still unverified* below; they appear here only because
+`GlobalGoalAdv` is a second caller of the same mechanism.
+
+**The observation surface is the open problem.** Reading any of this per actor per turn means
+patching a hot loop, which `LW §2.2` and the version-drift exposure recorded in the roadmap's §3
+both argue against. Whether a low-frequency event or hook can see these changes safely is question 7
+of the runtime list in the design document, and it should be answered before an adapter is written,
+not after.
+
 ## Still unverified
 
 Everything above is metadata. None of it proves behaviour. Specifically open:

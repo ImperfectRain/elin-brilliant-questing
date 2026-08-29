@@ -147,4 +147,27 @@ corruption this step is written to avoid, so protection must not be the thing th
 the mod can no longer keep somebody away, the record is demoted to Grade A rather than kept:
 the smaller true claim beats the larger false one.
 
+## D021 — Vanilla owns embodiment; BQ owns narrative meaning
+
+Where a live Elin mechanic already governs an actor's transient physical behaviour, the mod reads
+it or delegates to it rather than running a copy. Loaded movement and pathfinding, the routine
+timetable, bodily needs, work and hobby execution, and ordinary combat stay vanilla-owned wherever
+the build actually provides them.
+
+What BQ decides is intention and what a result means. It persists narratively meaningful
+consequences rather than mirroring transient `Chara` state, and an off-screen BQ resolution stays
+coarse: it may say two people met and what was learned, never where they stood. Elin's own
+`GlobalGoal` advancement and `Zone.Simulate()` catch-up are reconciled against, not double-run.
+
+Detailed rationale, the four vanilla fidelity mechanisms this has to reconcile with, and the
+runtime questions still open are in
+[`../design/vanilla-simulation-integration.md`](../design/vanilla-simulation-integration.md).
+
+Reason: Elin has real timetables, needs, work and hobby AI, revisit catch-up simulation and hourly
+off-screen global-goal advancement. A second copy of any of them would be a competing simulation
+disagreeing with the one the player can see - the same failure `D014` prevents for crafting and
+`D018` for the Home's numbers - while costing the maintenance of a life simulator the mod does not
+need. Reading instead is also cheaper to keep working across game updates, and it lets vanilla's
+own surprises become content rather than contradictions.
+
 Add a new entry only when the decision is both load-bearing and durable.

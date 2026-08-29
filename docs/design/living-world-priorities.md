@@ -42,6 +42,10 @@ Two things a reader should know before following this.
 built outside the session that produced `docs/roadmap.md`. Where this document and the roadmap
 disagree about what is proven, believe whichever is backed by a log.
 
+**Its §5 is corrected by a later pass.** `vanilla-simulation-integration.md` establishes that Elin
+runs off-screen and catch-up simulation of its own, which §5.3, §5.4 and §6.8 below were written
+without. The amendments are marked in place; the successor document holds the detail.
+
 **Its §14 roadmap and `character-dialogue-system.md`'s Phase A-J compete for the same next slot.**
 Neither document references the other's sequencing. They are not in conflict on substance - the
 expression layer needs situations to express, and the priorities here need something to present
@@ -251,6 +255,11 @@ Do not collapse all four into `Quest`.
 A living world needs real consequences, but indiscriminate mutation
 risks vanilla quests, services, respawns and save integrity.
 
+> **Amended.** Elin has real timetables, work/hobby/needs AI, revisit catch-up simulation and
+> hourly off-screen `GlobalGoal` advancement for eligible global actors. So the mod is not the only
+> thing that moves a character or advances a day, and "mutation" is not the only way vanilla state
+> changes underneath it. See `vanilla-simulation-integration.md` §2 and decision `D021`.
+
 Use an explicit policy concept:
 
 ``` csharp
@@ -308,6 +317,12 @@ present in town
 
 Do not pathfind every traveler across the world.
 
+> **Amended.** Some actors already travel without the mod: Elin can advance an eligible global
+> actor's `GlobalGoal` hourly and move it to another town on its own. Where that is happening, the
+> mod observes and interprets rather than issuing a competing move, and reconciles against the
+> game's own answer for where somebody is. Vanilla moving a debtor into town is content, not a
+> contradiction. See `vanilla-simulation-integration.md` §2.4 and §3.3.
+
 ## 5.4 Simulate selectively
 
 Eventually:
@@ -321,6 +336,12 @@ ARCHIVED history retained; no routine simulation
 
 The player needs causal consistency, not literal full-time simulation of
 every citizen.
+
+> **Amended.** These are the mod's narrative fidelity tiers, not the game's. ACTIVE means the
+> *least* duplicated physical simulation, because Elin is live and owns embodiment. And nothing
+> here may double-advance what `Zone.Simulate()` catches up when the player revisits a zone, or
+> what vanilla continues advancing for a global actor regardless of its BQ tier. See
+> `vanilla-simulation-integration.md` §2.3, §2.5 and §5.
 
 ------------------------------------------------------------------------
 
@@ -359,6 +380,10 @@ Inherited
 
 Project these through actual NPC presence, stock, dialogue, requests and
 opportunities rather than a separate business-management UI.
+
+> **Amended.** Read the operator's actual state before assigning one of these. A shopkeeper asleep
+> or off-shift on a vanilla timetable is ordinary temporary unavailability; these states are for
+> continuity problems. See `vanilla-simulation-integration.md` §5.1.
 
 ## 6.4 Home as consequence surface
 
@@ -409,6 +434,12 @@ This is the largest conceptual transition after runtime integration.
 Problems do not belong to the player. NPCs should eventually use the
 same conceptual Action Resolver where practical and can solve, worsen or
 transform situations without player involvement.
+
+> **Amended.** The resolver chooses intention; embodiment is delegated to a verified vanilla path
+> where one exists, and resolved coarsely otherwise — the mod does not become a movement
+> controller. Off-screen, a shared workplace or an overlapping timetable is *opportunity* and
+> nothing more: it never yields eyewitness proof, an exact location or recognition of a person.
+> See `vanilla-simulation-integration.md` §3 and §5.4.
 
 ------------------------------------------------------------------------
 

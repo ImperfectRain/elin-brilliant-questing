@@ -75,6 +75,7 @@ When sources disagree, prefer:
 
 - Core remains headless and must not reference Elin/Unity/BepInEx types.
 - Vanilla systems own vanilla outcomes where possible; observe rather than duplicate their resolution.
+- Vanilla owns embodiment; the mod owns narrative meaning — before building anything that moves, schedules, feeds or occupies an actor, read decision `D021`.
 - Stable `EntityId` identity survives disappearance/reload of vanilla objects.
 - Save/load must not redispatch historical events or reapply consequences.
 - A stale external binding is not proof that physical evidence exists.
