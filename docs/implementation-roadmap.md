@@ -1,6 +1,6 @@
 # Implementation Roadmap
 
-The single ordered plan for Brilliant Questing, audited against all seven design documents and the
+The single ordered plan for Brilliant Questing, audited against all eight design documents and the
 code as it stands. Every other document describes *what* to build and *why*; this one says *in what
 order*, *how you know a step is finished*, and *where every idea went*.
 
@@ -106,7 +106,7 @@ Elin and recorded here or in `docs/elin-api-notes.md`.
 
 ## 4. System ledger
 
-Every system named across the seven design documents, its state today, and the steps that move it.
+Every system named across the eight design documents, its state today, and the steps that move it.
 No system is allowed to disappear from this table.
 
 | System | Now | Target for 1.0 | Steps |
@@ -117,9 +117,9 @@ No system is allowed to disappear from this table.
 | Rumor propagation | Hardened | Hardened | BQ-019, BQ-020 |
 | Memory & consolidation | Playable | Hardened | BQ-021 |
 | Relationships | Playable | Hardened | BQ-022, BQ-055 |
-| Vanilla adapter (`IVanillaState`) | Playable | Complete-until-launch | BQ-003, BQ-011, BQ-030 |
+| Vanilla adapter (`IVanillaState`) | Playable | Complete-until-launch | BQ-003, BQ-011, BQ-030, BQ-135 |
 | Checks (native + portable) | Playable | Complete-until-launch | BQ-004 |
-| Action library | Playable | Complete-until-launch (~40) | BQ-023 … BQ-029 |
+| Action library | Playable | Complete-until-launch (coverage per §7, not a count) | BQ-023 … BQ-029 |
 | Threads & escalation | Playable | Hardened | BQ-013, BQ-052 |
 | Situation archetypes | Prototype | Complete-until-launch (7) | BQ-041 … BQ-047 |
 | Situation generation from world state | Absent | Playable | BQ-039, BQ-040 |
@@ -138,14 +138,14 @@ No system is allowed to disappear from this table.
 | Callbacks & continuity | Absent | Playable | BQ-081, BQ-082 |
 | Conversation state & commitments | Absent | Playable | BQ-083 |
 | Social practices | Absent | Playable | BQ-084 |
-| Home integration | Absent | Playable | BQ-030, BQ-048, BQ-049 |
+| Home integration | Prototype | Playable | BQ-030, BQ-048, BQ-049 |
 | Economy & demand | Absent | Playable | BQ-050, BQ-051 |
 | Guild information networks | Absent | Playable | BQ-037, BQ-038 |
 | Organizations | Modelled, unsimulated | Playable | BQ-053, BQ-054 |
 | Item & location provenance | Absent | Playable | BQ-085, BQ-086 |
 | Social obligations & favors | Absent | Playable | BQ-055 |
 | Sites & location grammars | Absent | Playable | BQ-087 … BQ-092 |
-| Safe vanilla mutation policy | Absent | Hardened | BQ-031, BQ-032 |
+| Safe vanilla mutation policy | Prototype | Hardened | BQ-031, BQ-032 |
 | NPC autonomy | Absent | Playable | BQ-093 … BQ-096 |
 | Traveling groups | Absent | Playable | BQ-097, BQ-098 |
 | Narrative director | Absent | Playable | BQ-099 … BQ-103 |
@@ -172,7 +172,8 @@ may be reordered if evidence justifies it.
 Notation: **Depends** is a hard prerequisite. **Done when** is the completion test. **Sources**
 cites the design documents — `MD` master-design, `PM` post-master-findings, `LW`
 living-world-priorities, `CD` character-dialogue-system, `SP` setting-and-player-culture;
-`CP` content-pipeline; `engagement` is engagement-and-reward. **Unblocks** is what waits on it.
+`CP` content-pipeline; `VS` vanilla-simulation-integration; `engagement` is
+engagement-and-reward. **Unblocks** is what waits on it.
 
 ---
 
@@ -460,10 +461,11 @@ unique service, ordinary citizen, generated.
 Grade A: a shop or service becomes unavailable while the actor remains. Grade B: the actor is
 physically absent and represented in procedural state.
 - **Depends** BQ-031.
-- **Done when** a Grade B absence survives citizen refresh, zone unload/reload and save/load with **no duplication**, proven by a hostile test on a disposable save.
-- **Sources** LW §5.2, §5.3; PM §72 stage 3.
+- **Done when** a Grade B absence survives citizen refresh, zone unload/reload and save/load with **no duplication**, proven by a hostile test on a disposable save; the first live Grade-B subject is a disposable ordinary citizen demonstrably *not* participating in vanilla global travel; save/load and zone revisit reconcile against the actor's vanilla `currentZone` and materialization rather than against BQ binding state alone; and a candidate whose global or transition status cannot be read safely is refused Grade B rather than made the occasion for speculative integration.
+- **Sources** LW §5.2, §5.3; PM §72 stage 3; VS §2.4, §3.3.
 - **Unblocks** BQ-053, BQ-097.
 - **Risk** the only step in this plan that can corrupt a save. Do not ship it enabled until it has survived a deliberately adversarial test.
+- **Not this step.** Elin advances a `GlobalGoal` hourly for eligible global actors outside the active zone and can move them between zones on its own (`VS §2.4`), so BQ is not the only writer of a character's whereabouts. That is a reason to reconcile and to pick a subject outside it, not a reason to integrate with it here. Reading `GlobalGoal`, `GlobalData.transition` and `ZoneTransition` belongs to BQ-135 and BQ-097 unless this step proves it strictly required for safety. Keep BQ-032 about proving one absence is safe.
 
 #### BQ-033 — Journal of known state
 A journal that lists what the *player* knows, tagged Known / Reported / Suspected / Disputed /
@@ -526,18 +528,25 @@ its own state, and adds the six archetypes that stress the parts of the architec
 #### BQ-039 — Situations arise from world state
 Replace debug staging with generation from actual pressure: an actor with a motive, means,
 opportunity and target. No situation exists because the player needs one.
+
+Candidate input is a **local affordance profile** derived from vanilla state already readable, not
+just an actor and a motive: occupation, job and hobby; service role; authority, guild and faction
+role; who is currently present; sites and work infrastructure; recent events and recorded history;
+and current local pressures. A place earns its situations from what it actually supports.
 - **Depends** BQ-013, BQ-035.
-- **Done when** a situation appears in a save the player has never staged anything into, and the inspector can name the world state that caused it.
-- **Sources** MD §8.1; PM §0, §27; LW §1.
+- **Done when** a situation appears in a save the player has never staged anything into, and the inspector can name the world state that caused it; **and** two structurally different settlements yield different candidate distributions, with no town id, zone name or hand-tuned per-place weighting anywhere in the generator.
+- **Sources** MD §8.1; PM §0, §27; LW §1; VS §5.2.
 - **Unblocks** all archetypes.
+- **Not a dependency.** This step must *not* wait on BQ-135. Stable world affordances are enough to generate from; transient timetable and current-goal data is later enrichment. The affordance profile is a product requirement rather than an adapter detail — it is what makes a palace-and-merchant city produce authority and fraud stories because its state supports them, instead of because somebody wrote the city's name into a table.
 
 #### BQ-040 — Four content classes
 Distinguish Request, Situation, Opportunity and Event in code and in presentation. Not everything
 becomes a quest entry.
 - **Depends** BQ-033.
 - **Done when** one causal chain produces all four, and only the Request appears on a board.
-- **Sources** PM §5; LW §4.
+- **Sources** PM §5; LW §4; VS §5.3.
 - **Unblocks** BQ-041 … BQ-047.
+- **Note** an observed vanilla change is allowed to stay an Event or an Opportunity. A traveling actor arriving is an Event; an old debt with a local merchant may make it an Opportunity; only persistent or conflicting pressure earns promotion to a Situation. Nothing is promoted because it was noticed.
 
 #### BQ-041 — Archetype: shortage / supplier failure
 Economy, demand, production, investment, caravans.
@@ -609,14 +618,16 @@ Track Food, Alcohol, Medicine, Lumber, Textiles, Weapons, Luxury, Labor and Safe
 as a commodity simulation. Categories, never quest-only item ids.
 - **Depends** BQ-014, BQ-023.
 - **Done when** delivering goods during a shortage shortens the shortage rather than only completing a counter.
-- **Sources** PM §7, §7.1, §7.2; LW §6.6.
+- **Sources** PM §7, §7.1, §7.2; LW §6.6; VS §6.
+- **Note** pressure is narrative, not a commodity simulation. Routine daily consumption is not modelled and must not be inferred from vanilla activity — a town that eats breakfast is not a town under pressure.
 
 #### BQ-051 — Shop and service continuity
 Businesses occupy states — Normal, Struggling, ShortOnStock, OwnerAbsent, TemporarilyClosed,
 ReplacementOperator, Recovered, Failed, Inherited — projected through real stock and dialogue.
 - **Depends** BQ-050, BQ-032.
-- **Done when** a shop the player let fail is still failed a month later, with a visible consequence.
-- **Sources** PM §17; LW §6.3.
+- **Done when** a shop the player let fail is still failed a month later, with a visible consequence, **and** an operator who is merely asleep, at a hobby or off-shift produces at most ordinary temporary unavailability rather than a business state.
+- **Sources** PM §17; LW §6.3; VS §5.1, §6.
+- **Note** the visible surface is real service presence and the operator's actual state. A sleeping shopkeeper is not a distressed business; the states in this step represent continuity problems, not the working day.
 
 #### BQ-052 — Thread lifecycle hardening
 Threads merge, go dormant, reactivate, and are inherited when a participant dies. A malformed thread
@@ -702,15 +713,17 @@ Rare, persistent, never rerolled. Distribution target roughly 55 / 25 / 15 / 5 o
 and flexibility, plus ordinary needs (hungry, bored, jealous, wants promotion).
 - **Depends** BQ-057.
 - **Done when** an actor's goal changes because a value was threatened, traceable in the inspector.
-- **Sources** CD §10.5, §10.6.
+- **Sources** CD §10.5, §10.6; VS §6.
+- **Not this** vanilla bodily and activity needs — hunger, bladder, sleep, routine work and hobby — are Elin's and are already simulated by `GoalNeeds` and the timetable. The needs here are narrative: safety, belonging, debt relief, status, loyalty, justice, secrecy, revenge, protection, material shortage, obligation. Do not build a second hunger or sleep model.
 
 #### BQ-062 — Goal formation pipeline
 World state → need → values and sensitivities → desires → candidate goals → candidate actions →
 personality weights → chosen action. Every link inspectable.
 - **Depends** BQ-061.
 - **Done when** the inspector shows the full chain for one NPC's chosen action.
-- **Sources** CD §10.5; MD §21.
+- **Sources** CD §10.5; MD §21; VS §3.1.
 - **Unblocks** BQ-093.
+- **Note** a BQ goal may be *informed* by physical state where it is readable — a starving actor is more persuadable — but must not mirror it. The pipeline produces narrative intention; embodiment is vanilla's (`D021`).
 
 #### BQ-063 — Emotional state
 Transient anger, fear, shame, grief, relief, suspicion, affection, stress — biasing action selection
@@ -881,7 +894,8 @@ made. Commitments that matter become durable world events.
 Shop, street, Home, guild, funeral, festival: context changes how an action is interpreted.
 - **Depends** BQ-064.
 - **Done when** theft during a funeral produces a different social response than the same theft from an empty warehouse.
-- **Sources** CD §16; PM §5.
+- **Sources** CD §16; PM §5; VS §5.1.
+- **Note** vanilla activity context — what the people present were doing — is one input to interpretation, and a weak one. Use it to make a response sharper, never to make the player consult a schedule before acting. This step does **not** wait on BQ-135: practice is decided by place, occasion and who is present, and activity is later enrichment on top of it.
 
 #### BQ-085 — Item provenance
 Notable objects carry structured history: crafted by, owned by, stolen from, recovered at, evidence in.
@@ -955,23 +969,53 @@ distribution and reachability. Expose scores in the inspector.
 - **Done when** a rejected candidate's rejection reason is readable in the inspector.
 - **Sources** LW §7.6, §12.
 
+#### BQ-135 — Read vanilla actor activity *(stage S8, immediately before BQ-093)*
+Expose transient vanilla actor activity through the seam as one read-only semantic snapshot, so the
+autonomy systems share an adapter instead of each growing its own reflective probe into `Chara`.
+This is the activity counterpart of what BQ-030 did for the Home, and it creates **no** BQ schedule
+system.
+- **Depends** BQ-003, BQ-031.
+- **Done when** `IVanillaState` returns an actor activity snapshot for a live actor; current zone and
+  physical presence are readable; timetable id and current semantic span are readable where the build
+  supports them; the current AI goal is projected into a small semantic family (sleep, work, hobby,
+  needs, combat, task, idle, other) without leaking game class names into Core; `UseGlobalGoal`, a
+  pending zone transition and the global-goal category are readable where supported; every field the
+  build did not answer is `Unknown` rather than `false` or zero (`D017`); the read has no side effects
+  and registers no actors; a live diagnostic logs the snapshot for at least one ordinary resident and
+  one eligible global actor; and tests prove an unavailable member degrades only its own fields.
+- **Out of scope** setting a timetable, setting an AI goal, writing a `GlobalGoal`, any pathfinding,
+  persisting the snapshot, and any autonomous decision made from it. No new `VanillaCapability` is
+  granted for a member nobody has watched work.
+- **Sources** VS §2, §4, §7; LW §2.2; D017, D019, D021.
+- **Unblocks** BQ-093, BQ-094, BQ-095, BQ-097, and activity-aware BQ-084.
+- **Risk** the observation surface, not the read. Anything that has to be sampled per actor per turn
+  means patching a hot loop; establish a low-frequency event or hook first (`VS §7`).
+
 #### BQ-093 — NPCs use the same action resolver
 One `NarrativeAction` vocabulary for player and NPC. No `PlayerBribe` / `NpcBribe` split.
-- **Depends** BQ-062, BQ-031.
-- **Done when** an NPC performs an existing verb through the same code path, with the same four outcomes.
-- **Sources** CD §47.5; PM §35; LW §6.8.
+
+Execution has two stages. BQ chooses a semantic `NarrativeAction`; then, if the action needs
+physical embodiment and a verified vanilla action or goal can perform it, physical execution is
+delegated to vanilla and the result observed. Where it cannot, and coarse resolution is permitted,
+resolve abstractly. Core does not acquire movement, pathfinding or routine-task logic in either
+branch.
+- **Depends** BQ-062, BQ-031, BQ-135.
+- **Done when** an NPC performs an existing verb through the same code path, with the same four outcomes, **and** an action needing embodiment either delegates to a verified vanilla path or resolves coarsely, with the choice visible in the inspector and no movement controller in Core.
+- **Sources** CD §47.5; PM §35; LW §6.8; VS §3.1, §3.2; D021.
 
 #### BQ-094 — First autonomous intervention
 One NPC pursues one situation off-screen and can succeed, fail, or make it worse.
 - **Depends** BQ-093.
-- **Done when** a situation the player ignored is resolved by somebody else, and the player can find out how.
-- **Sources** PM §33, §72 stage 8; LW §14 P7.
+- **Done when** a situation the player ignored is resolved by somebody else, and the player can find out how, with only the causally meaningful steps recorded — not the actor's working day.
+- **Sources** PM §33, §72 stage 8; LW §14 P7; VS §5.3, §5.4.
+- **Note** activity constrains opportunity where it is readable, and normally as a plausibility weight rather than a hard gate. Coarse co-location, an overlapping timetable or a shared workplace mean opportunity only: none of them may produce eyewitness testimony, proof, a location claim or recognition of a person.
 
 #### BQ-095 — Off-screen schemes
 NPCs steal, court, invest, flee debt, hire help, hide evidence and seek revenge on a coarse schedule.
 - **Depends** BQ-094, BQ-022.
-- **Done when** returning to a town after a month shows changes attributable to named actors and recorded events.
-- **Sources** PM §26; LW §6.8.
+- **Done when** returning to a town after a month shows changes attributable to named actors and recorded events, **and** an actor Elin is already moving through its own global travel is left to it rather than scheduled twice.
+- **Sources** PM §26; LW §6.8; VS §3.2, §3.3, §5.5.
+- **Note** an off-screen scheme says what was attempted and what it meant, never where anybody stood (`D021`). Vanilla moving an actor on its own is a fact to interpret — an arrival that intersects an old debt is content BQ did not have to invent.
 
 #### BQ-096 — Adventurer ecology
 Other adventurers pursue situations, and can die, fail, take credit, or become recurring rivals.
@@ -982,9 +1026,10 @@ Other adventurers pursue situations, and can die, fail, take credit, or become r
 #### BQ-097 — Traveling groups
 Caravans, adventurers, pilgrims, refugees, bandits, patrols: origin, destination, departure,
 expected arrival, route risk, cargo, members. Resolved at milestones, never pathfound.
-- **Depends** BQ-032, BQ-053.
-- **Done when** a caravan that never arrives is a caravan that actually failed, with a findable cause.
-- **Sources** PM §34; LW §6.7; MD §18.
+- **Depends** BQ-032, BQ-053, BQ-135.
+- **Done when** a caravan that never arrives is a caravan that actually failed, with a findable cause, **and** a bounded spike has recorded against the live build whether `GlobalGoal`, `GlobalGoalVisitTown`, `GlobalGoalVisitAndStay`, `MoveZone` and `ZoneTransition` are safe and useful at materialization boundaries — a negative answer being an equally valid result, written up in `elin-api-notes.md`.
+- **Sources** PM §34; LW §6.7; MD §18; VS §2.4, §3.3, §7.
+- **Note** milestone travel stays the design; the spike lives inside this step and does not become a system. If the spike does not prove them safe, BQ travel stays fully abstract and reconciles on arrival. **Direct `GlobalGoal` writes are not a 1.0 dependency** and may only become one if runtime evidence shows they make travel more reliable, not merely more native.
 
 #### BQ-098 — Situations come to the player
 Consequences arrive at Home and at the player: creditors, refugees, accusers, guild emergencies,
@@ -1057,9 +1102,16 @@ Keep a save fixture per schema version and migrate them all in CI.
 
 #### BQ-107 — Simulation tiers
 Active, Warm, Cold, Archived. Off-screen cost must not scale with total historical NPC count.
+
+The tiers are BQ's narrative fidelity, not the game's. **Active** means the highest narrative
+fidelity and the *least* duplicated physical simulation, because Elin is live and owns embodiment.
+**Warm** is named actors, live situations and coarse social, economic and travel decisions, plus
+observed vanilla global state where it is readable. **Cold** is sparse developments. **Archived** is
+history only.
 - **Depends** BQ-095, BQ-021.
-- **Done when** a synthetic world with thousands of historical actors ticks within a stated budget.
-- **Sources** MD §18.1, §26; PM §53; LW §5.4, §10.
+- **Done when** a synthetic world with thousands of historical actors ticks within a stated budget, **and** a Home the player has been away from is not advanced twice — what `Zone.Simulate()` catches up on revisit is reconciled against, not re-run.
+- **Sources** MD §18.1, §26; PM §53; LW §5.4, §10; VS §2.3, §2.5; D021.
+- **Note** Elin runs four fidelity mechanisms of its own (`VS §2.5`), and vanilla `GlobalGoal` advancement may continue for eligible actors regardless of what tier BQ has put them in. Tiering is a budget for BQ's own work, never a claim that nothing else is simulating.
 
 #### BQ-108 — Performance guardrails
 Event-driven updates, bounded rumour propagation, provenance only for notable objects, lazy dialogue
@@ -1399,6 +1451,7 @@ names why it is not in 1.0.
 | Optional LLM prose rendering **at runtime** | MD §16.2; PM §45; CD §46 | The deterministic realizer is the baseline and must be good on its own first. Distinct from authoring-time drafting, which is permitted now under CP §7 because its output is reviewed, committed and static. |
 | Full commodity economy | MD §14.3; PM §7.2 | Coarse pressure (BQ-050) is sufficient for narrative purposes; a real economy is a different project. |
 | Regional-scale simulation (trade route safety, migration, settlement prosperity) | MD §25 | Requires the tiering in BQ-107 to be proven at scale first. |
+| Writing vanilla `GlobalGoal` to embody BQ travel | VS §2.4, §3.3 | Elin already moves eligible global actors on its own, so a BQ write is a second author of the same state. The BQ-097 spike may prove it safe; until runtime evidence shows it makes travel *more reliable* rather than merely more native, milestone travel is the design and this is not a 1.0 dependency. |
 | Apprentices and protégés | PM §31 | Emerges naturally from BQ-081 callbacks plus BQ-095 autonomy; revisit once both are live. |
 | Marriage, inheritance and family succession beyond BQ-052 | PM §32 | Touches vanilla relationship systems the mod does not yet safely mutate. |
 | Dynamic bounty ecosystem beyond BQ-046 | PM §20 | The single archetype proves the mechanism; a full bounty economy is content scale, not architecture. |
@@ -1416,7 +1469,7 @@ names why it is not in 1.0.
 
 ## 9. Idea coverage index
 
-Every substantive idea in the seven design documents, mapped to where it lives in this plan. This is
+Every substantive idea in the eight design documents, mapped to where it lives in this plan. This is
 the audit artifact: if an idea is not here, it was missed.
 
 ### From `master-design.md`
@@ -1701,6 +1754,27 @@ the audit artifact: if an idea is not here, it was missed.
 | Volume targets rejected | CP §8; §11 fragment volume |
 | Workbench GUI deferred | CP §8; §8 |
 | Combinatorial output counts rejected as a metric | CP §6, §8 |
+
+### From `vanilla-simulation-integration.md`
+
+| Idea | Where |
+|---|---|
+| Vanilla owns embodiment; BQ owns narrative meaning | D021; BQ-093, BQ-107 |
+| Timetables, spans and `GetGoalFromTimeTable` are real state | BQ-135; `elin-api-notes.md` |
+| Work, hobby and bodily needs are vanilla AI | BQ-061; BQ-135 |
+| `Zone.Simulate()` catch-up on revisit | BQ-107; BQ-048, BQ-049 |
+| Hourly `GlobalGoal` advancement for eligible global actors | BQ-032, BQ-095, BQ-097 |
+| Four vanilla fidelity mechanisms, not two | BQ-107 |
+| Actor activity snapshot as a read-only seam primitive | BQ-135 |
+| Local affordance profile drives generation | BQ-039 |
+| Routine as plausibility weight, not an appointment gate | BQ-084, BQ-094 |
+| Notable deltas only; routine acts unrecorded | BQ-040, BQ-094; BQ-035 |
+| Opportunity is not eyewitness proof | BQ-094, BQ-095; D011 |
+| Vanilla surprise is interpreted, not overridden | BQ-095 |
+| No parallel needs, schedule, pathfinding or commodity simulation | BQ-050, BQ-061; standing rules §10 rule 6 |
+| `GlobalGoal` writes deferred pending runtime proof | BQ-097; §8 |
+| Runtime research list before any integration | BQ-135; `elin-api-notes.md` |
+| Product-value test: causal continuity per unit of machinery | §7 launch definition |
 
 ---
 
