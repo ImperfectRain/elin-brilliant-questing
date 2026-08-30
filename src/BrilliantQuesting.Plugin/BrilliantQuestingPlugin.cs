@@ -115,7 +115,7 @@ namespace BrilliantQuesting.Plugin
             BaseModManager.SubscribeEvent(EVENT.NewGame, OnNewGame);
             BaseModManager.SubscribeEvent<object>(EVENT.ActPerformed, OnActPerformed);
             DramaChoiceProjector.Install(_log);
-            JournalShapeProbe.Install(_log);
+            NativeJournalSurface.Install(_log);
 
             _log.LogInfo(ModInfo.Name + " " + ModInfo.Version + " loaded. Waiting for a game.");
         }
@@ -347,6 +347,7 @@ namespace BrilliantQuesting.Plugin
                 _bindings, _log, _offscreenAbsence != null && _offscreenAbsence.Value);
 
             _world = Load(context);
+            NativeJournalSurface.Bind(_world, _vanilla);
             _bindings.BindSavedRefs(_world, _log);
             _stager = new ElinSituationStager(_bindings, _log, _world);
 
@@ -962,6 +963,7 @@ namespace BrilliantQuesting.Plugin
             }
 
             _drama = null;
+            NativeJournalSurface.Bind(null, null);
             _world = null;
             _log.LogInfo("Simulation detached.");
         }

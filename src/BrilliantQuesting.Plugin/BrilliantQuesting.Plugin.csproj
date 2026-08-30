@@ -71,6 +71,10 @@
       <HintPath>$(ElinLib)\UnityEngine.CoreModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(ElinLib)\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="BepInEx.Core">
       <HintPath>$(BepInExLib)\BepInEx.Core.dll</HintPath>
       <Private>false</Private>

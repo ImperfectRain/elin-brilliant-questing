@@ -211,13 +211,16 @@ namespace BrilliantQuesting.Plugin
                 .SetOnClick(() => ShowCaseNotes(target));
             talk.AddChoice(notes);
 
-            DramaChoice journal = new DramaChoice("Open Brilliant Questing journal", "", "bq:journal", "", "")
-                .SetOnClick(ShowJournal);
-            talk.AddChoice(journal);
+            if (NativeJournalSurface.UseDialogueFallback)
+            {
+                DramaChoice journal = new DramaChoice("Open Brilliant Questing journal", "", "bq:journal", "", "")
+                    .SetOnClick(ShowJournal);
+                talk.AddChoice(journal);
 
-            DramaChoice chronicle = new DramaChoice("Review resolved matters", "", "bq:chronicle", "", "")
-                .SetOnClick(ShowChronicle);
-            talk.AddChoice(chronicle);
+                DramaChoice chronicle = new DramaChoice("Review resolved matters", "", "bq:chronicle", "", "")
+                    .SetOnClick(ShowChronicle);
+                talk.AddChoice(chronicle);
+            }
 
             if (ExplainInDialogue)
             {
