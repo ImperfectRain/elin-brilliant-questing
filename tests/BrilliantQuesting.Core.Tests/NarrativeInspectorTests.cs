@@ -32,6 +32,7 @@ namespace BrilliantQuesting.Tests
         [InlineData("who witnessed what")]
         [InlineData("why a claim spread")]
         [InlineData("what somebody standing here would say out loud")]
+        [InlineData("what this person would say if the player asked")]
         public void TheReportAnswersTheQuestionsItsSystemsCanAnswer(string heading)
         {
             Assert.Contains(heading, Report());

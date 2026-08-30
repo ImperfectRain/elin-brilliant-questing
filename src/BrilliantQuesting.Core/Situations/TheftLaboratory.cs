@@ -50,6 +50,12 @@ namespace BrilliantQuesting.Situations
         /// </summary>
         public AmbientTalk Ambient { get; private set; }
 
+        /// <summary>
+        /// What somebody would say if the player asked them what has been happening. Same rule as
+        /// the ambient route: nothing is said unless a test asks for it.
+        /// </summary>
+        public TownNews News { get; private set; }
+
         public PettyTheftSituation Situation { get; private set; }
 
         /// <summary>
@@ -87,6 +93,7 @@ namespace BrilliantQuesting.Situations
             lab.Rumors = new RumorSystem(world.Knowledge, world.Ledger, world.Ids);
             lab.Circulation = new RumorCirculation(lab.Rumors);
             lab.Ambient = new AmbientTalk(lab.Rumors);
+            lab.News = new TownNews(lab.Rumors);
             lab.Consequences = new ConsequenceEngine(world, vanilla);
             lab.Consequences.Attach();
 

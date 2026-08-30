@@ -42,6 +42,13 @@ namespace BrilliantQuesting.Lab
                 return 0;
             }
 
+            if (args.Length > 0 && args[0] == "--news")
+            {
+                ulong newsSeed = args.Length > 1 && ulong.TryParse(args[1], out ulong picked) ? picked : DefaultSeed;
+                NewsRun.Run(newsSeed);
+                return 0;
+            }
+
             if (args.Length > 0 && args[0] == "--questline")
             {
                 ulong questSeed = args.Length > 1 && ulong.TryParse(args[1], out ulong given) ? given : DefaultSeed;

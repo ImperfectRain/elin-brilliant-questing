@@ -161,6 +161,16 @@ namespace BrilliantQuesting.Plugin
 
             AdvanceThreads?.Invoke();
 
+            if (AlreadyProjected(talk))
+            {
+                return;
+            }
+
+            // BQ-036: asking somebody what has been going on is not about them, so it is offered
+            // before anything is known about a thread and to people who are in none. It is the
+            // one option here that a stranger in a tavern can answer.
+            OfferTheNews(manager, talk, target);
+
             NarrativeThread thread = FindThread(target);
             if (thread == null || !TryBuildFocus(thread, out EntityId subjectFact, out EntityId subjectItem))
             {
@@ -175,11 +185,6 @@ namespace BrilliantQuesting.Plugin
             {
                 _log.LogInfo("Drama offered nothing for " + _world.Registry.NameOf(target)
                              + ": " + scene.Reason + ".");
-                return;
-            }
-
-            if (AlreadyProjected(talk))
-            {
                 return;
             }
 
@@ -269,6 +274,12 @@ namespace BrilliantQuesting.Plugin
         internal Action AdvanceThreads { get; set; }
 
         /// <summary>
+        /// The town's news, as whoever the player is talking to has heard it. Set from the plugin
+        /// once the rumour layer exists; a null one simply means the topic is never offered.
+        /// </summary>
+        internal TownNews News { get; set; }
+
+        /// <summary>
         /// BQ-012 in game: the whole "why?" report for whoever the player is standing in front of,
         /// written to the log. It goes to the log rather than to `Msg` because it is dozens of
         /// lines and the message window would swallow it; the player gets one line telling them
@@ -299,6 +310,84 @@ namespace BrilliantQuesting.Plugin
             {
                 Msg.SayRaw("Brilliant Questing could not build the report; see the log.");
                 _log.LogError("Inspector failed: " + ex);
+            }
+        }
+
+        /// <summary>
+        /// Offers "what's been happening?" when this person has something to say, and says so in
+        /// the log when they have not.
+        ///
+        /// Hidden rather than greyed out, and hidden only on genuine emptiness: somebody who has
+        /// heard nothing the player has not already heard has no answer to give, which is the
+        /// same reason the other verbs disappear rather than refuse.
+        /// </summary>
+        private void OfferTheNews(DramaManager manager, DramaEventTalk talk, EntityId target)
+        {
+            if (News == null)
+            {
+                return;
+            }
+
+            if (News.Ask(_world, _vanilla, target).Count == 0)
+            {
+                _log.LogInfo("Drama hides the news topic for " + _world.Registry.NameOf(target)
+                             + ": they have heard nothing the player has not.");
+                return;
+            }
+
+            DramaChoice news = new DramaChoice("BQ: What's been happening?", "", "bq:news", "", "")
+                .SetOnClick(() => TellTheNews(manager, speaker: target));
+            talk.AddChoice(news);
+        }
+
+        /// <summary>
+        /// They answer, in their own voice and one line at a time.
+        ///
+        /// The answer is read again here rather than captured when the button was drawn, for the
+        /// same reason the verbs re-read their focus: the world can move while a node is on
+        /// screen. Each line is spoken before it is allowed to teach the player anything, which is
+        /// BQ-035's rule and matters at least as much here - a menu that silently posts beliefs
+        /// into the journal is the announcement this whole route exists to do without.
+        ///
+        /// The conversation ends afterwards, as it does for the verbs: what somebody says out loud
+        /// belongs in the world rather than inside a dialogue box, and the player is meant to be
+        /// looking at the person who said it.
+        /// </summary>
+        private void TellTheNews(DramaManager manager, EntityId speaker)
+        {
+            try
+            {
+                IReadOnlyList<SpokenRemark> answer = News.Ask(_world, _vanilla, speaker);
+                if (answer.Count == 0)
+                {
+                    Msg.SayRaw(_world.Registry.NameOf(speaker) + " has nothing new to tell you.");
+                    return;
+                }
+
+                int heard = 0;
+                int took = 0;
+                for (int i = 0; i < answer.Count; i++)
+                {
+                    if (!ElinBark.Speak(_bindings, answer[i], _log))
+                    {
+                        continue;
+                    }
+
+                    heard++;
+                    if (News.Deliver(_world, _vanilla, answer[i], _vanilla.Now))
+                    {
+                        took++;
+                    }
+                }
+
+                _log.LogInfo("News from " + _world.Registry.NameOf(speaker) + ": " + heard + " of "
+                             + answer.Count + " line(s) reached the player, " + took + " believed.");
+                manager?.sequence?.Exit();
+            }
+            catch (Exception ex)
+            {
+                Msg.SayRaw("Brilliant Questing could not ask about the news; see the log.");
+                _log.LogError("News topic failed: " + ex);
             }
         }
 

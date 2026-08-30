@@ -50,7 +50,7 @@ namespace BrilliantQuesting.Tests
             return id;
         }
 
-        private static AmbientRemark Hear(TheftLaboratory lab)
+        private static SpokenRemark Hear(TheftLaboratory lab)
         {
             return lab.Ambient.Next(lab.World, lab.Vanilla, lab.Vanilla.Now);
         }
@@ -67,7 +67,7 @@ namespace BrilliantQuesting.Tests
             EntityId gossip = Neighbour(lab, "Hedda");
             Assert.Empty(NarrativeJournal.Entries(lab.World, lab.Player));
 
-            AmbientRemark remark = Hear(lab);
+            SpokenRemark remark = Hear(lab);
 
             Assert.NotNull(remark);
             Assert.Equal(gossip, remark.Speaker);
@@ -137,7 +137,7 @@ namespace BrilliantQuesting.Tests
             lab.Vanilla.Define(neighbour, level: 3, zone: lab.Zone);
             lab.World.Knowledge.Teach(neighbour, debt, KnowledgeSource.Hearsay, 0.9, lab.Vanilla.Now, false, lab.Situation.VictimId);
 
-            AmbientRemark remark = Hear(lab);
+            SpokenRemark remark = Hear(lab);
             Assert.NotNull(remark);
             Assert.Equal(neighbour, remark.Speaker);
             Assert.Equal(debt, remark.FactId);
@@ -198,7 +198,7 @@ namespace BrilliantQuesting.Tests
             Assert.Null(Hear(lab));
 
             lab.Vanilla.Now = lab.Vanilla.Now.PlusMinutes(lab.Ambient.MinutesBetweenRemarks);
-            AmbientRemark second = Hear(lab);
+            SpokenRemark second = Hear(lab);
             Assert.NotNull(second);
             Assert.NotEqual(second.FactId, NarrativeJournal.Entries(lab.World, lab.Player)[0].FactId);
         }
@@ -264,7 +264,7 @@ namespace BrilliantQuesting.Tests
                 lab.Circulation.Run(lab.World, lab.Vanilla, lab.Vanilla.Now);
             }
 
-            AmbientRemark remark = Hear(lab);
+            SpokenRemark remark = Hear(lab);
             Assert.NotNull(remark);
             Assert.NotEqual(lab.Player, remark.Speaker);
             Assert.NotEqual(lab.Situation.WitnessId, remark.Speaker);

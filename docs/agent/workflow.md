@@ -80,7 +80,8 @@ If a long task must survive a reset, temporarily fill `docs/agent/active-task.md
 
 ## 7. Branch flow
 
-The authoritative primary development branch is `claude/elin-procedural-narrative-tkctw9`.
+The authoritative primary development branch is `master`. Every BQ step since the branches were
+consolidated has landed there, and it is the only long-lived branch on the remote.
 
 Start normal development from the current primary development branch. Temporary agent/task
 branches are disposable workspaces, not independent long-lived development lines, and old task

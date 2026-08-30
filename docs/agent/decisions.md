@@ -211,6 +211,13 @@ player took. Who speaks and what they say is a deterministic read of who is stan
 pacing is a cooldown stamped on the world, which is what stops a reload from being a way to hear the
 whole town at once.
 
+**BQ-036 extends the first rule to every free way of getting somebody talking.** Asking a person
+what has been happening reaches the same repertoire the street does - `TalkRepertoire` decides what
+anybody is willing to say, and both `AmbientTalk` and `TownNews` read it - so the two can differ
+only in how forthcoming the speaker is, never in what class of knowledge they will part with. A verb
+that hands over testimony must cost a check and expose the player, as `question` and `eavesdrop` do.
+Anything free carries gossip, or the investigation verbs are decoration.
+
 Reason: this is the one route by which the player gains knowledge without choosing to, so it has to
 be the most conservative one in the mod, not the most convenient.
 

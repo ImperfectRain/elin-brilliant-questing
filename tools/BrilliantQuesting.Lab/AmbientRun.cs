@@ -53,7 +53,7 @@ namespace BrilliantQuesting.Lab
                     lab.Vanilla.Now = lab.Vanilla.Now.PlusHours(HoursPerStep);
                     lab.Circulation.Run(lab.World, lab.Vanilla, lab.Vanilla.Now);
 
-                    AmbientRemark remark = lab.Ambient.Next(lab.World, lab.Vanilla, lab.Vanilla.Now);
+                    SpokenRemark remark = lab.Ambient.Next(lab.World, lab.Vanilla, lab.Vanilla.Now);
                     if (remark == null)
                     {
                         continue;

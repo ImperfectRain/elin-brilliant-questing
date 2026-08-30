@@ -41,7 +41,7 @@ namespace BrilliantQuesting.Plugin
         /// never said - a belief that arrives without a line is the omniscient journal the whole
         /// knowledge layer exists to prevent.
         /// </summary>
-        internal static bool Speak(ElinBindings bindings, AmbientRemark remark, ManualLogSource log)
+        internal static bool Speak(ElinBindings bindings, SpokenRemark remark, ManualLogSource log)
         {
             if (remark == null || string.IsNullOrEmpty(remark.Line))
             {

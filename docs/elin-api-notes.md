@@ -498,9 +498,10 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
   story-critical, and a type missing either flag - or no character at all - classifies `Unknown`.
   That proves the reflection and the failure direction, not the member names.
 
-- **How many choices the generic talk node will actually show.** The projector now adds two fixed
-  entries that are not situation actions - `BQ: Journal` and, since BQ-034, `BQ: Chronicle` -
-  alongside the case-notes entry, the debug entry and up to seven projected actions. `MaxChoices`
+- **How many choices the generic talk node will actually show.** The projector now adds three fixed
+  entries that are not situation actions - `BQ: Journal`, `BQ: Chronicle` since BQ-034, and
+  `BQ: What's been happening?` since BQ-036 - alongside the case-notes entry, the debug entry and
+  up to seven projected actions. `MaxChoices`
   bounds the projected actions only, so the node can carry ten or more rows. Whether Elin's talk
   list scrolls, clips or silently drops the tail at that count has not been read off a running
   game. Being wrong costs visibility of the lowest-priority projected options, not correctness:
@@ -522,3 +523,18 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
   line, which names the route this build actually took. Nothing is taught to the player unless the
   chosen route returned without throwing, so a build where neither route works goes quiet rather
   than filling the journal with things nobody said.
+
+- **Whether a spoken answer is visible from inside an open conversation.** BQ-036 projects the
+  news topic onto the same `_chara`/`main` talk node as the situation verbs, and answers it through
+  the same `ElinBark` route as an ambient remark - one line per development, then
+  `DramaManager.sequence.Exit()`, in the order the verbs already use (say it, then close). Whether a
+  raw-text balloon drawn while the dialogue layer is still up is visible, queued behind it, or
+  swallowed has not been read off a running game, and neither has whether closing the sequence from
+  a choice's own click handler is well-behaved when several lines were spoken first.
+
+  Being wrong costs presentation, not correctness. The fallback route writes the same attributed
+  lines to the message log, which survives the dialogue closing; the log carries the "News from ..."
+  line naming how many of the answer's lines actually reached the player and how many were believed;
+  and nothing is taught for a line the bark route refused, so a build where speech fails while a
+  dialogue is open leaves the player with the topic and no knowledge rather than with knowledge
+  nobody spoke.

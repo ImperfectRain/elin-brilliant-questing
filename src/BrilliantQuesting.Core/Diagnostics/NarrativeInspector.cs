@@ -267,6 +267,9 @@ namespace BrilliantQuesting.Diagnostics
             sb.Append("\n-- what somebody standing here would say out loud --\n");
             sb.Append(DescribeAmbientTalk(world, vanilla));
 
+            sb.Append("\n-- what this person would say if the player asked --\n");
+            sb.Append(DescribeNews(world, vanilla, context.Target));
+
             sb.Append("\n-- who witnessed what, and what consequences were emitted --\n");
             sb.Append(DescribeHistory(world));
 
@@ -297,7 +300,7 @@ namespace BrilliantQuesting.Diagnostics
         public static string DescribeAmbientTalk(NarrativeWorldState world, IVanillaState vanilla)
         {
             AmbientTalk talk = new AmbientTalk(new RumorSystem(world.Knowledge, world.Ledger, world.Ids));
-            AmbientRemark remark = talk.Next(world, vanilla, vanilla.Now);
+            SpokenRemark remark = talk.Next(world, vanilla, vanilla.Now);
             if (remark != null)
             {
                 return "  " + remark.SpeakerName + ": \"" + remark.Line + "\"  [" + remark.FactId + "]\n";
@@ -314,6 +317,40 @@ namespace BrilliantQuesting.Diagnostics
 
             return "  nothing: nobody in this zone is repeating anything the player has not already"
                    + " heard. First-hand knowledge is not repeated here - it is asked for.\n";
+        }
+
+        /// <summary>
+        /// The answer this person would give to "what's been happening?", or why the topic is not
+        /// on their conversation.
+        ///
+        /// Reading only, on the same terms as <see cref="DescribeAmbientTalk"/>: nothing is taught
+        /// by looking, and the throwaway <see cref="RumorSystem"/> is only ever asked whether a
+        /// retelling would take.
+        /// </summary>
+        public static string DescribeNews(NarrativeWorldState world, IVanillaState vanilla, EntityId speaker)
+        {
+            if (speaker.IsNone)
+            {
+                return "  nobody is being talked to.\n";
+            }
+
+            TownNews news = new TownNews(new RumorSystem(world.Knowledge, world.Ledger, world.Ids));
+            IReadOnlyList<SpokenRemark> answer = news.Ask(world, vanilla, speaker);
+            if (answer.Count == 0)
+            {
+                return "  nothing: " + world.Registry.NameOf(speaker) + " has heard nothing the player"
+                       + " has not, so the topic is not offered. What they saw or did themselves is"
+                       + " testimony, and is asked for by name.\n";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < answer.Count; i++)
+            {
+                sb.Append("  " + answer[i].SpeakerName + ": \"" + answer[i].Line + "\"  ["
+                          + answer[i].FactId + "]\n");
+            }
+
+            return sb.ToString();
         }
 
         /// <summary>One line for the event a thread grew out of, or an honest blank.</summary>

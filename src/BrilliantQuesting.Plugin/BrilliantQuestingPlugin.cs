@@ -304,7 +304,7 @@ namespace BrilliantQuesting.Plugin
 
             try
             {
-                AmbientRemark remark = _ambient.Next(_world, _vanilla, _vanilla.Now);
+                SpokenRemark remark = _ambient.Next(_world, _vanilla, _vanilla.Now);
                 if (remark == null || !ElinBark.Speak(_bindings, remark, _log))
                 {
                     return;
@@ -374,6 +374,10 @@ namespace BrilliantQuesting.Plugin
             _gossip = new RumorCirculation(rumors) { Distortion = distortion };
             _ambient = new AmbientTalk(rumors);
             _drama.AdvanceThreads = AdvanceThreads;
+
+            // The asked half of the same route. One rumour layer serves both, so what somebody
+            // will volunteer in the street and what they will say when asked cannot drift apart.
+            _drama.News = new TownNews(rumors);
             _actionObserver = new ElinActionObserver(_world, _vanilla, _bindings, _log);
             ElinAuthorityRoles.RefreshAll(_world, _bindings, _log);
 
