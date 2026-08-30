@@ -632,6 +632,9 @@ Distinguish Request, Situation, Opportunity and Event in code and in presentatio
 becomes a quest entry.
 - **Depends** BQ-033.
 - **Done when** one causal chain produces all four, and only the Request appears on a board.
+- **Current implementation** BQ-040 derives `Situation`, `Request`, `Opportunity` and `Event`
+  entries from authoritative threads, facts and ledger events. Request-board projection filters the
+  same derived content to requests only; no persisted quest entry/prose database is introduced.
 - **Sources** PM §5; LW §4; VS §5.3.
 - **Unblocks** BQ-041 … BQ-047.
 - **Note** an observed vanilla change is allowed to stay an Event or an Opportunity. A traveling actor arriving is an Event; an old debt with a local merchant may make it an Opportunity; only persistent or conflicting pressure earns promotion to a Situation. Nothing is promoted because it was noticed.

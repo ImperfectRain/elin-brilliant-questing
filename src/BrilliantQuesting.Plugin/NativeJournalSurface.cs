@@ -239,24 +239,51 @@ namespace BrilliantQuesting.Plugin
 
             private void AddActiveMatters(NarrativeWorldState world, EntityId player)
             {
-                AddHeader("Active matters", null);
-                bool any = false;
-                for (int i = 0; i < world.Threads.Count; i++)
+                AddHeader("Active content", null);
+                IReadOnlyList<NarrativeContentEntry> entries = NarrativeContentProjection.Entries(world, player);
+                if (entries.Count == 0)
                 {
-                    NarrativeThread thread = world.Threads[i];
-                    if (!thread.IsLive)
+                    AddText("No active matters.", FontColor.Default);
+                    return;
+                }
+
+                AddContentGroup(world, player, entries, NarrativeContentClass.Situation, "Situations");
+                AddContentGroup(world, player, entries, NarrativeContentClass.Request, "Requests");
+                AddContentGroup(world, player, entries, NarrativeContentClass.Opportunity, "Opportunities");
+                AddContentGroup(world, player, entries, NarrativeContentClass.Event, "Events");
+            }
+
+            private void AddContentGroup(
+                NarrativeWorldState world,
+                EntityId player,
+                IReadOnlyList<NarrativeContentEntry> entries,
+                NarrativeContentClass contentClass,
+                string heading)
+            {
+                bool any = false;
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    NarrativeContentEntry entry = entries[i];
+                    if (entry.ContentClass != contentClass)
                     {
                         continue;
                     }
 
-                    any = true;
-                    AddText(thread.ArchetypeId + "  tension " + thread.Tension, FontColor.Topic);
-                    AddCaseNotes(world, player, thread);
-                }
+                    if (!any)
+                    {
+                        AddHeader(heading, null);
+                        any = true;
+                    }
 
-                if (!any)
-                {
-                    AddText("No active matters.", FontColor.Default);
+                    AddText(entry.Title + (string.IsNullOrEmpty(entry.Detail) ? string.Empty : "  " + entry.Detail), FontColor.Topic);
+                    if (contentClass == NarrativeContentClass.Situation)
+                    {
+                        NarrativeThread thread = world.GetThread(entry.ThreadId);
+                        if (thread != null)
+                        {
+                            AddCaseNotes(world, player, thread);
+                        }
+                    }
                 }
             }
 
