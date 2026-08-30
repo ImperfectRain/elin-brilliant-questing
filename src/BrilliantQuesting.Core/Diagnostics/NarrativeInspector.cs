@@ -143,6 +143,15 @@ namespace BrilliantQuesting.Diagnostics
                 sb.Append("    - ").Append(question).Append('\n');
             }
 
+            if (thread.GenerationCauses.Count > 0)
+            {
+                sb.Append("  generated from world state:\n");
+                foreach (string cause in thread.GenerationCauses)
+                {
+                    sb.Append("    - ").Append(cause).Append('\n');
+                }
+            }
+
             sb.Append("  escalation:\n");
             foreach (EscalationStep step in thread.Escalation)
             {

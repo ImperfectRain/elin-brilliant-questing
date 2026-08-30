@@ -1,3 +1,4 @@
+using System;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
@@ -172,6 +173,104 @@ namespace BrilliantQuesting.Situations
             thread.OpenQuestions.Add("Did anyone see what happened?");
 
             // Nothing here fails the player. Each step is the world getting on with it.
+            thread.Escalation.Add(new EscalationStep("victim_asks_around", 2, "The victim starts asking neighbours."));
+            thread.Escalation.Add(new EscalationStep("thief_hides_it", 4, "The thief stops carrying it."));
+            thread.Escalation.Add(new EscalationStep("witness_talks", 7, "The witness lets something slip."));
+            thread.Escalation.Add(new EscalationStep("thief_deflects", 8, "The thief points at somebody else."));
+            thread.Escalation.Add(new EscalationStep("accusation", 10, "The victim acts on what they believe."));
+            thread.Escalation.Add(new EscalationStep("feud", 14, "The two households stop speaking."));
+
+            world.Threads.Add(thread);
+            situation.Thread = thread;
+            return situation;
+        }
+
+        public static PettyTheftSituation FromLocalAffordance(
+            NarrativeWorldState world,
+            SituationCandidate candidate,
+            EntityId zone,
+            GameTime now)
+        {
+            PettyTheftSituation situation = new PettyTheftSituation
+            {
+                ZoneId = zone,
+                VictimId = candidate.TargetId,
+                ThiefId = candidate.ActorId,
+                WitnessId = candidate.WitnessId,
+                ItemId = candidate.Item.Id
+            };
+
+            NarrativeNpc victim = world.Registry.GetNpc(situation.VictimId);
+            NarrativeNpc thief = world.Registry.GetNpc(situation.ThiefId);
+            NarrativeNpc witness = world.Registry.GetNpc(situation.WitnessId);
+            string valuable = candidate.Item.Name;
+
+            victim?.Promote(NarrativeImportance.Known);
+            thief?.Promote(NarrativeImportance.Known);
+            witness?.Promote(NarrativeImportance.Known);
+
+            WorldEvent origin = world.Record(
+                WorldEventType.Theft,
+                situation.ThiefId,
+                situation.VictimId,
+                now,
+                magnitude: 0.6,
+                zone: zone,
+                related: new[] { situation.ItemId },
+                witnesses: new[] { situation.WitnessId },
+                evidence: new[] { situation.ItemId });
+
+            Fact theft = new Fact(
+                world.NewId("fact"),
+                situation.ThiefId,
+                FactPredicates.Stole,
+                situation.ItemId,
+                valuable,
+                TruthState.True,
+                secrecy: 60,
+                originEvent: origin.Id);
+            theft.EvidenceIds.Add(situation.ItemId);
+            world.Knowledge.AddFact(theft);
+            situation.TheftFactId = theft.Id;
+
+            Fact ownership = new Fact(world.NewId("fact"), situation.VictimId, FactPredicates.Possesses, situation.ItemId, valuable);
+            world.Knowledge.AddFact(ownership);
+            situation.OwnershipFactId = ownership.Id;
+
+            world.Knowledge.Teach(situation.ThiefId, theft.Id, KnowledgeSource.Participant, 1.0, now, true);
+            world.Knowledge.Teach(situation.WitnessId, theft.Id, KnowledgeSource.Witnessed, 1.0, now, false);
+            world.Knowledge.Teach(situation.VictimId, ownership.Id, KnowledgeSource.Participant, 1.0, now, false);
+            world.Knowledge.Teach(situation.ThiefId, ownership.Id, KnowledgeSource.Participant, 1.0, now, false);
+
+            thief?.Goals.Add(new NpcGoal("avoid_exposure", theft.Id, 85));
+            thief?.Goals.Add(new NpcGoal("raise_money", situation.ThiefId, 70));
+            victim?.Goals.Add(new NpcGoal("recover_property", situation.ItemId, 90));
+            witness?.Goals.Add(new NpcGoal("stay_out_of_trouble", situation.WitnessId, 75));
+
+            world.Relationships.ConnectMutual(situation.VictimId, situation.WitnessId, Relationships.RelationKind.Acquaintance, 20);
+            world.Relationships.Connect(situation.WitnessId, situation.ThiefId, Relationships.RelationKind.Acquaintance, -10);
+
+            NarrativeThread thread = new NarrativeThread(world.NewId("thread"), ArchetypeId, now)
+            {
+                Tension = Math.Min(60, 20 + candidate.Score / 4),
+                Importance = Math.Min(70, 25 + candidate.Item.Value / 25),
+                State = ThreadState.Active,
+                OriginEventId = origin.Id
+            };
+            thread.ParticipantIds.Add(situation.VictimId);
+            thread.ParticipantIds.Add(situation.ThiefId);
+            thread.ParticipantIds.Add(situation.WitnessId);
+            thread.FactIds.Add(theft.Id);
+            thread.FactIds.Add(ownership.Id);
+            thread.SiteIds.Add(zone);
+            thread.OpenQuestions.Add("Where is " + world.Registry.NameOf(situation.VictimId) + "'s " + valuable + "?");
+            thread.OpenQuestions.Add("Did anyone see what happened?");
+
+            for (int i = 0; i < candidate.Causes.Count; i++)
+            {
+                thread.GenerationCauses.Add(candidate.Causes[i]);
+            }
+
             thread.Escalation.Add(new EscalationStep("victim_asks_around", 2, "The victim starts asking neighbours."));
             thread.Escalation.Add(new EscalationStep("thief_hides_it", 4, "The thief stops carrying it."));
             thread.Escalation.Add(new EscalationStep("witness_talks", 7, "The witness lets something slip."));

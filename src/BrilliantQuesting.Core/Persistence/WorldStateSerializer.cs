@@ -363,6 +363,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("sites", Ids(thread.SiteIds))
                     .Set("facts", Ids(thread.FactIds))
                     .Set("openQuestions", Strings(thread.OpenQuestions))
+                    .Set("generationCauses", Strings(thread.GenerationCauses))
                     .Set("escalation", steps)
                     .Set("completedSteps", Strings(thread.CompletedSteps)));
             }
@@ -632,6 +633,11 @@ namespace BrilliantQuesting.Persistence
                 foreach (JsonValue question in json.GetArray("openQuestions"))
                 {
                     thread.OpenQuestions.Add(question.StringValue);
+                }
+
+                foreach (JsonValue cause in json.GetArray("generationCauses"))
+                {
+                    thread.GenerationCauses.Add(cause.StringValue);
                 }
 
                 foreach (JsonValue step in json.GetArray("escalation"))

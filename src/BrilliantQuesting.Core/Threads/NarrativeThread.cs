@@ -34,6 +34,7 @@ namespace BrilliantQuesting.Threads
             SiteIds = new List<EntityId>();
             FactIds = new List<EntityId>();
             OpenQuestions = new List<string>();
+            GenerationCauses = new List<string>();
             Escalation = new List<EscalationStep>();
             CompletedSteps = new List<string>();
             State = ThreadState.Latent;
@@ -60,6 +61,12 @@ namespace BrilliantQuesting.Threads
         /// rather than the hidden truth - the log is a record of the investigation, not a spoiler.
         /// </summary>
         public List<string> OpenQuestions { get; }
+
+        /// <summary>
+        /// Inspector-only provenance for why generation selected this matter. These lines are not
+        /// player knowledge and must not be projected as journal questions.
+        /// </summary>
+        public List<string> GenerationCauses { get; }
 
         /// <summary>Scheduled deterioration. Milestones, not a countdown to failure.</summary>
         public List<EscalationStep> Escalation { get; }

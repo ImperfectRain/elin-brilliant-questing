@@ -122,7 +122,7 @@ No system is allowed to disappear from this table.
 | Action library | Playable | Complete-until-launch (coverage per §7, not a count) | BQ-023 … BQ-029 |
 | Threads & escalation | Playable | Hardened | BQ-013, BQ-052 |
 | Situation archetypes | Prototype | Complete-until-launch (7) | BQ-041 … BQ-047 |
-| Situation generation from world state | Absent | Playable | BQ-039, BQ-040 |
+| Situation generation from world state | Prototype | Playable | BQ-039, BQ-040 |
 | Drama projection | Prototype | Hardened | BQ-005 … BQ-010 |
 | Contextual interaction projection | Absent | Playable | BQ-134, BQ-137 |
 | Journal / Chronicle | Absent | Playable | BQ-033, BQ-034, BQ-138 |

@@ -404,6 +404,8 @@ namespace BrilliantQuesting.Plugin
             // the same answer.
             ReconcileAbsences();
             _lastReconciledZone = _vanilla.GetZoneOf(_vanilla.PlayerId);
+            RegisterLocalVanillaActors(_lastReconciledZone);
+            MaybeGenerateLocalSituation(_lastReconciledZone);
             GatherPrototypeParticipantsNearPlayer();
             ReportPlayerState();
             ReportProceduralParticipants();
@@ -559,6 +561,103 @@ namespace BrilliantQuesting.Plugin
             if (pc != null)
             {
                 player.VanillaCharaRef = pc.uid.ToString();
+            }
+        }
+
+        private void RegisterLocalVanillaActors(EntityId zoneId)
+        {
+            if (zoneId.IsNone || EClass._map?.charas == null)
+            {
+                return;
+            }
+
+            int registered = 0;
+            foreach (Chara chara in EClass._map.charas)
+            {
+                if (chara == null || chara.isDead || chara.IsPC)
+                {
+                    continue;
+                }
+
+                EntityId id = ElinBindings.MintCharaId(chara, _vanilla.PlayerId);
+                if (id.IsNone)
+                {
+                    continue;
+                }
+
+                _bindings.Bind(id, chara.uid);
+                NarrativeNpc npc = _world.Registry.GetNpc(id);
+                if (npc == null)
+                {
+                    npc = _world.Registry.Add(new NarrativeNpc(id, chara.Name)
+                    {
+                        Occupation = "local",
+                        HomeSiteId = zoneId
+                    });
+                    registered++;
+                }
+                else
+                {
+                    npc.Name = chara.Name;
+                    if (npc.HomeSiteId.IsNone)
+                    {
+                        npc.HomeSiteId = zoneId;
+                    }
+                }
+
+                npc.VanillaCharaRef = chara.uid.ToString();
+            }
+
+            if (registered > 0)
+            {
+                _log.LogInfo("Registered " + registered + " local vanilla actor(s) for situation generation.");
+            }
+        }
+
+        private void MaybeGenerateLocalSituation(EntityId zoneId)
+        {
+            if (zoneId.IsNone || _world.Threads.Count > 0)
+            {
+                return;
+            }
+
+            if (!_vanilla.Supports(VanillaCapability.ReadInventory)
+                || !_vanilla.Supports(VanillaCapability.TransferItems)
+                || !_vanilla.Supports(VanillaCapability.ReadSkills)
+                || !_vanilla.Supports(VanillaCapability.ReadAttributes))
+            {
+                _log.LogInfo("Local situation generation skipped: required vanilla reads/writes are unavailable.");
+                return;
+            }
+
+            try
+            {
+                SettlementSituationGenerator generator = new SettlementSituationGenerator();
+                SettlementSituationPlan plan = generator.Evaluate(_world, _vanilla, zoneId);
+                if (plan.Candidates.Count == 0)
+                {
+                    _log.LogInfo("Local situation generation found no eligible pressure: "
+                                 + string.Join("; ", plan.Profile.Features));
+                    return;
+                }
+
+                SituationCandidate candidate = plan.BestCandidate;
+                PettyTheftSituation situation = generator.TryGenerate(_world, _vanilla, zoneId, _vanilla.Now);
+                if (situation == null)
+                {
+                    _log.LogInfo("Local situation generation found pressure, but vanilla refused the founding item transfer.");
+                    return;
+                }
+
+                _log.LogInfo("Generated " + situation.Thread.ArchetypeId + " from local world state.");
+                for (int i = 0; i < candidate.Causes.Count; i++)
+                {
+                    _log.LogInfo("  cause: " + candidate.Causes[i]);
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.LogError("Local situation generation failed: " + ex);
             }
         }
 
