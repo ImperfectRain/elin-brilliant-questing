@@ -207,21 +207,21 @@ namespace BrilliantQuesting.Plugin
 
             // Reading the case notes changes nothing, so it is deliberately outside the scope
             // and stays clickable however many times the player wants it.
-            DramaChoice notes = new DramaChoice("BQ: Review case notes", "", "bq:notes", "", "")
+            DramaChoice notes = new DramaChoice("Review case notes", "", "bq:notes", "", "")
                 .SetOnClick(() => ShowCaseNotes(target));
             talk.AddChoice(notes);
 
-            DramaChoice journal = new DramaChoice("BQ: Journal", "", "bq:journal", "", "")
+            DramaChoice journal = new DramaChoice("Open Brilliant Questing journal", "", "bq:journal", "", "")
                 .SetOnClick(ShowJournal);
             talk.AddChoice(journal);
 
-            DramaChoice chronicle = new DramaChoice("BQ: Chronicle", "", "bq:chronicle", "", "")
+            DramaChoice chronicle = new DramaChoice("Review resolved matters", "", "bq:chronicle", "", "")
                 .SetOnClick(ShowChronicle);
             talk.AddChoice(chronicle);
 
             if (ExplainInDialogue)
             {
-                DramaChoice why = new DramaChoice("BQ: why? (debug)", "", "bq:why", "", "")
+                DramaChoice why = new DramaChoice("Why? (debug)", "", "bq:why", "", "")
                     .SetOnClick(() => Explain(target));
                 talk.AddChoice(why);
             }
@@ -335,7 +335,7 @@ namespace BrilliantQuesting.Plugin
                 return;
             }
 
-            DramaChoice news = new DramaChoice("BQ: What's been happening?", "", "bq:news", "", "")
+            DramaChoice news = new DramaChoice("What's been happening?", "", "bq:news", "", "")
                 .SetOnClick(() => TellTheNews(manager, speaker: target));
             talk.AddChoice(news);
         }
@@ -617,15 +617,7 @@ namespace BrilliantQuesting.Plugin
 
         private string ChoiceText(ActionIntentOption option, ActionContext context)
         {
-            string text = "BQ: " + option.Label;
-            CheckProfile profile = ProceduralCheckProfiles.ForAction(option.Action.Id);
-            if (profile == null)
-            {
-                return text;
-            }
-
-            string difficulty = _checks.DescribeDifficulty(new CheckRequest(profile, context.Actor, context.Target), true);
-            return string.IsNullOrEmpty(difficulty) ? text : text + " (" + difficulty + ")";
+            return option.Label;
         }
 
         /// <summary>
