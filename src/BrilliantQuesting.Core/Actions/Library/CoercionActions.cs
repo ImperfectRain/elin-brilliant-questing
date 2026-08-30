@@ -67,7 +67,8 @@ namespace BrilliantQuesting.Actions.Library
             // frightened, and they remember it - so the outcome is real either way; it just is
             // not the outcome the player was fishing for, and it should not claim to be.
             bool pressuredAdmission = !factId.IsNone && ActionSupport.IsSelfIncriminatingDisclosure(context, factId);
-            bool hasSomethingToGive = !factId.IsNone && (!pressuredAdmission || !context.World.Knowledge.Knows(context.Actor, factId));
+            bool actorAlreadyKnows = !factId.IsNone && context.World.Knowledge.Knows(context.Actor, factId);
+            bool hasSomethingToGive = !factId.IsNone && !actorAlreadyKnows && !pressuredAdmission;
             ActionOutcome outcome;
 
             switch (check.Outcome)
@@ -83,8 +84,8 @@ namespace BrilliantQuesting.Actions.Library
 
                     outcome = new ActionOutcome(Id, check, hasSomethingToGive
                         ? who + " folds completely and volunteers more than you asked for."
-                        : who + " folds completely, and swears blind they know nothing more.");
-                    Concede(context, factId, 0.9, outcome);
+                        : Acknowledgement(who, binding, factId, context, "folds completely"));
+                    RecordConcession(context, factId, 0.9, outcome, hasSomethingToGive);
                     outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.7, context.Zone, related: Related(factId), witnesses: seen, threadId: ThreadId(context)));
                     break;
 
@@ -99,8 +100,8 @@ namespace BrilliantQuesting.Actions.Library
 
                     outcome = new ActionOutcome(Id, check, hasSomethingToGive
                         ? who + " tells you what you want to know."
-                        : who + " backs down, but has nothing you did not already know.");
-                    Concede(context, factId, 0.7, outcome);
+                        : Acknowledgement(who, binding, factId, context, "backs down"));
+                    RecordConcession(context, factId, 0.7, outcome, hasSomethingToGive);
                     outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.6, context.Zone, related: Related(factId), witnesses: seen, threadId: ThreadId(context)));
                     break;
 
@@ -137,16 +138,33 @@ namespace BrilliantQuesting.Actions.Library
             outcome.Notes.Add("admitted under pressure: " + ActionSupport.Describe(context, factId));
         }
 
-        private static void Concede(ActionContext context, EntityId factId, double confidence, ActionOutcome outcome)
+        private static string Acknowledgement(string who, ActionBinding binding, EntityId factId, ActionContext context, string result)
+        {
+            if (!factId.IsNone)
+            {
+                return who + " " + result + " over " + binding.Describe(context) + ", but adds nothing new.";
+            }
+
+            return who + " " + result + ", but cannot give you anything specific.";
+        }
+
+        private static void RecordConcession(ActionContext context, EntityId factId, double confidence, ActionOutcome outcome, bool teach)
         {
             if (factId.IsNone)
             {
-                outcome.Notes.Add("they had nothing to give up");
+                outcome.Notes.Add("no specific fact was conceded");
                 return;
             }
 
-            context.World.Knowledge.Teach(context.Actor, factId, ActionSupport.DisclosureSource(context, factId), confidence, context.Now, false, context.Target);
-            outcome.Notes.Add("learned under duress: " + ActionSupport.Describe(context, factId));
+            if (teach)
+            {
+                context.World.Knowledge.Teach(context.Actor, factId, ActionSupport.DisclosureSource(context, factId), confidence, context.Now, false, context.Target);
+                outcome.Notes.Add("learned under duress: " + ActionSupport.Describe(context, factId));
+            }
+            else
+            {
+                outcome.Notes.Add("pressed under duress: " + ActionSupport.Describe(context, factId));
+            }
         }
     }
 

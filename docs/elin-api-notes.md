@@ -492,15 +492,14 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
   story-critical, and a type missing either flag - or no character at all - classifies `Unknown`.
   That proves the reflection and the failure direction, not the member names.
 
-- **How many choices the generic talk node will actually show.** The projector now adds three fixed
-  entries that are not situation actions - `BQ: Journal`, `BQ: Chronicle` since BQ-034, and
-  `BQ: What's been happening?` since BQ-036 - alongside the case-notes entry, the debug entry and
-  up to seven projected actions. `MaxChoices`
-  bounds the projected actions only, so the node can carry ten or more rows. Whether Elin's talk
-  list scrolls, clips or silently drops the tail at that count has not been read off a running
-  game. Being wrong costs visibility of the lowest-priority projected options, not correctness:
-  both readers write their full text to `BepInEx/LogOutput.log` regardless, and neither changes
-  any state.
+- **How many choices the generic talk node will actually show.** The projector adds a small number
+  of fixed non-mutating entries - currently case notes, town news when the speaker has any, and a
+  hidden-by-default debug explanation - alongside up to seven projected actions. Journal and
+  Chronicle move to the native Brilliant Questing journal tab when that patch is available, falling
+  back to dialogue/log entries only if native setup fails. `MaxChoices` bounds the projected
+  actions only, so the node can still carry several rows. Being wrong costs visibility of the
+  lowest-priority projected options, not correctness: diagnostic readers write their full text to
+  `BepInEx/LogOutput.log` regardless, and neither changes any state.
 
 - **How a character speaks a sentence the mod wrote.** BQ-035 delivers ambient remarks through
   `ElinBark`, which searches the live `Chara` type for a raw-text speech method (`SayRaw`, then

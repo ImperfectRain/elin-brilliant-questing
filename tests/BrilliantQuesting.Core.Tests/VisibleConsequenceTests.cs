@@ -108,7 +108,7 @@ namespace BrilliantQuesting.Tests
         /// have told you anything.
         /// </summary>
         [Fact]
-        public void ASuccessfulThreatAgainstSomeoneWithNothingToSayDoesNotClaimTheyTalked()
+        public void ASuccessfulThreatAgainstAKnownMatterStillNamesTheMatter()
         {
             TheftLaboratory lab = TheftLaboratory.Create();
 
@@ -121,7 +121,8 @@ namespace BrilliantQuesting.Tests
 
             if (outcome.Check.Outcome == CheckOutcome.Pass || outcome.Check.Outcome == CheckOutcome.CriticalPass)
             {
-                Assert.Contains("nothing", outcome.Narration);
+                Assert.Contains("missing ", outcome.Narration);
+                Assert.DoesNotContain("nothing you did not already know", outcome.Narration);
                 Assert.DoesNotContain("tells you what you want to know", outcome.Narration);
             }
 
