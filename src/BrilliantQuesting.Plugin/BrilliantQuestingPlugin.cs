@@ -256,7 +256,8 @@ namespace BrilliantQuesting.Plugin
                     return;
                 }
 
-                _log.LogInfo("Gossip: " + round.Tells + " retelling(s) over " + round.DaysRun
+                _log.LogInfo("Gossip: " + round.Tells + " retelling(s) and " + round.Routed
+                             + " guild report(s) over " + round.DaysRun
                              + " day(s)" + (round.DaysOwed > round.DaysRun ? " (of " + round.DaysOwed + " owed)" : "")
                              + "; " + round.Faded + " belief(s) faded.");
 

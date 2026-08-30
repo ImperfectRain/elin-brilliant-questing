@@ -221,4 +221,23 @@ Anything free carries gossip, or the investigation verbs are decoration.
 Reason: this is the one route by which the player gains knowledge without choosing to, so it has to
 be the most conservative one in the mod, not the most convenient.
 
+## D024 — A guild is a channel and a reading, and access gates the reading
+
+Guild membership does two things and no third. It **carries** claims between members wherever they
+are standing - a route the street does not have - and it **reads** what it carries: the same
+robbery is a bounty to the Fighters and stock to the Thieves. What a network carries is its
+interest in the predicate ontology, so one event reaches four guilds differently, or not at all,
+without anything having been written per scenario.
+
+Access decides who is told what a matter means, never who may hear that it happened. A non-member
+gets the claim, hedged exactly as a member gets it, and is left believing it just as firmly; what
+membership buys is the contact who adds the reading and brings it up first. Routing itself never
+touches the player in either direction - a card is not a subscription, and a guild reaches them
+through somebody who says something.
+
+Reason: a network that withheld facts would close routes on a build rather than open them, which is
+D012's line and the availability model's. Framing the interest as a table over predicates rather
+than over situations is what keeps four guilds from becoming four quest pools; keeping the routing
+inside the day the gossip scheduler already governs is what stops a reload from running it twice.
+
 Add a new entry only when the decision is both load-bearing and durable.

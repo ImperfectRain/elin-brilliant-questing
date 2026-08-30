@@ -24,10 +24,17 @@ namespace BrilliantQuesting.Knowledge
         /// <summary>Retellings that named the wrong person.</summary>
         public int Garbled { get; set; }
 
+        /// <summary>
+        /// Retellings that travelled through a guild rather than through a doorway. Counted apart
+        /// from <see cref="Tells"/> because they are a different claim about the world: word that
+        /// crossed a network reached somebody who was never standing anywhere near it.
+        /// </summary>
+        public int Routed { get; set; }
+
         /// <summary>One line per fact that actually moved. Bounded; this is a log, not a record.</summary>
         public List<string> Notes { get; } = new List<string>();
 
-        public bool DidAnything => Tells > 0 || Faded > 0;
+        public bool DidAnything => Tells > 0 || Routed > 0 || Faded > 0;
     }
 
     /// <summary>
@@ -61,6 +68,10 @@ namespace BrilliantQuesting.Knowledge
     /// Proof never travels. <see cref="RumorSystem.Tell"/> only passes evidence when a speaker
     /// deliberately shows it, and nothing here ever asks it to - which is what keeps a rumour
     /// widely believed and still useless in front of a guard.
+    ///
+    /// A day here is every way word moves, not only the ones that need a doorway: guild routing
+    /// (<see cref="GuildRouting"/>) runs inside the same round, because it needs the same day
+    /// counter and the same guarantee that a reload cannot make it happen twice.
     /// </summary>
     public sealed class RumorCirculation
     {
@@ -69,6 +80,7 @@ namespace BrilliantQuesting.Knowledge
         public RumorCirculation(RumorSystem rumors)
         {
             _rumors = rumors ?? throw new ArgumentNullException(nameof(rumors));
+            Networks = new GuildRouting(_rumors);
         }
 
         /// <summary>
@@ -76,6 +88,15 @@ namespace BrilliantQuesting.Knowledge
         /// circulate a town that never misremembers anything.
         /// </summary>
         public RumorDistortion Distortion { get; set; } = new RumorDistortion();
+
+        /// <summary>
+        /// The other way word moves: guild membership rather than standing in the same room.
+        ///
+        /// Runs inside the same day, on the same schedule, for the same reason the day counter
+        /// lives on the world - a second scheduler would be a second thing a reload could make run
+        /// twice. Null to circulate a world in which nobody's guild carries anything.
+        /// </summary>
+        public GuildRouting Networks { get; set; }
 
         /// <summary>Facts considered in one day. The rest of the world's gossip waits its turn.</summary>
         public int MaxFactsPerDay { get; set; } = 3;
@@ -151,6 +172,13 @@ namespace BrilliantQuesting.Knowledge
         private void RunOneDay(NarrativeWorldState world, IVanillaState vanilla, GameTime now, RumorRound round)
         {
             Fade(world, vanilla, now, round);
+
+            // Networks first: what a guild carries reaches its members wherever they are, and a
+            // member who has just been told something is somebody the street can hear it from.
+            if (Networks != null)
+            {
+                round.Routed += Networks.Route(world, vanilla, now, round);
+            }
 
             List<EntityId> facts = SelectFacts(world, vanilla);
             for (int i = 0; i < facts.Count; i++)

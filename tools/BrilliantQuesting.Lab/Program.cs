@@ -49,6 +49,13 @@ namespace BrilliantQuesting.Lab
                 return 0;
             }
 
+            if (args.Length > 0 && args[0] == "--guilds")
+            {
+                ulong guildSeed = args.Length > 1 && ulong.TryParse(args[1], out ulong routed) ? routed : DefaultSeed;
+                GuildRun.Run(guildSeed);
+                return 0;
+            }
+
             if (args.Length > 0 && args[0] == "--questline")
             {
                 ulong questSeed = args.Length > 1 && ulong.TryParse(args[1], out ulong given) ? given : DefaultSeed;

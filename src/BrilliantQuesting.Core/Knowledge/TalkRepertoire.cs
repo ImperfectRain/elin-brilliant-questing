@@ -15,13 +15,15 @@ namespace BrilliantQuesting.Knowledge
     /// </summary>
     public sealed class SpokenRemark
     {
-        internal SpokenRemark(EntityId speaker, string speakerName, EntityId factId, string line, double salience)
+        internal SpokenRemark(EntityId speaker, string speakerName, EntityId factId, string line, double salience, GuildFraming framing = GuildFraming.None, GuildId network = GuildId.None)
         {
             Speaker = speaker;
             SpeakerName = speakerName;
             FactId = factId;
             Line = line;
             Salience = salience;
+            Framing = framing;
+            Network = network;
         }
 
         /// <summary>Who says it. Never the listener, and never the person the claim is about.</summary>
@@ -41,6 +43,16 @@ namespace BrilliantQuesting.Knowledge
         /// the ordering, not something the player is ever shown a number for.
         /// </summary>
         internal double Salience { get; }
+
+        /// <summary>
+        /// What the speaker's guild makes of it, when speaker and listener are both inside a
+        /// network that carries it. <see cref="GuildFraming.None"/> for everything said in the
+        /// ordinary way, which is most of what is ever said.
+        /// </summary>
+        public GuildFraming Framing { get; }
+
+        /// <summary>The network the reading came from, or <see cref="GuildId.None"/>.</summary>
+        public GuildId Network { get; }
     }
 
     /// <summary>
@@ -92,6 +104,12 @@ namespace BrilliantQuesting.Knowledge
     /// everything behind it. It is also the real floor under <see cref="TalkRules.SpeakerFloor"/>:
     /// a retelling that would arrive below the gossip floor is not said at all.
     ///
+    /// **A guild changes the reading, never the claim.** When speaker and listener are both
+    /// inside a network that carries the matter, the line ends with what that network makes of it
+    /// and the claim comes up sooner. Nothing is withheld from anybody else: a non-member hears
+    /// the same thing happened, hedged the same way, without the reading. Membership buys a
+    /// contact who tells you what it means (`LW §3.4`), not a fact the world keeps from outsiders.
+    ///
     /// **Nothing is learned by being read.** Building the repertoire touches nothing. Whoever
     /// renders a remark decides whether it reached the listener, and only then may it teach them
     /// anything - a belief that arrived because a line failed to render is the omniscient journal
@@ -127,13 +145,19 @@ namespace BrilliantQuesting.Knowledge
                 return remarks;
             }
 
+            // The networks these two share, asked once: membership does not change between two
+            // sentences, and the ambient route asks this of everybody standing in the zone every
+            // time the player acts.
+            List<GuildId> networks = GuildNetworks.Shared(world, vanilla, speaker, listener);
+
             List<Candidate> candidates = new List<Candidate>();
             foreach (KnowledgeRecord belief in world.Knowledge.BeliefsOf(speaker))
             {
                 Fact fact = world.Knowledge.GetFact(belief.FactId);
                 if (IsWorthMentioning(world, speaker, listener, fact, belief, rules))
                 {
-                    candidates.Add(new Candidate(fact, belief, Score(world, fact, belief)));
+                    GuildFraming framing = GuildNetworks.FirstReading(world, networks, fact, out GuildId network);
+                    candidates.Add(new Candidate(fact, belief, Score(world, fact, belief, framing), framing, network));
                 }
             }
 
@@ -151,8 +175,10 @@ namespace BrilliantQuesting.Knowledge
                     speaker,
                     speakerName,
                     candidates[i].Fact.Id,
-                    Words(world, candidates[i].Fact, candidates[i].Belief),
-                    candidates[i].Salience));
+                    Words(world, candidates[i].Fact, candidates[i].Belief, candidates[i].Framing),
+                    candidates[i].Salience,
+                    candidates[i].Framing,
+                    candidates[i].Network));
             }
 
             return remarks;
@@ -161,11 +187,13 @@ namespace BrilliantQuesting.Knowledge
         /// <summary>One thing the speaker could bring up, before anybody has put it into words.</summary>
         private readonly struct Candidate
         {
-            internal Candidate(Fact fact, KnowledgeRecord belief, double salience)
+            internal Candidate(Fact fact, KnowledgeRecord belief, double salience, GuildFraming framing, GuildId network)
             {
                 Fact = fact;
                 Belief = belief;
                 Salience = salience;
+                Framing = framing;
+                Network = network;
             }
 
             internal Fact Fact { get; }
@@ -173,6 +201,11 @@ namespace BrilliantQuesting.Knowledge
             internal KnowledgeRecord Belief { get; }
 
             internal double Salience { get; }
+
+            /// <summary>What a network both of them are inside makes of it, when there is one.</summary>
+            internal GuildFraming Framing { get; }
+
+            internal GuildId Network { get; }
 
             /// <summary>
             /// Most news first, ties broken on fact id so the same world always produces the same
@@ -236,12 +269,19 @@ namespace BrilliantQuesting.Knowledge
 
         /// <summary>
         /// What people bring up first: how sure they are, whether it is part of something still
-        /// going on, and how far it is from the sort of thing said in the open.
+        /// going on, how far it is from the sort of thing said in the open, and whether it is the
+        /// listener's business as well as theirs.
+        ///
+        /// That last term is the whole of what a guild changes about attention (`PM §9`): a
+        /// contact leads with the thing their network carries rather than with whatever the town
+        /// is loudest about. It reorders and never filters - a member still hears everything a
+        /// stranger would, in a different order.
         /// </summary>
-        private static double Score(NarrativeWorldState world, Fact fact, KnowledgeRecord belief)
+        private static double Score(NarrativeWorldState world, Fact fact, KnowledgeRecord belief, GuildFraming framing)
         {
             return belief.Confidence
                    + (BelongsToLiveThread(world, fact.Id) ? 1.0 : 0.0)
+                   + (framing != GuildFraming.None ? 0.5 : 0.0)
                    - fact.Secrecy / 100.0;
         }
 
@@ -265,21 +305,30 @@ namespace BrilliantQuesting.Knowledge
         /// say when they are passing on something they only half have. That wording is the
         /// listener's only handle on how good the lead is, which is the point of `LW §3.1`.
         /// </summary>
-        private static string Words(NarrativeWorldState world, Fact fact, KnowledgeRecord belief)
+        private static string Words(NarrativeWorldState world, Fact fact, KnowledgeRecord belief, GuildFraming framing)
         {
             string claim = FactPhrasing.Claim(world.Registry, fact);
+            string said;
 
             if (belief.Confidence >= 0.7)
             {
-                return "Everyone knows it by now: " + claim + ".";
+                said = "Everyone knows it by now: " + claim + ".";
             }
-
-            if (belief.Confidence >= 0.5)
+            else if (belief.Confidence >= 0.5)
             {
-                return "Word going round is " + claim + ".";
+                said = "Word going round is " + claim + ".";
+            }
+            else
+            {
+                said = "Somebody was saying " + claim + ". Make of that what you like.";
             }
 
-            return "Somebody was saying " + claim + ". Make of that what you like.";
+            // The network's reading is added to the claim rather than replacing it. A member and
+            // a stranger are told the same thing happened and hedged the same way; what belonging
+            // buys is being told what it means, which is `LW §3.4` and not a second version of
+            // events.
+            string reading = GuildNetworks.Reading(framing);
+            return reading == null ? said : said + " " + reading;
         }
 
         private static bool BelongsToLiveThread(NarrativeWorldState world, EntityId factId)
