@@ -227,11 +227,11 @@ namespace BrilliantQuesting.Plugin
             }
 
             ResolutionScope scope = new ResolutionScope(target);
-            List<ActionOffer> offered = OfferPresentation.TakeForDisplay(available, MaxChoices);
+            List<ActionIntentOption> offered = ContextualActionProjection.Project(available, context, MaxChoices);
             for (int i = 0; i < offered.Count; i++)
             {
                 NarrativeAction actionToRun = offered[i].Action;
-                string text = SafeChoiceText(actionToRun, context);
+                string text = SafeChoiceText(offered[i], context);
                 DramaChoice choice = new DramaChoice(text, "", "bq:" + actionToRun.Id, "", "")
                     .SetOnClick(() => Perform(manager, scope, target, actionToRun));
                 talk.AddChoice(choice);
@@ -251,16 +251,16 @@ namespace BrilliantQuesting.Plugin
             }
         }
 
-        private string SafeChoiceText(NarrativeAction action, ActionContext context)
+        private string SafeChoiceText(ActionIntentOption option, ActionContext context)
         {
             try
             {
-                return ChoiceText(action, context);
+                return ChoiceText(option, context);
             }
             catch (Exception ex)
             {
-                _log.LogWarning("Could not describe dialogue option '" + action.Id + "': " + ex.Message);
-                return action.Label;
+                _log.LogWarning("Could not describe dialogue option '" + option.Action.Id + "': " + ex.Message);
+                return option.Action.Label;
             }
         }
 
@@ -615,10 +615,10 @@ namespace BrilliantQuesting.Plugin
             return EntityId.None;
         }
 
-        private string ChoiceText(NarrativeAction action, ActionContext context)
+        private string ChoiceText(ActionIntentOption option, ActionContext context)
         {
-            string text = "BQ: " + action.Label;
-            CheckProfile profile = ProceduralCheckProfiles.ForAction(action.Id);
+            string text = "BQ: " + option.Label;
+            CheckProfile profile = ProceduralCheckProfiles.ForAction(option.Action.Id);
             if (profile == null)
             {
                 return text;
