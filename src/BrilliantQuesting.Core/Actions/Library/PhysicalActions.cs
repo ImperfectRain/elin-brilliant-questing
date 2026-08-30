@@ -384,6 +384,110 @@ namespace BrilliantQuesting.Actions.Library
         public EscortAction() : base("escort", "Escort them", ProceduralCheckProfiles.Escort, WorldEventType.Helped)
         {
         }
+
+        public override Availability GetAvailability(ActionContext context)
+        {
+            Availability baseAvailability = base.GetAvailability(context);
+            if (!baseAvailability.IsAvailable)
+            {
+                return baseAvailability;
+            }
+
+            return FindEscortDemand(context, out ProductionSpec spec) == null
+                ? baseAvailability
+                : Availability.Available("escorts " + context.NameOf(context.Target) + " so " + spec.Describe() + " reaches town");
+        }
+
+        public override ActionOutcome Perform(ActionContext context)
+        {
+            Fact demand = FindEscortDemand(context, out ProductionSpec spec);
+            if (demand == null)
+            {
+                return base.Perform(context);
+            }
+
+            if (!ActionSupport.Present(context, context.Target))
+            {
+                return new ActionOutcome(Id, null, "There is nobody here for that.");
+            }
+
+            CheckResult check = context.Checks.Resolve(new CheckRequest(ProceduralCheckProfiles.Escort, context.Actor, context.Target), context.Rng);
+            if (!check.Outcome.IsSuccess())
+            {
+                ActionOutcome failed = new ActionOutcome(Id, check, context.NameOf(context.Target) + " turns back before the supplies arrive.");
+                failed.Notes.Add("the demand still stands");
+                if (check.Outcome == CheckOutcome.CriticalFail)
+                {
+                    failed.Events.Add(context.World.Record(
+                        WorldEventType.Harmed,
+                        context.Actor,
+                        context.Actor,
+                        context.Now,
+                        0.3,
+                        context.Zone,
+                        related: new[] { demand.Id },
+                        threadId: context.Thread?.Id ?? EntityId.None));
+                }
+
+                return failed;
+            }
+
+            demand.Truth = TruthState.Superseded;
+            ActionOutcome outcome = new ActionOutcome(Id, check,
+                "You see " + context.NameOf(context.Target) + " through, and " + spec.Describe() + " reaches town.");
+            outcome.Events.Add(context.World.Record(
+                WorldEventType.Helped,
+                context.Actor,
+                demand.Subject,
+                context.Now,
+                check.Outcome == CheckOutcome.CriticalPass ? 0.85 : 0.65,
+                context.Zone,
+                related: new[] { demand.Id },
+                witnesses: ActionSupport.Bystanders(context, true),
+                threadId: context.Thread?.Id ?? EntityId.None));
+            outcome.Notes.Add(context.NameOf(demand.Subject) + " is no longer short of " + spec.Describe());
+
+            if (context.Thread != null && !ProductionDemand.AnyOpenIn(context.Thread, context.World.Knowledge))
+            {
+                ActionSupport.Resolve(context, outcome, "caravan_escorted", 0.65);
+            }
+
+            return outcome;
+        }
+
+        private static Fact FindEscortDemand(ActionContext context, out ProductionSpec spec)
+        {
+            spec = null;
+            if (context.Thread == null || !ActionBinding.HasRequiredSemanticSlots("escort", context))
+            {
+                return null;
+            }
+
+            ActionBinding binding = ActionBinding.Infer(context);
+            if (binding.HasProposition)
+            {
+                Fact named = context.World.Knowledge.GetFact(binding.PropositionFact);
+                if (named != null
+                    && named.Predicate == FactPredicates.Needs
+                    && named.Truth == TruthState.True)
+                {
+                    spec = ProductionSpec.Parse(named.Value);
+                    return spec == null ? null : named;
+                }
+            }
+
+            for (int i = 0; i < context.Thread.FactIds.Count; i++)
+            {
+                Fact fact = context.World.Knowledge.GetFact(context.Thread.FactIds[i]);
+                if (fact != null && fact.Predicate == FactPredicates.Needs && fact.Truth == TruthState.True)
+                {
+                    spec = ProductionSpec.Parse(fact.Value);
+                    return spec == null ? null : fact;
+                }
+            }
+
+            return null;
+        }
     }
 
     public sealed class CaptureAction : PhysicalPersonAction

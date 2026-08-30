@@ -643,6 +643,11 @@ becomes a quest entry.
 Economy, demand, production, investment, caravans.
 - **Depends** BQ-023, BQ-026, BQ-050.
 - **Done when** a town shortage can be resolved by producing, buying, investing, escorting or ignoring, with different world outcomes.
+- **Current implementation** BQ-041 uses the same `needs` facts established by BQ-026 for
+  active solutions. Producing or home supplies cover the symptom; buying spends real money;
+  investment funds and supersedes the damaged supplier cause; escorting a bound caravan resolves
+  delivery without creating goods; ignoring the shortage lets the archetype escalation record
+  harm and civic deterioration while demands remain unmet.
 - **Sources** PM §7, §73; LW §9.1.
 
 #### BQ-042 — Archetype: fugitive / sanctuary

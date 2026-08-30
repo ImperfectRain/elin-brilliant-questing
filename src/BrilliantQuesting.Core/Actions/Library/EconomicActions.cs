@@ -1,9 +1,11 @@
 using System;
 using System.Globalization;
+using System.Collections.Generic;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions.Library
 {
@@ -140,6 +142,268 @@ namespace BrilliantQuesting.Actions.Library
 
             outcome.Notes.Add("paid " + amount + " orens");
             return outcome;
+        }
+    }
+
+    /// <summary>
+    /// Buying goods that answer an open demand.
+    ///
+    /// This is not a shop simulator. Elin owns shops, prices and item generation; this verb only
+    /// records the narrative act of spending real money to procure the kind of goods a standing
+    /// shortage names. If the build cannot move money, or the player cannot cover the price, the
+    /// route is impossible rather than a long shot.
+    /// </summary>
+    public sealed class BuySuppliesAction : NarrativeAction
+    {
+        public BuySuppliesAction() : base("buy_supplies", ActionFamily.Economic, "Buy supplies")
+        {
+        }
+
+        public override Availability GetAvailability(ActionContext context)
+        {
+            if (!context.Vanilla.Supports(VanillaCapability.SpendMoney))
+            {
+                return Availability.Impossible("money transfers are unavailable on this build");
+            }
+
+            if (!ActionSupport.Present(context, context.Target))
+            {
+                return Availability.NotRelevant("nobody here is short of anything");
+            }
+
+            Fact demand = ProductionDemand.Find(context, out ProductionSpec spec);
+            if (demand == null)
+            {
+                return Availability.NotRelevant("no open shortage to buy for");
+            }
+
+            int cost = ProcurementCost(spec);
+            return context.Vanilla.GetMoney(context.Actor) < cost
+                ? Availability.Impossible("you cannot spend " + cost + " orens you do not have")
+                : Availability.Available("costs " + cost + " orens to procure " + spec.Describe());
+        }
+
+        public override ActionOutcome Perform(ActionContext context)
+        {
+            Fact demand = ProductionDemand.Find(context, out ProductionSpec spec);
+            if (demand == null)
+            {
+                ActionOutcome refused = new ActionOutcome(Id, null, "There is no open shortage to buy for.");
+                refused.Notes.Add("no needs fact for " + context.NameOf(context.Target));
+                return refused;
+            }
+
+            int cost = ProcurementCost(spec);
+            if (!context.Vanilla.TrySpendMoney(context.Actor, EntityId.None, cost))
+            {
+                ActionOutcome broke = new ActionOutcome(Id, null, "You cannot cover the purchase.");
+                broke.Notes.Add("payment failed for " + cost + " orens");
+                return broke;
+            }
+
+            demand.Truth = TruthState.Superseded;
+
+            ActionOutcome outcome = new ActionOutcome(Id, null,
+                "You spend " + cost + " orens and buy " + spec.Describe() + " for " + context.NameOf(context.Target) + ".");
+            outcome.Events.Add(context.World.Record(
+                WorldEventType.Helped,
+                context.Actor,
+                context.Target,
+                context.Now,
+                0.65,
+                context.Zone,
+                related: new[] { demand.Id },
+                witnesses: ActionSupport.Bystanders(context, true),
+                threadId: context.Thread?.Id ?? EntityId.None));
+            outcome.Notes.Add(context.NameOf(context.Target) + " is no longer short of " + spec.Describe());
+
+            if (context.Thread != null && !ProductionDemand.AnyOpenIn(context.Thread, context.World.Knowledge))
+            {
+                ActionSupport.Resolve(context, outcome, "supplies_bought", 0.65);
+            }
+
+            return outcome;
+        }
+
+        private static int ProcurementCost(ProductionSpec spec)
+        {
+            return 80 + spec.MinimumQuality * 5 + spec.MinimumValue / 2;
+        }
+    }
+
+    /// <summary>
+    /// Put money into the supplier or tool whose failure is causing a shortage.
+    ///
+    /// Investment answers the cause rather than the symptom, like repair, but with coin instead
+    /// of craft skill. It pays the owner of the failing thing and closes only demands that name
+    /// that thing as their cause.
+    /// </summary>
+    public sealed class InvestInSupplierAction : NarrativeAction
+    {
+        public InvestInSupplierAction() : base("invest_in_supplier", ActionFamily.Economic, "Invest in the supplier")
+        {
+        }
+
+        public override Availability GetAvailability(ActionContext context)
+        {
+            if (!context.Vanilla.Supports(VanillaCapability.SpendMoney))
+            {
+                return Availability.Impossible("money transfers are unavailable on this build");
+            }
+
+            Fact damage = FindSupplierFailure(context, out EntityId cause, out EntityId owner);
+            if (damage == null)
+            {
+                return Availability.NotRelevant("no supplier failure is causing this shortage");
+            }
+
+            if (!ActionSupport.Present(context, owner))
+            {
+                return Availability.NotRelevant("nobody here can take the investment");
+            }
+
+            int cost = InvestmentCost(context, cause);
+            return context.Vanilla.GetMoney(context.Actor) < cost
+                ? Availability.Impossible("you cannot invest " + cost + " orens you do not have")
+                : Availability.Available("invests " + cost + " orens in " + context.NameOf(owner));
+        }
+
+        public override ActionOutcome Perform(ActionContext context)
+        {
+            Fact damage = FindSupplierFailure(context, out EntityId cause, out EntityId owner);
+            if (damage == null)
+            {
+                ActionOutcome refused = new ActionOutcome(Id, null, "There is no supplier failure to invest in.");
+                refused.Notes.Add("no damaged cause with open dependent demand");
+                return refused;
+            }
+
+            int cost = InvestmentCost(context, cause);
+            if (!context.Vanilla.TrySpendMoney(context.Actor, owner, cost))
+            {
+                ActionOutcome broke = new ActionOutcome(Id, null, "The investment never leaves your purse.");
+                broke.Notes.Add("payment failed for " + cost + " orens");
+                return broke;
+            }
+
+            damage.Truth = TruthState.Superseded;
+            ActionOutcome outcome = new ActionOutcome(Id, null,
+                "You put " + cost + " orens into " + context.NameOf(owner) + "'s failure, and the supply starts again.");
+            outcome.Events.Add(context.World.Record(
+                WorldEventType.Helped,
+                context.Actor,
+                owner,
+                context.Now,
+                0.75,
+                context.Zone,
+                related: new[] { damage.Id },
+                witnesses: ActionSupport.Bystanders(context, true),
+                evidence: cause.IsNone ? null : new[] { cause },
+                threadId: context.Thread?.Id ?? EntityId.None));
+
+            int closed = ActionSupport.CloseDemandsOn(context, cause, outcome);
+            outcome.Notes.Add(closed + " shortage(s) ended by funding the cause");
+
+            if (context.Thread != null && !ProductionDemand.AnyOpenIn(context.Thread, context.World.Knowledge))
+            {
+                ActionSupport.Resolve(context, outcome, "supplier_funded", 0.75);
+            }
+
+            return outcome;
+        }
+
+        private static Fact FindSupplierFailure(ActionContext context, out EntityId cause, out EntityId owner)
+        {
+            cause = EntityId.None;
+            owner = EntityId.None;
+            if (context.Thread == null)
+            {
+                return null;
+            }
+
+            HashSet<EntityId> openCauses = new HashSet<EntityId>();
+            for (int i = 0; i < context.Thread.FactIds.Count; i++)
+            {
+                Fact demand = context.World.Knowledge.GetFact(context.Thread.FactIds[i]);
+                if (demand != null
+                    && demand.Predicate == FactPredicates.Needs
+                    && demand.Truth == TruthState.True
+                    && !demand.Object.IsNone)
+                {
+                    openCauses.Add(demand.Object);
+                }
+            }
+
+            for (int i = 0; i < context.Thread.FactIds.Count; i++)
+            {
+                Fact damage = context.World.Knowledge.GetFact(context.Thread.FactIds[i]);
+                if (damage == null
+                    || damage.Predicate != FactPredicates.Damaged
+                    || damage.Truth != TruthState.True
+                    || !openCauses.Contains(damage.Subject))
+                {
+                    continue;
+                }
+
+                EntityId foundOwner = Ownership.OwnerOf(context, damage.Subject);
+                if (foundOwner.IsNone)
+                {
+                    foundOwner = context.Target;
+                }
+
+                cause = damage.Subject;
+                owner = foundOwner;
+                return damage;
+            }
+
+            return null;
+        }
+
+        private static int InvestmentCost(ActionContext context, EntityId cause)
+        {
+            ItemDescriptor item = FindItem(context, cause);
+            return 300 + (item == null ? 0 : item.Value / 3);
+        }
+
+        private static ItemDescriptor FindItem(ActionContext context, EntityId itemId)
+        {
+            if (itemId.IsNone)
+            {
+                return null;
+            }
+
+            foreach (EntityId holder in context.Thread.ParticipantIds)
+            {
+                ItemDescriptor held = Find(context.Vanilla.GetInventory(holder), itemId);
+                if (held != null)
+                {
+                    return held;
+                }
+            }
+
+            for (int i = 0; i < context.Thread.SiteIds.Count; i++)
+            {
+                ItemDescriptor placed = Find(context.Vanilla.GetInventory(context.Thread.SiteIds[i]), itemId);
+                if (placed != null)
+                {
+                    return placed;
+                }
+            }
+
+            return Find(context.Vanilla.GetInventory(context.Zone), itemId);
+        }
+
+        private static ItemDescriptor Find(IReadOnlyList<ItemDescriptor> inventory, EntityId itemId)
+        {
+            for (int i = 0; i < inventory.Count; i++)
+            {
+                if (inventory[i] != null && inventory[i].Id == itemId)
+                {
+                    return inventory[i];
+                }
+            }
+
+            return null;
         }
     }
 }

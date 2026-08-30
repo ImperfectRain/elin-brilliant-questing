@@ -3,7 +3,7 @@ namespace BrilliantQuesting.Actions.Library
     /// <summary>
     /// The verb set the headless laboratories run on.
     ///
-    /// Fifty-seven verbs, spanning all eight solution families. The target was roughly forty - but
+    /// Fifty-nine verbs, spanning all eight solution families. The target was roughly forty - but
     /// only once each verb has proven it can carry a situation on its own, since a verb that
     /// cannot be the whole answer to some problem is not pulling its weight.
     /// </summary>
@@ -19,6 +19,8 @@ namespace BrilliantQuesting.Actions.Library
                 .Register(new IntimidateAction())
                 .Register(new BribeAction())
                 .Register(new PayDebtAction())
+                .Register(new BuySuppliesAction())
+                .Register(new InvestInSupplierAction())
                 .Register(new SearchForEvidenceAction())
                 .Register(new InspectAction())
                 .Register(new ExamineCorpseAction())

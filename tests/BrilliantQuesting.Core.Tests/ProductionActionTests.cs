@@ -39,6 +39,17 @@ namespace BrilliantQuesting.Tests
             }
         }
 
+        [Fact]
+        public void ShortageEconomicVerbsAreRegisteredWithoutChecks()
+        {
+            ActionRegistry registry = StandardActions.CreateRegistry();
+
+            Assert.Equal(ActionFamily.Economic, registry.Get("buy_supplies").Family);
+            Assert.Equal(ActionFamily.Economic, registry.Get("invest_in_supplier").Family);
+            Assert.Null(ProceduralCheckProfiles.ForAction("buy_supplies"));
+            Assert.Null(ProceduralCheckProfiles.ForAction("invest_in_supplier"));
+        }
+
         // -- the threshold ------------------------------------------------------------------
 
         /// <summary>
@@ -187,6 +198,113 @@ namespace BrilliantQuesting.Tests
             Assert.Equal("need_met", lab.Situation.Thread.Resolution);
         }
 
+        [Fact]
+        public void BuyingSuppliesSpendsRealMoneyAndCoversOnlyThatShortage()
+        {
+            ShortageLab lab = ShortageLab.Create();
+            int before = lab.Vanilla.GetMoney(lab.Player);
+
+            ActionOutcome outcome = lab.Run("buy_supplies", lab.Village, lab.Reeve);
+
+            Assert.Null(outcome.Check);
+            Assert.True(lab.Vanilla.GetMoney(lab.Player) < before);
+            Assert.Equal(TruthState.Superseded, lab.Fact(lab.Situation.BreadDemandId).Truth);
+            Assert.Equal(TruthState.True, lab.Fact(lab.Situation.RemedyDemandId).Truth);
+            Assert.Equal(TruthState.True, lab.Fact(lab.Situation.WheelDamageId).Truth);
+            Assert.Equal(ThreadState.Active, lab.Situation.Thread.State);
+            Assert.Contains(outcome.Events, e => e.Type == WorldEventType.Helped && e.Target == lab.Reeve);
+        }
+
+        [Fact]
+        public void BuyingSuppliesIsBlockedByMoneyYouDoNotHave()
+        {
+            ShortageLab lab = ShortageLab.Create();
+            lab.SetPlayerMoney(20);
+
+            Availability availability = lab.Can("buy_supplies", lab.Village, lab.Reeve);
+            ActionOutcome outcome = lab.Run("buy_supplies", lab.Village, lab.Reeve);
+
+            Assert.False(availability.IsAvailable);
+            Assert.Contains("orens you do not have", availability.Reason);
+            Assert.Equal(20, lab.Vanilla.GetMoney(lab.Player));
+            Assert.Equal(TruthState.True, lab.Fact(lab.Situation.BreadDemandId).Truth);
+            Assert.DoesNotContain(outcome.Events, e => e.Type == WorldEventType.Helped);
+        }
+
+        [Fact]
+        public void InvestingInTheSupplierFundsTheCauseRatherThanCoveringTheSymptom()
+        {
+            ShortageLab lab = ShortageLab.Create();
+            int playerBefore = lab.Vanilla.GetMoney(lab.Player);
+            int millerBefore = lab.Vanilla.GetMoney(lab.Miller);
+
+            ActionOutcome outcome = lab.Run("invest_in_supplier", lab.Mill, lab.Miller);
+
+            Assert.Null(outcome.Check);
+            Assert.True(lab.Vanilla.GetMoney(lab.Player) < playerBefore);
+            Assert.True(lab.Vanilla.GetMoney(lab.Miller) > millerBefore);
+            Assert.Equal(TruthState.Superseded, lab.Fact(lab.Situation.WheelDamageId).Truth);
+            Assert.Equal(TruthState.Superseded, lab.Fact(lab.Situation.BreadDemandId).Truth);
+            Assert.Equal(TruthState.True, lab.Fact(lab.Situation.RemedyDemandId).Truth);
+            Assert.Equal(ThreadState.Active, lab.Situation.Thread.State);
+            Assert.Contains(outcome.Events, e => e.Type == WorldEventType.Helped && e.Target == lab.Miller);
+        }
+
+        [Fact]
+        public void SupplierInvestmentDisappearsOnceNoOpenShortageDependsOnTheFailure()
+        {
+            ShortageLab lab = ShortageLab.Create();
+
+            lab.Run("buy_supplies", lab.Village, lab.Reeve);
+            Availability availability = lab.Can("invest_in_supplier", lab.Mill, lab.Miller);
+
+            Assert.False(availability.IsAvailable);
+            Assert.Contains("no supplier failure", availability.Reason);
+            Assert.Equal(TruthState.True, lab.Fact(lab.Situation.WheelDamageId).Truth);
+        }
+
+        [Fact]
+        public void EscortingACaravanCanResolveAShortageWithoutMakingOrBuyingGoods()
+        {
+            ShortageLab lab = ShortageLab.Create(CheckOutcome.Pass);
+
+            ActionOutcome outcome = lab.RunEscort(lab.Mill, lab.Miller, lab.Village, "escort Doran's grain wagon");
+
+            Assert.True(outcome.Succeeded);
+            Assert.Equal("proc_escort", outcome.Check.ProfileId);
+            Assert.Equal(TruthState.Superseded, lab.Fact(lab.Situation.BreadDemandId).Truth);
+            Assert.Equal(TruthState.True, lab.Fact(lab.Situation.RemedyDemandId).Truth);
+            Assert.Equal(TruthState.True, lab.Fact(lab.Situation.WheelDamageId).Truth);
+            Assert.Contains(outcome.Events, e => e.Type == WorldEventType.Helped && e.Target == lab.Reeve);
+        }
+
+        [Fact]
+        public void AFailedEscortLeavesTheShortageStanding()
+        {
+            ShortageLab lab = ShortageLab.Create(CheckOutcome.Fail);
+
+            ActionOutcome outcome = lab.RunEscort(lab.Mill, lab.Miller, lab.Village, "escort Doran's grain wagon");
+
+            Assert.False(outcome.Succeeded);
+            Assert.Equal(TruthState.True, lab.Fact(lab.Situation.BreadDemandId).Truth);
+            Assert.DoesNotContain(outcome.Events, e => e.Type == WorldEventType.Helped);
+        }
+
+        [Fact]
+        public void IgnoringTheShortageLetsItDeteriorateInsteadOfResolvingIt()
+        {
+            ShortageLab lab = ShortageLab.Create();
+
+            int applied = lab.AdvanceDays(10);
+
+            Assert.Equal(2, applied);
+            Assert.Equal(ThreadState.Dormant, lab.Situation.Thread.State);
+            Assert.Equal(TruthState.True, lab.Fact(lab.Situation.BreadDemandId).Truth);
+            Assert.Equal(TruthState.True, lab.Fact(lab.Situation.RemedyDemandId).Truth);
+            Assert.Contains(lab.World.Ledger.Events, e => e.Type == WorldEventType.Harmed);
+            Assert.Contains(lab.World.Ledger.Events, e => e.Type == WorldEventType.ThreadEscalated);
+        }
+
         /// <summary>The generalist is available wherever a named craft is; the tiers rely on it.</summary>
         [Fact]
         public void TheGeneralistCoversTheSameDemandsTheNamedCraftsDo()
@@ -306,17 +424,20 @@ namespace BrilliantQuesting.Tests
         // -- the done-when ------------------------------------------------------------------
 
         /// <summary>
-        /// "A shortage can be answered by actually producing goods." The other half of that claim
-        /// is that nothing else answers it: every verb outside the crafting family is run against
-        /// everyone in the village, on its own copy of the world, and neither demand ever closes.
+        /// "A shortage can be answered by actually producing goods" used to be the only positive
+        /// claim. BQ-041 adds other shortage routes, but the protection still matters: unrelated
+        /// verbs must not settle a demand just because the thread has one.
         /// </summary>
         [Fact]
-        public void NothingOutsideTheCraftingFamilyCanCloseAShortage()
+        public void UnrelatedFamiliesDoNotAccidentallyCloseAShortage()
         {
             List<string> closed = new List<string>();
             foreach (NarrativeAction action in StandardActions.CreateRegistry().Actions)
             {
-                if (action.Family == ActionFamily.Crafting)
+                if (action.Family == ActionFamily.Crafting
+                    || action.Id == "buy_supplies"
+                    || action.Id == "invest_in_supplier"
+                    || action.Id == "provide_supplies")
                 {
                     continue;
                 }
@@ -441,6 +562,8 @@ namespace BrilliantQuesting.Tests
 
             public FixedCheckResolver Checks { get; private set; }
 
+            public ThreadEngine Threads { get; private set; }
+
             public EntityId Player { get; private set; }
 
             public ShortageSituation Situation { get; private set; }
@@ -464,7 +587,7 @@ namespace BrilliantQuesting.Tests
                 EntityId player = world.NewId("npc");
                 EntityId village = world.NewId("zone");
                 SandboxVanillaState vanilla = new SandboxVanillaState(player);
-                vanilla.Define(player, level: 5, money: 400, zone: village);
+                vanilla.Define(player, level: 5, money: 1200, zone: village);
                 world.Registry.Add(new NarrativeNpc(player, "You") { Importance = NarrativeImportance.Major });
 
                 lab.World = world;
@@ -472,6 +595,8 @@ namespace BrilliantQuesting.Tests
                 lab.Player = player;
                 lab.Actions = StandardActions.CreateRegistry();
                 lab.Checks = new FixedCheckResolver(outcome);
+                lab.Threads = new ThreadEngine();
+                lab.Threads.Register(ShortageSituation.ArchetypeId, new ShortageEscalation(vanilla));
 
                 SandboxStager stager = new SandboxStager(vanilla);
                 lab.Situation = ShortageSituation.Create(world, stager, player, village, vanilla.Now);
@@ -560,6 +685,11 @@ namespace BrilliantQuesting.Tests
                 _startingPack = Vanilla.GetInventory(Player).Count;
             }
 
+            public void SetPlayerMoney(int money)
+            {
+                Vanilla.Define(Player, level: Vanilla.GetLevel(Player), money: money, zone: Vanilla.GetZoneOf(Player));
+            }
+
             public ActionContext Context(EntityId zone, EntityId target)
             {
                 Vanilla.SetZone(Player, zone);
@@ -577,6 +707,19 @@ namespace BrilliantQuesting.Tests
             public Availability Can(string actionId, EntityId zone, EntityId target)
             {
                 return Actions.Get(actionId).GetAvailability(Context(zone, target));
+            }
+
+            public ActionOutcome RunEscort(EntityId zone, EntityId target, EntityId destination, string purpose)
+            {
+                ActionContext context = Context(zone, target);
+                context.Binding = new ActionBinding { Destination = destination, Purpose = purpose };
+                return Actions.Get("escort").Perform(context);
+            }
+
+            public int AdvanceDays(long days)
+            {
+                Vanilla.AdvanceDays(days);
+                return Threads.Advance(World, Vanilla.Now);
             }
         }
     }

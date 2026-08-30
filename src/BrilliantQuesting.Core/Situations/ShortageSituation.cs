@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using BrilliantQuesting.Actions.Library;
+using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
@@ -211,6 +213,88 @@ namespace BrilliantQuesting.Situations
             stager.StageItem(player, new ItemDescriptor(world.NewId("item"), "a jar of resin", "reagent", 25, "resin"));
             stager.StageItem(player, new ItemDescriptor(world.NewId("item"), "an oak plank", "plank", 30, "plank"));
             stager.StageItem(player, new ItemDescriptor(world.NewId("item"), "a second oak plank", "plank", 30, "plank"));
+        }
+    }
+
+    /// <summary>
+    /// What happens when a shortage is allowed to run.
+    ///
+    /// The handler does not invent hidden goods or move vanilla actors. It records the durable
+    /// deterioration: people are harmed by the lack, then the settlement starts losing confidence
+    /// and influence while the unmet demand remains true.
+    /// </summary>
+    public sealed class ShortageEscalation : IThreadEscalationHandler
+    {
+        private readonly IVanillaState _vanilla;
+
+        public ShortageEscalation(IVanillaState vanilla)
+        {
+            _vanilla = vanilla;
+        }
+
+        public void Apply(NarrativeWorldState world, NarrativeThread thread, EscalationStep step, GameTime now)
+        {
+            EntityId village = thread.SiteIds.Count > 0 ? thread.SiteIds[0] : EntityId.None;
+            EntityId spokesman = thread.ParticipantIds.Count > 0 ? thread.ParticipantIds[0] : EntityId.None;
+
+            switch (step.Id)
+            {
+                case "child_worsens":
+                    thread.Tension += 20;
+                    world.Record(
+                        WorldEventType.Harmed,
+                        spokesman,
+                        FindFirstOpenDemandSubject(world, thread),
+                        now,
+                        0.45,
+                        village,
+                        related: OpenDemandIds(world, thread),
+                        threadId: thread.Id);
+                    break;
+
+                case "village_leaves":
+                    thread.Tension += 25;
+                    _vanilla.ChangeInfluence(village, -8);
+                    world.Record(
+                        WorldEventType.ThreadEscalated,
+                        spokesman,
+                        village,
+                        now,
+                        0.7,
+                        village,
+                        related: OpenDemandIds(world, thread),
+                        threadId: thread.Id);
+                    break;
+            }
+        }
+
+        private static EntityId FindFirstOpenDemandSubject(NarrativeWorldState world, NarrativeThread thread)
+        {
+            for (int i = 0; i < thread.FactIds.Count; i++)
+            {
+                Fact fact = world.Knowledge.GetFact(thread.FactIds[i]);
+                if (fact != null && fact.Predicate == FactPredicates.Needs && fact.Truth == TruthState.True)
+                {
+                    return fact.Subject;
+                }
+            }
+
+            return EntityId.None;
+        }
+
+        private static IReadOnlyList<EntityId> OpenDemandIds(NarrativeWorldState world, NarrativeThread thread)
+        {
+            List<EntityId> ids = new List<EntityId>();
+            for (int i = 0; i < thread.FactIds.Count; i++)
+            {
+                Fact fact = world.Knowledge.GetFact(thread.FactIds[i]);
+                if (fact != null && fact.Predicate == FactPredicates.Needs && fact.Truth == TruthState.True)
+                {
+                    ids.Add(fact.Id);
+                }
+            }
+
+            return ids;
         }
     }
 }

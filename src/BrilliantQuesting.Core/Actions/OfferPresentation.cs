@@ -78,6 +78,8 @@ namespace BrilliantQuesting.Actions
                 // cross-situation resolutions for the same reason the physical endings do: each is
                 // the ending of the situation it belongs to, and displacing `return_item` for one
                 // is the regression this table was written to stop.
+                case "buy_supplies":
+                case "invest_in_supplier":
                 case "shelter":
                 case "assign_protection":
                 case "provide_supplies":

@@ -374,6 +374,7 @@ namespace BrilliantQuesting.Plugin
             _threads.Register(
                 PettyTheftSituation.ArchetypeId,
                 new PettyTheftEscalation(_vanilla, rumors, distortion));
+            _threads.Register(ShortageSituation.ArchetypeId, new ShortageEscalation(_vanilla));
             _gossip = new RumorCirculation(rumors) { Distortion = distortion };
             _ambient = new AmbientTalk(rumors);
             _drama.AdvanceThreads = AdvanceThreads;

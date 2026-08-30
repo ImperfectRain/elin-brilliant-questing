@@ -432,6 +432,8 @@ namespace BrilliantQuesting.Actions.Library
                 case "host": return Hospitality;
                 case "assign_protection": return Vigilance;
                 case "provide_supplies": return Logistics;
+                case "buy_supplies": return null;
+                case "invest_in_supplier": return null;
 
                 // Putting something into your own household's keeping is not a skill test. Either
                 // there is a Home with somebody in it to hold the thing, or there is not, and both
