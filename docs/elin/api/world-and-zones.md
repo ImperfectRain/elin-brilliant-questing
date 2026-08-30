@@ -1,5 +1,8 @@
 # World And Zones
 
+Design guidance for procedural scenario sites, later settlement generation, and additive spatial
+development lives in [`../../design/procedural-places-and-spatial-history.md`](../../design/procedural-places-and-spatial-history.md). This file remains authoritative for what the current Elin build exposes.
+
 - `EClass._zone`, `EClass._map`, `Map.charas`, `Map.things`, `Zone.uid`, `Zone.FindChara(int)`, `Zone.FindChara(string)`, `Zone.AddChara(string, Point)`, `Zone.AddChara(string, int, int)`, `Zone.Simulate()`, `Zone.OnVisit()`, and simulation hooks exist (`VERIFIED-METADATA`).
 - Current BQ `GetZoneOf` reads `Chara.currentZone` and mints `zone_<uid>` ids; unresolved non-player entities return `EntityId.None` (`VERIFIED-METADATA`, `STUB-VERIFIED`).
 - `GetCharactersInZone` currently scans the loaded `EClass._map.charas`, not arbitrary saved zones (`VERIFIED-METADATA`, `INFERRED` from implementation).

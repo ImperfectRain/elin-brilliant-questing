@@ -1,8 +1,8 @@
 # Implementation Roadmap
 
-The single ordered plan for Brilliant Questing, audited against all eight design documents and the
-code as it stands. Every other document describes *what* to build and *why*; this one says *in what
-order*, *how you know a step is finished*, and *where every idea went*.
+The single ordered plan for Brilliant Questing, audited against the canonical design documents and
+the code as it stands. Every other document describes *what* to build and *why*; this one says *in
+what order*, *how you know a step is finished*, and *where every idea went*.
 
 If you are an agent picking this project up cold, read [`AGENTS.md`](../AGENTS.md) first. It says
 how to establish current state from Git and how to retrieve only what a task needs.
@@ -106,7 +106,7 @@ Elin and recorded here or in `docs/elin-api-notes.md`.
 
 ## 4. System ledger
 
-Every system named across the eight design documents, its state today, and the steps that move it.
+Every system named across the canonical design documents, its state today, and the steps that move it.
 No system is allowed to disappear from this table.
 
 | System | Now | Target for 1.0 | Steps |
@@ -144,7 +144,7 @@ No system is allowed to disappear from this table.
 | Organizations | Modelled, unsimulated | Playable | BQ-053, BQ-054 |
 | Item & location provenance | Absent | Playable | BQ-085, BQ-086 |
 | Social obligations & favors | Absent | Playable | BQ-055 |
-| Sites & location grammars | Absent | Playable | BQ-087 … BQ-092 |
+| Sites, scenario dungeons & location grammars | Absent | Playable | BQ-087 ... BQ-092, BQ-139 ... BQ-141 |
 | Safe vanilla mutation policy | Prototype | Hardened | BQ-031, BQ-032 |
 | NPC autonomy | Absent | Playable | BQ-093 … BQ-096 |
 | Traveling groups | Absent | Playable | BQ-097, BQ-098 |
@@ -157,6 +157,7 @@ No system is allowed to disappear from this table.
 | Engagement & reward | Absent | Complete-until-launch | BQ-112 … BQ-119 |
 | Setting fidelity & player culture | Absent | Complete-until-launch | BQ-121 … BQ-128 |
 | Content pipeline (authored data → bundle) | Absent | Complete-until-launch | BQ-129 … BQ-133 |
+| Generated settlements & spatial development | Absent | Post-launch | §8 |
 | Mod interoperability API | Absent | Post-launch | §8 |
 | Multiplayer | Absent | Post-launch, explicitly unsupported | §8 |
 | Optional LLM prose (runtime) | Absent | Post-launch | §8 |
@@ -171,9 +172,10 @@ may be reordered if evidence justifies it.
 
 Notation: **Depends** is a hard prerequisite. **Done when** is the completion test. **Sources**
 cites the design documents — `MD` master-design, `PM` post-master-findings, `LW`
-living-world-priorities, `CD` character-dialogue-system, `SP` setting-and-player-culture;
-`CP` content-pipeline; `VS` vanilla-simulation-integration; `engagement` is
-engagement-and-reward. **Unblocks** is what waits on it.
+living-world-priorities, `PP` procedural-places-and-spatial-history, `CD`
+character-dialogue-system, `SP` setting-and-player-culture; `CP` content-pipeline; `VS`
+vanilla-simulation-integration; `engagement` is engagement-and-reward. **Unblocks** is what waits
+on it.
 
 ---
 
@@ -696,10 +698,12 @@ Home, Karma, witnesses, trust, consequences arriving at the player.
 - **Sources** PM §30, §74; LW §9.2.
 
 #### BQ-043 — Archetype: missing person / failed caravan
-Travel groups, sites, evidence, rescue.
+Travel groups, sites, evidence, rescue. The findable place may begin as a persistent micro-site; once
+BQ-139 exists, it should be expressible as a procedural scenario dungeon/investigation site whose
+layout follows the caravan's true history rather than a generic camp.
 - **Depends** BQ-087, BQ-097.
 - **Done when** a caravan that actually failed off-screen produces a findable site with real cargo.
-- **Sources** MD §24.2; PM §34, §73; LW §9.3.
+- **Sources** MD §24.2; PM §34, §73; LW §9.3; PP §4.
 
 #### BQ-044 — Archetype: false accusation
 Truth versus belief, testimony, rumour, framing. The archetype that most exercises the knowledge graph.
@@ -1025,9 +1029,11 @@ Notable objects carry structured history: crafted by, owned by, stolen from, rec
 
 #### BQ-086 — Location history and legends
 Sites accumulate notable events; repeated or high-salience history compresses into local legend.
+History is semantic input to later spatial reuse and decoration, but this step does not write maps
+or mutate places physically.
 - **Depends** BQ-034, BQ-087.
 - **Done when** a site the player cleared a year earlier is described by its history when reused.
-- **Sources** PM §40, §41; LW §7.7.
+- **Sources** PM §40, §41; LW §7.7; PP §6.
 
 > **Checkpoint S7.** `CD §39`'s canonical test: generate the same objective theft one hundred times
 > with varied actors, personalities, relationships, knowledge and settings. The results must include
@@ -1043,15 +1049,20 @@ Sites accumulate notable events; repeated or high-salience history compresses in
 Two systems that both depend on everything before them: locations that mean something, and a world
 that acts without the player.
 
-**Standing rule:** do not build a general-purpose random dungeon generator (`LW §7`). Elin supplies
-spatial substrate; curated grammars supply spatial meaning; scenario state and history supply identity.
+**Standing rule:** do not build a general-purpose random dungeon generator (`LW §7`, `PP`). Elin
+supplies spatial substrate; curated grammars supply spatial meaning; scenario state and history
+supply identity. Procedural scenario dungeons are a first-class BQ site system, but they are built
+from semantic plans, authored atoms, systemic Elin verbs, candidate validation and persistence
+proofs, not from raw geometry. Full generated settlements and vanilla-town physical development stay
+post-launch.
 
 #### BQ-087 — First site proof
 One small site through native zone infrastructure: one thread binding, three to five actors, real
-cargo and evidence, two meaningful approaches. Unload, save, reload, return, verify exact persistence.
+cargo and evidence, two meaningful approaches. This proves genesis for one BQ-owned place; it does
+not prove later physical development. Unload, save, reload, return, verify exact persistence.
 - **Depends** BQ-029, BQ-032.
-- **Done when** the return visit finds the same site, same actors, same cargo, and the log proves nothing regenerated.
-- **Sources** MD §15; PM §72 stage 5; LW §7.9.
+- **Done when** the return visit finds the same site, same actors, same cargo, and the log proves nothing regenerated or redispatched historical events.
+- **Sources** MD §15; PM §72 stage 5; LW §7.9; PP §6, §7.
 - **Do not generalize until this passes.**
 
 #### BQ-088 — Location reuse policy
@@ -1063,31 +1074,53 @@ recontextualized, can an older site be reused? Generate only as a last resort.
 
 #### BQ-089 — Curated location grammars
 Bandit camp, collapsed mine, smuggler cellar, occupied farmhouse, warehouse, makeshift prison —
-specifying requirements, not geometry.
+specifying semantic requirements, route relationships, required affordances and authored-piece
+sockets, not geometry.
 - **Depends** BQ-088.
-- **Done when** two sites from the same grammar are recognizably the same kind of place and clearly not the same place.
-- **Sources** LW §7.3, §7.1.
+- **Done when** two sites from the same grammar are recognizably the same kind of place and clearly not the same place, and the inspector can explain every required node/edge in the abstract plan.
+- **Sources** LW §7.3, §7.1; PP §2, §3.
 
 #### BQ-090 — Spatial affordances
 LockedBarrier, BreakableBarrier, DiggableBypass, HiddenPassage, GuardedThreshold, EvidenceCache,
 PrisonCell, ObservationPoint, AlternateExit — so builds have real routes.
 - **Depends** BQ-089, BQ-029.
 - **Done when** one site is completed three ways: front gate, side lock, mined wall.
-- **Sources** LW §7.4; MD §12.
+- **Sources** LW §7.4; MD §12; PP §4.
+- **Evidence gate** each affordance records whether it is runtime-verified, source-observed, metadata-only, or BQ-authored. Do not promise a route whose Elin primitive has not passed the appropriate evidence level.
 
 #### BQ-091 — Scenario decoration and causal contents
 Wealth, hunger, recent attack, prisoners and cargo change what is placed. Enemies reflect the actual
 group; loot is stolen cargo and possessions, never filler.
 - **Depends** BQ-090.
 - **Done when** a site's contents are derivable from its situation's state, with no template chest.
-- **Sources** LW §7.5, §7.8; PM §14.
+- **Sources** LW §7.5, §7.8; PM §14; PP §2, §4.
 
 #### BQ-092 — Candidate generation and scoring
 Generate several site candidates and select on route diversity, objective separation, evidence
-distribution and reachability. Expose scores in the inspector.
+distribution, loop quality, supported mechanic vocabulary and reachability. Expose scores in the
+inspector.
 - **Depends** BQ-091.
-- **Done when** a rejected candidate's rejection reason is readable in the inspector.
-- **Sources** LW §7.6, §12.
+- **Done when** a rejected candidate's rejection reason is readable in the inspector, and at least one rejection proves a route promise was refused because the required Elin primitive was unsupported or unverified.
+- **Sources** LW §7.6, §12; PP §2, §8.
+
+#### BQ-139 — Scenario-dungeon plan representation
+Introduce the abstract plan for bounded adventure sites: scenario graph, route cycles, required
+affordances, objective/evidence anchors, occupant regions, authored-piece sockets and validation
+requirements. No Elin map writes.
+- **Depends** BQ-092, BQ-086.
+- **Done when** at least two grammars produce deterministic abstract plans whose inspector output explains every node, edge, requirement and rejection reason, and a seed replay reproduces the same selected plan.
+- **Sources** PP §3, §4; LW §7.1, §7.6.
+- **Not this step.** No general Nefia replacement, no settlement generator, no tile placement, no custom puzzle mechanics.
+
+#### BQ-140 — First procedural scenario dungeon
+Build one BQ-owned bounded site whose scenario graph is generated and whose physical realization uses
+authored atoms plus verified Elin substrate. A good first proof is an abandoned/occupied mine with a
+meaningful loop, locked or guarded threshold, diggable/breakable or otherwise systemic bypass,
+hazardous route, optional hidden route, controlled descent/exit, causal evidence and causal rewards.
+- **Depends** BQ-139.
+- **Done when** the same authored atoms produce at least three meaningfully different valid navigation/problem structures across seeds; the selected site survives unload/reload and save/quit/reload; objectives, evidence, occupants and rewards remain reachable and causal; and unsupported mechanics are omitted rather than simulated by implication.
+- **Sources** PP §4, §7, §8; LW §7.9.
+- **Evidence gate** `GenBounds.TryAddMapPiece`, `PartialMap.Apply`, native site registration, locked exits, traps, locks, diggable/breakable bypasses and any custom `Trait`/`Zone` hooks used by this step must be rechecked against the exact installed build and recorded in the Elin evidence docs before being treated as runtime-semantic proof.
 
 #### BQ-135 — Read vanilla actor activity *(stage S8, immediately before BQ-093)*
 Expose transient vanilla actor activity through the seam as one read-only semantic snapshot, so the
@@ -1207,6 +1240,14 @@ solution families, rewards and sites.
 - **Depends** BQ-101.
 - **Done when** the harness runs headless in CI and reports a repetition profile.
 - **Sources** CD §35; MD §23.3.
+
+#### BQ-141 — Spatial expressive-range harness
+Extend the anti-template/debug approach to site plans before scaling content: measure route topology,
+cycle count, objective separation, route/mechanic diversity, evidence distribution, encounter ecology
+and history readability over many generated site plans.
+- **Depends** BQ-104, BQ-139.
+- **Done when** the harness runs headless, reports spatial repetition metrics, and demonstrates that two sites with different nouns but the same experiential topology are counted as repetition.
+- **Sources** PP §8; CD §35; LW §12.
 
 #### BQ-105 — Save integrity and quarantine
 A malformed thread, a missing actor or a failed migration must degrade one feature, never poison a save.
@@ -1582,6 +1623,12 @@ names why it is not in 1.0.
 | Procedural festivals beyond BQ-047 | PM §15, §47 | One festival archetype proves the pattern; a calendar of them is content. |
 | Guild-specific progression content | PM §55.7 | Vanilla guild loops must be integrated (BQ-037, BQ-038) before extending them. |
 | Site states beyond persistence (Ruined → Repurposed → Forgotten → Rediscovered) | LW §7.7 | BQ-086 proves history accumulates; the full lifecycle is polish. |
+| Tiny generated hamlets | PP §5 | Requires S6 economy/business/organization state, BQ-086 location history, BQ-139/BQ-140 site planning, and S9 diversity/debug tools. Do not pull full settlements into 1.0. |
+| Functional district graphs for villages/towns | PP §5 | Adds scale after tiny hamlets prove semantic structure; premature district generation would be visual variety without civic meaning. |
+| Additive physical development of BQ-owned sites | PP §6, §7 | Needs disposable-save proof that authored additions survive reload, revisit and elapsed time without duplicating actors/items or damaging save health. |
+| Satellite settlement lifecycle | PP §5, §6 | Safer than mutating vanilla towns, but still depends on hardened BQ-owned site genesis and additive development. |
+| Vanilla-town additive physical mutation | PP §6, §7 | Highest collision risk with player construction, vanilla ownership, services and save-owned maps; only after BQ-owned site mutation is hardened and fail-closed. |
+| Full settlement lifecycle (founding, growth, decline, abandonment, reuse) | PP §5, §6 | Requires generated hamlets, satellite lifecycle, additive development, autonomy/travel and director diversity to be proven together. |
 | Player-facing Chronicle presentation polish | LW §3.3 | BQ-034 stores the history; making it beautiful is a UI project. |
 | Human testing protocol formalization | PM §4 | Adopt the report template now informally; formalize when there are external testers. |
 
@@ -1589,7 +1636,7 @@ names why it is not in 1.0.
 
 ## 9. Idea coverage index
 
-Every substantive idea in the eight design documents, mapped to where it lives in this plan. This is
+Every substantive idea in the canonical design documents, mapped to where it lives in this plan. This is
 the audit artifact: if an idea is not here, it was missed.
 
 ### From `master-design.md`
@@ -1896,6 +1943,31 @@ the audit artifact: if an idea is not here, it was missed.
 | Runtime research list before any integration | BQ-135; `elin-api-notes.md` |
 | Product-value test: causal continuity per unit of machinery | §7 launch definition |
 
+### From `procedural-places-and-spatial-history.md`
+
+| Idea | Where |
+|---|---|
+| Semantic/deep structure before geometry | BQ-089, BQ-139; standing rules §10 |
+| Authored spatial atoms plus procedural composition | BQ-089, BQ-140 |
+| World/history state to spatial requirements to physical realization | BQ-086, BQ-091, BQ-139, BQ-140 |
+| Generate, score and validate candidates | BQ-092, BQ-141 |
+| Procedural scenario dungeons as first-class sites | BQ-139, BQ-140 |
+| Procedural problems before custom puzzle mechanics | BQ-090, BQ-140; standing rules §10 |
+| Trigger/Condition/Effect scenario language | BQ-140; richer state machines deferred §8 unless needed for the proof |
+| Causal dungeon ecology and occupancy | BQ-091, BQ-140 |
+| Generated investigations as spatial scenarios | BQ-043, BQ-139, BQ-140 |
+| Genesis separate from Development | BQ-087 proves genesis; physical development deferred §8 |
+| Visited places are never destructively regenerated | BQ-087, BQ-086; standing rules §10 |
+| Additive settlement evolution | §8 |
+| Satellite settlements before vanilla-town mutation | §8 |
+| Tiny generated hamlets before full settlements | §8 |
+| Functional district graphs | §8 |
+| Full settlement lifecycle | §8 |
+| Spatial affordances feeding narrative generation | BQ-039, BQ-090 |
+| Spatial expressive-range and anti-template metrics | BQ-141 |
+| Runtime evidence gate for map pieces/site insertion | BQ-087, BQ-140; `docs/elin/` |
+| No duplicate economy, organization, pathfinding, routine or simulation systems | BQ-050, BQ-053, BQ-093, BQ-107; standing rules §10 |
+
 ---
 
 ## 10. Standing rules
@@ -1917,6 +1989,8 @@ bind every step above; a step that violates one is wrong even if it works.
 6. Vanilla mechanic before custom mechanic. Actual object before abstract evidence point. Real world interaction before dialogue abstraction.
 7. Existing actor before new actor. Existing location before new location. Existing history before new backstory.
 8. Curated grammar before unconstrained generation. Persistent site before disposable dungeon.
+8a. Spatial meaning before geometry. Generate purpose, history, route constraints and affordances before physical realization.
+8b. Genesis and Development are separate. A visited place is never destructively regenerated; later physical change is additive and fail-closed.
 9. Deepen the world before enlarging it.
 10. Observed game behaviour beats API assumption. "Found" is not "works".
 

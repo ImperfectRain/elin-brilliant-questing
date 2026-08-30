@@ -445,6 +445,10 @@ transform situations without player involvement.
 
 # 7. Procedural locations without a garbage generator
 
+This section records the original near-term site doctrine. The canonical implementation doctrine for
+procedural scenario dungeons, generated settlements, spatial history, and additive development is
+[`procedural-places-and-spatial-history.md`](procedural-places-and-spatial-history.md).
+
 Do **not** build a general-purpose random dungeon generator.
 
 The preferred model is:
