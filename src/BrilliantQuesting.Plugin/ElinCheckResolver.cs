@@ -7,8 +7,8 @@ using BrilliantQuesting.Foundation;
 namespace BrilliantQuesting.Plugin
 {
     /// <summary>
-    /// Resolves procedural checks through Elin's own Check class where a matching row exists, and
-    /// through the portable resolver where it does not.
+    /// Resolves procedural checks through BQ's deterministic resolver while using Elin's Check
+    /// rows for presentation where they exist.
     ///
     /// The hybrid is not a compromise, it is what the data shapes require. A vanilla SourceCheck
     /// row is single-element: one actor element with a factor, one target element with a factor,
@@ -18,8 +18,9 @@ namespace BrilliantQuesting.Plugin
     /// interesting, so composition stays on our side and everything the situation contributes is
     /// handed to vanilla as its dcMod.
     ///
-    /// Where a profile does map to a row, vanilla wins outright: its dice, its critical windows,
-    /// its arithmetic, and its own difficulty wording through GetText.
+    /// Installed Check.Perform uses Elin RNG. That is correct for vanilla gameplay and wrong for
+    /// replay-authoritative BQ composite checks, so native rows do not decide authoritative
+    /// outcomes merely because the method exists.
     /// </summary>
     internal sealed class ElinCheckResolver : ICheckResolver
     {
@@ -36,8 +37,11 @@ namespace BrilliantQuesting.Plugin
             _log = log;
         }
 
-        /// <summary>Set false to force the portable resolver, for comparing the two in play.</summary>
-        internal bool PreferNativeChecks { get; set; } = true;
+        /// <summary>
+        /// Kept for diagnostic comparisons only. Authoritative BQ checks remain deterministic
+        /// unless a future implementation adds an explicit non-replay-authoritative check type.
+        /// </summary>
+        internal bool PreferNativeChecks { get; set; }
 
         public CheckResult Resolve(CheckRequest request, DeterministicRng rng)
         {
@@ -149,9 +153,7 @@ namespace BrilliantQuesting.Plugin
         /// </summary>
         private static bool CanResolveNatively(CheckProfile profile)
         {
-            return profile.ActorSkills.Count <= 1
-                   && profile.ActorAttributes.Count == 0
-                   && profile.TargetAttributes.Count <= 1;
+            return false;
         }
 
         /// <summary>

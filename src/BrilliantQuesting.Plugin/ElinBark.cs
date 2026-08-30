@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using BepInEx.Logging;
+using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
 
 namespace BrilliantQuesting.Plugin
@@ -27,11 +28,6 @@ namespace BrilliantQuesting.Plugin
     /// </summary>
     internal static class ElinBark
     {
-        private const BindingFlags Flags = BindingFlags.Public | BindingFlags.Instance;
-
-        /// <summary>Raw-text speech, in preference order. Anything taking a lang key is excluded.</summary>
-        private static readonly string[] RawSayNames = { "SayRaw", "TalkRaw" };
-
         private static bool _routeReported;
 
         /// <summary>
@@ -52,10 +48,10 @@ namespace BrilliantQuesting.Plugin
 
             try
             {
-                MethodInfo raw = speaker == null ? null : ResolveRawSay(speaker.GetType());
+                MethodInfo raw = speaker == null ? null : VanillaApiReflection.ResolveRawSpeech(speaker.GetType());
                 if (raw != null)
                 {
-                    raw.Invoke(speaker, Arguments(raw, remark.Line));
+                    raw.Invoke(speaker, VanillaApiReflection.RawSpeechArguments(raw, remark.Line));
                     Report(log, raw.DeclaringType.Name + "." + raw.Name);
                     return true;
                 }
@@ -72,63 +68,6 @@ namespace BrilliantQuesting.Plugin
                                 + ex.GetType().Name + ": " + ex.Message + ").");
                 return false;
             }
-        }
-
-        /// <summary>
-        /// A speech method that takes a sentence. Trailing parameters are accepted only when the
-        /// build states their defaults, so a signature that gained a reference argument still
-        /// works and one this code would have to guess at is left alone.
-        /// </summary>
-        private static MethodInfo ResolveRawSay(Type charaType)
-        {
-            for (int i = 0; i < RawSayNames.Length; i++)
-            {
-                MethodInfo[] candidates = charaType.GetMethods(Flags);
-                for (int c = 0; c < candidates.Length; c++)
-                {
-                    MethodInfo method = candidates[c];
-                    if (method.Name != RawSayNames[i])
-                    {
-                        continue;
-                    }
-
-                    ParameterInfo[] parameters = method.GetParameters();
-                    if (parameters.Length == 0 || parameters[0].ParameterType != typeof(string))
-                    {
-                        continue;
-                    }
-
-                    bool fillable = true;
-                    for (int p = 1; p < parameters.Length; p++)
-                    {
-                        if (!parameters[p].IsOptional || !parameters[p].HasDefaultValue)
-                        {
-                            fillable = false;
-                            break;
-                        }
-                    }
-
-                    if (fillable)
-                    {
-                        return method;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private static object[] Arguments(MethodInfo method, string line)
-        {
-            ParameterInfo[] parameters = method.GetParameters();
-            object[] arguments = new object[parameters.Length];
-            arguments[0] = line;
-            for (int i = 1; i < parameters.Length; i++)
-            {
-                arguments[i] = parameters[i].DefaultValue;
-            }
-
-            return arguments;
         }
 
         private static void Report(ManualLogSource log, string route)

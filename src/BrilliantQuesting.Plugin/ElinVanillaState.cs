@@ -515,7 +515,19 @@ namespace BrilliantQuesting.Plugin
         public int GetGuildRank(GuildId guild)
         {
             Guild g = FindGuild(guild);
-            return g != null && g.IsMember ? g.relation.rank : 0;
+            if (g == null || !g.IsMember)
+            {
+                return 0;
+            }
+
+            try
+            {
+                return g.relation == null ? 0 : Math.Max(0, g.relation.rank);
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
         }
 
         /// <summary>
@@ -529,7 +541,19 @@ namespace BrilliantQuesting.Plugin
         public int GetGuildContribution(GuildId guild)
         {
             Guild g = FindGuild(guild);
-            return g != null && g.IsMember ? g.relation.exp : 0;
+            if (g == null || !g.IsMember)
+            {
+                return 0;
+            }
+
+            try
+            {
+                return g.relation == null ? 0 : Math.Max(0, g.relation.exp);
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
         }
 
         public string GetWorshippedDeity(EntityId chara)
@@ -599,19 +623,6 @@ namespace BrilliantQuesting.Plugin
             return true;
         }
 
-        /// <summary>
-        /// Members that could carry "how well was this made", best first.
-        ///
-        /// None of them is verified against a running build, which is why this is a search rather
-        /// than a field access: the shipped metadata has several plausible candidates and reading
-        /// the wrong one would quietly make every property-constrained demand answerable by the
-        /// wrong objects. The first one that resolves to a number is used and named in the log
-        /// once, so a live run says which it settled on.
-        /// </summary>
-        private static readonly string[] QualityMembers = { "quality", "encLv", "rarity", "LV" };
-
-        private static MemberInfo _qualityMember;
-        private static bool _qualityMemberSearched;
         private bool _reportedQualitySource;
 
         /// <summary>
@@ -624,60 +635,18 @@ namespace BrilliantQuesting.Plugin
         /// </summary>
         private int QualityOf(Thing thing)
         {
-            MemberInfo member = ResolveQualityMember(thing);
-            if (member == null)
+            if (!VanillaApiReflection.TryReadQuality(thing, out int quality, out string source))
             {
                 return 0;
             }
 
-            try
+            if (!_reportedQualitySource)
             {
-                object value = member is PropertyInfo property
-                    ? property.GetValue(thing, null)
-                    : ((FieldInfo)member).GetValue(thing);
-                if (value == null)
-                {
-                    return 0;
-                }
-
-                int quality = Convert.ToInt32(value, CultureInfo.InvariantCulture);
-                if (!_reportedQualitySource)
-                {
-                    _reportedQualitySource = true;
-                    _log.LogInfo("Reading item quality from Thing." + member.Name + ".");
-                }
-
-                return quality < 0 ? 0 : quality;
-            }
-            catch (Exception)
-            {
-                return 0;
-            }
-        }
-
-        private MemberInfo ResolveQualityMember(Thing thing)
-        {
-            if (_qualityMemberSearched)
-            {
-                return _qualityMember;
+                _reportedQualitySource = true;
+                _log.LogInfo("Reading item quality from Thing." + source + ".");
             }
 
-            _qualityMemberSearched = true;
-            Type type = thing.GetType();
-            for (int i = 0; i < QualityMembers.Length && _qualityMember == null; i++)
-            {
-                _qualityMember = (MemberInfo)type.GetProperty(QualityMembers[i], BindingFlags.Public | BindingFlags.Instance)
-                                 ?? type.GetField(QualityMembers[i], BindingFlags.Public | BindingFlags.Instance);
-            }
-
-            if (_qualityMember == null)
-            {
-                _log.LogWarning("No item quality member found on Thing (tried "
-                                + string.Join(", ", QualityMembers)
-                                + "). Property-constrained demands will not accept ready-made goods.");
-            }
-
-            return _qualityMember;
+            return quality;
         }
 
         public IReadOnlyList<ItemDescriptor> GetInventory(EntityId owner)
@@ -750,7 +719,13 @@ namespace BrilliantQuesting.Plugin
 
             try
             {
-                destination.Pick(thing, false, true);
+                Thing picked = destination.Pick(thing, false, true);
+                if (picked != null && picked.uid != thing.uid)
+                {
+                    _bindings.Bind(itemId, picked.uid);
+                    _log.LogInfo("Transfer of " + thing.Name + " merged into destination stack uid "
+                                 + picked.uid + "; BQ binding updated from source uid " + thing.uid + ".");
+                }
             }
             catch (Exception ex)
             {
@@ -758,8 +733,10 @@ namespace BrilliantQuesting.Plugin
                 return false;
             }
 
-            // Ask the world rather than trusting the call: the item has moved only if the source
-            // no longer holds it and the destination does.
+            // Ask the world rather than trusting the call. Pick may stack into a different
+            // destination Thing and destroy the source Thing, so the original uid surviving is not
+            // required; the current binding must be absent from the source and present at the
+            // destination.
             bool arrived = _bindings.ResolveThing(itemId, source) == null
                            && _bindings.ResolveThing(itemId, destination) != null;
             if (!arrived)

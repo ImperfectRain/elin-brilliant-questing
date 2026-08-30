@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Reflection;
 using BepInEx.Logging;
 using BrilliantQuesting.Foundation;
+using BrilliantQuesting.Integration;
 
 namespace BrilliantQuesting.Plugin
 {
@@ -15,10 +16,10 @@ namespace BrilliantQuesting.Plugin
     /// back is the character that left, because there was only ever one of them, so no citizen
     /// refresh, rebuilt zone or reloaded save can produce a second.
     ///
-    /// Two members are resolved by name rather than compiled against, following the same rule as
-    /// the Home writer: neither has been read off a running game, a build that has neither reports
-    /// the capability unsupported, and the call is verified by asking the game where the character
-    /// is afterwards rather than by trusting that it returned.
+    /// The two vanilla members used here are the version-matched EA 23.338 Patch 2 shapes:
+    /// Chara.MoveZone(Zone, ZoneTransition.EnterState) and EClass.game.spatials.Find(int). A move
+    /// is still verified by asking the game where the character is afterwards rather than by
+    /// trusting that the call returned.
     /// </summary>
     internal static class ElinPresence
     {
@@ -26,20 +27,6 @@ namespace BrilliantQuesting.Plugin
 
         /// <summary>The prefix <see cref="ElinVanillaState.GetZoneOf"/> mints zone ids with.</summary>
         internal const string ZonePrefix = "zone_";
-
-        /// <summary>
-        /// A one-argument member that takes a Zone and moves the character into it. Elin moves its
-        /// own characters between zones constantly, so this is the game's mechanic rather than a
-        /// parallel one; what is unknown is only what it is called on this build.
-        /// </summary>
-        private static readonly string[] MoveNames = { "MoveZone", "SetZone", "ChangeZone" };
-
-        /// <summary>
-        /// A one-argument member on the spatial manager that turns a uid back into a Zone.
-        /// Deliberately no bare "Get": a name that generic is as likely to be an indexer over
-        /// something else entirely, and resolving the wrong one would send somebody nowhere.
-        /// </summary>
-        private static readonly string[] FindZoneNames = { "Find", "FindZone", "GetZone" };
 
         internal static EntityId IdOf(Zone zone)
         {
@@ -69,14 +56,13 @@ namespace BrilliantQuesting.Plugin
             MethodInfo find = ResolveFindZone(out Type owner);
             if (move == null || find == null)
             {
-                log?.LogInfo("BQ presence: tried Chara." + string.Join("/", MoveNames)
-                             + "(Zone) and spatials." + string.Join("/", FindZoneNames)
-                             + "(int); move=" + (move == null ? "UNREADABLE" : move.Name)
+                log?.LogInfo("BQ presence: tried Chara.MoveZone(Zone, EnterState)"
+                             + " and spatials.Find(int); move=" + (move == null ? "UNREADABLE" : move.Name)
                              + " findZone=" + (find == null ? "UNREADABLE" : find.Name) + ".");
                 return null;
             }
 
-            return "Chara." + move.Name + "(Zone) and " + owner.Name + "." + find.Name
+            return "Chara." + move.Name + "(Zone, " + move.GetParameters()[1].ParameterType.Name + ") and " + owner.Name + "." + find.Name
                    + "(int) resolved; a move is confirmed by re-reading Chara.currentZone afterwards";
         }
 
@@ -97,6 +83,13 @@ namespace BrilliantQuesting.Plugin
                 return true;
             }
 
+            if (!VanillaApiReflection.LooksGlobal(chara))
+            {
+                log?.LogWarning("BQ presence: refused to move " + chara.uid
+                                + " because vanilla off-screen MoveZone requires an existing global record.");
+                return false;
+            }
+
             try
             {
                 Zone destination = FindZone(uid);
@@ -107,7 +100,14 @@ namespace BrilliantQuesting.Plugin
                     return false;
                 }
 
-                move.Invoke(chara, new object[] { destination });
+                object enterState = VanillaApiReflection.ResolveEnterState(move.GetParameters()[1].ParameterType);
+                if (enterState == null)
+                {
+                    log?.LogWarning("BQ presence: no safe ZoneTransition.EnterState value exists on this build.");
+                    return false;
+                }
+
+                move.Invoke(chara, new[] { destination, enterState });
             }
             catch (Exception ex)
             {
@@ -132,16 +132,7 @@ namespace BrilliantQuesting.Plugin
 
         private static MethodInfo ResolveMove()
         {
-            for (int i = 0; i < MoveNames.Length; i++)
-            {
-                MethodInfo method = typeof(Chara).GetMethod(MoveNames[i], Flags, null, new[] { typeof(Zone) }, null);
-                if (method != null)
-                {
-                    return method;
-                }
-            }
-
-            return null;
+            return VanillaApiReflection.ResolveMoveZone(typeof(Chara));
         }
 
         private static MethodInfo ResolveFindZone(out Type owner)
@@ -152,16 +143,7 @@ namespace BrilliantQuesting.Plugin
                 return null;
             }
 
-            for (int i = 0; i < FindZoneNames.Length; i++)
-            {
-                MethodInfo method = owner.GetMethod(FindZoneNames[i], Flags, null, new[] { typeof(int) }, null);
-                if (method != null && typeof(Zone).IsAssignableFrom(method.ReturnType))
-                {
-                    return method;
-                }
-            }
-
-            return null;
+            return VanillaApiReflection.ResolveSpatialFindZone(owner);
         }
     }
 }

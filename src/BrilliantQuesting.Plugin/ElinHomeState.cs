@@ -43,7 +43,7 @@ namespace BrilliantQuesting.Plugin
         /// </summary>
         private static readonly string[] CapacityNames =
         {
-            "maxResident", "MaxResident", "maxMember", "MaxMember", "capacity", "Capacity"
+            "MaxPopulation"
         };
 
         private static readonly string[] BranchNameNames = { "Name", "name" };
@@ -71,7 +71,7 @@ namespace BrilliantQuesting.Plugin
         /// with some unrelated `Add(Chara)` on it would be handed a person on the strength of a
         /// name, so the write would rather not exist than be wrong.
         /// </summary>
-        private static readonly string[] AdmitNames = { "AddMember", "AddResident", "AddChara" };
+        private const string AdmitName = "AddMemeber";
 
         private static bool _reportedNoAdmit;
 
@@ -143,7 +143,7 @@ namespace BrilliantQuesting.Plugin
                 {
                     _reportedNoAdmit = true;
                     log?.LogWarning("No member of " + branch.GetType().Name + " matched "
-                                    + string.Join("/", AdmitNames) + ", so nobody can be moved into the Home on this build.");
+                                    + AdmitName + "(Chara), so nobody can be moved into the Home on this build.");
                 }
 
                 return false;
@@ -207,16 +207,7 @@ namespace BrilliantQuesting.Plugin
         private static MethodInfo ResolveAdmit(Type type)
         {
             const BindingFlags Flags = BindingFlags.Public | BindingFlags.Instance;
-            for (int i = 0; i < AdmitNames.Length; i++)
-            {
-                MethodInfo method = type.GetMethod(AdmitNames[i], Flags, null, new[] { typeof(Chara) }, null);
-                if (method != null)
-                {
-                    return method;
-                }
-            }
-
-            return null;
+            return type.GetMethod(AdmitName, Flags, null, new[] { typeof(Chara) }, null);
         }
 
         /// <summary>Fills in the residents, and reports whether the game listed them at all.</summary>
@@ -324,7 +315,7 @@ namespace BrilliantQuesting.Plugin
             List<string> unread = new List<string>();
             if (!home.CapacityKnown)
             {
-                unread.Add("capacity (tried " + string.Join("/", CapacityNames) + ")");
+                unread.Add("capacity (tried " + CapacityNames[0] + ")");
             }
 
             if (!residentsListed)

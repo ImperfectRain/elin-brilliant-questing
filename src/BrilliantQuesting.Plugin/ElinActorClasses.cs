@@ -26,38 +26,6 @@ namespace BrilliantQuesting.Plugin
     /// </summary>
     internal static class ElinActorClasses
     {
-        /// <summary>
-        /// "This character is one of a kind." Elin's own notion of a named NPC, which is the line
-        /// between somebody the world will regenerate and somebody it will not.
-        /// </summary>
-        private static readonly string[] UniqueNames = { "IsUnique", "isUnique", "IsUniqueName" };
-
-        /// <summary>
-        /// "This character belongs to the main story." Read off the source sheet as well as the
-        /// Chara, because a story role is a property of who they are rather than of the instance.
-        /// </summary>
-        private static readonly string[] StoryNames =
-        {
-            "IsMainCharacter", "isMainCharacter", "IsUniqueCharacter", "IsImportantNPC", "isImportant"
-        };
-
-        /// <summary>The source-sheet row behind a Chara, where the story-ness of a role lives.</summary>
-        private static readonly string[] SourceNames = { "source" };
-
-        /// <summary>
-        /// A source-sheet tag list. Elin tags rows with things like "god" and "noRandomProduct";
-        /// a story tag on the row is a stronger statement than any flag on one instance.
-        /// </summary>
-        private static readonly string[] TagNames = { "tag", "tags" };
-
-        /// <summary>
-        /// Deliberately narrow. A wider list - "quest", "unique", "boss" - would only ever
-        /// over-protect, which is the safe direction, but over-protecting half the town would
-        /// quietly close the shelter routes for everybody and look like a bug rather than a
-        /// policy. These three say "main story" and nothing else does.
-        /// </summary>
-        private static readonly string[] StoryTags = { "story", "mainquest", "main_quest" };
-
         private static bool _reportedShape;
 
         /// <summary>
@@ -73,37 +41,40 @@ namespace BrilliantQuesting.Plugin
 
             try
             {
-                bool? story = ReadFlag(chara, StoryNames);
-                object source = ReadMember(chara, SourceNames);
-                if (story != true && source != null)
+                bool pc = VanillaApiReflection.HasTrueFlag(chara, "IsPC");
+                bool party = VanillaApiReflection.HasTrueFlag(chara, "IsPCParty");
+                if (pc)
                 {
-                    story = ReadFlag(source, StoryNames) ?? story;
+                    return NarrativeActorClass.Player;
                 }
 
-                if (story != true && HasStoryTag(source))
-                {
-                    story = true;
-                }
-
-                bool? unique = ReadFlag(chara, UniqueNames) ?? ReadFlag(source, UniqueNames);
-                Report(log, story.HasValue, unique.HasValue);
-
-                if (story == true)
+                if (party)
                 {
                     return NarrativeActorClass.StoryCritical;
                 }
 
-                if (unique == true)
+                bool unique = VanillaApiReflection.HasTrueFlag(chara, "IsUnique")
+                              || VanillaApiReflection.ReadObject(chara, "c_uniqueData") != null
+                              || TraitLooksUnique(chara);
+                bool important = VanillaApiReflection.HasTrueFlag(chara, "IsImportant")
+                                 || VanillaApiReflection.HasTrueFlag(chara, "c_isImportant")
+                                 || VanillaApiReflection.ReadObject(chara, "quest") != null;
+                bool homeOrBranch = VanillaApiReflection.HasTrueFlag(chara, "IsHomeMember")
+                                    || VanillaApiReflection.HasTrueFlag(chara, "IsBranchMember");
+
+                Report(log);
+
+                if (important)
+                {
+                    return NarrativeActorClass.StoryCritical;
+                }
+
+                if (unique || homeOrBranch)
                 {
                     return NarrativeActorClass.UniqueService;
                 }
 
-                // An ordinary citizen only when both questions were actually answered. One
-                // unreadable flag and this is an actor the mod may talk to, pay and rob but must
-                // never move or remove.
-                return story.HasValue && unique.HasValue
-                    ? NarrativeActorClass.OrdinaryCitizen
-                    : NarrativeActorClass.Unknown;
+                return NarrativeActorClass.OrdinaryCitizen;
             }
             catch (Exception)
             {
@@ -111,7 +82,7 @@ namespace BrilliantQuesting.Plugin
             }
         }
 
-        private static void Report(ManualLogSource log, bool storyReadable, bool uniqueReadable)
+        private static void Report(ManualLogSource log)
         {
             if (_reportedShape || log == null)
             {
@@ -119,91 +90,16 @@ namespace BrilliantQuesting.Plugin
             }
 
             _reportedShape = true;
-            log.LogInfo("BQ actor classification: story flag "
-                        + (storyReadable ? "readable" : "UNREADABLE")
-                        + ", unique flag " + (uniqueReadable ? "readable" : "UNREADABLE")
-                        + ". Unreadable means every character is Unknown, which keeps social and "
-                        + "inventory routes and closes relocation and removal.");
+            log.LogInfo("BQ actor classification: using IsPC/IsPCParty, IsUnique, IsImportant, "
+                        + "c_uniqueData, c_isImportant, TraitUniqueChara, quest and Home/branch flags. "
+                        + "Unreadable actors remain Unknown and close relocation/removal.");
         }
 
-        private static bool HasStoryTag(object source)
+        private static bool TraitLooksUnique(Chara chara)
         {
-            object tags = ReadMember(source, TagNames);
-            string text = TagText(tags);
-            if (string.IsNullOrEmpty(text))
-            {
-                return false;
-            }
-
-            for (int i = 0; i < StoryTags.Length; i++)
-            {
-                if (text.IndexOf(StoryTags[i], StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static string TagText(object tags)
-        {
-            if (tags == null)
-            {
-                return null;
-            }
-
-            if (tags is string single)
-            {
-                return single;
-            }
-
-            if (tags is System.Collections.IEnumerable list)
-            {
-                string joined = string.Empty;
-                foreach (object item in list)
-                {
-                    joined += (item == null ? string.Empty : item.ToString()) + ",";
-                }
-
-                return joined;
-            }
-
-            return tags.ToString();
-        }
-
-        /// <summary>A bool member by any of these names, or null when this build has none of them.</summary>
-        private static bool? ReadFlag(object target, string[] names)
-        {
-            object value = ReadMember(target, names);
-            return value is bool flag ? flag : (bool?)null;
-        }
-
-        private static object ReadMember(object target, string[] names)
-        {
-            if (target == null)
-            {
-                return null;
-            }
-
-            Type type = target.GetType();
-            for (int i = 0; i < names.Length; i++)
-            {
-                PropertyInfo property = type.GetProperty(
-                    names[i], BindingFlags.Public | BindingFlags.Instance);
-                if (property != null && property.CanRead && property.GetIndexParameters().Length == 0)
-                {
-                    return property.GetValue(target, null);
-                }
-
-                FieldInfo field = type.GetField(names[i], BindingFlags.Public | BindingFlags.Instance);
-                if (field != null)
-                {
-                    return field.GetValue(target);
-                }
-            }
-
-            return null;
+            object trait = VanillaApiReflection.ReadObject(chara, "trait");
+            return trait != null
+                   && trait.GetType().Name.IndexOf("TraitUniqueChara", StringComparison.OrdinalIgnoreCase) >= 0;
         }
     }
 }

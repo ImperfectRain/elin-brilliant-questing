@@ -3,9 +3,9 @@ using BrilliantQuesting.Foundation;
 namespace BrilliantQuesting.Checks
 {
     /// <summary>
-    /// Rolls a check. Two implementations are expected: the vanilla-style one in this assembly
-    /// (used headless, and as the fallback in game), and a thin adapter in the plugin that calls
-    /// Elin's own Check.Perform once the runtime spike confirms it is safe to do so.
+    /// Rolls a check. BQ procedural checks are replay-authoritative, so their outcomes come from
+    /// a deterministic resolver. The plugin may use vanilla Check rows for presentation text, but
+    /// must not choose Elin Check.Perform for composite BQ resolution merely because it exists.
     /// </summary>
     public interface ICheckResolver
     {
