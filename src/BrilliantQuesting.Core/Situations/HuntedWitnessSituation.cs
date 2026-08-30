@@ -42,6 +42,9 @@ namespace BrilliantQuesting.Situations
         /// <summary>A neighbour, standing in the lane. Somebody for the town's reaction to land on.</summary>
         public EntityId NeighbourId { get; private set; }
 
+        /// <summary>The guard who can follow the rumour home if sanctuary leaks.</summary>
+        public EntityId GuardId { get; private set; }
+
         /// <summary>The claim that she is not safe. This is what every Home route answers.</summary>
         public EntityId ExposureFactId { get; private set; }
 
@@ -61,8 +64,10 @@ namespace BrilliantQuesting.Situations
                 LaneZoneId = lane,
                 DepositionId = world.NewId("item")
             };
+            EntityId guardPost = world.NewId("zone");
 
             world.Registry.Add(new NarrativeSite(lane, "Coldbeck lane", "lane"));
+            world.Registry.Add(new NarrativeSite(guardPost, "Coldbeck watch house", "guard_post"));
 
             NarrativeNpc witness = world.Registry.Add(new NarrativeNpc(world.NewId("npc"), "Sella")
             {
@@ -79,10 +84,17 @@ namespace BrilliantQuesting.Situations
                 Occupation = "carter",
                 Importance = NarrativeImportance.Background
             });
+            NarrativeNpc guard = world.Registry.Add(new NarrativeNpc(world.NewId("npc"), "Ovel")
+            {
+                Occupation = "guard",
+                Importance = NarrativeImportance.Known
+            });
+            guard.Roles.Add(AuthorityPolicy.GuardRole);
 
             situation.WitnessId = witness.Id;
             situation.HunterId = hunter.Id;
             situation.NeighbourId = neighbour.Id;
+            situation.GuardId = guard.Id;
 
             stager.StageCharacter(witness.Id, new CharacterBlueprint(witness.Name)
                     .With(VanillaAttribute.Will, 9)
@@ -95,6 +107,10 @@ namespace BrilliantQuesting.Situations
             stager.StageCharacter(neighbour.Id, new CharacterBlueprint(neighbour.Name)
                     .With(VanillaAttribute.Perception, 11),
                 lane);
+            stager.StageCharacter(guard.Id, new CharacterBlueprint(guard.Name)
+                    .With(VanillaAttribute.Will, 13)
+                    .With(VanillaSkill.Negotiation, 8),
+                guardPost);
 
             // What she saw. True, provable, and nobody's business but hers until she says so.
             Fact killing = new Fact(
@@ -120,8 +136,10 @@ namespace BrilliantQuesting.Situations
 
             world.Knowledge.Teach(witness.Id, exposure.Id, KnowledgeSource.Participant, 1.0, now, true);
             world.Knowledge.Teach(player, exposure.Id, KnowledgeSource.Hearsay, 0.9, now, false, witness.Id);
+            world.Knowledge.Teach(guard.Id, exposure.Id, KnowledgeSource.Hearsay, 0.55, now, false, hunter.Id);
 
             hunter.Goals.Add(new NpcGoal("silence_the_witness", witness.Id, 90));
+            guard.Goals.Add(new NpcGoal("check_on_the_witness", witness.Id, 55));
 
             NarrativeThread thread = new NarrativeThread(world.NewId("thread"), ArchetypeId, now)
             {
@@ -131,9 +149,11 @@ namespace BrilliantQuesting.Situations
             };
             thread.ParticipantIds.Add(witness.Id);
             thread.ParticipantIds.Add(hunter.Id);
+            thread.ParticipantIds.Add(guard.Id);
             thread.FactIds.Add(exposure.Id);
             thread.FactIds.Add(killing.Id);
             thread.SiteIds.Add(lane);
+            thread.SiteIds.Add(guardPost);
             thread.OpenQuestions.Add("Where can Sella be, that Brann is not?");
             thread.Escalation.Add(new EscalationStep("brann_finds_her", 4, "Brann finds Sella alone."));
 
@@ -186,6 +206,7 @@ namespace BrilliantQuesting.Situations
 
             EntityId witness = thread.ParticipantIds.Count > 0 ? thread.ParticipantIds[0] : EntityId.None;
             EntityId hunter = thread.ParticipantIds.Count > 1 ? thread.ParticipantIds[1] : EntityId.None;
+            EntityId guard = thread.ParticipantIds.Count > 2 ? thread.ParticipantIds[2] : EntityId.None;
             EntityId place = DiscoveryPlace(thread);
             Fact shelter = FindShelter(world, witness);
 
@@ -230,6 +251,11 @@ namespace BrilliantQuesting.Situations
                 place,
                 related: shelter == null ? new[] { exposure.Id } : new[] { shelter.Id, exposure.Id },
                 threadId: thread.Id);
+
+            if (step.Id == Undertakings.ResidentDiscoveredStep)
+            {
+                BringGuardToHome(world, thread, guard, witness, shelter, exposure, now);
+            }
         }
 
         private EntityId DiscoveryPlace(NarrativeThread thread)
@@ -241,6 +267,42 @@ namespace BrilliantQuesting.Situations
             }
 
             return thread.SiteIds.Count > 0 ? thread.SiteIds[0] : EntityId.None;
+        }
+
+        private void BringGuardToHome(
+            NarrativeWorldState world,
+            NarrativeThread thread,
+            EntityId guard,
+            EntityId witness,
+            Fact shelter,
+            Fact exposure,
+            GameTime now)
+        {
+            HomeState home = _vanilla.GetHomeState();
+            if (home == null || home.ZoneId.IsNone || guard.IsNone)
+            {
+                return;
+            }
+
+            if (!_vanilla.TrySendAway(guard, home.ZoneId))
+            {
+                return;
+            }
+
+            if (shelter != null)
+            {
+                world.Knowledge.Teach(guard, shelter.Id, KnowledgeSource.Hearsay, 0.75, now, false);
+            }
+
+            world.Record(
+                WorldEventType.InquiryOpened,
+                guard,
+                witness,
+                now,
+                0.45,
+                home.ZoneId,
+                related: shelter == null ? new[] { exposure.Id } : new[] { shelter.Id, exposure.Id },
+                threadId: thread.Id);
         }
 
         private static Fact FindShelter(NarrativeWorldState world, EntityId witness)

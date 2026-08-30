@@ -357,6 +357,57 @@ namespace BrilliantQuesting.Tests
                 && e.Target == lab.Witness);
         }
 
+        /// <summary>
+        /// BQ-042. The sanctuary archetype is not complete when the fugitive merely disappears
+        /// into a fact. If the Home is unsafe enough for the story to leak, the consequence can
+        /// come to the player's land as an actual authority actor through the normal relocation
+        /// seam.
+        /// </summary>
+        [Fact]
+        public void LeakedSanctuaryCanBringAGuardToThePlayersLand()
+        {
+            SanctuaryLab lab = SanctuaryLab.Create(
+                CheckOutcome.Pass,
+                HuntedWitnessSituation.Smallholding(SanctuaryLab.SteadingZone, SanctuaryLab.ResidentA)
+                    .WithCapacity(4)
+                    .WithMetric(HomeMetric.Safety, 2));
+
+            Assert.NotEqual(SanctuaryLab.SteadingZone, lab.Vanilla.GetZoneOf(lab.Guard));
+
+            lab.Run("shelter", lab.Witness);
+            lab.AdvanceDays(4);
+
+            Assert.Equal(SanctuaryLab.SteadingZone, lab.Vanilla.GetZoneOf(lab.Guard));
+            Fact undertaking = lab.World.Knowledge.FindFact(lab.Witness, FactPredicates.ShelteredBy);
+            Assert.True(lab.World.Knowledge.Knows(lab.Guard, undertaking.Id));
+            Assert.Contains(lab.World.Ledger.Events, e =>
+                e.Type == WorldEventType.InquiryOpened
+                && e.Actor == lab.Guard
+                && e.Target == lab.Witness
+                && e.Zone == SanctuaryLab.SteadingZone
+                && e.Related.Contains(undertaking.Id));
+        }
+
+        [Fact]
+        public void GuardArrivalIsNotRecordedWhenTheMoveIsNotVerified()
+        {
+            SanctuaryLab lab = SanctuaryLab.Create(
+                CheckOutcome.Pass,
+                HuntedWitnessSituation.Smallholding(SanctuaryLab.SteadingZone, SanctuaryLab.ResidentA)
+                    .WithCapacity(4)
+                    .WithMetric(HomeMetric.Safety, 2));
+            lab.Vanilla.SetCapability(VanillaCapability.MoveCharaBetweenZones, false);
+
+            lab.Run("shelter", lab.Witness);
+            lab.AdvanceDays(4);
+
+            Assert.NotEqual(SanctuaryLab.SteadingZone, lab.Vanilla.GetZoneOf(lab.Guard));
+            Assert.DoesNotContain(lab.World.Ledger.Events, e =>
+                e.Type == WorldEventType.InquiryOpened
+                && e.Actor == lab.Guard
+                && e.Zone == SanctuaryLab.SteadingZone);
+        }
+
         // -- one primitive, four undertakings -------------------------------------------------
 
         /// <summary>
@@ -637,6 +688,8 @@ namespace BrilliantQuesting.Tests
             public EntityId Hunter => Situation.HunterId;
 
             public EntityId Neighbour => Situation.NeighbourId;
+
+            public EntityId Guard => Situation.GuardId;
 
             /// <summary>The settlement this laboratory assumes unless a test says otherwise.</summary>
             private static HomeStateBuilder DefaultHome()

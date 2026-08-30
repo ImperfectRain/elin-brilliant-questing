@@ -696,6 +696,12 @@ Economy, demand, production, investment, caravans.
 Home, Karma, witnesses, trust, consequences arriving at the player.
 - **Depends** BQ-027, BQ-048.
 - **Done when** sheltering a fugitive at Home can later bring guards or creditors to the player's land.
+- **Current implementation** the hunted-witness sanctuary archetype now includes a guard actor with
+  existing authority standing. When low or unread Home Public Safety lets a resident undertaking
+  leak, the escalation teaches the pursuer and guard where the witness went, moves the generated
+  guard to the player's Home through the existing relocation seam, and records an `InquiryOpened`
+  event at Home only if the move succeeds. Broader arrest, Karma, creditor and legal judgement
+  behavior remains later authority/economy work.
 - **Sources** PM §30, §74; LW §9.2.
 
 #### BQ-043 — Archetype: missing person / failed caravan
