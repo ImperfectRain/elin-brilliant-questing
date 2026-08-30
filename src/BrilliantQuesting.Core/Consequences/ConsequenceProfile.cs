@@ -112,7 +112,12 @@ namespace BrilliantQuesting.Consequences
                 { WorldEventType.SiteDiscovered, new ConsequenceProfile("discovered_site", MemoryWeight.Routine, 0, 0, fame: 1) },
                 { WorldEventType.SiteCleared, new ConsequenceProfile("cleared_site", MemoryWeight.Important, 8, 3, fame: 2) },
                 { WorldEventType.ThreadEscalated, new ConsequenceProfile("thread_escalated", MemoryWeight.Routine, 0) },
-                { WorldEventType.ThreadResolved, new ConsequenceProfile("thread_resolved", MemoryWeight.Notable, 4, 1) }
+                { WorldEventType.ThreadResolved, new ConsequenceProfile("thread_resolved", MemoryWeight.Notable, 4, 1) },
+
+                // Being turned down costs the asker nothing with the person who turned them down.
+                // A guild officer who will not commit his people has not been wronged and has not
+                // wronged anybody, and moving affinity here would make an honest no into a slight.
+                { WorldEventType.RequestDeclined, new ConsequenceProfile("turned_down_a_request", MemoryWeight.Routine, 0) }
             };
 
         private static readonly HashSet<WorldEventType> ProfileExemptions = new HashSet<WorldEventType>();

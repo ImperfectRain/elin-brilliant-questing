@@ -87,6 +87,13 @@ namespace BrilliantQuesting.Actions
                 case "clear_obstruction":
                 case "mine_bypass":
                 case "break_barrier":
+                // Committing a guild to a matter of its own ends that situation and frequently is
+                // the only ending a guild build has in it, which would argue for the tier above -
+                // except that the tier above is exactly seven verbs and the live surface shows
+                // seven choices. It sits here for the reason the physical and Home endings do: an
+                // ending in its own situation must not displace the cross-situation resolutions,
+                // and nothing above it is available in a guild hall anyway.
+                case "invoke_authority":
                     return 1;
 
                 // Moves someone who is not yet willing.

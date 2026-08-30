@@ -15,7 +15,7 @@
 | `Karma/ChangeKarma` | `EClass.player.karma`, `ModKarma` | `VERIFIED-RUNTIME` zero-delta | Social mutation |
 | `Fame/ChangeFame` | `EClass.player.fame`, `ModFame` | `VERIFIED-RUNTIME` zero-delta | Social mutation |
 | `GetInfluence/ChangeInfluence` | `Card.GetCurrency/ModCurrency("influence")` | `VERIFIED-RUNTIME` | Social mutation |
-| `IsGuildMember/GetGuildRank` | `Guild.IsMember`, `FactionRelation.rank/exp/ExpToNext` | `VERIFIED-RUNTIME`, `SOURCE-OBSERVED` | Current rank is stale binary fallback |
+| `IsGuildMember/GetGuildRank/GetGuildContribution` | `Guild.IsMember`, `FactionRelation.rank`, `FactionRelation.exp` | `VERIFIED-RUNTIME` membership, `SOURCE-OBSERVED` rank/exp | Reads the real numbers since `BQ-038`; both 0 when unread, and 0 refuses |
 | `GetWorshippedDeity/GetPiety` | `Chara.idFaith`, element `85` | `VERIFIED-RUNTIME`, `SOURCE-DATA` | PC faith `harvest` |
 | `GetMoney/TrySpendMoney` | `money` currency | `VERIFIED-RUNTIME` | Inventory mutation |
 | `GetInventory` | `Chara.things`; active zone loose items via `EClass._map.things` not yet integrated | `VERIFIED-RUNTIME`, `SOURCE-OBSERVED` | Character inventories only today |

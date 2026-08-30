@@ -142,6 +142,8 @@ Blocks: BQ-037/BQ-038, guild-gated route difficulty, future faction affordances.
 
 Priority: High.
 
+Taken: `BQ-038`. `GetGuildRank` now reads `guild.relation.rank` and a separate `GetGuildContribution` reads `guild.relation.exp`; `IsGuildMember` is unchanged. Still `SOURCE-OBSERVED` - the member names have not been exercised on a running game, and the plugin could not be compiled where the change was made.
+
 ## FIX-ELIN-008
 
 Title: Add active-zone loose item inventory surface.

@@ -65,6 +65,22 @@ namespace BrilliantQuesting.Integration
 
         int GetGuildRank(GuildId guild);
 
+        /// <summary>
+        /// What this member has put into that guild, as the game's own per-guild progression.
+        ///
+        /// Rank says what the player is inside the guild; this says how much of it they earned
+        /// rather than how long ago. Kept separate from <see cref="GetGuildRank"/> rather than
+        /// folded into it because the two answer different questions and vanilla keeps them apart
+        /// as well, and separate from the player-wide `contribution` currency, which is one number
+        /// for all four guilds and so cannot say which of them is owed anything.
+        ///
+        /// Zero for a guild the player is not in, and zero on a build that cannot read it. Zero is
+        /// "nothing put in" rather than "unknown", so a caller may let it lower a difficulty and
+        /// must not let it open a route: an unread number that decided availability would be
+        /// exactly the guess decision D017 refuses.
+        /// </summary>
+        int GetGuildContribution(GuildId guild);
+
         string GetWorshippedDeity(EntityId chara);
 
         int GetPiety(EntityId chara);

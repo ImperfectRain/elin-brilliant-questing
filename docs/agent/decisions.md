@@ -223,7 +223,7 @@ be the most conservative one in the mod, not the most convenient.
 
 ## D024 — A guild is a channel and a reading, and access gates the reading
 
-Guild membership does two things and no third. It **carries** claims between members wherever they
+Guild membership **carries** claims between members wherever they
 are standing - a route the street does not have - and it **reads** what it carries: the same
 robbery is a bounty to the Fighters and stock to the Thieves. What a network carries is its
 interest in the predicate ontology, so one event reaches four guilds differently, or not at all,
@@ -239,5 +239,39 @@ Reason: a network that withheld facts would close routes on a build rather than 
 D012's line and the availability model's. Framing the interest as a table over predicates rather
 than over situations is what keeps four guilds from becoming four quest pools; keeping the routing
 inside the day the gossip scheduler already governs is what stops a reload from running it twice.
+
+What a guild does with what it reads is `D025`.
+
+## D025 — A guild also acts on its reading, on conditions only, and spends its own willingness
+
+A member with standing can commit a guild to a matter its own interest table already reads as its
+business. Three rules bound it.
+
+**The same table decides, and it decides alone.** Which guild a matter belongs to is
+`GuildNetworks.Reads` over the predicate ontology, never a per-situation or per-guild authoring, so
+one verb commits the Fighters to somebody in danger and the Merchants to a town that is short
+without either being written anywhere as a guild's quest.
+
+**Only a standing trouble can be answered.** A guild may end a condition that is wrong now - somebody
+exposed, a thing broken, a road shut, a demand unmet - and never a thing that happened. History does
+not become answerable because a network takes an interest in it.
+
+**Membership is a precondition; rank and contribution are read and never written.** A non-member is
+refused by name and keeps every route that is his own hands, which is `D012`'s line with the guild
+in the role the receiver and the deity already hold: the party doing the work declines a stranger.
+Rank is a threshold against the size of the matter and contribution moves the odds; both are read
+from vanilla, because the guild's opinion of its members is vanilla's to keep. What the asking
+spends is the guild's willingness - a hall that refuses will not be asked the same thing again by
+the same member, and a botched asking puts the matter beyond that guild for everybody.
+
+What is superseded is the claim, not a body. An answered matter records that the guild took it on
+and never removes an Elin creature or moves an actor (`D021`); whoever states a claim owns whether a
+live character stands behind it.
+
+Reason: without the first rule four networks become four quest pools, which is what `D024` exists to
+prevent, and the mechanic would not generalise past whichever situation it was written for. Without
+the second a guild becomes a way to edit the past. Without the third it is either a wish - free,
+repeatable, and worth nothing to have earned - or a second progression system quietly disagreeing
+with the one the player can see on the guild board.
 
 Add a new entry only when the decision is both load-bearing and durable.

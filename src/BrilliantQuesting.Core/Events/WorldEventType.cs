@@ -115,6 +115,16 @@ namespace BrilliantQuesting.Events
         SiteDiscovered,
         SiteCleared,
         ThreadEscalated,
-        ThreadResolved
+        ThreadResolved,
+
+        /// <summary>
+        /// Somebody with the standing to say yes said no.
+        ///
+        /// Not a refusal to speak and not a judgement about a claim - the matter was understood
+        /// and the answer was that this body will not take it on. It is recorded because the
+        /// answer is durable: asking the same person the same thing again with nothing new is the
+        /// same request, not a second one, and the only place that can be read off is history.
+        /// </summary>
+        RequestDeclined
     }
 }

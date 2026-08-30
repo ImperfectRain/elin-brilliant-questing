@@ -16,8 +16,9 @@ Every current Elin-facing BQ dependency is listed here. `Last checked` is `EA 23
 | API-010 | `Karma/ChangeKarma` | `EClass.player.karma`, `Player.ModKarma(int)` | Mutation, `Social` | `VERIFIED-RUNTIME` zero-delta | No-op if unsupported/out-of-band | Consequences | Medium |
 | API-011 | `Fame/ChangeFame` | `EClass.player.fame`, `Player.ModFame(int)` | Mutation, `Social` | `VERIFIED-RUNTIME` zero-delta | No-op if unsupported/out-of-band | Consequences | Medium |
 | API-012 | `GetInfluence/ChangeInfluence` | `Card.GetCurrency("influence")`, `ModCurrency(int,"influence")` | Mutation, `Social` | `VERIFIED-RUNTIME` zero-delta | Clamps spend | Civic/underworld actions | Medium |
-| API-013 | `GetContribution` | `Card.GetCurrency("contribution")` | Read | `VERIFIED-RUNTIME` debug line | Returns 0 | Debug/standing | Low |
-| API-014 | `IsGuildMember/GetGuildRank` | `Guild.IsMember`, `FactionRelation.rank/exp/ExpToNext` | Read | `VERIFIED-RUNTIME` membership, `VERIFIED-METADATA`, `SOURCE-OBSERVED` rank | Current BQ returns binary rank | Underworld/guild gating | Medium |
+| API-013 | `GetContribution` | `Card.GetCurrency("contribution")` | Read | `VERIFIED-RUNTIME` debug line | Returns 0 | Debug/standing only; player-wide, not per guild | Low |
+| API-014 | `IsGuildMember/GetGuildRank` | `Guild.IsMember`, `FactionRelation.rank` | Read | `VERIFIED-RUNTIME` membership, `VERIFIED-METADATA`, `SOURCE-OBSERVED` rank | 0 when unread, which every threshold refuses | Underworld/guild gating, guild authority | Medium |
+| API-050 | `GetGuildContribution` | `Guild.IsMember`, `FactionRelation.exp` | Read | `VERIFIED-METADATA`, `SOURCE-OBSERVED`; no runtime read of a member save | 0 when unread; contributes to odds, never to a gate | Guild authority difficulty | Medium |
 | API-015 | `GetWorshippedDeity` | `Chara.idFaith` | Read | `VERIFIED-METADATA`, `VERIFIED-RUNTIME`, `SOURCE-DATA` | Empty string | Faith actions | Medium |
 | API-016 | `GetMoney/TrySpendMoney` | `Card.GetCurrency("money")`, `ModCurrency` | Mutation, `Inventory` | `VERIFIED-RUNTIME` zero-delta | Refuses unresolved/insufficient funds | Bribery, payments | Medium |
 | API-017 | `GetInventory` | `Chara.things`, `ThingContainer` enumeration | Read | `VERIFIED-RUNTIME` PC inventory count 33 | Empty list | Crime, evidence, production | High |

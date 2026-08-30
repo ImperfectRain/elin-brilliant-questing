@@ -35,7 +35,7 @@ namespace BrilliantQuesting.Tests
         {
             "Now", "PlayerId", "Supports", "GetActorClass",
             "IsAlive", "GetAttribute", "GetSkill", "GetLevel", "GetAffinity",
-            "Karma", "Fame", "GetInfluence", "IsGuildMember", "GetGuildRank",
+            "Karma", "Fame", "GetInfluence", "IsGuildMember", "GetGuildRank", "GetGuildContribution",
             "GetWorshippedDeity", "GetPiety",
             "GetMoney", "GetInventory",
             "GetHomeState",

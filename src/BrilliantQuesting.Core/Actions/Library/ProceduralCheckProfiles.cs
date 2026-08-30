@@ -245,6 +245,21 @@ namespace BrilliantQuesting.Actions.Library
             .WithActorAttribute(VanillaAttribute.Will, 0.2)
             .WithActorAttribute(VanillaAttribute.Magic, 0.15);
 
+        /// <summary>
+        /// Putting a matter to a body you belong to and getting it taken on.
+        ///
+        /// Uncontested for the same reason the devotional profile is: a guild officer is not
+        /// somebody the member is rolling against, and whether the guild will hear the ask at all
+        /// is settled by membership, rank and the size of what is being asked before the dice come
+        /// out. What is left for the check is how the asking goes - putting a case to people who
+        /// already know you, which is Elin's own Negotiation, the Charisma under it, and the Will
+        /// to press a hall that would rather be doing something else.
+        /// </summary>
+        public static readonly CheckProfile GuildStanding = new CheckProfile("proc_guild_standing", 12)
+            .WithActorSkill(VanillaSkill.Negotiation, 0.4)
+            .WithActorAttribute(VanillaAttribute.Charisma, 0.2)
+            .WithActorAttribute(VanillaAttribute.Will, 0.15);
+
         /// <summary>Moving a physical obstruction by strength and stamina.</summary>
         public static readonly CheckProfile Clearing = new CheckProfile("proc_clearing", 12)
             .WithActorAttribute(VanillaAttribute.Strength, 0.35)
@@ -397,6 +412,10 @@ namespace BrilliantQuesting.Actions.Library
                 // an altar is not a skill test - either you have something to give and the god is
                 // yours, or you do not - so `make_offering` deliberately has no profile at all.
                 case "invoke_blessing": return Devotion;
+
+                // The other petition. Whether the hall will hear it is settled before the dice,
+                // exactly as the god's is; what the roll decides is how the asking goes.
+                case "invoke_authority": return GuildStanding;
 
                 case "clear_obstruction": return Clearing;
                 case "mine_bypass": return MiningBypass;

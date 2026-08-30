@@ -14,7 +14,19 @@ namespace BrilliantQuesting.Actions.Library
         /// <summary>Someone who likes you is easier to talk round. Roughly one point of DC per 12 affinity.</summary>
         public static CheckRequestExtensions.Modifier Rapport(ActionContext context)
         {
-            int affinity = context.Affinity;
+            return Rapport(context, context.Target);
+        }
+
+        /// <summary>
+        /// The same term against somebody who is not the named target.
+        ///
+        /// A verb that finds the person it deals with - the receiver in the alley, the officer who
+        /// speaks for the hall - is dealing with them whether or not the caller named them, and
+        /// their goodwill counts for exactly what a named target's would.
+        /// </summary>
+        public static CheckRequestExtensions.Modifier Rapport(ActionContext context, EntityId who)
+        {
+            int affinity = who.IsNone ? 0 : context.Vanilla.GetAffinity(who);
             return new CheckRequestExtensions.Modifier("rapport", -(affinity / 12));
         }
 
@@ -93,11 +105,21 @@ namespace BrilliantQuesting.Actions.Library
             return new CheckRequestExtensions.Modifier("home " + label, -Clamp(value / 20, -4, 4));
         }
 
-        /// <summary>Guild standing as social authority, where the guild is relevant to the ask.</summary>
+        /// <summary>
+        /// Guild standing as social authority, where the guild is relevant to the ask.
+        ///
+        /// Both halves of what the game keeps about a member: the rank they hold and what they
+        /// have put in to hold it. Rank is what the guild calls them and contribution is what it
+        /// owes them, and a member who has done a great deal for it is listened to further than
+        /// their title alone would carry - which is why the two are added rather than one standing
+        /// in for the other.
+        /// </summary>
         public static CheckRequestExtensions.Modifier GuildAuthority(ActionContext context, GuildId guild)
         {
             int rank = context.Vanilla.GetGuildRank(guild);
-            return new CheckRequestExtensions.Modifier(guild + " standing", -Clamp(rank, 0, 5));
+            int contribution = context.Vanilla.GetGuildContribution(guild);
+            return new CheckRequestExtensions.Modifier(
+                guild + " standing", -(Clamp(rank, 0, 5) + Clamp(contribution / 25, 0, 4)));
         }
 
         private static int Clamp(int value, int min, int max)
