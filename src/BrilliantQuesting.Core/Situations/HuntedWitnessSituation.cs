@@ -1,4 +1,5 @@
 using BrilliantQuesting.Actions.Library;
+using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
@@ -158,6 +159,103 @@ namespace BrilliantQuesting.Situations
             }
 
             return builder;
+        }
+    }
+
+    /// <summary>
+    /// The BQ-048 consequence surface for the Home. Sheltering somebody is not merely a dialogue
+    /// ending: the settlement's own Public Safety decides whether that undertaking stays quiet or
+    /// becomes a later problem. The handler records only narrative consequences; it does not move
+    /// actors or write Elin Home numbers.
+    /// </summary>
+    public sealed class HuntedWitnessEscalation : IThreadEscalationHandler
+    {
+        private readonly IVanillaState _vanilla;
+
+        public HuntedWitnessEscalation(IVanillaState vanilla)
+        {
+            _vanilla = vanilla;
+        }
+
+        public void Apply(NarrativeWorldState world, NarrativeThread thread, EscalationStep step, GameTime now)
+        {
+            if (step.Id != Undertakings.ResidentDiscoveredStep && step.Id != "brann_finds_her")
+            {
+                return;
+            }
+
+            EntityId witness = thread.ParticipantIds.Count > 0 ? thread.ParticipantIds[0] : EntityId.None;
+            EntityId hunter = thread.ParticipantIds.Count > 1 ? thread.ParticipantIds[1] : EntityId.None;
+            EntityId place = DiscoveryPlace(thread);
+            Fact shelter = FindShelter(world, witness);
+
+            if (step.Id == "brann_finds_her" && shelter != null && shelter.Value == Undertakings.Resident)
+            {
+                return;
+            }
+
+            if (step.Id == Undertakings.ResidentDiscoveredStep
+                && (shelter == null || shelter.Value != Undertakings.Resident))
+            {
+                return;
+            }
+
+            if (shelter != null && !hunter.IsNone)
+            {
+                world.Knowledge.Teach(hunter, shelter.Id, KnowledgeSource.Hearsay, 0.85, now, false);
+            }
+
+            Fact exposure = new Fact(
+                world.NewId("fact"),
+                witness,
+                FactPredicates.AtRisk,
+                hunter,
+                step.Id == Undertakings.ResidentDiscoveredStep ? "found_at_home" : "found_alone",
+                TruthState.True);
+            world.Knowledge.AddFact(exposure);
+            thread.FactIds.Add(exposure.Id);
+            if (!witness.IsNone)
+            {
+                world.Knowledge.Teach(witness, exposure.Id, KnowledgeSource.Participant, 1.0, now, true);
+            }
+
+            thread.Tension += step.Id == Undertakings.ResidentDiscoveredStep ? 20 : 30;
+            thread.State = ThreadState.Active;
+            world.Record(
+                WorldEventType.Threatened,
+                hunter,
+                witness,
+                now,
+                step.Id == Undertakings.ResidentDiscoveredStep ? 0.55 : 0.75,
+                place,
+                related: shelter == null ? new[] { exposure.Id } : new[] { shelter.Id, exposure.Id },
+                threadId: thread.Id);
+        }
+
+        private EntityId DiscoveryPlace(NarrativeThread thread)
+        {
+            HomeState home = _vanilla.GetHomeState();
+            if (home != null && !home.ZoneId.IsNone)
+            {
+                return home.ZoneId;
+            }
+
+            return thread.SiteIds.Count > 0 ? thread.SiteIds[0] : EntityId.None;
+        }
+
+        private static Fact FindShelter(NarrativeWorldState world, EntityId witness)
+        {
+            foreach (Fact fact in world.Knowledge.Facts.Values)
+            {
+                if (fact.Subject == witness
+                    && fact.Predicate == FactPredicates.ShelteredBy
+                    && fact.Truth == TruthState.True)
+                {
+                    return fact;
+                }
+            }
+
+            return null;
         }
     }
 }

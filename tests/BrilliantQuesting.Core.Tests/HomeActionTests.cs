@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using BrilliantQuesting.Actions;
 using BrilliantQuesting.Actions.Library;
 using BrilliantQuesting.Checks;
@@ -296,6 +297,66 @@ namespace BrilliantQuesting.Tests
             Assert.True(generous.Vanilla.GetHomeState().IsResident(generous.Witness));
         }
 
+        /// <summary>
+        /// BQ-048. A bed in a rough settlement answers the immediate exposure, but it does not
+        /// make the undertaking quiet. Public Safety is the difference between a closed shelter
+        /// story and one that can bring the hunter to the player's Home later.
+        /// </summary>
+        [Fact]
+        public void LowPublicSafetyTurnsShelteringIntoLaterDiscoveryRisk()
+        {
+            SanctuaryLab lab = SanctuaryLab.Create(
+                CheckOutcome.Pass,
+                HuntedWitnessSituation.Smallholding(SanctuaryLab.SteadingZone, SanctuaryLab.ResidentA)
+                    .WithCapacity(4)
+                    .WithMetric(HomeMetric.Safety, 3));
+
+            ActionOutcome shelter = lab.Run("shelter", lab.Witness);
+
+            Assert.True(shelter.Succeeded);
+            Assert.True(lab.Vanilla.GetHomeState().IsResident(lab.Witness));
+            Assert.Equal(TruthState.Superseded, lab.Fact(lab.Situation.ExposureFactId).Truth);
+            Assert.Equal(ThreadState.Active, lab.Situation.Thread.State);
+            Assert.Null(lab.Situation.Thread.Resolution);
+            Assert.Contains(lab.Situation.Thread.Escalation, step => step.Id == Undertakings.ResidentDiscoveredStep);
+
+            lab.AdvanceDays(4);
+
+            Fact undertaking = lab.World.Knowledge.FindFact(lab.Witness, FactPredicates.ShelteredBy);
+            Assert.NotNull(undertaking);
+            Assert.True(lab.World.Knowledge.Knows(lab.Hunter, undertaking.Id));
+            Assert.Contains(lab.World.Ledger.Events, e =>
+                e.Type == WorldEventType.Threatened
+                && e.Actor == lab.Hunter
+                && e.Target == lab.Witness
+                && e.Zone == SanctuaryLab.SteadingZone
+                && e.Related.Contains(undertaking.Id));
+            Assert.Contains(lab.Situation.Thread.FactIds, id =>
+            {
+                Fact fact = lab.Fact(id);
+                return fact != null
+                       && fact.Predicate == FactPredicates.AtRisk
+                       && fact.Value == "found_at_home"
+                       && fact.Truth == TruthState.True;
+            });
+        }
+
+        [Fact]
+        public void SafePublicSafetyLetsShelterCloseCleanly()
+        {
+            SanctuaryLab lab = SanctuaryLab.Create(CheckOutcome.Pass);
+
+            lab.Run("shelter", lab.Witness);
+            lab.AdvanceDays(4);
+
+            Assert.Equal(ThreadState.Resolved, lab.Situation.Thread.State);
+            Assert.DoesNotContain(lab.Situation.Thread.Escalation, step => step.Id == Undertakings.ResidentDiscoveredStep);
+            Assert.DoesNotContain(lab.World.Ledger.Events, e =>
+                e.Type == WorldEventType.Threatened
+                && e.Actor == lab.Hunter
+                && e.Target == lab.Witness);
+        }
+
         // -- one primitive, four undertakings -------------------------------------------------
 
         /// <summary>
@@ -556,6 +617,8 @@ namespace BrilliantQuesting.Tests
 
             public ActionRegistry Actions { get; private set; }
 
+            public ThreadEngine Threads { get; private set; }
+
             public FixedCheckResolver Checks { get; private set; }
 
             public EntityId Player { get; private set; }
@@ -660,6 +723,8 @@ namespace BrilliantQuesting.Tests
                 lab.Vanilla = vanilla;
                 lab.Player = player;
                 lab.Actions = StandardActions.CreateRegistry();
+                lab.Threads = new ThreadEngine();
+                lab.Threads.Register(HuntedWitnessSituation.ArchetypeId, new HuntedWitnessEscalation(vanilla));
                 lab.Checks = new FixedCheckResolver(outcome);
 
                 SandboxStager stager = new SandboxStager(vanilla);
@@ -709,6 +774,12 @@ namespace BrilliantQuesting.Tests
             public Availability Can(string actionId, EntityId target)
             {
                 return Actions.Get(actionId).GetAvailability(Context(target));
+            }
+
+            public int AdvanceDays(long days)
+            {
+                Vanilla.AdvanceDays(days);
+                return Threads.Advance(World, Vanilla.Now);
             }
         }
     }

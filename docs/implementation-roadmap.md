@@ -745,6 +745,13 @@ Home capacity, beds, food, Public Safety and Public Morality gate what the playe
 what it costs them.
 - **Depends** BQ-030, BQ-027.
 - **Done when** low Public Safety measurably raises the risk of a sheltered fugitive being discovered.
+- **Current implementation** sheltering already spent Elin's resident roll through BQ-027. BQ-048
+  now makes the Home's own Public Safety decide whether that undertaking closes cleanly or remains
+  a later consequence: a safe Home resolves the hunted-witness thread, while a low-safety or
+  unread-safety Home keeps the thread live and schedules a discovery step. The escalation handler
+  records the hunter learning where the witness went, creates a fresh `at_risk` condition, and
+  records a threat at the Home without writing Home metrics, moving actors, or adding a parallel
+  settlement safety system.
 - **Sources** MD §13.7; PM §30, §49; LW §6.4.
 
 #### BQ-049 — Residents as narrative actors

@@ -4,6 +4,7 @@ using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions.Library
@@ -26,6 +27,9 @@ namespace BrilliantQuesting.Actions.Library
 
         /// <summary>No bed. Somebody of this household stands between them and what is after them.</summary>
         public const string Watched = "watched";
+
+        /// <summary>Escalation id for a resident undertaking that leaks in an unsafe Home.</summary>
+        public const string ResidentDiscoveredStep = "resident_discovered";
     }
 
     /// <summary>
@@ -40,6 +44,13 @@ namespace BrilliantQuesting.Actions.Library
         /// is worse than declining to promise it (decision D017).
         /// </summary>
         public const int SafetyForAWatch = 10;
+
+        /// <summary>
+        /// Below this, taking somebody in still gives them a bed but does not make the Home quiet
+        /// enough to end the matter cleanly. This reads Elin's Public Safety instead of inventing
+        /// a stealth/sanctuary stat: a rough settlement leaks where people are hiding.
+        /// </summary>
+        public const int SafetyForQuietSanctuary = 25;
 
         /// <summary>Below this a settlement is feeding itself, not anybody else.</summary>
         public const int SupplyToSpare = 10;
@@ -343,7 +354,15 @@ namespace BrilliantQuesting.Actions.Library
             {
                 exposure.Truth = TruthState.Superseded;
                 outcome.Notes.Add(context.NameOf(context.Target) + " is no longer exposed");
-                ResolveIfNothingIsStillExposed(context, outcome);
+
+                if (KeepsDiscoveryRisk(context, home, outcome))
+                {
+                    EnsureSanctuaryDiscoveryStep(context.Thread);
+                }
+                else
+                {
+                    ResolveIfNothingIsStillExposed(context, outcome);
+                }
             }
             else if (exposure != null)
             {
@@ -352,6 +371,49 @@ namespace BrilliantQuesting.Actions.Library
             }
 
             return outcome;
+        }
+
+        private bool KeepsDiscoveryRisk(ActionContext context, HomeState home, ActionOutcome outcome)
+        {
+            if (context.Thread == null || Undertaking != Undertakings.Resident)
+            {
+                return false;
+            }
+
+            if (!home.TryGetMetric(HomeMetric.Safety, out int safety))
+            {
+                outcome.Notes.Add("the danger is answered, but this build will not say whether the home can keep quiet");
+                return true;
+            }
+
+            if (safety >= Household.SafetyForQuietSanctuary)
+            {
+                return false;
+            }
+
+            outcome.Notes.Add("Public Safety " + safety + " leaves a chance that word reaches whoever was hunting them");
+            return true;
+        }
+
+        private static void EnsureSanctuaryDiscoveryStep(NarrativeThread thread)
+        {
+            if (thread == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < thread.Escalation.Count; i++)
+            {
+                if (thread.Escalation[i].Id == Undertakings.ResidentDiscoveredStep)
+                {
+                    return;
+                }
+            }
+
+            thread.Escalation.Add(new EscalationStep(
+                Undertakings.ResidentDiscoveredStep,
+                4,
+                "Word reaches the person looking for them."));
         }
 
         /// <summary>
