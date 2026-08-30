@@ -145,6 +145,8 @@ namespace BrilliantQuesting.Consequences
                     _vanilla.ChangeAffinity(witness, delta);
                 }
 
+                Trace.Add(WitnessTrace(worldEvent, witness, profile, delta));
+
                 _world.Memories.Add(new MemoryRecord(
                     _world.NewId("mem"),
                     witness,
@@ -177,6 +179,53 @@ namespace BrilliantQuesting.Consequences
 
             int delta = Scale(profile.WitnessAffinity, magnitude * relevance);
             return delta;
+        }
+
+        private string WitnessTrace(WorldEvent worldEvent, EntityId witness, ConsequenceProfile profile, int delta)
+        {
+            string prefix = _world.Registry.NameOf(witness) + " witnessed " + worldEvent.Type + " toward "
+                            + _world.Registry.NameOf(worldEvent.Target) + ": ";
+
+            if (profile.WitnessAffinity == 0)
+            {
+                return prefix + "no affinity effect for this event type";
+            }
+
+            if (BroadWitnessReaction(worldEvent.Type))
+            {
+                return prefix + "broad witness reaction " + Signed(delta) + " (" + profile.SummaryTag + ")";
+            }
+
+            double relevance = WitnessRelevance(worldEvent, witness);
+            if (relevance <= 0.0)
+            {
+                return prefix + "no affinity effect; no positive tie to target, hostile tie to actor, or direct stake";
+            }
+
+            return prefix + "relevance " + relevance.ToString("0.00") + " -> " + Signed(delta)
+                   + " (" + WitnessReason(worldEvent, witness) + ")";
+        }
+
+        private string WitnessReason(WorldEvent worldEvent, EntityId witness)
+        {
+            RelationshipEdge toTarget = _world.Relationships.Find(witness, worldEvent.Target);
+            if (toTarget != null && toTarget.Sentiment > 0)
+            {
+                return toTarget.Kind + " tie to " + _world.Registry.NameOf(worldEvent.Target);
+            }
+
+            RelationshipEdge toActor = _world.Relationships.Find(witness, worldEvent.Actor);
+            if (toActor != null && toActor.Sentiment < 0)
+            {
+                return "hostile " + toActor.Kind + " tie to " + _world.Registry.NameOf(worldEvent.Actor);
+            }
+
+            if (HasDirectStake(worldEvent, witness))
+            {
+                return "direct stake in related fact";
+            }
+
+            return "relevant";
         }
 
         private double WitnessRelevance(WorldEvent worldEvent, EntityId witness)

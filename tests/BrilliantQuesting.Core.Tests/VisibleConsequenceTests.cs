@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using BrilliantQuesting.Actions;
 using BrilliantQuesting.Actions.Library;
 using BrilliantQuesting.Checks;
@@ -246,24 +247,52 @@ namespace BrilliantQuesting.Tests
         /// three times in a row against the same person, banking affinity on each one.
         /// </summary>
         [Fact]
-        public void SmallTalkStopsBeingOfferedOnceItHasDoneAllItCan()
+        public void ImmediateSmallTalkRepeatIsTemporarilyBlocked()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+            NarrativeAction rapport = lab.Actions.Get("rapport");
+            ActionContext first = FullContext(lab, lab.Situation.WitnessId);
+
+            Assert.True(rapport.GetAvailability(first).IsAvailable);
+
+            rapport.Perform(first);
+
+            Availability blocked = rapport.GetAvailability(FullContext(lab, lab.Situation.WitnessId));
+            Assert.False(blocked.IsAvailable);
+            Assert.Contains("recently", blocked.Reason);
+
+            int helped = lab.World.Ledger.Events.Count(e => e.Type == WorldEventType.Helped);
+            int conversed = lab.World.Ledger.Events.Count(e => e.Type == WorldEventType.Conversed);
+
+            lab.Vanilla.AdvanceTime(GameTime.MinutesPerHour * 7);
+
+            Assert.True(rapport.GetAvailability(FullContext(lab, lab.Situation.WitnessId)).IsAvailable);
+            Assert.Equal(helped, lab.World.Ledger.Events.Count(e => e.Type == WorldEventType.Helped));
+            Assert.Equal(conversed, lab.World.Ledger.Events.Count(e => e.Type == WorldEventType.Conversed));
+        }
+
+        /// <summary>
+        /// The older ceiling still matters after the short cooldown expires: small talk can reopen
+        /// later, but it must not become an infinite relationship pump.
+        /// </summary>
+        [Fact]
+        public void SmallTalkStillStopsOnceItHasDoneAllItCan()
         {
             TheftLaboratory lab = TheftLaboratory.Create();
             NarrativeAction rapport = lab.Actions.Get("rapport");
 
-            Assert.True(rapport.GetAvailability(FullContext(lab, lab.Situation.WitnessId)).IsAvailable);
-
             for (int i = 0; i < 20; i++)
             {
                 ActionContext context = FullContext(lab, lab.Situation.WitnessId);
-                if (!rapport.GetAvailability(context).IsAvailable)
+                Availability availability = rapport.GetAvailability(context);
+                if (!availability.IsAvailable && availability.Reason.Contains("as far as it will"))
                 {
-                    Availability closed = rapport.GetAvailability(context);
-                    Assert.Contains("as far as it will", closed.Reason);
                     return;
                 }
 
+                Assert.True(availability.IsAvailable, availability.Reason);
                 rapport.Perform(context);
+                lab.Vanilla.AdvanceTime(GameTime.MinutesPerHour * 7);
             }
 
             Assert.Fail("rapport never stopped being offered, so affinity can be farmed from one conversation");

@@ -95,7 +95,7 @@ namespace BrilliantQuesting.Tests
             ActionOutcome outcome = lab.Perform("rapport", lab.Situation.WitnessId);
 
             Assert.Equal("rapport", outcome.ActionId);
-            Assert.True(lab.Actions.Get("rapport").GetAvailability(lab.Context(lab.Situation.WitnessId)).IsAvailable);
+            Assert.False(lab.Actions.Get("rapport").GetAvailability(lab.Context(lab.Situation.WitnessId)).IsAvailable);
             Assert.Contains(lab.World.Ledger.Events, e => e.Type == WorldEventType.Helped);
         }
 

@@ -149,6 +149,12 @@ namespace BrilliantQuesting.Actions.Library
             return KnowledgeSource.Hearsay;
         }
 
+        public static bool IsSelfIncriminatingDisclosure(ActionContext context, EntityId factId)
+        {
+            return context.World.Knowledge.TryGetBelief(context.Target, factId, out KnowledgeRecord record)
+                   && IsSelfIncriminatingDisclosure(context, factId, record);
+        }
+
         private static bool IsSelfIncriminatingDisclosure(ActionContext context, EntityId factId, KnowledgeRecord record)
         {
             if (record == null || record.Source != KnowledgeSource.Participant)

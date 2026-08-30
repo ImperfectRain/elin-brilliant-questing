@@ -27,5 +27,11 @@ namespace BrilliantQuesting.Events
         /// whatever the law thinks of it.
         /// </summary>
         public const string Observed = "observed_vanilla";
+
+        /// <summary>The target explicitly admitted the related claim.</summary>
+        public const string Admission = "admission";
+
+        /// <summary>The target was pressed about the related claim and chose not to give it up.</summary>
+        public const string Withheld = "withheld";
     }
 }

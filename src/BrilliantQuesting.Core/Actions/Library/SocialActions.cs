@@ -24,6 +24,8 @@ namespace BrilliantQuesting.Actions.Library
         /// </summary>
         private const int WarmthCeiling = 20;
 
+        private const int RepeatCooldownMinutes = GameTime.MinutesPerHour * 6;
+
         public override Availability GetAvailability(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -40,6 +42,11 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.NotRelevant("small talk has taken you as far as it will with them");
             }
 
+            if (RecentlyBuiltRapport(context))
+            {
+                return Availability.NotRelevant("you have already made small talk with them about this recently");
+            }
+
             return Availability.Available();
         }
 
@@ -47,10 +54,59 @@ namespace BrilliantQuesting.Actions.Library
         {
             string who = context.NameOf(context.Target);
             ActionOutcome outcome = new ActionOutcome(Id, null, "You keep the conversation light. " + who + " seems a little more willing to hear you out.");
-            outcome.Events.Add(context.World.Record(WorldEventType.Helped, context.Actor, context.Target, context.Now, 0.2, context.Zone));
-            outcome.Events.Add(context.World.Record(WorldEventType.Conversed, context.Actor, context.Target, context.Now, 0.2, context.Zone));
+            EntityId matter = ActionBinding.Infer(context).PropositionFact;
+            EntityId[] related = matter.IsNone ? null : new[] { matter };
+            outcome.Events.Add(context.World.Record(WorldEventType.Helped, context.Actor, context.Target, context.Now, 0.2, context.Zone, related: related, threadId: ThreadId(context)));
+            outcome.Events.Add(context.World.Record(WorldEventType.Conversed, context.Actor, context.Target, context.Now, 0.2, context.Zone, related: related, threadId: ThreadId(context)));
             outcome.Notes.Add("rapport improved; future social checks should be less hostile");
             return outcome;
+        }
+
+        private static bool RecentlyBuiltRapport(ActionContext context)
+        {
+            IReadOnlyList<WorldEvent> events = context.World.Ledger.Events;
+            long since = context.Now.TotalMinutes - RepeatCooldownMinutes;
+            EntityId matter = ActionBinding.Infer(context).PropositionFact;
+            for (int i = events.Count - 1; i >= 0; i--)
+            {
+                WorldEvent worldEvent = events[i];
+                if (worldEvent.Time.TotalMinutes < since)
+                {
+                    return false;
+                }
+
+                if (worldEvent.Type != WorldEventType.Conversed
+                    || worldEvent.Actor != context.Actor
+                    || worldEvent.Target != context.Target)
+                {
+                    continue;
+                }
+
+                if (matter.IsNone || Contains(worldEvent.Related, matter))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool Contains(IReadOnlyList<EntityId> ids, EntityId id)
+        {
+            for (int i = 0; i < ids.Count; i++)
+            {
+                if (ids[i] == id)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static EntityId ThreadId(ActionContext context)
+        {
+            return context.Thread?.Id ?? EntityId.None;
         }
     }
 

@@ -127,6 +127,8 @@ namespace BrilliantQuesting.Tests
             MemoryRecord memory = Assert.Single(town.World.Memories.MemoriesAbout(Stranger, Player));
             Assert.Equal("saw_was_threatened", memory.SummaryTag);
             Assert.Equal(0, memory.AffinityContribution);
+            Assert.Contains(town.Consequences.Trace, line => line.Contains("Ost witnessed Threatened")
+                                                             && line.Contains("no affinity effect"));
         }
 
         [Fact]
@@ -141,6 +143,8 @@ namespace BrilliantQuesting.Tests
                 .Single(m => m.SummaryTag == "saw_was_threatened");
             Assert.Equal("saw_was_threatened", memory.SummaryTag);
             Assert.True(memory.AffinityContribution < 0);
+            Assert.Contains(town.Consequences.Trace, line => line.Contains("Halvar witnessed Threatened")
+                                                             && line.Contains("Family tie to Mira"));
         }
 
         [Fact]

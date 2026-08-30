@@ -35,7 +35,10 @@ namespace BrilliantQuesting.Actions.Library
 
         public override ActionOutcome Perform(ActionContext context)
         {
-            EntityId factId = ActionSupport.FindTeachableFact(context);
+            ActionBinding binding = ActionBinding.Infer(context);
+            EntityId factId = !binding.PropositionFact.IsNone
+                ? binding.PropositionFact
+                : ActionSupport.FindTeachableFact(context);
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Intimidation, context.Actor, context.Target)
                 .With(SituationalModifiers.Reputation(context, helpfulWhenFamous: true))
                 .With(SituationalModifiers.LegalStanding(context, helpfulWhenNotorious: true));
@@ -63,42 +66,75 @@ namespace BrilliantQuesting.Actions.Library
             // A threat that lands on someone with nothing still lands - they comply, they are
             // frightened, and they remember it - so the outcome is real either way; it just is
             // not the outcome the player was fishing for, and it should not claim to be.
-            bool hasSomethingToGive = !factId.IsNone;
+            bool pressuredAdmission = !factId.IsNone && ActionSupport.IsSelfIncriminatingDisclosure(context, factId);
+            bool hasSomethingToGive = !factId.IsNone && (!pressuredAdmission || !context.World.Knowledge.Knows(context.Actor, factId));
             ActionOutcome outcome;
 
             switch (check.Outcome)
             {
                 case CheckOutcome.CriticalPass:
+                    if (pressuredAdmission)
+                    {
+                        outcome = new ActionOutcome(Id, check, who + " cracks and admits " + ActionSupport.Describe(context, factId) + ".");
+                        Admit(context, factId, 0.9, outcome);
+                        outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.7, context.Zone, related: new[] { factId }, witnesses: seen, tags: new[] { EventTags.Admission }, threadId: ThreadId(context)));
+                        break;
+                    }
+
                     outcome = new ActionOutcome(Id, check, hasSomethingToGive
                         ? who + " folds completely and volunteers more than you asked for."
                         : who + " folds completely, and swears blind they know nothing more.");
                     Concede(context, factId, 0.9, outcome);
-                    outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.7, context.Zone, witnesses: seen));
+                    outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.7, context.Zone, related: Related(factId), witnesses: seen, threadId: ThreadId(context)));
                     break;
 
                 case CheckOutcome.Pass:
+                    if (pressuredAdmission)
+                    {
+                        outcome = new ActionOutcome(Id, check, who + " understands exactly what you mean about " + binding.Describe(context) + ", but refuses to say it out loud.");
+                        outcome.Notes.Add("withheld under pressure: " + ActionSupport.Describe(context, factId));
+                        outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.6, context.Zone, related: new[] { factId }, witnesses: seen, tags: new[] { EventTags.Withheld }, threadId: ThreadId(context)));
+                        break;
+                    }
+
                     outcome = new ActionOutcome(Id, check, hasSomethingToGive
                         ? who + " tells you what you want to know."
                         : who + " backs down, but has nothing you did not already know.");
                     Concede(context, factId, 0.7, outcome);
-                    outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.6, context.Zone, witnesses: seen));
+                    outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.6, context.Zone, related: Related(factId), witnesses: seen, threadId: ThreadId(context)));
                     break;
 
                 case CheckOutcome.Fail:
                     outcome = new ActionOutcome(Id, check, who + " holds their nerve and remembers this.");
-                    outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.5, context.Zone, witnesses: seen));
+                    outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.5, context.Zone, related: Related(factId), witnesses: seen, threadId: ThreadId(context)));
                     break;
 
                 default:
                     // Elin's favourite kind of failure: your threat is misread as a challenge.
                     outcome = new ActionOutcome(Id, check, who + " takes it as a challenge and swings first.");
-                    outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.5, context.Zone, witnesses: seen));
-                    outcome.Events.Add(context.World.Record(WorldEventType.Attacked, context.Target, context.Actor, context.Now, 0.5, context.Zone, witnesses: seen));
+                    outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.5, context.Zone, related: Related(factId), witnesses: seen, threadId: ThreadId(context)));
+                    outcome.Events.Add(context.World.Record(WorldEventType.Attacked, context.Target, context.Actor, context.Now, 0.5, context.Zone, related: Related(factId), witnesses: seen, threadId: ThreadId(context)));
                     outcome.Notes.Add("combat is Elin's to resolve; the simulation only records that it started");
                     break;
             }
 
             return outcome;
+        }
+
+        private static EntityId ThreadId(ActionContext context)
+        {
+            return context.Thread?.Id ?? EntityId.None;
+        }
+
+        private static EntityId[] Related(EntityId factId)
+        {
+            return factId.IsNone ? null : new[] { factId };
+        }
+
+        private static void Admit(ActionContext context, EntityId factId, double confidence, ActionOutcome outcome)
+        {
+            context.World.Knowledge.Teach(context.Actor, factId, KnowledgeSource.Admission, confidence, context.Now, false, context.Target);
+            outcome.Notes.Add("admitted under pressure: " + ActionSupport.Describe(context, factId));
         }
 
         private static void Concede(ActionContext context, EntityId factId, double confidence, ActionOutcome outcome)

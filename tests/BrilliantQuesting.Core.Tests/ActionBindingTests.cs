@@ -5,6 +5,7 @@ using BrilliantQuesting.Checks;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Persistence;
 using BrilliantQuesting.Situations;
 using BrilliantQuesting.World;
 using Xunit;
@@ -62,6 +63,20 @@ namespace BrilliantQuesting.Tests
         }
 
         [Fact]
+        public void PromisePurposeSurvivesSaveReload()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+            lab.Checks = new FixedCheckResolver(CheckOutcome.Pass);
+
+            lab.Actions.Get("persuade").Perform(Focus(lab, lab.Situation.VictimId));
+
+            NarrativeWorldState reloaded = WorldStateSerializer.Load(WorldStateSerializer.Save(lab.World));
+            WorldEvent promise = Assert.Single(reloaded.Ledger.Events, e => e.Type == WorldEventType.PromiseMade);
+            Assert.Contains(lab.Situation.TheftFactId, promise.Related);
+            Assert.Equal(lab.Situation.Thread.Id, promise.ThreadId);
+        }
+
+        [Fact]
         public void CulpritQuestioningDoesNotTriviallyDiscloseSelfIncriminatingTruth()
         {
             TheftLaboratory lab = TheftLaboratory.Create();
@@ -71,6 +86,52 @@ namespace BrilliantQuesting.Tests
 
             Assert.False(question.IsAvailable);
             Assert.False(lab.World.Knowledge.Knows(lab.Player, lab.Situation.TheftFactId));
+        }
+
+        [Fact]
+        public void CulpritPressureRefusalDoesNotRevealHiddenTruth()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+            lab.Checks = new FixedCheckResolver(CheckOutcome.Pass);
+
+            ActionOutcome outcome = lab.Actions.Get("intimidate").Perform(Focus(lab, lab.Situation.ThiefId));
+
+            Assert.Contains("refuses", outcome.Narration);
+            Assert.False(lab.World.Knowledge.Knows(lab.Player, lab.Situation.TheftFactId));
+            WorldEvent pressure = Assert.Single(outcome.Events, e => e.Type == WorldEventType.Threatened);
+            Assert.Contains(lab.Situation.TheftFactId, pressure.Related);
+            Assert.Contains(EventTags.Withheld, pressure.Tags);
+        }
+
+        [Fact]
+        public void ExplicitCulpritAdmissionHasAdmissionProvenance()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+            lab.Checks = new FixedCheckResolver(CheckOutcome.CriticalPass);
+
+            ActionOutcome outcome = lab.Actions.Get("intimidate").Perform(Focus(lab, lab.Situation.ThiefId));
+
+            Assert.Contains("admits", outcome.Narration);
+            KnowledgeRecord learned = Assert.Single(lab.World.Knowledge.BeliefsOf(lab.Player), b => b.FactId == lab.Situation.TheftFactId);
+            Assert.Equal(KnowledgeSource.Admission, learned.Source);
+            Assert.Equal(lab.Situation.ThiefId, learned.ToldBy);
+            WorldEvent pressure = Assert.Single(outcome.Events, e => e.Type == WorldEventType.Threatened);
+            Assert.Contains(EventTags.Admission, pressure.Tags);
+        }
+
+        [Fact]
+        public void PressureOverKnownEvidenceStillNamesTheMatter()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+            lab.Checks = new FixedCheckResolver(CheckOutcome.Pass);
+            lab.World.Knowledge.Teach(lab.Player, lab.Situation.TheftFactId, KnowledgeSource.Witnessed, 1.0, lab.Vanilla.Now, true);
+
+            ActionOutcome outcome = lab.Actions.Get("intimidate").Perform(Focus(lab, lab.Situation.ThiefId));
+
+            Assert.Contains("missing ", outcome.Narration);
+            Assert.DoesNotContain("nothing you did not already know", outcome.Narration);
+            WorldEvent pressure = Assert.Single(outcome.Events, e => e.Type == WorldEventType.Threatened);
+            Assert.Contains(lab.Situation.TheftFactId, pressure.Related);
         }
 
         [Fact]
