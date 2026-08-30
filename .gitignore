@@ -10,6 +10,7 @@ artifacts/
 # ours to redistribute. Ignore the whole directory rather than naming subfolders,
 # because the next thing dropped in there will not match a name listed here.
 lib/
+reference/
 
 # Editor
 .vs/
