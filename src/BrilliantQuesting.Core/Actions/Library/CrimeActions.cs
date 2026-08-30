@@ -179,9 +179,10 @@ namespace BrilliantQuesting.Actions.Library
                 {
                     context.Vanilla.TryTransferItem(item.Id, context.Actor, context.ThirdParty);
 
-                    Fact lie = new Fact(context.World.NewId("fact"), context.ThirdParty, FactPredicates.Possesses, item.Id, item.Name, TruthState.False);
+                    Fact lie = FalseClaimForPlantedItem(context, item);
                     lie.EvidenceIds.Add(item.Id);
                     context.World.Knowledge.AddFact(lie);
+                    context.World.Knowledge.Teach(context.Actor, lie.Id, KnowledgeSource.Document, 0.95, context.Now, true);
 
                     IReadOnlyList<EntityId> seen = ActionSupport.Bystanders(context, true);
                     for (int i = 0; i < seen.Count; i++)
@@ -224,6 +225,34 @@ namespace BrilliantQuesting.Actions.Library
             }
 
             return null;
+        }
+
+        private static Fact FalseClaimForPlantedItem(ActionContext context, ItemDescriptor item)
+        {
+            foreach (Fact fact in context.World.Knowledge.Facts.Values)
+            {
+                if (fact.Predicate == FactPredicates.Stole
+                    && fact.Object == item.Id
+                    && fact.Truth == TruthState.True
+                    && fact.Subject != context.ThirdParty)
+                {
+                    return new Fact(
+                        context.World.NewId("fact"),
+                        context.ThirdParty,
+                        FactPredicates.Stole,
+                        item.Id,
+                        fact.Value ?? item.Name,
+                        TruthState.False);
+                }
+            }
+
+            return new Fact(
+                context.World.NewId("fact"),
+                context.ThirdParty,
+                FactPredicates.Possesses,
+                item.Id,
+                item.Name,
+                TruthState.False);
         }
     }
 

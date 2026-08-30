@@ -716,6 +716,13 @@ layout follows the caravan's true history rather than a generic camp.
 Truth versus belief, testimony, rumour, framing. The archetype that most exercises the knowledge graph.
 - **Depends** BQ-018, BQ-020, BQ-024, BQ-025.
 - **Done when** an innocent NPC can be convicted on planted evidence, and the truth remains recoverable afterwards.
+- **Current implementation** the false-accusation archetype composes existing crime,
+  investigation and authority verbs. `frame` now upgrades a planted item into a false `stole`
+  claim when that item is tied to a true theft fact, while preserving the older false-possession
+  fallback for ordinary objects. A guard can act on the planted physical proof against the
+  innocent NPC, and the original true theft fact stays in the graph and can later be recovered
+  through `search` and reported. This records institutional action, not physical arrest or
+  autonomous enforcement.
 - **Sources** PM §20, §27, §64; LW §9.4; CD §14.
 
 #### BQ-045 — Archetype: debt / distressed business
