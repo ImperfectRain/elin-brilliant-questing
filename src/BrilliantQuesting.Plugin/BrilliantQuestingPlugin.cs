@@ -615,6 +615,17 @@ namespace BrilliantQuesting.Plugin
             }
         }
 
+        /// <summary>
+        /// Gives the settlement the save resumed in one chance to produce a situation from its own
+        /// state.
+        ///
+        /// Bootstrap only, and knowingly so: this fires once, on attach, in whichever zone the
+        /// player is standing in. The reactive triggers that would let any settlement produce
+        /// something when its state actually changes are the director's work at BQ-099, not this
+        /// step's, and pretending otherwise by firing on every zone entry would make generation a
+        /// function of where the player walks. Guarding on "this world already has a thread" is what
+        /// keeps a reload from being a way to roll for another one.
+        /// </summary>
         private void MaybeGenerateLocalSituation(EntityId zoneId)
         {
             if (zoneId.IsNone || _world.Threads.Count > 0)
@@ -635,6 +646,11 @@ namespace BrilliantQuesting.Plugin
             {
                 SettlementSituationGenerator generator = new SettlementSituationGenerator();
                 SettlementSituationPlan plan = generator.Evaluate(_world, _vanilla, zoneId);
+                for (int i = 0; i < plan.Suppressed.Count; i++)
+                {
+                    _log.LogInfo("  not repeated: " + plan.Suppressed[i].Reason);
+                }
+
                 if (plan.Candidates.Count == 0)
                 {
                     _log.LogInfo("Local situation generation found no eligible pressure: "
@@ -642,8 +658,10 @@ namespace BrilliantQuesting.Plugin
                     return;
                 }
 
-                SituationCandidate candidate = plan.BestCandidate;
-                PettyTheftSituation situation = generator.TryGenerate(_world, _vanilla, zoneId, _vanilla.Now);
+                // The plan that was read is the plan that is acted on. Evaluating a second time
+                // inside TryGenerate meant a doubled pass over every inventory in the zone, and let
+                // the causes reported here name a candidate other than the one actually built.
+                PettyTheftSituation situation = generator.TryGenerate(_world, _vanilla, plan, zoneId, _vanilla.Now);
                 if (situation == null)
                 {
                     _log.LogInfo("Local situation generation found pressure, but vanilla refused the founding item transfer.");
@@ -651,9 +669,9 @@ namespace BrilliantQuesting.Plugin
                 }
 
                 _log.LogInfo("Generated " + situation.Thread.ArchetypeId + " from local world state.");
-                for (int i = 0; i < candidate.Causes.Count; i++)
+                for (int i = 0; i < situation.Thread.GenerationCauses.Count; i++)
                 {
-                    _log.LogInfo("  cause: " + candidate.Causes[i]);
+                    _log.LogInfo("  cause: " + situation.Thread.GenerationCauses[i]);
                 }
             }
             catch (Exception ex)

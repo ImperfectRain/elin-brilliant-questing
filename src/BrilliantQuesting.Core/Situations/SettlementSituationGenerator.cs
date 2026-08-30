@@ -1,299 +1,302 @@
 using System;
 using System.Collections.Generic;
+using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
+using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Situations
 {
+    /// <summary>A candidate the world could have produced, and the reason it did not.</summary>
+    public sealed class SuppressedCandidate
+    {
+        internal SuppressedCandidate(SituationCandidate candidate, string reason)
+        {
+            Candidate = candidate;
+            Reason = reason;
+        }
+
+        public SituationCandidate Candidate { get; }
+
+        /// <summary>Inspector-only. Why an otherwise plausible proposal was set aside.</summary>
+        public string Reason { get; }
+    }
+
     /// <summary>
-    /// Reads a local settlement as affordances for situations: who is present, what they carry,
-    /// what they can plausibly do, and who has enough to become a target.
+    /// What a settlement currently affords, what it could produce from that, and what it was not
+    /// allowed to produce twice.
     /// </summary>
-    public sealed class LocalAffordanceProfile
-    {
-        private readonly List<EntityId> _residents = new List<EntityId>();
-        private readonly List<string> _features = new List<string>();
-
-        private LocalAffordanceProfile(EntityId zoneId)
-        {
-            ZoneId = zoneId;
-        }
-
-        public EntityId ZoneId { get; }
-
-        public IReadOnlyList<EntityId> Residents => _residents;
-
-        public IReadOnlyList<string> Features => _features;
-
-        public static LocalAffordanceProfile Read(NarrativeWorldState world, IVanillaState vanilla, EntityId zoneId)
-        {
-            LocalAffordanceProfile profile = new LocalAffordanceProfile(zoneId);
-            if (world == null || vanilla == null || zoneId.IsNone)
-            {
-                return profile;
-            }
-
-            IReadOnlyList<EntityId> present = vanilla.GetCharactersInZone(zoneId);
-            for (int i = 0; i < present.Count; i++)
-            {
-                EntityId actor = present[i];
-                if (actor.IsNone || actor == vanilla.PlayerId || !vanilla.IsAlive(actor))
-                {
-                    continue;
-                }
-
-                NarrativeNpc npc = world.Registry.GetNpc(actor);
-                if (npc == null || vanilla.GetActorClass(actor) == NarrativeActorClass.Unknown)
-                {
-                    continue;
-                }
-
-                profile._residents.Add(actor);
-            }
-
-            int valuables = 0;
-            int hardship = 0;
-            int illicitMeans = 0;
-            for (int i = 0; i < profile._residents.Count; i++)
-            {
-                EntityId resident = profile._residents[i];
-                if (vanilla.GetMoney(resident) < 80)
-                {
-                    hardship++;
-                }
-
-                if (vanilla.GetSkill(resident, VanillaSkill.Pickpocket) >= 5
-                    || vanilla.GetSkill(resident, VanillaSkill.Stealth) >= 5)
-                {
-                    illicitMeans++;
-                }
-
-                IReadOnlyList<ItemDescriptor> inventory = vanilla.GetInventory(resident);
-                for (int item = 0; item < inventory.Count; item++)
-                {
-                    if (inventory[item].Value >= 250)
-                    {
-                        valuables++;
-                    }
-                }
-            }
-
-            profile._features.Add("locals present: " + profile._residents.Count);
-            profile._features.Add("valuable carried objects: " + valuables);
-            profile._features.Add("cash-poor locals: " + hardship);
-            profile._features.Add("locals with theft means: " + illicitMeans);
-            return profile;
-        }
-    }
-
-    public sealed class SituationCandidate
-    {
-        private readonly List<string> _causes = new List<string>();
-
-        internal SituationCandidate(
-            string archetypeId,
-            int score,
-            EntityId actorId,
-            EntityId targetId,
-            EntityId witnessId,
-            ItemDescriptor item)
-        {
-            ArchetypeId = archetypeId;
-            Score = score;
-            ActorId = actorId;
-            TargetId = targetId;
-            WitnessId = witnessId;
-            Item = item;
-        }
-
-        public string ArchetypeId { get; }
-
-        public int Score { get; }
-
-        public EntityId ActorId { get; }
-
-        public EntityId TargetId { get; }
-
-        public EntityId WitnessId { get; }
-
-        public ItemDescriptor Item { get; }
-
-        public IReadOnlyList<string> Causes => _causes;
-
-        internal void AddCause(string cause)
-        {
-            if (!string.IsNullOrEmpty(cause))
-            {
-                _causes.Add(cause);
-            }
-        }
-    }
-
     public sealed class SettlementSituationPlan
     {
-        private readonly List<SituationCandidate> _candidates;
+        private static readonly SuppressedCandidate[] NothingSuppressed = new SuppressedCandidate[0];
+        private static readonly SituationCandidate[] NoCandidates = new SituationCandidate[0];
 
-        internal SettlementSituationPlan(LocalAffordanceProfile profile, List<SituationCandidate> candidates)
+        private readonly List<SituationCandidate> _candidates;
+        private readonly List<SuppressedCandidate> _suppressed;
+
+        internal SettlementSituationPlan(
+            LocalAffordanceProfile profile,
+            List<SituationCandidate> candidates,
+            List<SuppressedCandidate> suppressed)
         {
             Profile = profile;
             _candidates = candidates;
+            _suppressed = suppressed;
         }
 
         public LocalAffordanceProfile Profile { get; }
 
-        public IReadOnlyList<SituationCandidate> Candidates => _candidates;
+        /// <summary>Eligible proposals, best first.</summary>
+        public IReadOnlyList<SituationCandidate> Candidates =>
+            _candidates == null ? (IReadOnlyList<SituationCandidate>)NoCandidates : _candidates;
 
-        public SituationCandidate BestCandidate => _candidates.Count == 0 ? null : _candidates[0];
+        /// <summary>
+        /// Proposals the world state supported but repetition rules refused, each with its reason,
+        /// so an empty candidate list can be told apart from a quiet settlement.
+        /// </summary>
+        public IReadOnlyList<SuppressedCandidate> Suppressed =>
+            _suppressed == null ? (IReadOnlyList<SuppressedCandidate>)NothingSuppressed : _suppressed;
+
+        public SituationCandidate BestCandidate => Candidates.Count == 0 ? null : Candidates[0];
     }
 
+    /// <summary>
+    /// Turns a settlement into situations: read the place, let each archetype say what it makes of
+    /// it, refuse repetition, and only then touch the game.
+    ///
+    /// The orchestrator owns the order and nothing else. It holds no theft arithmetic - that lives
+    /// in <see cref="PettyTheftPressure"/> - and the profile it reads holds none either. Adding
+    /// BQ-041's shortage should mean adding a second pressure reader here, not editing either of
+    /// the other two.
+    /// </summary>
     public sealed class SettlementSituationGenerator
     {
-        private const int MinimumTheftScore = 70;
+        /// <summary>
+        /// How long the world remembers that it already told this story.
+        ///
+        /// Conservative on purpose. This is repetition suppression, not the narrative director of
+        /// BQ-099: it stops the same person robbing the same person of the same thing again, and
+        /// deliberately does not model global content density, pacing or player attention.
+        /// </summary>
+        public const int RepetitionWindowDays = 30;
 
+        private readonly PettyTheftPressure _theft = new PettyTheftPressure();
+
+        /// <summary>
+        /// Reads the settlement and scores what it could produce. Never writes to the game: a plan
+        /// is a proposal, and nothing has happened until <see cref="TryGenerate"/> commits one.
+        /// </summary>
         public SettlementSituationPlan Evaluate(NarrativeWorldState world, IVanillaState vanilla, EntityId zoneId)
         {
             LocalAffordanceProfile profile = LocalAffordanceProfile.Read(world, vanilla, zoneId);
             List<SituationCandidate> candidates = new List<SituationCandidate>();
+            List<SuppressedCandidate> suppressed = new List<SuppressedCandidate>();
 
-            for (int actorIndex = 0; actorIndex < profile.Residents.Count; actorIndex++)
+            IReadOnlyList<ActorAffordances> actors = profile.Actors;
+            ActorAffordances[] byAttention = RankByAttention(world, profile);
+            for (int actorIndex = 0; actorIndex < actors.Count; actorIndex++)
             {
-                EntityId actor = profile.Residents[actorIndex];
-                for (int targetIndex = 0; targetIndex < profile.Residents.Count; targetIndex++)
+                ActorAffordances thief = actors[actorIndex];
+                for (int targetIndex = 0; targetIndex < actors.Count; targetIndex++)
                 {
-                    EntityId target = profile.Residents[targetIndex];
-                    if (actor == target)
+                    ActorAffordances victim = actors[targetIndex];
+                    if (actorIndex == targetIndex || thief.ActorId == victim.ActorId)
                     {
                         continue;
                     }
 
-                    ItemDescriptor item = BestTargetItem(vanilla.GetInventory(target));
-                    if (item == null)
+                    ActorAffordances witness = PickWitness(byAttention, thief, victim);
+                    SituationCandidate candidate = _theft.Evaluate(world, profile, thief, victim, witness);
+                    if (candidate == null || candidate.Score < PettyTheftPressure.MinimumScore)
                     {
                         continue;
                     }
 
-                    EntityId witness = PickWitness(profile, actor, target);
-                    if (witness.IsNone)
+                    string refusal = RepetitionReason(world, candidate, vanilla.Now);
+                    if (refusal != null)
                     {
+                        suppressed.Add(new SuppressedCandidate(candidate, refusal));
                         continue;
                     }
 
-                    SituationCandidate candidate = TheftCandidate(world, vanilla, actor, target, witness, item);
-                    if (candidate.Score >= MinimumTheftScore)
-                    {
-                        candidates.Add(candidate);
-                    }
+                    candidates.Add(candidate);
                 }
             }
 
             candidates.Sort(CompareCandidates);
-            return new SettlementSituationPlan(profile, candidates);
+            return new SettlementSituationPlan(profile, candidates, suppressed);
         }
 
         public PettyTheftSituation TryGenerate(NarrativeWorldState world, IVanillaState vanilla, EntityId zoneId, GameTime now)
         {
-            SettlementSituationPlan plan = Evaluate(world, vanilla, zoneId);
+            return TryGenerate(world, vanilla, Evaluate(world, vanilla, zoneId), zoneId, now);
+        }
+
+        /// <summary>
+        /// Commits the best candidate a plan that has already been read will accept.
+        ///
+        /// Acts on the caller's plan rather than reading the settlement again. Evaluating twice was
+        /// a doubled pass over every inventory in the zone, and worse, let the causes a caller had
+        /// already reported describe a different candidate from the one built.
+        ///
+        /// Vanilla owns the outcome and goes first: the item has to actually move before any of
+        /// this is recorded, so BQ can never hold a theft the game refused. If recording fails after
+        /// the transfer, the transfer is taken back - an object moved by no event is the one thing
+        /// the ledger exists to make impossible.
+        /// </summary>
+        public PettyTheftSituation TryGenerate(
+            NarrativeWorldState world,
+            IVanillaState vanilla,
+            SettlementSituationPlan plan,
+            EntityId zoneId,
+            GameTime now)
+        {
+            if (plan == null)
+            {
+                return null;
+            }
+
             for (int i = 0; i < plan.Candidates.Count; i++)
             {
-                SituationCandidate candidate = plan.Candidates[i];
-                if (vanilla.TryTransferItem(candidate.Item.Id, candidate.TargetId, candidate.ActorId))
+                PettyTheftCandidate theft = new PettyTheftCandidate(plan.Candidates[i]);
+                if (!vanilla.TryTransferItem(theft.Item.Id, theft.VictimId, theft.ThiefId))
                 {
-                    return PettyTheftSituation.FromLocalAffordance(world, candidate, zoneId, now);
+                    continue;
+                }
+
+                try
+                {
+                    return PettyTheftSituation.FromLocalAffordance(world, plan.Candidates[i], zoneId, now);
+                }
+                catch
+                {
+                    vanilla.TryTransferItem(theft.Item.Id, theft.ThiefId, theft.VictimId);
+                    throw;
                 }
             }
 
             return null;
         }
 
-        private static SituationCandidate TheftCandidate(
-            NarrativeWorldState world,
-            IVanillaState vanilla,
-            EntityId actor,
-            EntityId target,
-            EntityId witness,
-            ItemDescriptor item)
+        /// <summary>
+        /// The people here in the order they would be the one to have noticed something, most
+        /// likely first.
+        ///
+        /// Ranked once for the settlement rather than re-ranked inside every ordered pair: how alert
+        /// somebody is does not depend on who is robbing whom, and re-deriving it per pair made
+        /// witness selection cubic in the size of a town. Attention decides; a genuine tie is broken
+        /// by a fork of the world seed over the observer, so the answer is stable across reloads
+        /// without being an artefact of the order the game enumerated the zone in - which was the
+        /// old behaviour, and is not a reason for anything.
+        /// </summary>
+        private static ActorAffordances[] RankByAttention(NarrativeWorldState world, LocalAffordanceProfile profile)
         {
-            NarrativeNpc actorNpc = world.Registry.GetNpc(actor);
-            NarrativeNpc targetNpc = world.Registry.GetNpc(target);
+            int count = profile.Actors.Count;
+            ActorAffordances[] ranked = new ActorAffordances[count];
+            int[] attention = new int[count];
+            ulong[] tieBreak = new ulong[count];
+            int[] order = new int[count];
 
-            int actorMoney = vanilla.GetMoney(actor);
-            int targetMoney = vanilla.GetMoney(target);
-            int pickpocket = vanilla.GetSkill(actor, VanillaSkill.Pickpocket);
-            int stealth = vanilla.GetSkill(actor, VanillaSkill.Stealth);
-            int dexterity = vanilla.GetAttribute(actor, VanillaAttribute.Dexterity);
-
-            int motive = Math.Max(0, 35 - actorMoney / 4) + (int)((actorNpc?.Personality.Greed ?? 0.5) * 20.0);
-            int means = Math.Min(30, pickpocket * 3 + stealth * 2 + dexterity);
-            int targetPressure = Math.Min(35, item.Value / 40 + targetMoney / 80);
-            int opportunity = 12;
-            if (targetNpc != null && IsCommercial(targetNpc))
+            for (int i = 0; i < count; i++)
             {
-                targetPressure += 10;
+                ActorAffordances observer = profile.Actors[i];
+                ranked[i] = observer;
+                attention[i] = Attention(observer);
+                tieBreak[i] = new DeterministicRng(world.WorldSeed)
+                    .Fork(PettyTheftSituation.ArchetypeId + "|witness|" + observer.ActorId.Value)
+                    .NextUInt64();
+                order[i] = i;
             }
 
-            int score = motive + means + targetPressure + opportunity;
-            SituationCandidate candidate = new SituationCandidate(
-                PettyTheftSituation.ArchetypeId,
-                score,
-                actor,
-                target,
-                witness,
-                item);
+            Array.Sort(
+                order,
+                (left, right) =>
+                {
+                    int byAttention = attention[right].CompareTo(attention[left]);
+                    return byAttention != 0 ? byAttention : tieBreak[left].CompareTo(tieBreak[right]);
+                });
 
-            candidate.AddCause(world.Registry.NameOf(actor) + " has motive: " + actorMoney + " orens and greed "
-                               + (actorNpc?.Personality.Greed ?? 0.5).ToString("0.00"));
-            candidate.AddCause(world.Registry.NameOf(actor) + " has means: pickpocket " + pickpocket
-                               + ", stealth " + stealth + ", dexterity " + dexterity);
-            candidate.AddCause(world.Registry.NameOf(target) + " is a target: carrying " + item.Name
-                               + " worth " + item.Value + " orens");
-            candidate.AddCause(world.Registry.NameOf(witness) + " is present as a possible witness");
-            return candidate;
-        }
-
-        private static bool IsCommercial(NarrativeNpc npc)
-        {
-            string occupation = npc.Occupation ?? string.Empty;
-            return occupation.IndexOf("shop", StringComparison.OrdinalIgnoreCase) >= 0
-                   || occupation.IndexOf("merchant", StringComparison.OrdinalIgnoreCase) >= 0
-                   || occupation.IndexOf("trader", StringComparison.OrdinalIgnoreCase) >= 0
-                   || npc.Roles.Contains("merchant")
-                   || npc.Roles.Contains("shopkeeper");
-        }
-
-        private static ItemDescriptor BestTargetItem(IReadOnlyList<ItemDescriptor> inventory)
-        {
-            ItemDescriptor best = null;
-            for (int i = 0; i < inventory.Count; i++)
+            ActorAffordances[] result = new ActorAffordances[count];
+            for (int i = 0; i < count; i++)
             {
-                ItemDescriptor item = inventory[i];
-                if (item == null || item.Value < 250)
+                result[i] = ranked[order[i]];
+            }
+
+            return result;
+        }
+
+        private static int Attention(ActorAffordances observer) =>
+            observer.Attribute(VanillaAttribute.Perception) + observer.Skill(VanillaSkill.SpotHidden);
+
+        /// <summary>
+        /// Who, of the people already ranked, would have seen this particular theft - or nobody.
+        ///
+        /// A theft between two people alone is unwitnessed, which is an ordinary theft and not a
+        /// degenerate case.
+        /// </summary>
+        private static ActorAffordances PickWitness(
+            ActorAffordances[] ranked,
+            ActorAffordances thief,
+            ActorAffordances victim)
+        {
+            for (int i = 0; i < ranked.Length; i++)
+            {
+                ActorAffordances observer = ranked[i];
+                if (observer.ActorId != thief.ActorId && observer.ActorId != victim.ActorId)
+                {
+                    return observer;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Whether the world has already told this story, and what to say about it.
+        ///
+        /// Two sources, both of them history the world already keeps: a thread that has not finished
+        /// with these people, and the ledger's own record of what happened recently. Nothing here
+        /// maintains a second history of what has been generated - a parallel ledger that could
+        /// disagree with the real one is exactly what the event ledger exists to prevent.
+        /// </summary>
+        private static string RepetitionReason(NarrativeWorldState world, SituationCandidate candidate, GameTime now)
+        {
+            EntityId actor = candidate.ActorIn(SituationRoles.Actor);
+            EntityId target = candidate.ActorIn(SituationRoles.Target);
+
+            for (int i = 0; i < world.Threads.Count; i++)
+            {
+                NarrativeThread thread = world.Threads[i];
+                if (thread.State == ThreadState.Resolved || thread.ArchetypeId != candidate.ArchetypeId)
                 {
                     continue;
                 }
 
-                if (best == null || item.Value > best.Value
-                    || (item.Value == best.Value && string.CompareOrdinal(item.Id.Value, best.Id.Value) < 0))
+                if (thread.ParticipantIds.Contains(actor) && thread.ParticipantIds.Contains(target))
                 {
-                    best = item;
+                    return "an unresolved " + candidate.ArchetypeId + " between "
+                           + world.Registry.NameOf(actor) + " and " + world.Registry.NameOf(target)
+                           + " already exists";
                 }
             }
 
-            return best;
-        }
-
-        private static EntityId PickWitness(LocalAffordanceProfile profile, EntityId actor, EntityId target)
-        {
-            for (int i = 0; i < profile.Residents.Count; i++)
+            foreach (WorldEvent past in world.Ledger.OfType(WorldEventType.Theft))
             {
-                EntityId resident = profile.Residents[i];
-                if (resident != actor && resident != target)
+                if (past.Actor != actor || past.Target != target)
                 {
-                    return resident;
+                    continue;
+                }
+
+                long days = now.DaysSince(past.Time);
+                if (days <= RepetitionWindowDays)
+                {
+                    return world.Registry.NameOf(actor) + " was already recorded stealing from "
+                           + world.Registry.NameOf(target) + " " + days + " day(s) ago";
                 }
             }
 
-            return EntityId.None;
+            return null;
         }
 
         private static int CompareCandidates(SituationCandidate a, SituationCandidate b)
@@ -304,19 +307,27 @@ namespace BrilliantQuesting.Situations
                 return score;
             }
 
-            int actor = string.CompareOrdinal(a.ActorId.Value, b.ActorId.Value);
+            int actor = string.CompareOrdinal(
+                a.ActorIn(SituationRoles.Actor).Value,
+                b.ActorIn(SituationRoles.Actor).Value);
             if (actor != 0)
             {
                 return actor;
             }
 
-            int target = string.CompareOrdinal(a.TargetId.Value, b.TargetId.Value);
+            int target = string.CompareOrdinal(
+                a.ActorIn(SituationRoles.Target).Value,
+                b.ActorIn(SituationRoles.Target).Value);
             if (target != 0)
             {
                 return target;
             }
 
-            return string.CompareOrdinal(a.Item.Id.Value, b.Item.Id.Value);
+            ItemDescriptor left = a.ItemIn(SituationRoles.Stake);
+            ItemDescriptor right = b.ItemIn(SituationRoles.Stake);
+            return string.CompareOrdinal(
+                left == null ? string.Empty : left.Id.Value,
+                right == null ? string.Empty : right.Id.Value);
         }
     }
 }
