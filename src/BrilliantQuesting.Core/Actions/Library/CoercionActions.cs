@@ -25,6 +25,11 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.NotRelevant("nobody to lean on");
             }
 
+            if (!ActionBinding.HasRequiredSemanticSlots(Id, context))
+            {
+                return Availability.NotRelevant("nothing specific to demand");
+            }
+
             return Availability.Available();
         }
 
@@ -104,7 +109,7 @@ namespace BrilliantQuesting.Actions.Library
                 return;
             }
 
-            context.World.Knowledge.Teach(context.Actor, factId, KnowledgeSource.Hearsay, confidence, context.Now, false, context.Target);
+            context.World.Knowledge.Teach(context.Actor, factId, ActionSupport.DisclosureSource(context, factId), confidence, context.Now, false, context.Target);
             outcome.Notes.Add("learned under duress: " + ActionSupport.Describe(context, factId));
         }
     }
@@ -137,6 +142,11 @@ namespace BrilliantQuesting.Actions.Library
             if (context.Vanilla.GetMoney(context.Actor) < price)
             {
                 return Availability.Impossible("you cannot offer " + price + " orens you do not have");
+            }
+
+            if (!ActionBinding.HasRequiredSemanticSlots(Id, context))
+            {
+                return Availability.NotRelevant("nothing specific to buy");
             }
 
             return Availability.Available(ActionSupport.FindTeachableFact(context).IsNone
@@ -226,7 +236,7 @@ namespace BrilliantQuesting.Actions.Library
                 return;
             }
 
-            context.World.Knowledge.Teach(context.Actor, factId, KnowledgeSource.Hearsay, confidence, context.Now, false, context.Target);
+            context.World.Knowledge.Teach(context.Actor, factId, ActionSupport.DisclosureSource(context, factId), confidence, context.Now, false, context.Target);
             outcome.Notes.Add("bought: " + ActionSupport.Describe(context, factId));
         }
     }

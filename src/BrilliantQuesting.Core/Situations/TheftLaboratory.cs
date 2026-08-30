@@ -129,7 +129,9 @@ namespace BrilliantQuesting.Situations
         {
             ActionContext context = new ActionContext(World, Vanilla, Checks, _actionRng, Player, target)
             {
-                Thread = Situation.Thread
+                Thread = Situation.Thread,
+                SubjectFact = Situation.TheftFactId,
+                SubjectItem = Situation.ItemId
             };
 
             IReadOnlyList<EntityId> present = Vanilla.GetCharactersInZone(Zone);

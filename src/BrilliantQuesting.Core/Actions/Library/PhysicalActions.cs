@@ -419,6 +419,11 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.NotRelevant("nobody here to " + Label.ToLowerInvariant());
             }
 
+            if (!ActionBinding.HasRequiredSemanticSlots(Id, context))
+            {
+                return Availability.NotRelevant("no destination or persistent objective");
+            }
+
             return Availability.Available();
         }
 

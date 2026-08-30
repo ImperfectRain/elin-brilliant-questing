@@ -99,10 +99,11 @@ namespace BrilliantQuesting.Actions.Library
                     // They tell you, and they hand over what backs it up.
                     context.World.Knowledge.TryGetBelief(context.Target, factId, out KnowledgeRecord targetBelief);
                     bool canProve = targetBelief != null && targetBelief.CanProve;
+                    KnowledgeSource source = ActionSupport.DisclosureSource(context, factId);
                     context.World.Knowledge.Teach(
                         context.Actor,
                         factId,
-                        KnowledgeSource.Hearsay,
+                        source,
                         0.95,
                         context.Now,
                         canProve,
@@ -114,7 +115,7 @@ namespace BrilliantQuesting.Actions.Library
                     break;
 
                 case CheckOutcome.Pass:
-                    context.World.Knowledge.Teach(context.Actor, factId, KnowledgeSource.Hearsay, 0.6, context.Now, false, context.Target);
+                    context.World.Knowledge.Teach(context.Actor, factId, ActionSupport.DisclosureSource(context, factId), 0.6, context.Now, false, context.Target);
                     outcome = new ActionOutcome(Id, check, who + " tells you what they heard.");
                     outcome.Notes.Add("learned (hearsay, unprovable): " + ActionSupport.Describe(context, factId));
                     outcome.Events.Add(context.World.Record(WorldEventType.Conversed, context.Actor, context.Target, context.Now, 0.3, context.Zone));
@@ -165,6 +166,11 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.NotRelevant("nobody to persuade");
             }
 
+            if (!ActionBinding.HasRequiredSemanticSlots(Id, context))
+            {
+                return Availability.NotRelevant("nothing specific to ask for");
+            }
+
             return Availability.Available();
         }
 
@@ -177,13 +183,15 @@ namespace BrilliantQuesting.Actions.Library
 
             CheckResult check = context.Checks.Resolve(request, context.Rng);
             string who = context.NameOf(context.Target);
+            ActionBinding binding = ActionBinding.Infer(context);
+            string purpose = binding.Describe(context);
 
             switch (check.Outcome)
             {
                 case CheckOutcome.CriticalPass:
                 {
-                    ActionOutcome outcome = new ActionOutcome(Id, check, who + " agrees, and seems glad to have been asked.");
-                    outcome.Events.Add(context.World.Record(WorldEventType.PromiseMade, context.Target, context.Actor, context.Now, 0.6, context.Zone, threadId: ThreadId(context)));
+                    ActionOutcome outcome = new ActionOutcome(Id, check, who + " agrees to help with " + purpose + ", and seems glad to have been asked.");
+                    outcome.Events.Add(context.World.Record(WorldEventType.PromiseMade, context.Target, context.Actor, context.Now, 0.6, context.Zone, related: Related(binding), threadId: ThreadId(context)));
                     outcome.Events.Add(context.World.Record(WorldEventType.Helped, context.Actor, context.Target, context.Now, 0.4, context.Zone));
                     AdmitRestrictedSite(context, outcome);
                     return outcome;
@@ -191,8 +199,8 @@ namespace BrilliantQuesting.Actions.Library
 
                 case CheckOutcome.Pass:
                 {
-                    ActionOutcome outcome = new ActionOutcome(Id, check, who + " agrees.");
-                    outcome.Events.Add(context.World.Record(WorldEventType.PromiseMade, context.Target, context.Actor, context.Now, 0.5, context.Zone, threadId: ThreadId(context)));
+                    ActionOutcome outcome = new ActionOutcome(Id, check, who + " agrees to help with " + purpose + ".");
+                    outcome.Events.Add(context.World.Record(WorldEventType.PromiseMade, context.Target, context.Actor, context.Now, 0.5, context.Zone, related: Related(binding), threadId: ThreadId(context)));
                     AdmitRestrictedSite(context, outcome);
                     return outcome;
                 }
@@ -213,6 +221,16 @@ namespace BrilliantQuesting.Actions.Library
         private static EntityId ThreadId(ActionContext context)
         {
             return context.Thread?.Id ?? EntityId.None;
+        }
+
+        private static EntityId[] Related(ActionBinding binding)
+        {
+            if (binding != null && !binding.PropositionFact.IsNone)
+            {
+                return new[] { binding.PropositionFact };
+            }
+
+            return null;
         }
 
         private static void AdmitRestrictedSite(ActionContext context, ActionOutcome outcome)

@@ -18,7 +18,10 @@ namespace BrilliantQuesting.Knowledge
         Inference,
 
         /// <summary>Was there. Applies to the perpetrator of the act.</summary>
-        Participant
+        Participant,
+
+        /// <summary>The subject directly admitted their own act or condition.</summary>
+        Admission
     }
 
     /// <summary>What one character believes about one fact, and how well they can back it up.</summary>

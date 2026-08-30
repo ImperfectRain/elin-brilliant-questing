@@ -46,6 +46,9 @@ namespace BrilliantQuesting.Actions
         /// <summary>A third party - the person being accused, framed or vouched for.</summary>
         public EntityId ThirdParty { get; set; }
 
+        /// <summary>The concrete proposition, object, destination or undertaking this action means.</summary>
+        public ActionBinding Binding { get; set; }
+
         public NarrativeThread Thread { get; set; }
 
         /// <summary>

@@ -100,8 +100,13 @@ namespace BrilliantQuesting.Actions.Library
 
             if (!context.SubjectFact.IsNone)
             {
-                bool targetKnows = knowledge.Knows(context.Target, context.SubjectFact);
+                bool targetKnows = knowledge.TryGetBelief(context.Target, context.SubjectFact, out KnowledgeRecord record);
                 bool actorKnows = knowledge.Knows(context.Actor, context.SubjectFact);
+                if (targetKnows && IsSelfIncriminatingDisclosure(context, context.SubjectFact, record))
+                {
+                    return EntityId.None;
+                }
+
                 return targetKnows && !actorKnows ? context.SubjectFact : EntityId.None;
             }
 
@@ -114,6 +119,11 @@ namespace BrilliantQuesting.Actions.Library
                     continue;
                 }
 
+                if (IsSelfIncriminatingDisclosure(context, record.FactId, record))
+                {
+                    continue;
+                }
+
                 if (record.Confidence > bestConfidence)
                 {
                     bestConfidence = record.Confidence;
@@ -122,6 +132,40 @@ namespace BrilliantQuesting.Actions.Library
             }
 
             return best;
+        }
+
+        public static KnowledgeSource DisclosureSource(ActionContext context, EntityId factId)
+        {
+            if (context.World.Knowledge.TryGetBelief(context.Target, factId, out KnowledgeRecord record)
+                && record.Source == KnowledgeSource.Participant)
+            {
+                Fact fact = context.World.Knowledge.GetFact(factId);
+                if (fact != null && fact.Subject == context.Target)
+                {
+                    return KnowledgeSource.Admission;
+                }
+            }
+
+            return KnowledgeSource.Hearsay;
+        }
+
+        private static bool IsSelfIncriminatingDisclosure(ActionContext context, EntityId factId, KnowledgeRecord record)
+        {
+            if (record == null || record.Source != KnowledgeSource.Participant)
+            {
+                return false;
+            }
+
+            Fact fact = context.World.Knowledge.GetFact(factId);
+            if (fact == null || fact.Subject != context.Target)
+            {
+                return false;
+            }
+
+            return fact.Predicate == FactPredicates.Stole
+                   || fact.Predicate == FactPredicates.Killed
+                   || fact.Predicate == FactPredicates.Extorted
+                   || fact.Predicate == FactPredicates.Forged;
         }
 
         /// <summary>

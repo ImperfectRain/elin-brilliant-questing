@@ -22,7 +22,17 @@ namespace BrilliantQuesting.Actions
                 return projected;
             }
 
-            List<ActionOffer> display = OfferPresentation.TakeForDisplay(offers, max);
+            List<ActionOffer> eligible = new List<ActionOffer>();
+            for (int i = 0; i < offers.Count; i++)
+            {
+                ActionOffer offer = offers[i];
+                if (offer != null && ActionBinding.HasRequiredSemanticSlots(offer.Action.Id, context))
+                {
+                    eligible.Add(offer);
+                }
+            }
+
+            List<ActionOffer> display = OfferPresentation.TakeForDisplay(eligible, max);
             for (int i = 0; i < display.Count; i++)
             {
                 ActionOffer offer = display[i];
@@ -45,7 +55,8 @@ namespace BrilliantQuesting.Actions
 
             string target = Name(context, context.Target);
             Fact subject = SubjectFact(context);
-            string matter = Matter(subject);
+            ActionBinding binding = ActionBinding.Infer(context);
+            string matter = binding.Describe(context);
             bool actorKnowsSubject = subject != null && context.World.Knowledge.Knows(context.Actor, subject.Id);
             bool targetIsSubject = subject != null && subject.Subject == context.Target;
 
