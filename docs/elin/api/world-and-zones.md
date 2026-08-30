@@ -7,7 +7,7 @@
 
 ## Grade-B Absence / Movement
 
-Current BQ implementation: `ElinPresence.ResolveMove` searches for a one-argument `MoveZone(Zone)`, `SetZone(Zone)`, or `ChangeZone(Zone)`. Those signatures are not present in the installed build (`VERIFIED-METADATA`). BQ-032's current reflection resolver is therefore incorrect for EA 23.338 Patch 2.
+Current BQ implementation: `ElinPresence.ResolveMove` searches for `Chara.MoveZone(Zone, ZoneTransition.EnterState)` and `ElinPresence.ResolveFindZone` searches for `EClass.game.spatials.Find(int)`. The adapter refuses movement when the actor is not already global, and Grade-B absence remains configuration-gated pending disposable-save runtime validation (`SOURCE-OBSERVED`, `STUB-VERIFIED`, `UNRESOLVED` runtime).
 
 Actual vanilla mechanism: installed `Chara` exposes `MoveZone(string)`, `MoveZone(Zone, ZoneTransition.EnterState)`, and `MoveZone(Zone, ZoneTransition)` (`VERIFIED-METADATA`). `MoveZone(Zone, EnterState)` constructs a `ZoneTransition` and delegates to `MoveZone(Zone, ZoneTransition)` (`SOURCE-OBSERVED`). `MoveZone(string)` resolves the destination through `EClass.game.spatials.Find(string)` and uses `EnterState.Auto` (`SOURCE-OBSERVED`).
 
