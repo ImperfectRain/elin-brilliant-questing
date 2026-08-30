@@ -18,9 +18,13 @@ world/history state
 -> validation/scoring
 -> persistent Elin zone
 -> later additive development
+-> projected spatial affordances
+-> new situation generation
 ```
 
 Geometry matters because it makes history visible. History matters because it gives geometry meaning.
+Verified spatial facts also become inputs to later narrative generation; a dock, isolated warehouse,
+guarded entrance or abandoned yard is not only scenery once BQ can safely observe it.
 
 ## 2. Doctrine
 
@@ -35,6 +39,8 @@ Geometry matters because it makes history visible. History matters because it gi
 **Procedural problems before custom puzzle mechanics.** Near-term sites should use verified Elin verbs: locks, guarded thresholds, digging/breaking where permitted, traps, hidden routes, search, evidence, stairs and zone transitions. Puzzle systems are future BQ-owned mechanics only after their state and runtime behavior are verified.
 
 **Genesis and Development are separate.** Genesis runs once to create a place. Development later mutates it additively. A visited place is never destructively regenerated.
+
+**Spatial state feeds later situations.** Physical realization must eventually project semantic affordances back into world-state generation. The loop is spatial fact -> affordance -> situation -> history -> later spatial consequence.
 
 **Vanilla owns physical substrate where possible.** BQ owns narrative meaning, history, planning, scoring and semantic identity. Do not duplicate economy, organizations, pathfinding, routines, needs, combat, Home arithmetic, or vanilla zone simulation.
 
@@ -89,7 +95,7 @@ entry
 Tier the mechanics:
 
 - **Tier 1:** compose existing or vanilla-like mechanics: lock/key or access cycles, blocked route versus costly detour, traps, guarded thresholds, diggable/breakable bypasses, hidden routes, evidence caches, locked descent/exit, causal populations and loot.
-- **Tier 2:** small reusable BQ scenario state machine after a spike: triggers, conditions and effects over switches, gates, revealed evidence, encounter activation, hostility changes and scenario flags.
+- **Tier 2:** small reusable BQ scenario state machine after a spike and only when Tier 1 exposes a real need: triggers, conditions and effects over switches, gates, revealed evidence, encounter activation, hostility changes and scenario flags.
 - **Tier 3:** new gameplay mechanics such as water levels, movable blocks, beam routing, power networks or physics puzzles. These are non-goals for the core dungeon path.
 
 A useful later primitive is a declarative Trigger -> Condition -> Effect language connected to authored sockets:
