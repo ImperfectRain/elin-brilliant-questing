@@ -1,22 +1,75 @@
 # Runtime Probes
 
-Static metadata is not enough for the following. All probes should log only the minimal fields needed to answer the question.
+Static Phase 2 reduced the probe list. Remaining probes validate live UI behavior, actor populations, and nonzero save-affecting mutations. Do not upgrade any item to `VERIFIED-RUNTIME` unless the installed game log shows the probe ran successfully.
 
-## Safe Read-Only Probes
+## Session A: Safe Read-Only Shape And UI Probe
 
-1. `ActorClassificationProbe` (`ELIN-Q-0013`): on `PostLoad`, sample PC, nearby NPCs, shop/service NPCs, and any obvious story/guild NPCs. Log source id/name, source tags, candidate unique/story members present, and resulting `NarrativeActorClass`. No mutation.
-2. `HomeShapeProbe` (`ELIN-Q-0009`, `ELIN-Q-0010`): on a save with a Home, log `EClass.Branch.GetType().FullName`, public fields/properties/methods containing `member`, `resident`, `chara`, `capacity`, `max`, `zone`, `element`, `add`; log current member count and Home metric reads. No mutation.
-3. `ActivityProbe` (`ELIN-Q-0014`, `ELIN-Q-0015`): sample nearby residents/adventurers before and after hour advance/zone revisit. Log `idTimeTable`, `CurrentSpan`, current `ai` type, `global != null`, `global.goal` type, trait `UseGlobalGoal`, and zone uid. No mutation.
-4. `BarkProbe` (`ELIN-Q-0016`, `ELIN-Q-0017`): when a BQ ambient line is selected, log chosen speech route and whether it returned. During a generic conversation, deliver one harmless test line only when debug config is enabled. No state teaching unless speech succeeds.
-5. `ActPerformedPayloadProbe` (`ELIN-Q-0021`): for each `EVENT.ActPerformed`, log act type full name and public/instance field names with shallow type names for matching theft/craft/combat/chat candidates. No mutation.
-6. `JournalShapeProbe` (`ELIN-Q-0020`, `ELIN-Q-0023`): when `LayerJournal` opens, log layer type, child component names/types, tab ids, and switch callback parameters. No UI mutation.
-7. `ZoneItemProbe` (`ELIN-Q-0008`): log `EClass._map.things` count and first few item uid/name/category/source ids. No mutation.
+Questions answered: `ELIN-Q-0013`, `ELIN-Q-0014`, `ELIN-Q-0015`, `ELIN-Q-0017`, `ELIN-Q-0018`, `ELIN-Q-0020`, `ELIN-Q-0021`, `ELIN-Q-0023`, `ELIN-Q-0024`.
 
-## Destructive Or Save-Affecting Probes
+Setup: ordinary save, debug logging enabled, no vanilla mutation.
 
-1. `DestroyItemProbe` (`ELIN-Q-0004`): create or select a disposable mundane item, record holder inventory, call `Thing.Destroy()`, re-read holder inventory and global card lookup. Mark `DISPOSABLE SAVE REQUIRED`.
-2. `TransferItemProbe` (`API-020`): move a disposable item between two safe/generated holders with `Chara.Pick`, then re-read both inventories. Mark `DISPOSABLE SAVE REQUIRED`.
-3. `HomeAdmissionProbe` (`ELIN-Q-0010`, `ELIN-Q-0011`): on a throwaway Home save, admit a generated/test Chara through any resolved vanilla method, re-read members/jobs/metrics before and after. Mark `DISPOSABLE SAVE REQUIRED`.
-4. `AbsenceMoveProbe` (`ELIN-Q-0012`): on a throwaway save, move a generated/test Chara to a known zone and back, then save/reload and verify same uid/currentZone. Mark `DISPOSABLE SAVE REQUIRED`.
+Player actions: load into a town/Home, talk to at least one ordinary NPC and one service/story/guild NPC, open journal, advance one hour or revisit a zone if convenient.
 
-Do not upgrade any question to `VERIFIED-RUNTIME` unless the log shows the probe ran successfully in the installed game.
+Log values:
+
+- Actor sample: uid, source id/name, trait type, source tags, `IsUnique`, `IsImportant`, `c_uniqueData != null`, `c_isImportant`, `quest != null`, `IsGlobal`, `IsHomeMember`, `IsBranchMember`, BQ classifier result.
+- Activity sample: `idTimeTable`, current span/goal type, work/hobby goal type, `TraitChara.UseGlobalGoal`, `global.goal` type, `global.transition` state/coordinates/last-zone uid, current zone uid, active-zone match.
+- Dialogue/bark: chosen route (`Card.SayRaw`, `Card.TalkRaw`, or `Msg.SayRaw`), whether speaker is synced, whether raw line is visible before/after `DramaManager.sequence.Exit()`.
+- Choice layout: total vanilla+BQ choice count and whether choices are visible/scrollable/clickable.
+- Journal shape: `LayerJournal` window count, `Window.setting.tabs` count/names before build, selected `idTab`, content component names, switch callback sequence.
+- Act/witness sample: act type full name, static `Act.CC`, `Act.TC`, `Act.TOOL`, `Act.TP`, instance `AIAct.owner`, `AI_TargetCard.target`, BQ witness candidates, `Card.Dist`, `Card.GetSightRadius`, `Chara.CanSeeLos`, perception/spotting/stealth totals, and whether observed action is theft, pickup, combat, chat, craft, harvest, or production.
+- Affordance sample: active zone id/name/source row id, branch/faction ids if present, loaded chara source job/hobby/trait/faith counts, loose `Map.things` category/source ids.
+
+Expected interpretations:
+
+- Classifier thresholds can be tightened only if ordinary/service/story samples support them.
+- Global-goal availability can be exposed read-only if samples match `GameDate.AdvanceHour` predicates.
+- Bark/open-Drama display remains `UNRESOLVED` unless the line is visually confirmed.
+- Journal tabs remain implementation-risky until a BQ content object can be switched without layout/lifecycle issues.
+- `ActPerformed` remains observation-only for act payloads; production still needs separate hook evidence if no production act publishes.
+
+Disposable save required: no.
+
+Estimated human interaction time: 10-15 minutes.
+
+## Session B: Disposable Item Mutation Probe
+
+Questions answered: `ELIN-Q-0004`, `ELIN-Q-0008`, `API-020`, `API-021`.
+
+Setup: `DISPOSABLE SAVE REQUIRED`. Create or select mundane disposable items and, for transfer, two safe holders or a generated holder.
+
+Player/tool actions:
+
+1. Record source holder inventory and active `EClass._map.things`.
+2. Transfer one item via `Chara.Pick(Thing,bool,bool)`.
+3. Record source/destination inventories, returned `Thing.uid`, stack counts, and whether the original uid survived.
+4. Destroy one mundane item with `Thing.Destroy()`/`Card.Destroy()`.
+5. Save/reload if persistence validation is required for enabling gameplay.
+
+Expected interpretations:
+
+- If `Pick` returns a different destination stack, BQ must update bindings or validate by count/category delta rather than original uid.
+- `Destroy` can be considered live nonzero mutation only if the item disappears from holder/zone and remains gone after reload.
+
+Estimated human interaction time: 5-10 minutes.
+
+## Session C: Disposable Home And Absence Mutation Probe
+
+Questions answered: `ELIN-Q-0009`, `ELIN-Q-0010`, `ELIN-Q-0011`, `ELIN-Q-0012`, `API-026`, `API-029`.
+
+Setup: `DISPOSABLE SAVE REQUIRED`. Use a save with a Home and a generated/test Chara, not an important/story/party actor.
+
+Player/tool actions:
+
+1. Log `FactionBranch.members`, `CountMembers(Default,false)`, `MaxPopulation`, `elements`, `owner.uid`, and test Chara global/faction/home state.
+2. Call `FactionBranch.AddMemeber(Chara)` once.
+3. Re-read members, counts, capacity, efficiency, work elements, faction, home zone, and global status.
+4. For absence, try `MoveZone(Zone, EnterState.RandomVisit)` only on an already-global generated/test Chara.
+5. Re-read `currentZone`, active map membership, `global.transition`, global registry presence, then save/reload and re-read same uid.
+
+Expected interpretations:
+
+- `AddMemeber` can be enabled only if live nonzero admission persists and metrics/jobs refresh as source analysis predicts.
+- Grade-B absence should remain limited to already-global actors unless the probe proves a safe path for ordinary non-global citizens.
+
+Estimated human interaction time: 10-15 minutes.

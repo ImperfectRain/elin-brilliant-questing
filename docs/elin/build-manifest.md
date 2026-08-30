@@ -6,8 +6,8 @@ Checked: 2026-08-30, local workspace `C:\Users\loplo\Documents\ChatGPT\Elin-bril
 
 - Root: `C:\Users\loplo\Documents\ChatGPT\Elin-brilliant-questing` (`VERIFIED-METADATA`, shell `Get-Location`).
 - Branch: `master` (`VERIFIED-METADATA`, `git status --short --branch`).
-- HEAD: `e58434a58ffa5bc697e938bb0778e5567a96b981` / `BQ-036 "What's been happening?"` (`VERIFIED-METADATA`, `git log`).
-- Live branch tips: `master`, `origin/master`, and `origin/HEAD` all point to `e58434a58ffa5bc697e938bb0778e5567a96b981` (`VERIFIED-METADATA`, `git branch --all --verbose --no-abbrev`).
+- HEAD before Phase 2 edits: `c606d647e36089e44ee1efc6dfdd40fefba547a4` / `Document version-matched Elin API evidence` (`VERIFIED-METADATA`, `git log`).
+- Live branch tips before Phase 2 edits: `master`, `origin/master`, and `origin/HEAD` all point to `c606d647e36089e44ee1efc6dfdd40fefba547a4` (`VERIFIED-METADATA`, `git for-each-ref`).
 - Worktree before edits: clean except branch tracking line (`VERIFIED-METADATA`).
 
 ## Installed Elin

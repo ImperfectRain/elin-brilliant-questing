@@ -30,3 +30,9 @@ tools\ApiDump\bin\Debug\net8.0\ApiDump.exe --source-index --source-root "E:\Stea
 ```
 
 Start future Elin-facing work with `verification/api-status.json`, then open `verification/matrix.md` only for detail. Do not treat metadata as runtime behavior.
+
+Phase 2 follow-up entry points:
+
+- `verification/recommended-fixes.md`: implementation-ready defects and stale assumptions found by static analysis.
+- `bq-integration/world-affordances.md`: BQ-039 available vanilla affordance map.
+- `verification/runtime-probes.md`: reduced three-session runtime validation plan.

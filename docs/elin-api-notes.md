@@ -13,6 +13,18 @@ this is metadata only, from one specific install:
 
 Re-verify against the player's build before trusting any of it; Elin is in active Early Access.
 
+## Phase 2 correction
+
+The version-matched knowledge base under `docs/elin/` supersedes this early spike for current integration work. Phase 2 static analysis against installed EA 23.338 Patch 2 corrected several guessed names:
+
+- `Chara.MoveZone(Zone)` does not exist. Use `Chara.MoveZone(Zone, ZoneTransition.EnterState)` or `Chara.MoveZone(Zone, ZoneTransition)`; non-PC offscreen movement requires `chara.global != null` (`VERIFIED-METADATA`, `SOURCE-OBSERVED`).
+- Home admission/capacity are `FactionBranch.AddMemeber(Chara)` and `FactionBranch.MaxPopulation`, not `AddMember`/`AddResident`/`AddChara` or `capacity` candidates (`VERIFIED-METADATA`, `SOURCE-OBSERVED`).
+- Raw actor barks exist on inherited `Card.SayRaw(string,string,string)` and `Card.TalkRaw(string,string,string,bool)` (`VERIFIED-METADATA`, `SOURCE-OBSERVED`).
+- Guild rank/progression exists on `FactionRelation.rank`, `exp`, and `ExpToNext`; BQ's current binary `GetGuildRank` is stale (`SOURCE-OBSERVED`).
+- `Thing.rarity` is not production quality; use `Card.GetTotalQuality(true)`/`Card.Quality` semantics for made-quality (`SOURCE-OBSERVED`).
+
+Use `docs/elin/verification/api-status.json`, `docs/elin/verification/matrix.md`, and `docs/elin/verification/recommended-fixes.md` before relying on older notes below.
+
 ## Checks — the design's central assumption holds
 
 ```
@@ -66,9 +78,9 @@ vanilla rows only where they map cleanly.
 | money | `Card.GetCurrency(string id)`, `Card.ModCurrency(int a, string id)` |
 | deity / piety | `Chara.idFaith` (string), `Chara.elements.Value(85)` — the id **vocabulary** is unread, see below |
 | zone occupants | `Zone.FindChara(int uid)`, `Zone.FindChara(string id)`, `Zone.AddChara(string, Point)` |
-| Home | `EClass.Branch` — the branch object only; residents, capacity, jobs and the element container are read **by name**, see below |
-| whereabouts | `Chara.currentZone`, `Zone.uid`; moving somebody is `Chara.MoveZone(Zone)` and a zone lookup on `EClass.game.spatials`, both read **by name**, see below |
-| actor classification | `Chara` and its source row, read **by name** — `IsUnique`/`isUnique`/`IsUniqueName`, `IsMainCharacter`/`IsUniqueCharacter`/`IsImportantNPC`, and the source row's `tag`. None runtime-verified, see below |
+| Home | `EClass.Branch`; residents/capacity/admission are `FactionBranch.members`, `MaxPopulation`, and `AddMemeber(Chara)` in EA 23.338 Patch 2, see Phase 2 correction |
+| whereabouts | `Chara.currentZone`, `Zone.uid`; movement is `Chara.MoveZone(Zone, EnterState)` / `MoveZone(Zone, ZoneTransition)` plus `EClass.game.spatials.Find(int)` |
+| actor classification | `Card.IsUnique`, `IsImportant`, `c_uniqueData`, `c_isImportant`, traits, quest state, and source tags; live thresholds still need runtime samples |
 
 `Chara` carries a `uid`; that is the handle `EntityId` should map to, not a name.
 
@@ -400,35 +412,18 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
   Consecrated ground is therefore modelled as a fact about the *zone* rather than as an altar
   `Thing` to be found standing in it, which keeps the faith verbs off that path entirely. Reading
   a zone's things (`Zone.things` / the map's card list) is the fix when a step needs it.
-- **Everything below `EClass.Branch`.** `ElinHomeState` reads the Home through a candidate list of
-  member names rather than compiling against members: residents (`members`/`Members`/`charas`),
-  capacity (`maxResident`/`maxMember`/`capacity` and the capitalised forms — deliberately no
-  "worker" name, which counts a different thing), the branch
-  name, `uidZone`, the element container (`elements`) and its `Value(int)`, and a resident's job
-  (`job`/`idJob`/`hobby`/`work`). Not one of those names has been read off a running game, and
-  whether the six Home Skill elements live in the branch's own container at all is likewise
-  unconfirmed. The failure is deliberately visible rather than quiet: a name this build does not
-  have makes the datum absent — `?` in the `home:` log line, `CapacityKnown` false,
-  `TryGetMetric` false — never a zero that reads as a measurement (see decision D017). The
-  reader's own logic was exercised headlessly against a stub shaped like a branch; that proves the
-  reflection, not the shape. A live run should be read for the one-time "Home branch is ..." line
-  and any "Unread Home data" warning, and the winning names copied into the candidate lists.
-- **Moving somebody into the Home.** `ElinHomeState.TryAdmit` calls a one-argument member of the
-  branch that takes a `Chara`, resolved from `AddMember`/`AddResident`/`AddChara`. None of those
-  has been seen on a running game either, and unlike every other candidate list here this one
-  names a method that changes a save - which is why there is deliberately no bare `Add` in it, and
-  why the call is verified by re-reading the branch and asking whether the person is on the roll
-  rather than by trusting that it returned. A build with none of those names reports
-  `WriteHomeResidents` unsupported, logs the names it tried once, and loses `shelter` and
-  `recruit_specialist` while keeping `host`, `assign_protection`, `provide_supplies` and
-  `store_evidence`. The capability probe resolves the member and does **not** call it: unlike
-  `ModCurrency(0)`, there is no harmless version of moving a person into somebody's house.
-  The write's own logic was exercised headlessly against a branch-shaped stub with and without an
-  `AddMember(Chara)` on it; that proves the reflection and the verify-by-re-read, not the shape.
-- Whether Elin recomputes the Home Skill elements from a resident added this way, and whether it
-  assigns that resident a job on its own. The mod sets neither (decision D018), so if the game
-  does not, a sheltered person is a name on the roll and nothing more. A live run should compare
-  the `home:` line before and after a `shelter`.
+- **Everything below `EClass.Branch`.** Phase 2 installed-source analysis resolves the important
+  names for EA 23.338 Patch 2: residents are `FactionBranch.members`, capacity is
+  `FactionBranch.MaxPopulation`, branch zone is `owner`, and metrics live in `elements`.
+  `MaxPopulation` returns `5 + Evalue(2204)`, where SourceElement `2204` is `fFood`
+  (`SOURCE-OBSERVED`, `SOURCE-DATA`). Current BQ still misses `MaxPopulation`.
+- **Moving somebody into the Home.** Phase 2 resolves the vanilla method as misspelled
+  `FactionBranch.AddMemeber(Chara)`, not `AddMember`/`AddResident`/`AddChara`.
+  `AddMemeber` calls `SetGlobal`, sets faction/Home zone, adds to `members`, calls
+  `OnAddMemeber`, `RefreshEfficiency`, and `RefreshWorkElements` (`SOURCE-OBSERVED`).
+  Current BQ still misses this method; runtime nonzero mutation requires a disposable save.
+- Elin does recompute efficiency/work elements after `AddMemeber` statically
+  (`SOURCE-OBSERVED`). Live Home deltas and persistence still require a disposable-save probe.
 - Whether `assign_protection` and `provide_supplies` are reachable at all in play. Both refuse on
   an unread Home Skill element - a watch needs Public Safety, a shipment needs Food Supply or
   Administration - so if the six elements do not resolve on a running game, those two routes are
@@ -442,12 +437,11 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
   The investigation verbs therefore match category *and* item name against a keyword list, and the
   generalist `inspect` reads anything, so an unrecognised tag costs a specialist route rather than
   the whole investigation. Worth replacing with the real ids once a live inventory is dumped.
-- **How a character is moved to another zone, and how a zone is found by uid.** `ElinPresence` is
-  the whole of Grade B absence in game, and it resolves two members by name: a one-argument member
-  on `Chara` taking a `Zone` (`MoveZone`, `SetZone`, `ChangeZone`) and a one-argument member on
-  `EClass.game.spatials` taking an `int` and returning a `Zone` (`Find`, `FindZone`, `GetZone` -
-  deliberately no bare `Get`). Neither has been read off a running game. A build missing either
-  reports `MoveCharaBetweenZones` unsupported and logs the names it tried once.
+- **How a character is moved to another zone, and how a zone is found by uid.** Phase 2 resolves
+  `SpatialManager.Find(int)` and the real movement overloads: `Chara.MoveZone(Zone, EnterState)`
+  and `Chara.MoveZone(Zone, ZoneTransition)`. Current BQ's one-argument `MoveZone(Zone)` resolver
+  is wrong for EA 23.338 Patch 2. The non-PC offscreen movement path requires `chara.global != null`;
+  non-global actors log and return without moving (`SOURCE-OBSERVED`).
 
   The mechanic is travel rather than removal on purpose: nothing here destroys a Chara or spawns a
   replacement, so the character who comes back is the character who left and no citizen refresh,

@@ -1,8 +1,9 @@
 # Home And Settlements
 
 - `EClass.Branch` is the current entry point used by BQ (`VERIFIED-METADATA`; current runtime save reported no readable Home/no Home).
-- Installed metadata has `FactionBranch.members` and `FactionBranch.elements` (`VERIFIED-METADATA`).
-- Installed metadata did not confirm BQ's candidate capacity fields (`maxResident`, `maxMember`, `capacity`) on `FactionBranch` (`UNRESOLVED`).
-- Installed metadata did not confirm BQ's candidate admission methods (`AddMember`, `AddResident`, `AddChara`) on `FactionBranch` (`UNRESOLVED`).
+- Installed metadata has `FactionBranch.members`, `FactionBranch.elements`, `FactionBranch.owner`, `FactionBranch.CountMembers(FactionMemberType,bool)`, `FactionBranch.MaxPopulation`, `FactionBranch.AddMemeber(Chara)`, `Recruit(Chara)`, `ChangeMemberType`, `RemoveMemeber`, and `RefreshEfficiency()` (`VERIFIED-METADATA`). The vanilla method names are misspelled as `Memeber`.
+- Resident capacity is `FactionBranch.MaxPopulation`, implemented as `5 + Evalue(2204)` where SourceElement `2204` is `fFood` / Food Supply (`SOURCE-OBSERVED`, `SOURCE-DATA`). BQ's current capacity candidate list does not include `MaxPopulation` and is incorrect for the installed build.
+- Vanilla resident admission is `FactionBranch.AddMemeber(Chara)` (`VERIFIED-METADATA`, `SOURCE-OBSERVED`). It removes the character from any prior Home branch, removes reserved status, calls `chara.SetGlobal()`, sets faction to Home, sets the Home zone, normalizes hostility/member type, adds to `members`, calls `OnAddMemeber`, `RefreshEfficiency()`, and `chara.RefreshWorkElements(branch.elements)` (`SOURCE-OBSERVED`). BQ's current `AddMember/AddResident/AddChara` resolver misses this method.
+- `FactionBranch.Recruit(Chara)` wraps `AddMemeber`, clears restraint, may physically place the character in the current zone, refreshes efficiency/work elements again, and emits a hire message (`SOURCE-OBSERVED`). For BQ shelter/residency mutation, `AddMemeber` is the narrower vanilla Home state operation; `Recruit` is a gameplay/hire presentation operation.
 - Home metrics are read through `ElementContainer.Value(int)` using SourceElement ids `2115 fAdmin`, `2200 fSoil`, `2202 fPromo`, `2203 fMoral`, `2204 fFood`, `2205 fSafety` (`SOURCE-DATA`, `VERIFIED-METADATA`).
-- BQ mutation policy has only one Home write, `TryAdmitResident`; it must remain gated and verified by re-reading residents after the call (`STUB-VERIFIED`, `UNRESOLVED` live behavior).
+- BQ mutation policy has only one Home write, `TryAdmitResident`; it should resolve `AddMemeber(Chara)`, re-read `members`/`CountMembers`, and keep disposable-save runtime validation before enabling nonzero live Home admission (`SOURCE-OBSERVED`, `UNRESOLVED` mutation persistence).
