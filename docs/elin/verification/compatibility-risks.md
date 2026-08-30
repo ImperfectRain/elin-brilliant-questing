@@ -11,6 +11,6 @@ Highest-risk surfaces:
 
 Risks affecting the next five roadmap steps after current `BQ-036`:
 
-- `BQ-037/BQ-038` guild information networks depend on guild rank/progression; vanilla rank exists, but current BQ returns binary membership (`SOURCE-OBSERVED`, `FIX-ELIN-007`).
+- `BQ-037/BQ-038` guild networks and guild authority read `FactionRelation.rank` and `.exp` since `BQ-038` took `FIX-ELIN-007`. Neither has been read on a running member save (`SOURCE-OBSERVED`), and the rank scale the authority threshold is set against is therefore unverified; an unread number is 0 and refuses the route. Which guild a live NPC belongs to is still unread (`ELIN-Q-0025`), so in a real game an officer only speaks for a guild where a situation or generator granted the membership role.
 - `BQ-039/BQ-040` situation generation needs settlement/world affordances; SourceData and active-zone signals are mapped, but no runtime affordance adapter exists (`SOURCE-DATA`, `SOURCE-OBSERVED`, `UNRESOLVED` integration).
 - `BQ-041` and early S5 archetypes will lean on existing actors/locations/items; actor classification live thresholds, zone item inventory, and SourceData semantic mappings are the main risks (`SOURCE-OBSERVED`, `SOURCE-DATA`, `UNRESOLVED` runtime).

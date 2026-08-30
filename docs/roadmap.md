@@ -82,7 +82,7 @@ Not started. Needs the Phase 0 spike first: a site is only interesting once it i
 
 ## Phase 3 - universal action library
 
-Fifty-six verbs against a target thirty, and all eight solution families now have at least one
+Fifty-seven verbs against a target thirty, and all eight solution families now have at least one
 real route. Each verb needs testable preconditions, real vanilla mechanics, four-outcome behaviour
 where checked, exposure rules and consequence outputs; the count is not the measure - a verb counts
 only once some situation can be solved by it alone.

@@ -20,7 +20,7 @@ The version-matched knowledge base under `docs/elin/` supersedes this early spik
 - `Chara.MoveZone(Zone)` does not exist. Use `Chara.MoveZone(Zone, ZoneTransition.EnterState)` or `Chara.MoveZone(Zone, ZoneTransition)`; non-PC offscreen movement requires `chara.global != null` (`VERIFIED-METADATA`, `SOURCE-OBSERVED`).
 - Home admission/capacity are `FactionBranch.AddMemeber(Chara)` and `FactionBranch.MaxPopulation`, not `AddMember`/`AddResident`/`AddChara` or `capacity` candidates (`VERIFIED-METADATA`, `SOURCE-OBSERVED`).
 - Raw actor barks exist on inherited `Card.SayRaw(string,string,string)` and `Card.TalkRaw(string,string,string,bool)` (`VERIFIED-METADATA`, `SOURCE-OBSERVED`).
-- Guild rank/progression exists on `FactionRelation.rank`, `exp`, and `ExpToNext`; BQ's current binary `GetGuildRank` is stale (`SOURCE-OBSERVED`).
+- Guild rank/progression exists on `FactionRelation.rank`, `exp`, and `ExpToNext`. `GetGuildRank` reads `relation.rank` and `GetGuildContribution` reads `relation.exp` since `BQ-038`; neither has been read on a running member save (`SOURCE-OBSERVED`). The player-wide `contribution` currency is a different number and is not per guild.
 - `Thing.rarity` is not production quality; use `Card.GetTotalQuality(true)`/`Card.Quality` semantics for made-quality (`SOURCE-OBSERVED`).
 
 Use `docs/elin/verification/api-status.json`, `docs/elin/verification/matrix.md`, and `docs/elin/verification/recommended-fixes.md` before relying on older notes below.

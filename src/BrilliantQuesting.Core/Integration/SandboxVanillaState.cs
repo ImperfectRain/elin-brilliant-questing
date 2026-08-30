@@ -41,6 +41,7 @@ namespace BrilliantQuesting.Integration
         private readonly Dictionary<EntityId, CharaState> _charas = new Dictionary<EntityId, CharaState>();
         private readonly Dictionary<EntityId, int> _influence = new Dictionary<EntityId, int>();
         private readonly Dictionary<GuildId, int> _guildRanks = new Dictionary<GuildId, int>();
+        private readonly Dictionary<GuildId, int> _guildContribution = new Dictionary<GuildId, int>();
         private readonly HashSet<VanillaCapability> _capabilities = new HashSet<VanillaCapability>();
         private readonly List<string> _refusals = new List<string>();
         private HomeState _home;
@@ -121,6 +122,12 @@ namespace BrilliantQuesting.Integration
         public SandboxVanillaState SetGuildRank(GuildId guild, int rank)
         {
             _guildRanks[guild] = rank;
+            return this;
+        }
+
+        public SandboxVanillaState SetGuildContribution(GuildId guild, int contribution)
+        {
+            _guildContribution[guild] = contribution;
             return this;
         }
 
@@ -256,6 +263,17 @@ namespace BrilliantQuesting.Integration
         {
             _guildRanks.TryGetValue(guild, out int rank);
             return rank;
+        }
+
+        public int GetGuildContribution(GuildId guild)
+        {
+            if (!IsGuildMember(guild))
+            {
+                return 0;
+            }
+
+            _guildContribution.TryGetValue(guild, out int contribution);
+            return contribution;
         }
 
         public string GetWorshippedDeity(EntityId chara) => Ensure(chara).Deity;

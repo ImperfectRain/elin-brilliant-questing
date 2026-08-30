@@ -187,5 +187,36 @@ namespace BrilliantQuesting.Knowledge
                     return false;
             }
         }
+
+        /// <summary>
+        /// Whether this claim is something that is wrong *now*, rather than something that
+        /// happened.
+        ///
+        /// The difference decides what anybody can be asked to put right. A killing is history and
+        /// stays true for ever; a person who is not safe, a thing that is broken, a road that is
+        /// shut and a town that is short are conditions, and each of them is already something the
+        /// verb library supersedes when a route answers it - shelter ends an exposure, a blessing
+        /// or a repair ends a damage, clearing ends an obstruction, goods end a demand. This names
+        /// that set once so a verb that answers *a matter* rather than a named predicate can ask
+        /// which claims are matters at all.
+        ///
+        /// Silent by default, like <see cref="IsNewsworthy"/>: a predicate nobody has thought
+        /// about is not a standing trouble, so the failure of forgetting one is a route that does
+        /// not appear rather than a verb that offers to undo the past.
+        /// </summary>
+        public static bool IsStandingTrouble(string predicate)
+        {
+            switch (predicate)
+            {
+                case AtRisk:
+                case Damaged:
+                case BlocksAccessTo:
+                case Needs:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
     }
 }

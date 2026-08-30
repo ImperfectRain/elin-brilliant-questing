@@ -496,11 +496,40 @@ namespace BrilliantQuesting.Plugin
             return g != null && g.IsMember;
         }
 
+        /// <summary>
+        /// The member's rank in that guild, as vanilla keeps it.
+        ///
+        /// This used to report a binary - one for a member, zero for anybody else - which made
+        /// every member of every guild the same person to anything that read standing. Vanilla has
+        /// the real number on the faction relation and uses it itself for titles, salary and
+        /// rank-gated benefits, so BQ reads it rather than inventing a second scale
+        /// (`FIX-ELIN-007`).
+        ///
+        /// Zero for anybody who is not a member, and zero on a build where the faction manager
+        /// cannot be reached - which every threshold refuses rather than waves through.
+        ///
+        /// The relation is read only behind <c>IsMember</c>, which is itself
+        /// <c>relation.type == 2</c>: whatever the relation is, vanilla has already dereferenced
+        /// it by the time this returns anything but zero.
+        /// </summary>
         public int GetGuildRank(GuildId guild)
         {
-            // Membership is readable; a numeric rank is not exposed anywhere this adapter has
-            // found. Reported as a binary until that changes, rather than faked.
-            return IsGuildMember(guild) ? 1 : 0;
+            Guild g = FindGuild(guild);
+            return g != null && g.IsMember ? g.relation.rank : 0;
+        }
+
+        /// <summary>
+        /// What the member has earned in that guild, as its own progression rather than as the
+        /// player-wide contribution currency.
+        ///
+        /// `Card.GetCurrency("contribution")` is one purse for all four guilds, so it cannot say
+        /// which guild is owed anything; `FactionRelation.exp` is per-guild and is what vanilla
+        /// itself advances a member on.
+        /// </summary>
+        public int GetGuildContribution(GuildId guild)
+        {
+            Guild g = FindGuild(guild);
+            return g != null && g.IsMember ? g.relation.exp : 0;
         }
 
         public string GetWorshippedDeity(EntityId chara)

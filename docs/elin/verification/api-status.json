@@ -14,13 +14,13 @@
     "partially_resolved": 12,
     "obsolete_or_superseded": 2,
     "still_open": 1,
-    "current_api_dependencies": 49,
+    "current_api_dependencies": 50,
     "recommended_fixes": 8,
     "evidence_counts": {
       "VERIFIED_RUNTIME": 23,
-      "VERIFIED_METADATA": 45,
+      "VERIFIED_METADATA": 46,
       "SOURCE_DATA": 10,
-      "SOURCE_OBSERVED": 24,
+      "SOURCE_OBSERVED": 25,
       "STUB_VERIFIED": 2,
       "UNRESOLVED": 12
     }
@@ -54,8 +54,8 @@
     { "id": "API-010", "name": "Karma mutation", "status": "PARTIALLY RESOLVED", "evidence": ["VERIFIED_RUNTIME"], "risk": "Medium" },
     { "id": "API-011", "name": "Fame mutation", "status": "PARTIALLY RESOLVED", "evidence": ["VERIFIED_RUNTIME"], "risk": "Medium" },
     { "id": "API-012", "name": "Influence currency", "status": "RESOLVED", "evidence": ["VERIFIED_RUNTIME"], "risk": "Medium" },
-    { "id": "API-013", "name": "Guild contribution currency", "status": "PARTIALLY RESOLVED", "evidence": ["VERIFIED_RUNTIME"], "risk": "Low" },
-    { "id": "API-014", "name": "Guild membership/rank", "status": "RESOLVED", "evidence": ["VERIFIED_RUNTIME", "VERIFIED_METADATA", "SOURCE_OBSERVED"], "risk": "Medium", "fix": "FIX-ELIN-007" },
+    { "id": "API-013", "name": "Guild contribution currency", "status": "PARTIALLY RESOLVED", "evidence": ["VERIFIED_RUNTIME"], "risk": "Low", "note": "Player-wide currency, not per guild; per-guild contribution is API-050" },
+    { "id": "API-014", "name": "Guild membership/rank", "status": "RESOLVED", "evidence": ["VERIFIED_RUNTIME", "VERIFIED_METADATA", "SOURCE_OBSERVED"], "risk": "Medium", "fix": "FIX-ELIN-007", "note": "BQ-038 took FIX-ELIN-007; GetGuildRank reads FactionRelation.rank. Membership is runtime-verified, the rank read is not, and 0 refuses" },
     { "id": "API-015", "name": "Faith id", "status": "RESOLVED", "evidence": ["VERIFIED_RUNTIME", "SOURCE_DATA"], "risk": "Medium" },
     { "id": "API-016", "name": "Money spend", "status": "PARTIALLY RESOLVED", "evidence": ["VERIFIED_RUNTIME"], "risk": "Medium" },
     { "id": "API-017", "name": "Character inventory", "status": "PARTIALLY RESOLVED", "evidence": ["VERIFIED_RUNTIME"], "risk": "High" },
@@ -90,7 +90,8 @@
     { "id": "API-046", "name": "Raw bark speech", "status": "PARTIALLY RESOLVED", "evidence": ["VERIFIED_METADATA", "SOURCE_OBSERVED", "UNRESOLVED"], "risk": "Medium", "probe": "Session A" },
     { "id": "API-047", "name": "LayerJournal native UI", "status": "PARTIALLY RESOLVED", "evidence": ["VERIFIED_METADATA", "SOURCE_OBSERVED", "UNRESOLVED"], "risk": "Medium", "probe": "Session A" },
     { "id": "API-048", "name": "Actor activity/global goal", "status": "PARTIALLY RESOLVED", "evidence": ["VERIFIED_METADATA", "SOURCE_OBSERVED", "UNRESOLVED"], "risk": "High", "probe": "Session A" },
-    { "id": "API-049", "name": "Zone catch-up simulation", "status": "PARTIALLY RESOLVED", "evidence": ["VERIFIED_METADATA", "SOURCE_OBSERVED", "UNRESOLVED"], "risk": "High", "probe": "Session A" }
+    { "id": "API-049", "name": "Zone catch-up simulation", "status": "PARTIALLY RESOLVED", "evidence": ["VERIFIED_METADATA", "SOURCE_OBSERVED", "UNRESOLVED"], "risk": "High", "probe": "Session A" },
+    { "id": "API-050", "name": "Per-guild contribution", "status": "PARTIALLY RESOLVED", "evidence": ["VERIFIED_METADATA", "SOURCE_OBSERVED"], "risk": "Medium", "fix": "FIX-ELIN-007", "note": "GetGuildContribution reads FactionRelation.exp when IsMember is true; not read on a running member save, and 0 only lowers the odds" }
   ],
   "questions": [
     { "id": "ELIN-Q-0001", "status": "RESOLVED", "evidence": ["VERIFIED_METADATA", "SOURCE_OBSERVED"] },
