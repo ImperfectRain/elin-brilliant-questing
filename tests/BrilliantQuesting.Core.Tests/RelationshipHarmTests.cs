@@ -66,6 +66,13 @@ namespace BrilliantQuesting.Tests
                 WorldEventType.Attacked, actor, target, town.Vanilla.Now, 1.0, Zone, tags: tags);
         }
 
+        private static WorldEvent Threaten(Town town, EntityId actor, EntityId target, EntityId witness)
+        {
+            return town.World.Record(
+                WorldEventType.Threatened, actor, target, town.Vanilla.Now, 1.0, Zone,
+                witnesses: new[] { witness });
+        }
+
         [Fact]
         public void HurtingAShopkeeperTurnsHerBrotherAgainstYou()
         {
@@ -107,6 +114,33 @@ namespace BrilliantQuesting.Tests
             // The reaction is the edge, not the proximity.
             Assert.Equal(0, town.Vanilla.GetAffinity(Stranger));
             Assert.Empty(town.World.Memories.MemoriesOf(Stranger));
+        }
+
+        [Fact]
+        public void UnrelatedWitnessDoesNotLoseAffinityForAThreat()
+        {
+            Town town = Create();
+
+            Threaten(town, Player, Shopkeeper, Stranger);
+
+            Assert.Equal(0, town.Vanilla.GetAffinity(Stranger));
+            MemoryRecord memory = Assert.Single(town.World.Memories.MemoriesAbout(Stranger, Player));
+            Assert.Equal("saw_was_threatened", memory.SummaryTag);
+            Assert.Equal(0, memory.AffinityContribution);
+        }
+
+        [Fact]
+        public void ConnectedWitnessCanReactToAThreat()
+        {
+            Town town = Create();
+
+            Threaten(town, Player, Shopkeeper, Brother);
+
+            Assert.True(town.Vanilla.GetAffinity(Brother) < 0);
+            MemoryRecord memory = town.World.Memories.MemoriesAbout(Brother, Player)
+                .Single(m => m.SummaryTag == "saw_was_threatened");
+            Assert.Equal("saw_was_threatened", memory.SummaryTag);
+            Assert.True(memory.AffinityContribution < 0);
         }
 
         [Fact]

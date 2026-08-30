@@ -126,7 +126,6 @@ namespace BrilliantQuesting.Consequences
                 return;
             }
 
-            int delta = Scale(profile.WitnessAffinity, magnitude);
             for (int i = 0; i < worldEvent.Witnesses.Count; i++)
             {
                 EntityId witness = worldEvent.Witnesses[i];
@@ -140,6 +139,7 @@ namespace BrilliantQuesting.Consequences
                     continue;
                 }
 
+                int delta = WitnessAffinityDelta(worldEvent, witness, profile, magnitude);
                 if (actorIsPlayer && delta != 0 && _vanilla.Supports(VanillaCapability.ReadWriteAffinity))
                 {
                     _vanilla.ChangeAffinity(witness, delta);
@@ -155,6 +155,77 @@ namespace BrilliantQuesting.Consequences
                     actorIsPlayer ? delta : 0,
                     "saw_" + profile.SummaryTag));
             }
+        }
+
+        private int WitnessAffinityDelta(WorldEvent worldEvent, EntityId witness, ConsequenceProfile profile, double magnitude)
+        {
+            if (profile.WitnessAffinity == 0)
+            {
+                return 0;
+            }
+
+            if (BroadWitnessReaction(worldEvent.Type))
+            {
+                return Scale(profile.WitnessAffinity, magnitude);
+            }
+
+            double relevance = WitnessRelevance(worldEvent, witness);
+            if (relevance <= 0.0)
+            {
+                return 0;
+            }
+
+            int delta = Scale(profile.WitnessAffinity, magnitude * relevance);
+            return delta;
+        }
+
+        private double WitnessRelevance(WorldEvent worldEvent, EntityId witness)
+        {
+            double relevance = 0.0;
+
+            RelationshipEdge toTarget = _world.Relationships.Find(witness, worldEvent.Target);
+            if (toTarget != null && toTarget.Sentiment > 0)
+            {
+                relevance = Math.Max(relevance, HarmPropagation.CarriedBy(toTarget.Kind) * (toTarget.Sentiment / 100.0));
+            }
+
+            RelationshipEdge toActor = _world.Relationships.Find(witness, worldEvent.Actor);
+            if (toActor != null && toActor.Sentiment < 0)
+            {
+                relevance = Math.Max(relevance, HarmPropagation.CarriedBy(toActor.Kind) * (-toActor.Sentiment / 100.0));
+            }
+
+            if (HasDirectStake(worldEvent, witness))
+            {
+                relevance = Math.Max(relevance, 0.5);
+            }
+
+            return relevance > 1.0 ? 1.0 : relevance;
+        }
+
+        private bool HasDirectStake(WorldEvent worldEvent, EntityId witness)
+        {
+            for (int i = 0; i < worldEvent.Related.Count; i++)
+            {
+                Fact fact = _world.Knowledge.GetFact(worldEvent.Related[i]);
+                if (fact != null && (fact.Subject == witness || fact.Object == witness))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool BroadWitnessReaction(WorldEventType type)
+        {
+            return type == WorldEventType.Attacked
+                   || type == WorldEventType.Killed
+                   || type == WorldEventType.Rescued
+                   || type == WorldEventType.ItemReturned
+                   || type == WorldEventType.TakenIn
+                   || type == WorldEventType.SiteCleared
+                   || type == WorldEventType.ThreadResolved;
         }
 
         /// <summary>
