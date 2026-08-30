@@ -124,10 +124,10 @@ No system is allowed to disappear from this table.
 | Situation archetypes | Prototype | Complete-until-launch (7) | BQ-041 … BQ-047 |
 | Situation generation from world state | Absent | Playable | BQ-039, BQ-040 |
 | Drama projection | Prototype | Hardened | BQ-005 … BQ-010 |
-| Contextual interaction projection | Absent | Playable | BQ-134 |
-| Journal / Chronicle | Absent | Playable | BQ-033, BQ-034 |
+| Contextual interaction projection | Absent | Playable | BQ-134, BQ-137 |
+| Journal / Chronicle | Absent | Playable | BQ-033, BQ-034, BQ-138 |
 | Ambient delivery (barks, talk, leads) | Absent | Playable | BQ-035, BQ-036 |
-| Crime & witness observation | Absent | Playable | BQ-014, BQ-015 |
+| Crime & witness observation | Absent | Playable | BQ-014, BQ-015, BQ-136 |
 | Personality → decisions | Prototype (weights only) | Playable | BQ-056 … BQ-060 |
 | Values, needs, goal formation | Absent | Playable | BQ-061, BQ-062 |
 | Emotion & interpretation | Absent | Playable | BQ-063, BQ-064 |
@@ -525,6 +525,90 @@ contribution.
 Until now every situation is staged by a debug flag. This stage makes the world produce them from
 its own state, and adds the six archetypes that stress the parts of the architecture theft does not.
 
+#### Playtest consolidation before generative expansion
+Live S4 testing proved the simulation/action/knowledge primitives are viable, including staged
+petty theft and observed ambient Gossip retellings, but also exposed defects that would multiply if
+BQ-039 generated many more situations now: raw verb projection, context-free action semantics,
+indiscriminate witness affinity, and player tracking that is still too log-centric. The route before
+generation is therefore:
+
+BQ-038 -> BQ-134 -> BQ-136 -> BQ-137 -> BQ-138 -> BQ-039 -> BQ-040 -> BQ-041 ...
+
+This consolidation does not pull forward the deeper relationship/favor layer (BQ-055+),
+personality/values/emotion/interpretation (BQ-056 ... BQ-064), speech/disclosure/dialogue
+realization (BQ-070 ... BQ-078), or conversation state (BQ-083). Those remain later systems.
+
+#### BQ-134 — Project verbs through contextual affordances *(moved forward after live S4 testing)*
+Generalize player-facing action projection so registered verbs become contextual candidates grouped
+by interaction surface and semantic intent family, not a flat Drama list or a hand-maintained switch
+over action ids. BQ choices augment ordinary Elin interaction; they do not replace vanilla
+Talk/service/trade/recruit/gift surfaces where vanilla would normally provide them.
+- **Depends** BQ-008, BQ-024, BQ-025.
+- **Done when** registered `NarrativeAction`s expose or can be mapped to a presentation surface and
+  intent family; action discovery produces contextual candidates independently of UI; the
+  presentation layer groups candidates into shallow nested menus; `Talk` no longer exposes the
+  complete social/investigation/crime registry as one flat list; player-facing labels describe or
+  imply intent, target and subject/object where relevant; at least one non-dialogue action projects
+  through a non-`Talk` surface; menu contents depend on player knowledge and cannot reveal unknown
+  facts or subjects; empty families are omitted; unnecessary single-option nesting is collapsed;
+  large candidate sets remain navigable without silently discarding meaningful routes; selection
+  revalidates changed world state before execution; the existing petty-theft Drama projection is
+  migrated onto the generalized mechanism; focused tests prove grouping, knowledge filtering,
+  empty-family suppression, single-option collapse and stale-state revalidation.
+- **Out of scope** final authored prose, journal redesign, controller-specific visual polish,
+  animation, personality, values, emotion, full social interpretation, complete speech acts,
+  dialogue realization, and complete taxonomy coverage for every future verb.
+- **Sources** CD §29, §29.5, §30; D016; PM §61; LW §3.4; live S4 playtest.
+- **Unblocks** BQ-136, BQ-137, BQ-138, BQ-070, BQ-083, BQ-093.
+
+#### BQ-136 — Relationship-aware witnessed consequences
+Gate witnessed social consequences by relevance so witnesses may react when an event matters to
+them, but mere presence does not automatically impose the same affinity loss on every observer.
+- **Depends** BQ-015, BQ-022, BQ-134.
+- **Done when** threatening a stranger in front of an unrelated stranger normally produces no witness
+  affinity effect; a witness with a meaningful relationship/tie, thread participation or direct
+  stake can react; direct-target consequences remain intact; and the petty-theft regression no
+  longer produces universal affinity loss merely from presence.
+- **Out of scope** personality, values, morality, ideology, emotional state, cultural norms, and the
+  full later social interpretation layer.
+- **Sources** PM §38; live S4 playtest.
+- **Unblocks** BQ-137, BQ-039.
+
+#### BQ-137 — Purpose-bearing action bindings / semantic action requirements
+Ensure player-facing action invocations carry the semantic data needed to mean something and produce
+a real postcondition: propositions for persuasion, demands for intimidation, destination or
+protective purpose for escort, meaningful objectives for restrain/capture, concessions for bribes,
+matter plus authority for reports, and item plus claimant for returns.
+- **Depends** BQ-023 ... BQ-029, BQ-134, BQ-136.
+- **Done when** no purpose-bearing verb is projected without required semantic data; successful
+  persuasion records what was agreed to; escort has a destination/purpose or is not offered;
+  restraint/capture has meaningful persistent state or is not offered; self-incriminating direct
+  admission is not represented as ordinary hearsay; culprit questioning no longer trivially reveals
+  hidden truth without an explicit disclosure path; and staged theft still has multiple viable
+  solution routes.
+- **Out of scope** the future full disclosure/personality system, physical movement fakery, and the
+  complete BQ-070+ speech-act/dialogue stack.
+- **Sources** CD §17, §29; PM §38, §61; live S4 playtest.
+- **Unblocks** BQ-138, BQ-039, BQ-070.
+
+#### BQ-138 — Native BQ journal surface
+Advance the player-facing journal from log-centric notifications to a bounded native Elin journal
+surface if the verified `LayerJournal`/`Window` API supports it safely, while preserving BQ-033 and
+BQ-034 Core projections as authoritative.
+- **Depends** BQ-033, BQ-034, BQ-134, BQ-137.
+- **Done when** opening Elin's journal exposes BQ content for active matters and resolved history;
+  active theft appears; only player-known information appears; save/reload recreates the same
+  projection; reopening the journal does not duplicate tabs/content; vanilla journal tabs still
+  work; failed BQ initialization falls back to existing log/Msg routes; and no duplicate quest
+  database or persisted prose is introduced.
+- **Fail-safe** if native integration cannot be completed against the current verified API, produce
+  a bounded spike that leaves vanilla journal untouched, preserves the fallback route, documents the
+  remaining runtime question, and does not guess reflection signatures.
+- **Sources** BQ-033, BQ-034; `docs/elin/api/journal-ui.md`;
+  `docs/elin/bq-integration/ui-surfaces.md`; `docs/elin/verification/api-status.json`; live S4
+  playtest.
+- **Unblocks** BQ-039.
+
 #### BQ-039 — Situations arise from world state
 Replace debug staging with generation from actual pressure: an actor with a motive, means,
 opportunity and target. No situation exists because the player needs one.
@@ -773,25 +857,10 @@ storylet system cannot quietly become a quest generator.
 - **Done when** a Development exists that never becomes a scene and never becomes a quest, and the world is still coherent.
 - **Sources** CD §36.5.
 
-#### BQ-134 — Project verbs through contextual affordances *(stage S7, immediately before BQ-070)*
-Generalize player-facing action projection so registered verbs become contextual candidates grouped
-by interaction surface and semantic intent family, not a flat Drama list or a hand-maintained switch
-over action ids.
-- **Depends** BQ-008, BQ-024, BQ-025, BQ-069.
-- **Done when** registered `NarrativeAction`s expose or can be mapped to a presentation surface and
-  intent family; action discovery produces contextual candidates independently of UI; the
-  presentation layer groups candidates into shallow nested menus; `Talk` no longer exposes the
-  complete social/investigation/crime registry as one flat list; at least one non-dialogue action
-  projects through a non-`Talk` surface; menu contents depend on player knowledge and cannot reveal
-  unknown facts or subjects; empty families are omitted; unnecessary single-option nesting is
-  collapsed; large candidate sets remain navigable without silently discarding meaningful routes;
-  selection revalidates changed world state before execution; the existing petty-theft Drama
-  projection is migrated onto the generalized mechanism; focused tests prove grouping, knowledge
-  filtering, empty-family suppression, single-option collapse and stale-state revalidation.
-- **Out of scope** final authored prose, journal redesign, controller-specific visual polish,
-  animation, and complete taxonomy coverage for every future verb.
-- **Sources** CD §29, §29.5, §30; D016; PM §61; LW §3.4.
-- **Unblocks** BQ-070, BQ-083, BQ-093.
+#### BQ-134 — Project verbs through contextual affordances *(moved forward)*
+Moved forward to the playtest consolidation section before BQ-039 because live S4 testing showed
+raw verb projection would multiply defects during generative expansion. Do not implement a second
+BQ-134 here; preserve the later BQ-070+, BQ-083 and BQ-093 dependencies on the moved step.
 
 #### BQ-070 — Semantic speech acts
 Ask, Answer, Accuse, Deny, Admit, Request, Refuse, Threaten, Apologize, Gossip — meaning before wording.
