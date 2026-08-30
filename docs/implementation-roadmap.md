@@ -626,6 +626,45 @@ and current local pressures. A place earns its situations from what it actually 
 - **Sources** MD §8.1; PM §0, §27; LW §1; VS §5.2.
 - **Unblocks** all archetypes.
 - **Not a dependency.** This step must *not* wait on BQ-135. Stable world affordances are enough to generate from; transient timetable and current-goal data is later enrichment. The affordance profile is a product requirement rather than an adapter detail — it is what makes a palace-and-merchant city produce authority and fraud stories because its state supports them, instead of because somebody wrote the city's name into a table.
+- **Current implementation / BQ-039a hardening.** The first cut met the done-when criteria with a
+  structure shaped entirely like theft, which BQ-040 through BQ-047 would have inherited. BQ-039a
+  keeps the model — world state → candidate evaluation → vanilla mutation → narrative situation —
+  and generalises what sits inside it.
+  - *Local affordances are structured.* `LocalAffordanceProfile` was a resident list plus summary
+    strings; it now carries a typed `ActorAffordances` per local — money, occupation, roles,
+    commercial relevance, carried items, the skills and attributes in `AffordanceReads`, and
+    presence — plus local aggregates (median purse, total carried value). It observes and never
+    mutates, and holds no archetype's thresholds.
+  - *Generic candidates are no longer theft-shaped.* `SituationCandidate` was
+    actor/target/witness/item fields. It is now named role bindings (actor, target, witness, stake,
+    place), named pressure terms that sum to the score, and causes — so a shortage naming a supplier
+    and a town, or a caravan naming a route, needs no second redesign. `PettyTheftCandidate` is a
+    lens over those bindings for readability.
+  - *Theft scoring is separate from affordance extraction.* `PettyTheftPressure` holds every theft
+    weight, each named and commented, in one place ready to become data. The generator orchestrates
+    and owns no arithmetic.
+  - *Opportunity is derived rather than constant.* It was a flat `+12`. It is now read from
+    bystander count, the bound witness's Perception and SpotHidden, and whether the mark is occupied
+    with trade — all things the game can be asked for today. There is deliberately no schedule,
+    room-visibility or current-goal term, because BQ cannot read those reliably yet.
+  - *Unwitnessed theft is supported.* A witness binding is optional and the role takes several, so
+    multi-witness needs no redesign. Nobody is taught a fact they could not have seen, and the
+    `witness_talks` escalation only exists when somebody was there. Where bystanders exist, the
+    witness is ranked by attention with a world-seed tie-break rather than taken from collection
+    order.
+  - *Duplicate causal configurations are suppressed.* Same archetype, perpetrator, victim and stake
+    is refused while an unresolved thread holds those two, or while the ledger records that theft
+    within `RepetitionWindowDays`. It reads existing threads and the event ledger — no second
+    history — and each refusal carries its reason for the inspector. A distinct pairing stays
+    eligible. This is repetition suppression, not the BQ-099 director.
+  - *Generation is still bootstrap-triggered.* It fires once, on attach, in whichever zone the save
+    resumed in, guarded so a reload cannot roll for another. Reactive triggers on world change are
+    the director's work, not this step's; firing on every zone entry would make generation a
+    function of where the player walks. This is a known temporary limitation, not final behaviour.
+  - *Known limitation.* Participant eligibility is still only `NarrativeActorClass`, which answers
+    how far the mod may reach into somebody and returns `OrdinaryCitizen` for anything the story
+    flags do not claim — wildlife and passing hostiles included. No verified read distinguishes a
+    settled townsperson; see ELIN-Q-0027. Nothing is guessed here in the meantime.
 
 #### BQ-040 — Four content classes
 Distinguish Request, Situation, Opportunity and Event in code and in presentation. Not everything
