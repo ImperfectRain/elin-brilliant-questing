@@ -9,4 +9,7 @@ Current BQ journal and chronicle presentation is log/message based, not native j
 - Required runtime probe: verify that a custom or reused `UIContent` can render dynamic list/detail content without clipping or lifecycle leaks. Static analysis establishes the tab mechanism but not final visual layout (`UNRESOLVED` runtime UI).
 - `DramaChoiceProjector.ShowJournal`, `ShowChronicle`, and case notes use `Msg.SayRaw` plus BepInEx log output (`VERIFIED-METADATA`, `VERIFIED-RUNTIME` for logging route generally).
 
-Probe `JournalShapeProbe` before implementing BQ journal tabs.
+`BQ-138` added `JournalShapeProbe`, a read-only `Window.BuildTabs(int)` prefix that logs
+`LayerJournal` tab count, ids, disabled state, selected `idTab`, and content component types once
+per journal window instance. Native BQ journal tab injection remains disabled until that probe is
+run in game and the content lifecycle/clipping question is resolved.

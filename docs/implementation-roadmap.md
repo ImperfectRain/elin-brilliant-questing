@@ -604,6 +604,9 @@ BQ-034 Core projections as authoritative.
 - **Fail-safe** if native integration cannot be completed against the current verified API, produce
   a bounded spike that leaves vanilla journal untouched, preserves the fallback route, documents the
   remaining runtime question, and does not guess reflection signatures.
+- **Current spike** BQ-138 has a read-only `JournalShapeProbe` for the native `LayerJournal`
+  `Window.BuildTabs(int)` lifecycle. Full native tab injection remains blocked until the probe is
+  exercised in game and the reusable content object/clipping behavior is verified.
 - **Sources** BQ-033, BQ-034; `docs/elin/api/journal-ui.md`;
   `docs/elin/bq-integration/ui-surfaces.md`; `docs/elin/verification/api-status.json`; live S4
   playtest.

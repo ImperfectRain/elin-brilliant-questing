@@ -415,7 +415,7 @@ namespace BrilliantQuesting.Plugin
                     _log.LogInfo(line);
                 }
 
-                Msg.SayRaw("Brilliant Questing wrote the journal to BepInEx/LogOutput.log.");
+                Msg.SayRaw("Brilliant Questing journal fallback wrote to BepInEx/LogOutput.log.");
             }
             catch (Exception ex)
             {
@@ -439,7 +439,7 @@ namespace BrilliantQuesting.Plugin
                     _log.LogInfo(line);
                 }
 
-                Msg.SayRaw("Brilliant Questing wrote the chronicle to BepInEx/LogOutput.log.");
+                Msg.SayRaw("Brilliant Questing chronicle fallback wrote to BepInEx/LogOutput.log.");
             }
             catch (Exception ex)
             {

@@ -115,6 +115,7 @@ namespace BrilliantQuesting.Plugin
             BaseModManager.SubscribeEvent(EVENT.NewGame, OnNewGame);
             BaseModManager.SubscribeEvent<object>(EVENT.ActPerformed, OnActPerformed);
             DramaChoiceProjector.Install(_log);
+            JournalShapeProbe.Install(_log);
 
             _log.LogInfo(ModInfo.Name + " " + ModInfo.Version + " loaded. Waiting for a game.");
         }
