@@ -264,7 +264,7 @@ namespace BrilliantQuesting.Tests
         {
             TheftLaboratory lab = PlayedScenario();
             JsonValue root = WorldStateSerializer.ToJson(lab.World);
-            string tampered = root.ToJson().Replace("\"schemaVersion\":1", "\"schemaVersion\":99");
+            string tampered = root.ToJson().Replace("\"schemaVersion\":2", "\"schemaVersion\":99");
 
             Assert.Throws<NotSupportedException>(() => WorldStateSerializer.Load(tampered));
         }
@@ -272,14 +272,88 @@ namespace BrilliantQuesting.Tests
         [Fact]
         public void AMigrationStepUpgradesAnOlderDocument()
         {
-            // Version 0 is fictional - what is under test is that the mechanism runs.
+            // Version 0 is fictional - what is under test is that the mechanism runs before the
+            // real schema migrations continue.
             SaveMigrations.Register(0, document => document.Set("schemaVersion", 1));
 
             JsonValue old = JsonValue.Object().Set("schemaVersion", 0).Set("worldSeed", "7").Set("rngState", "7");
             NarrativeWorldState migrated = WorldStateSerializer.Load(old.ToJson());
 
-            Assert.Equal(1, migrated.SchemaVersion);
+            Assert.Equal(NarrativeWorldState.CurrentSchemaVersion, migrated.SchemaVersion);
             Assert.Equal(7UL, migrated.WorldSeed);
+        }
+
+        [Fact]
+        public void BehavioralDimensionsAreTheCanonicalPersonalitySaveShape()
+        {
+            NarrativeWorldState world = new NarrativeWorldState(42);
+            NarrativeNpc npc = world.Registry.Add(new NarrativeNpc(EntityId.Parse("npc_00000001"), "Mira"));
+            npc.Personality.Boldness = 0.8;
+            npc.Personality.Generosity = 0.3;
+            npc.Personality.StatusBlindness = 0.2;
+
+            string json = WorldStateSerializer.Save(world, indented: false);
+
+            Assert.Contains("\"boldness\"", json);
+            Assert.Contains("\"generosity\"", json);
+            Assert.Contains("\"statusBlindness\"", json);
+            Assert.DoesNotContain("\"courage\"", json);
+            Assert.DoesNotContain("\"greed\"", json);
+            Assert.DoesNotContain("\"ambition\"", json);
+        }
+
+        [Fact]
+        public void VersionOnePersonalitiesMigrateToBehavioralDimensionsWithoutLosingMeaning()
+        {
+            JsonValue oldPersonality = JsonValue.Object()
+                .Set("greed", 0.8)
+                .Set("mercy", 0.7)
+                .Set("courage", 0.6)
+                .Set("honesty", 0.9)
+                .Set("ambition", 0.4)
+                .Set("loyalty", 0.3)
+                .Set("sociability", 0.2)
+                .Set("curiosity", 0.1)
+                .Set("vengefulness", 0.3);
+
+            JsonValue oldNpc = JsonValue.Object()
+                .Set("id", "npc_00000001")
+                .Set("name", "Old Mira")
+                .Set("charaRef", "vanilla/mira")
+                .Set("occupation", "merchant")
+                .Set("roles", JsonValue.Array())
+                .Set("homeSite", "")
+                .Set("importance", 2)
+                .Set("alive", true)
+                .Set("lastSimulated", 123)
+                .Set("personality", oldPersonality)
+                .Set("goals", JsonValue.Array())
+                .Set("organizations", JsonValue.Array());
+
+            JsonValue oldRoot = JsonValue.Object()
+                .Set("schemaVersion", 1)
+                .Set("worldSeed", "7")
+                .Set("rngState", "7")
+                .Set("npcs", JsonValue.Array().Add(oldNpc));
+
+            NarrativeWorldState migrated = WorldStateSerializer.Load(oldRoot.ToJson(indented: false));
+            NarrativeNpc npc = migrated.Registry.GetNpc(EntityId.Parse("npc_00000001"));
+
+            Assert.Equal(2, migrated.SchemaVersion);
+            Assert.Equal(0.6, npc.Personality.Boldness, 4);
+            Assert.Equal(0.2, npc.Personality.Warmth, 4);
+            Assert.Equal(0.2, npc.Personality.Generosity, 4);
+            Assert.Equal(0.6, npc.Personality.StatusBlindness, 4);
+            Assert.Equal(0.6, npc.Personality.Humility, 4);
+            Assert.Equal(0.9, npc.Personality.Honesty, 4);
+            Assert.Equal(0.3, npc.Personality.Loyalty, 4);
+            Assert.Equal(0.1, npc.Personality.Curiosity, 4);
+            Assert.Equal(0.7, npc.Personality.Mercy, 4);
+
+            string rewritten = WorldStateSerializer.Save(migrated, indented: false);
+            Assert.Contains("\"boldness\"", rewritten);
+            Assert.DoesNotContain("\"courage\"", rewritten);
+            Assert.DoesNotContain("\"greed\"", rewritten);
         }
 
         [Fact]

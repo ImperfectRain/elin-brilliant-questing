@@ -19,7 +19,7 @@ namespace BrilliantQuesting.World
     public sealed class NarrativeWorldState
     {
         /// <summary>Bumped whenever the persisted shape changes; drives save migration.</summary>
-        public const int CurrentSchemaVersion = 1;
+        public const int CurrentSchemaVersion = 2;
 
         public NarrativeWorldState(ulong worldSeed)
         {

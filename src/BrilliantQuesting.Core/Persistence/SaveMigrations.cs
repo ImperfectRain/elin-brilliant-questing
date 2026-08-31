@@ -6,13 +6,17 @@ namespace BrilliantQuesting.Persistence
     /// <summary>
     /// Upgrades an old save document to the current schema, one version at a time.
     ///
-    /// Empty today because version 1 is the first, but the mechanism ships now on purpose: a
-    /// persistent world model whose format changes without a migration path silently deletes
-    /// people's fifty-hour saves, and adding this later is much harder than starting with it.
+    /// A persistent world model whose format changes without a migration path silently deletes
+    /// people's fifty-hour saves, so every persisted shape change is registered here.
     /// </summary>
     public static class SaveMigrations
     {
         private static readonly Dictionary<int, Func<JsonValue, JsonValue>> Steps = new Dictionary<int, Func<JsonValue, JsonValue>>();
+
+        static SaveMigrations()
+        {
+            Register(1, MigratePersonalityWeightsToBehavioralDimensions);
+        }
 
         /// <summary>Registers an upgrade from <paramref name="fromVersion"/> to the next version.</summary>
         public static void Register(int fromVersion, Func<JsonValue, JsonValue> step)
@@ -50,6 +54,47 @@ namespace BrilliantQuesting.Persistence
             }
 
             return root;
+        }
+
+        private static JsonValue MigratePersonalityWeightsToBehavioralDimensions(JsonValue root)
+        {
+            foreach (JsonValue npc in root.GetArray("npcs"))
+            {
+                JsonValue personality = npc["personality"];
+                if (personality == null || personality.Kind != JsonKind.Object)
+                {
+                    continue;
+                }
+
+                double greed = personality.GetNumber("greed", 0.5);
+                double mercy = personality.GetNumber("mercy", 0.5);
+                double courage = personality.GetNumber("courage", 0.5);
+                double honesty = personality.GetNumber("honesty", 0.5);
+                double ambition = personality.GetNumber("ambition", 0.5);
+                double loyalty = personality.GetNumber("loyalty", 0.5);
+                double sociability = personality.GetNumber("sociability", 0.5);
+                double curiosity = personality.GetNumber("curiosity", 0.5);
+                double vengefulness = personality.GetNumber("vengefulness", 0.5);
+
+                personality
+                    .Set("boldness", courage)
+                    .Set("patience", 0.5)
+                    .Set("warmth", sociability)
+                    .Set("earnestness", 0.5)
+                    .Set("optimism", 0.5)
+                    .Set("orderliness", 0.5)
+                    .Set("mercy", (mercy + (1.0 - vengefulness)) / 2.0)
+                    .Set("honesty", honesty)
+                    .Set("generosity", 1.0 - greed)
+                    .Set("loyalty", loyalty)
+                    .Set("trust", 0.5)
+                    .Set("humility", 1.0 - ambition)
+                    .Set("curiosity", curiosity)
+                    .Set("conventionality", 0.5)
+                    .Set("statusBlindness", 1.0 - ambition);
+            }
+
+            return root.Set("schemaVersion", 2);
         }
     }
 }

@@ -125,16 +125,7 @@ namespace BrilliantQuesting.Persistence
             JsonValue array = JsonValue.Array();
             foreach (NarrativeNpc npc in world.Registry.Npcs.Values)
             {
-                JsonValue personality = JsonValue.Object()
-                    .Set("greed", npc.Personality.Greed)
-                    .Set("mercy", npc.Personality.Mercy)
-                    .Set("courage", npc.Personality.Courage)
-                    .Set("honesty", npc.Personality.Honesty)
-                    .Set("ambition", npc.Personality.Ambition)
-                    .Set("loyalty", npc.Personality.Loyalty)
-                    .Set("sociability", npc.Personality.Sociability)
-                    .Set("curiosity", npc.Personality.Curiosity)
-                    .Set("vengefulness", npc.Personality.Vengefulness);
+                JsonValue personality = PersonalityToJson(npc.Personality);
 
                 JsonValue goals = JsonValue.Array();
                 foreach (NpcGoal goal in npc.Goals)
@@ -477,15 +468,7 @@ namespace BrilliantQuesting.Persistence
                 JsonValue personality = json["personality"];
                 if (personality != null)
                 {
-                    npc.Personality.Greed = personality.GetNumber("greed", 0.5);
-                    npc.Personality.Mercy = personality.GetNumber("mercy", 0.5);
-                    npc.Personality.Courage = personality.GetNumber("courage", 0.5);
-                    npc.Personality.Honesty = personality.GetNumber("honesty", 0.5);
-                    npc.Personality.Ambition = personality.GetNumber("ambition", 0.5);
-                    npc.Personality.Loyalty = personality.GetNumber("loyalty", 0.5);
-                    npc.Personality.Sociability = personality.GetNumber("sociability", 0.5);
-                    npc.Personality.Curiosity = personality.GetNumber("curiosity", 0.5);
-                    npc.Personality.Vengefulness = personality.GetNumber("vengefulness", 0.5);
+                    ReadPersonality(npc.Personality, personality);
                 }
 
                 foreach (JsonValue goalJson in json.GetArray("goals"))
@@ -816,6 +799,45 @@ namespace BrilliantQuesting.Persistence
             }
 
             return array;
+        }
+
+        private static JsonValue PersonalityToJson(PersonalityWeights personality)
+        {
+            return JsonValue.Object()
+                .Set("boldness", personality.Boldness)
+                .Set("patience", personality.Patience)
+                .Set("warmth", personality.Warmth)
+                .Set("earnestness", personality.Earnestness)
+                .Set("optimism", personality.Optimism)
+                .Set("orderliness", personality.Orderliness)
+                .Set("mercy", personality.Mercy)
+                .Set("honesty", personality.Honesty)
+                .Set("generosity", personality.Generosity)
+                .Set("loyalty", personality.Loyalty)
+                .Set("trust", personality.Trust)
+                .Set("humility", personality.Humility)
+                .Set("curiosity", personality.Curiosity)
+                .Set("conventionality", personality.Conventionality)
+                .Set("statusBlindness", personality.StatusBlindness);
+        }
+
+        private static void ReadPersonality(PersonalityWeights target, JsonValue personality)
+        {
+            target.Boldness = personality.GetNumber("boldness", 0.5);
+            target.Patience = personality.GetNumber("patience", 0.5);
+            target.Warmth = personality.GetNumber("warmth", 0.5);
+            target.Earnestness = personality.GetNumber("earnestness", 0.5);
+            target.Optimism = personality.GetNumber("optimism", 0.5);
+            target.Orderliness = personality.GetNumber("orderliness", 0.5);
+            target.Mercy = personality.GetNumber("mercy", 0.5);
+            target.Honesty = personality.GetNumber("honesty", 0.5);
+            target.Generosity = personality.GetNumber("generosity", 0.5);
+            target.Loyalty = personality.GetNumber("loyalty", 0.5);
+            target.Trust = personality.GetNumber("trust", 0.5);
+            target.Humility = personality.GetNumber("humility", 0.5);
+            target.Curiosity = personality.GetNumber("curiosity", 0.5);
+            target.Conventionality = personality.GetNumber("conventionality", 0.5);
+            target.StatusBlindness = personality.GetNumber("statusBlindness", 0.5);
         }
 
         private static JsonValue Strings(IReadOnlyList<string> values)
