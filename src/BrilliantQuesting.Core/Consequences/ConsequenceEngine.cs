@@ -25,6 +25,15 @@ namespace BrilliantQuesting.Consequences
         private readonly NarrativeWorldState _world;
         private readonly IVanillaState _vanilla;
 
+        private static readonly ConsequenceProfile MurderJudgment =
+            new ConsequenceProfile("judged_murder", MemoryWeight.Important, 0, 0, karma: -12, fame: 2);
+
+        private static readonly ConsequenceProfile SelfDefenseJudgment =
+            new ConsequenceProfile("judged_self_defense", MemoryWeight.Routine, 0);
+
+        private static readonly ConsequenceProfile LawfulBountyJudgment =
+            new ConsequenceProfile("judged_lawful_bounty", MemoryWeight.Important, 0, 0, karma: 2, fame: 2);
+
         public ConsequenceEngine(NarrativeWorldState world, IVanillaState vanilla)
         {
             _world = world;
@@ -74,9 +83,38 @@ namespace BrilliantQuesting.Consequences
             {
                 ApplyToPlayerStanding(profile, magnitude);
             }
+            else if (actorIsPlayer && ApplyObservedViolenceJudgment(worldEvent, magnitude))
+            {
+                return;
+            }
             else if (actorIsPlayer)
             {
                 Trace.Add("standing unchanged: " + worldEvent.Type + " was observed, not judged");
+            }
+        }
+
+        private bool ApplyObservedViolenceJudgment(WorldEvent worldEvent, double magnitude)
+        {
+            ViolenceJudgment judgment = ViolenceRecognition.Recognize(_world, worldEvent);
+            switch (judgment)
+            {
+                case ViolenceJudgment.Murder:
+                    ApplyToPlayerStanding(MurderJudgment, magnitude);
+                    Trace.Add("standing judged: murder");
+                    return true;
+
+                case ViolenceJudgment.SelfDefense:
+                    ApplyToPlayerStanding(SelfDefenseJudgment, magnitude);
+                    Trace.Add("standing judged: self-defense");
+                    return true;
+
+                case ViolenceJudgment.LawfulBounty:
+                    ApplyToPlayerStanding(LawfulBountyJudgment, magnitude);
+                    Trace.Add("standing judged: lawful bounty");
+                    return true;
+
+                default:
+                    return false;
             }
         }
 
