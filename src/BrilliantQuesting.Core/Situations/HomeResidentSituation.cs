@@ -12,14 +12,12 @@ namespace BrilliantQuesting.Situations
     /// A situation that begins with the player's own Home resident roll.
     ///
     /// Residency is the source, not presence in the current map. The resident is read from Elin's
-    /// Home list, the pressure is read from Elin's Home Skill value, and the only durable state BQ
-    /// writes is the resident's goal, the fact they know, and the thread that makes the problem
-    /// inspectable.
+    /// Home list, and pressure is derived only when the Home is at its verified food-supported
+    /// capacity. `fFood` is not treated as an absolute hunger or stock threshold.
     /// </summary>
     public sealed class HomeResidentSituation
     {
         public const string ArchetypeId = "home_resident_problem";
-        public const int FoodShortageThreshold = 25;
 
         private static readonly ProductionSpec FoodNeed = new ProductionSpec("food", 20);
 
@@ -48,7 +46,7 @@ namespace BrilliantQuesting.Situations
                 return null;
             }
 
-            if (!home.TryGetMetric(HomeMetric.Food, out int food) || food >= FoodShortageThreshold)
+            if (!AtFoodSupportedCapacity(home, out int food))
             {
                 return null;
             }
@@ -99,7 +97,7 @@ namespace BrilliantQuesting.Situations
 
             NarrativeThread thread = new NarrativeThread(world.NewId("thread"), ArchetypeId, now)
             {
-                Tension = 20 + (FoodShortageThreshold - food),
+                Tension = 20 + System.Math.Max(0, home.ResidentCount - home.Capacity + 1) * 10,
                 Importance = 30,
                 State = ThreadState.Active
             };
@@ -108,12 +106,28 @@ namespace BrilliantQuesting.Situations
             thread.FactIds.Add(need.Id);
             thread.OpenQuestions.Add("How will " + world.Registry.NameOf(resident.Id) + " get food into " + world.Registry.NameOf(home.ZoneId) + "?");
             thread.GenerationCauses.Add(world.Registry.NameOf(resident.Id) + " is on the Home resident roll.");
-            thread.GenerationCauses.Add("Home food supply is " + food + ", below " + FoodShortageThreshold + ".");
-            thread.Escalation.Add(new EscalationStep("resident_goes_hungry", 5, "The resident starts going without."));
+            thread.GenerationCauses.Add("Home is at its food-supported capacity: " + home.ResidentCount + "/" + home.Capacity + " residents, fFood " + food + ".");
+            thread.Escalation.Add(new EscalationStep("household_pressure_mounts", 5, "The household's capacity pressure worsens."));
 
             world.Threads.Add(thread);
             situation.Thread = thread;
             return situation;
+        }
+
+        private static bool AtFoodSupportedCapacity(HomeState home, out int food)
+        {
+            food = 0;
+            if (home == null || !home.CapacityKnown || home.Capacity <= 0)
+            {
+                return false;
+            }
+
+            if (!home.TryGetMetric(HomeMetric.Food, out food))
+            {
+                return false;
+            }
+
+            return home.ResidentCount >= home.Capacity;
         }
 
         private static HomeResident FirstResident(HomeState home)
@@ -205,7 +219,7 @@ namespace BrilliantQuesting.Situations
     {
         public void Apply(NarrativeWorldState world, NarrativeThread thread, EscalationStep step, GameTime now)
         {
-            if (step.Id != "resident_goes_hungry")
+            if (step.Id != "household_pressure_mounts")
             {
                 return;
             }

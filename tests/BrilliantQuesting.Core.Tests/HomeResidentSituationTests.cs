@@ -58,14 +58,29 @@ namespace BrilliantQuesting.Tests
         }
 
         [Fact]
-        public void HealthyHomeFoodDoesNotInventResidentProblem()
+        public void HomeBelowFoodSupportedCapacityDoesNotInventResidentProblem()
         {
             NarrativeWorldState world = new NarrativeWorldState(42);
             SandboxVanillaState vanilla = new SandboxVanillaState(Player);
             vanilla.SetHome(new HomeStateBuilder(Home, "Willow Hall")
                 .WithCapacity(4)
                 .AddResident(Resident, "Mara", "cook")
-                .WithMetric(HomeMetric.Food, HomeResidentSituation.FoodShortageThreshold)
+                .WithMetric(HomeMetric.Food, 12)
+                .Build());
+
+            Assert.Null(HomeResidentSituation.TryGenerate(world, vanilla, vanilla.Now));
+            Assert.Empty(world.Threads);
+            Assert.Empty(world.Knowledge.Facts);
+        }
+
+        [Fact]
+        public void UnreadFoodMetricDoesNotInventResidentProblem()
+        {
+            NarrativeWorldState world = new NarrativeWorldState(42);
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.SetHome(new HomeStateBuilder(Home, "Willow Hall")
+                .WithCapacity(1)
+                .AddResident(Resident, "Mara", "cook")
                 .Build());
 
             Assert.Null(HomeResidentSituation.TryGenerate(world, vanilla, vanilla.Now));
@@ -102,7 +117,7 @@ namespace BrilliantQuesting.Tests
             int applied = threads.Advance(world, vanilla.Now.PlusDays(5));
 
             Assert.Equal(1, applied);
-            Assert.Contains("home_resident_problem/resident_goes_hungry", threads.LastApplied);
+            Assert.Contains("home_resident_problem/household_pressure_mounts", threads.LastApplied);
             Assert.Contains(world.Ledger.Events, e =>
                 e.Type == WorldEventType.Harmed
                 && e.Actor == Resident
@@ -114,7 +129,7 @@ namespace BrilliantQuesting.Tests
         private static HomeState LowFoodHome()
         {
             return new HomeStateBuilder(Home, "Willow Hall")
-                .WithCapacity(4)
+                .WithCapacity(1)
                 .AddResident(Resident, "Mara", "cook")
                 .WithMetric(HomeMetric.Food, 12)
                 .Build();

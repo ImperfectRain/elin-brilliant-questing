@@ -34,7 +34,7 @@ namespace BrilliantQuesting.Tests
         private static readonly string[] SeamReads =
         {
             "Now", "PlayerId", "Supports", "GetActorClass", "GetActorKind", "GetSocialAgency",
-            "IsAlive", "GetAttribute", "GetSkill", "GetLevel", "GetAffinity",
+            "GetLifeState", "IsAlive", "GetAttribute", "GetSkill", "GetLevel", "GetAffinity",
             "Karma", "Fame", "GetInfluence", "IsGuildMember", "GetGuildRank", "GetGuildContribution",
             "GetWorshippedDeity", "GetPiety",
             "GetMoney", "GetInventory",

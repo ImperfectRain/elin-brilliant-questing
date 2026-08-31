@@ -1,6 +1,7 @@
 using System.Linq;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
+using BrilliantQuesting.Integration;
 using BrilliantQuesting.Persistence;
 using BrilliantQuesting.Relationships;
 using BrilliantQuesting.Situations;
@@ -13,7 +14,7 @@ namespace BrilliantQuesting.Tests
     public class ThreadLifecycleTests
     {
         [Fact]
-        public void AThreadWithNoLivingParticipantIsQuarantinedRatherThanAdvanced()
+        public void AThreadWithOnlyDeadParticipantsIsQuarantinedRatherThanAdvanced()
         {
             TheftLaboratory lab = TheftLaboratory.Create();
             KillParticipants(lab);
@@ -28,6 +29,37 @@ namespace BrilliantQuesting.Tests
 
             int advanced = lab.Threads.Advance(lab.World, lab.Vanilla.Now.PlusDays(20));
             Assert.Equal(0, advanced);
+        }
+
+        [Fact]
+        public void AThreadWithALivingParticipantRemainsLive()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+
+            int changed = ThreadLifecycle.Review(lab.World, lab.Vanilla, lab.Vanilla.Now);
+
+            Assert.Equal(0, changed);
+            Assert.True(lab.Situation.Thread.IsLive);
+            Assert.Empty(lab.World.Ledger.OfType(WorldEventType.ThreadQuarantined));
+            Assert.Empty(lab.World.Ledger.OfType(WorldEventType.ThreadInherited));
+        }
+
+        [Fact]
+        public void AnUnresolvedParticipantDoesNotCountAsDead()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+            EntityId heir = AddHeir(lab, lab.Situation.VictimId);
+            KillParticipants(lab);
+            lab.Vanilla.Forget(lab.Situation.VictimId);
+
+            int changed = ThreadLifecycle.Review(lab.World, lab.Vanilla, lab.Vanilla.Now);
+
+            Assert.Equal(0, changed);
+            Assert.True(lab.Situation.Thread.IsLive);
+            Assert.True(lab.Situation.Thread.SuccessorThreadId.IsNone);
+            Assert.DoesNotContain(lab.World.Threads, t => t.ParentThreadId == lab.Situation.Thread.Id);
+            Assert.DoesNotContain(lab.World.Ledger.OfType(WorldEventType.ThreadInherited), e => e.Actor == heir);
+            Assert.Empty(lab.World.Ledger.OfType(WorldEventType.ThreadQuarantined));
         }
 
         [Fact]
@@ -51,6 +83,24 @@ namespace BrilliantQuesting.Tests
             Assert.DoesNotContain(lab.Situation.VictimId, successor.ParticipantIds);
             Assert.Equal(lab.Situation.Thread.FactIds, successor.FactIds);
             Assert.Single(lab.World.Ledger.OfType(WorldEventType.ThreadInherited), e => e.ThreadId == lab.Situation.Thread.Id);
+        }
+
+        [Fact]
+        public void SaveLoadDoesNotRetireAThreadBecauseParticipantsAreTemporarilyUnresolved()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+            string saved = WorldStateSerializer.Save(lab.World);
+            NarrativeWorldState reloaded = WorldStateSerializer.Load(saved);
+            SandboxVanillaState unresolvedVanilla = new SandboxVanillaState(lab.Player);
+
+            int changed = ThreadLifecycle.Review(reloaded, unresolvedVanilla, lab.Vanilla.Now);
+
+            NarrativeThread thread = reloaded.GetThread(lab.Situation.Thread.Id);
+            Assert.Equal(0, changed);
+            Assert.Equal(ThreadState.Active, thread.State);
+            Assert.True(thread.SuccessorThreadId.IsNone);
+            Assert.Empty(reloaded.Ledger.OfType(WorldEventType.ThreadInherited));
+            Assert.Empty(reloaded.Ledger.OfType(WorldEventType.ThreadQuarantined));
         }
 
         [Fact]

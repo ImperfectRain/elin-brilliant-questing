@@ -118,8 +118,8 @@ is `reading`**, **Appraising is `appraising`** (`identify` is the spell `8230:Sp
 not a separate accessor either - it is element `85`.
 
 The complete table is recorded in [`elin-element-aliases.md`](elin-element-aliases.md), including
-the Home Skill elements (`fSafety`, `fMoral`, `fFood`, `fSoil`, `fPromo`, `fAdmin`) that a future
-`ReadHomeState` would use. The plugin still dumps the whole table whenever anything fails to
+the Home Skill elements (`fSafety`, `fMoral`, `fFood`, `fSoil`, `fPromo`, `fAdmin`) that
+`ReadHomeState` uses. The plugin still dumps the whole table whenever anything fails to
 resolve, so a rename after a game update reports itself.
 
 ## The event bus — the most useful thing found so far
@@ -416,7 +416,8 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
   names for EA 23.338 Patch 2: residents are `FactionBranch.members`, capacity is
   `FactionBranch.MaxPopulation`, branch zone is `owner`, and metrics live in `elements`.
   `MaxPopulation` returns `5 + Evalue(2204)`, where SourceElement `2204` is `fFood`
-  (`SOURCE-OBSERVED`, `SOURCE-DATA`). Current BQ still misses `MaxPopulation`.
+  (`SOURCE-OBSERVED`, `SOURCE-DATA`). BQ reads `MaxPopulation`; it does not treat an
+  absolute `fFood` value as a verified hunger or pantry threshold.
 - **Moving somebody into the Home.** Phase 2 resolves the vanilla method as misspelled
   `FactionBranch.AddMemeber(Chara)`, not `AddMember`/`AddResident`/`AddChara`.
   `AddMemeber` calls `SetGlobal`, sets faction/Home zone, adds to `members`, calls
@@ -425,8 +426,8 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
 - Elin does recompute efficiency/work elements after `AddMemeber` statically
   (`SOURCE-OBSERVED`). Live Home deltas and persistence still require a disposable-save probe.
 - Whether `assign_protection` and `provide_supplies` are reachable at all in play. Both refuse on
-  an unread Home Skill element - a watch needs Public Safety, a shipment needs Food Supply or
-  Administration - so if the six elements do not resolve on a running game, those two routes are
+  an unread Home Skill element - a watch needs Public Safety, a shipment needs the fFood
+  capacity-linked metric or Administration - so if the six elements do not resolve on a running game, those two routes are
   closed in game while passing headlessly. That is the intended direction (D017), but it means the
   first live run decides whether half the Home family exists.
 - Whether `fSafety`, `fMoral`, `fFood`, `fSoil`, `fPromo` and `fAdmin` resolve on a running game.

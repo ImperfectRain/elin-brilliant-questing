@@ -7,9 +7,8 @@ namespace BrilliantQuesting.Integration
     /// <summary>
     /// Elin's six Home Skill elements, as the mod reads them.
     ///
-    /// These are the numbers a settlement is actually judged by in vanilla - the same values the
-    /// player watches on the Home board - and the procedural layer reads them rather than
-    /// inventing a private "settlement quality" score beside them.
+    /// These are vanilla Home metrics. Their ids are verified, but each metric's gameplay
+    /// semantics must be kept to what vanilla evidence proves.
     /// </summary>
     public enum HomeMetric
     {
@@ -19,7 +18,7 @@ namespace BrilliantQuesting.Integration
         /// <summary>Public Morality (<c>fMoral</c>).</summary>
         Morality,
 
-        /// <summary>Food Supply (<c>fFood</c>).</summary>
+        /// <summary>Food-capacity Home Skill (<c>fFood</c>), verified as an input to MaxPopulation.</summary>
         Food,
 
         /// <summary>Soil (<c>fSoil</c>).</summary>

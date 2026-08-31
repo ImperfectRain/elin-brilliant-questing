@@ -45,8 +45,8 @@ namespace BrilliantQuesting.Threads
                     continue;
                 }
 
-                List<EntityId> living = LivingParticipants(thread, vanilla);
-                if (living.Count > 0)
+                ParticipantLifeSummary life = SummarizeParticipantLife(thread, vanilla);
+                if (life.AliveCount > 0 || life.UnknownCount > 0)
                 {
                     continue;
                 }
@@ -203,19 +203,33 @@ namespace BrilliantQuesting.Threads
             return string.Empty;
         }
 
-        private static List<EntityId> LivingParticipants(NarrativeThread thread, IVanillaState vanilla)
+        private static ParticipantLifeSummary SummarizeParticipantLife(NarrativeThread thread, IVanillaState vanilla)
         {
-            List<EntityId> living = new List<EntityId>();
+            ParticipantLifeSummary summary = new ParticipantLifeSummary();
             for (int i = 0; i < thread.ParticipantIds.Count; i++)
             {
                 EntityId participant = thread.ParticipantIds[i];
-                if (!participant.IsNone && vanilla.IsAlive(participant))
+                if (participant.IsNone)
                 {
-                    living.Add(participant);
+                    summary.UnknownCount++;
+                    continue;
+                }
+
+                switch (vanilla.GetLifeState(participant))
+                {
+                    case VanillaLifeState.Alive:
+                        summary.AliveCount++;
+                        break;
+                    case VanillaLifeState.Dead:
+                        summary.DeadCount++;
+                        break;
+                    default:
+                        summary.UnknownCount++;
+                        break;
                 }
             }
 
-            return living;
+            return summary;
         }
 
         private static EntityId FindInheritor(NarrativeWorldState world, IVanillaState vanilla, NarrativeThread thread)
@@ -227,7 +241,7 @@ namespace BrilliantQuesting.Threads
             {
                 foreach (RelationshipEdge edge in world.Relationships.EdgesTo(thread.ParticipantIds[i]))
                 {
-                    if (thread.ParticipantIds.Contains(edge.From) || !vanilla.IsAlive(edge.From))
+                    if (thread.ParticipantIds.Contains(edge.From) || vanilla.GetLifeState(edge.From) != VanillaLifeState.Alive)
                     {
                         continue;
                     }
@@ -275,6 +289,13 @@ namespace BrilliantQuesting.Threads
                     target.Add(item);
                 }
             }
+        }
+
+        private struct ParticipantLifeSummary
+        {
+            public int AliveCount;
+            public int DeadCount;
+            public int UnknownCount;
         }
     }
 }

@@ -178,7 +178,8 @@ namespace BrilliantQuesting.World
 
             // Somebody who died while they were away is not coming back, and a record that keeps
             // trying to move a corpse home would never clear.
-            if (!_vanilla.IsAlive(actor))
+            VanillaLifeState life = _vanilla.GetLifeState(actor);
+            if (life == VanillaLifeState.Dead)
             {
                 _world.Absences.Remove(actor);
                 round.Closed++;

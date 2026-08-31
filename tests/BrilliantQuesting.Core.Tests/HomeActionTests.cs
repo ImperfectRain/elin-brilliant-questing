@@ -551,9 +551,9 @@ namespace BrilliantQuesting.Tests
         // -- supplies ------------------------------------------------------------------------
 
         /// <summary>
-        /// The settlement answers a shortage out of its own stores. It reads Elin's Food Supply as
-        /// a precondition rather than inventing a larder, and a settlement without the surplus is
-        /// refused outright instead of being given long odds.
+        /// The settlement answers a shortage through its own Home capacity. It reads Elin's fFood
+        /// metric as a precondition rather than inventing a larder, and a settlement without the
+        /// capacity is refused outright instead of being given long odds.
         /// </summary>
         [Fact]
         public void SuppliesComeOutOfARealSurplusOrNotAtAll()

@@ -147,8 +147,8 @@ namespace BrilliantQuesting.Actions.Library
     /// the danger is actually answered) are exactly the three things the subclasses state.
     ///
     /// What is *not* written here is any of Elin's settlement arithmetic. Admitting somebody moves
-    /// the resident roll through the game's own call and stops; Food Supply, Public Safety and the
-    /// rest are vanilla's to recompute from who lives there, and a mod that set them directly
+    /// the resident roll through the game's own call and stops; fFood, Public Safety and the rest
+    /// are vanilla's to recompute from who lives there, and a mod that set them directly
     /// would be a second settlement economy disagreeing with the one on the player's Home board
     /// (decision D018).
     /// </summary>
@@ -605,14 +605,14 @@ namespace BrilliantQuesting.Actions.Library
     }
 
     /// <summary>
-    /// Answering a shortage out of the settlement's own stores.
+    /// Answering a shortage through the settlement's own capacity.
     ///
     /// The Home's route to the same demand the crafts answer, and deliberately not a cheaper
     /// version of them: it makes nothing, needs no stock in the pack and no craft skill, and it
     /// costs what a settlement route should cost - it can only be offered by a place that actually
-    /// has a surplus and people to move it. Elin's own Food Supply and Administration decide that,
-    /// read rather than written, and an element this build could not read refuses the route rather
-    /// than assuming a bare larder is a full one.
+    /// has enough relevant Home capacity and people to move it. Elin's own food-capacity metric
+    /// and Administration decide that, read rather than written, and an element this build could
+    /// not read refuses the route rather than assuming a weak Home can supply one.
     /// </summary>
     public sealed class ProvideSuppliesAction : NarrativeAction
     {
@@ -622,9 +622,10 @@ namespace BrilliantQuesting.Actions.Library
         }
 
         /// <summary>
-        /// Which of the settlement's numbers answers a demand. Food comes out of the food supply;
-        /// everything else comes out of how well the place is run, because a settlement that can
-        /// find timber, cloth or medicine at short notice is a settlement with an administration.
+        /// Which of the settlement's numbers answers a demand. Food uses the verified fFood Home
+        /// Skill, currently known as a capacity input rather than a measured pantry; everything
+        /// else comes out of how well the place is run, because a settlement that can find timber,
+        /// cloth or medicine at short notice is a settlement with an administration.
         /// </summary>
         internal static HomeMetric MetricFor(ProductionSpec spec)
         {

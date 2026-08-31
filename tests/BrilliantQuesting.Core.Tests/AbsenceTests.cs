@@ -390,6 +390,20 @@ namespace BrilliantQuesting.Tests
             Assert.False(lab.Absences.Reconcile().DidAnything);
         }
 
+        [Fact]
+        public void SomebodyUnresolvedWhileAwayKeepsTheirAbsenceRecord()
+        {
+            Lab lab = Lab.Create();
+            lab.SendFenceAway();
+
+            lab.Vanilla.Forget(Fence);
+            AbsenceRound round = lab.Absences.Reconcile();
+
+            Assert.False(round.DidAnything);
+            Assert.Equal(1, lab.World.Absences.Count);
+            Assert.Equal(AbsenceGrade.Physical, lab.World.Absences.GradeOf(Fence));
+        }
+
         // -- grade A --------------------------------------------------------------------------
 
         /// <summary>

@@ -384,8 +384,18 @@ namespace BrilliantQuesting.Plugin
 
         public bool IsAlive(EntityId chara)
         {
+            return GetLifeState(chara) == VanillaLifeState.Alive;
+        }
+
+        public VanillaLifeState GetLifeState(EntityId chara)
+        {
             Chara c = _bindings.ResolveChara(chara);
-            return c != null && !c.isDead;
+            if (c == null)
+            {
+                return VanillaLifeState.Unknown;
+            }
+
+            return c.isDead ? VanillaLifeState.Dead : VanillaLifeState.Alive;
         }
 
         public int GetAttribute(EntityId chara, VanillaAttribute attribute)

@@ -188,6 +188,8 @@ namespace BrilliantQuesting.Integration
 
         public void Kill(EntityId chara) => Ensure(chara).Alive = false;
 
+        public void Forget(EntityId chara) => _charas.Remove(chara);
+
         /// <summary>
         /// Removes an object from the world entirely - burned, eaten, sold out of reach. Evidence
         /// being destroyed is a real move in this game, so the reference implementation has to be
@@ -212,7 +214,17 @@ namespace BrilliantQuesting.Integration
 
         // -- IVanillaState ------------------------------------------------------------------
 
-        public bool IsAlive(EntityId chara) => Ensure(chara).Alive;
+        public VanillaLifeState GetLifeState(EntityId chara)
+        {
+            if (chara.IsNone || !_charas.TryGetValue(chara, out CharaState state))
+            {
+                return VanillaLifeState.Unknown;
+            }
+
+            return state.Alive ? VanillaLifeState.Alive : VanillaLifeState.Dead;
+        }
+
+        public bool IsAlive(EntityId chara) => GetLifeState(chara) == VanillaLifeState.Alive;
 
         public int GetAttribute(EntityId chara, VanillaAttribute attribute)
         {

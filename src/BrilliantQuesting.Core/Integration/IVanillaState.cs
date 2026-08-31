@@ -3,6 +3,13 @@ using BrilliantQuesting.Foundation;
 
 namespace BrilliantQuesting.Integration
 {
+    public enum VanillaLifeState
+    {
+        Unknown,
+        Alive,
+        Dead
+    }
+
     /// <summary>
     /// The single seam between the simulation and Elin.
     ///
@@ -40,6 +47,13 @@ namespace BrilliantQuesting.Integration
         SocialAgency GetSocialAgency(EntityId chara);
 
         // -- characters -------------------------------------------------------------------
+
+        /// <summary>
+        /// The game's current life answer for a character. Unknown means the adapter cannot
+        /// resolve the actor now, not that the actor is dead.
+        /// </summary>
+        VanillaLifeState GetLifeState(EntityId chara);
+
         bool IsAlive(EntityId chara);
 
         int GetAttribute(EntityId chara, VanillaAttribute attribute);

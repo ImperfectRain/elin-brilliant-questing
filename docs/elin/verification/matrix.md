@@ -9,7 +9,7 @@ Every current Elin-facing BQ dependency is listed here. `Last checked` is `EA 23
 | API-003 | `ElinVanillaState.Now` | `EClass.world.date.GetRaw()` | Read | `VERIFIED-RUNTIME` | `GameTime.Zero` | Thread escalation, actions | Medium |
 | API-004 | `BindPlayer` | `EClass.pc.uid` | Read | `VERIFIED-RUNTIME` | No binding until attached | All player-centered reads | High |
 | API-005 | `ResolveChara` | `EClass._zone.FindChara(int)`, `EClass.game.cards.Find(int)` | Read | `VERIFIED-METADATA`, `VERIFIED-RUNTIME` loaded PC | Returns null | Most adapter reads/writes | High |
-| API-006 | `IsAlive` | `Chara.isDead` | Read | `VERIFIED-METADATA` | False on unresolved | Scene validation, actions | Medium |
+| API-006 | `GetLifeState` / `IsAlive` | `Chara.isDead` after `ResolveChara` succeeds | Read | `VERIFIED-METADATA` | `Unknown` on unresolved; `IsAlive` remains false | Lifecycle, scene validation, actions | Medium |
 | API-007 | `GetAttribute/GetSkill/GetPiety` | `Chara.elements.Value(int)` | Read | `VERIFIED-METADATA`, `VERIFIED-RUNTIME`, `SOURCE-DATA` | Returns 0 | Checks, faith, reports | Medium |
 | API-008 | `ElementAliases` | `EClass.sources.elements.rows`, `SourceData.alias` | Read | `SOURCE-DATA`, `VERIFIED-RUNTIME` all 32 aliases | Logs missing aliases | Checks, Home metrics | Medium |
 | API-009 | `ChangeAffinity` | `Chara.ModAffinity(Chara,int,bool,bool)`, `Chara._affinity` | Mutation, `Social` | `VERIFIED-METADATA`, `VERIFIED-RUNTIME` zero-delta | Refuses if dead/unbound/out-of-band | Consequences, actions | Medium |
@@ -28,7 +28,7 @@ Every current Elin-facing BQ dependency is listed here. `Last checked` is `EA 23
 | API-021 | `TryDestroyItem` | `Card.Destroy()` / `Thing.Destroy()` | Mutation, `Inventory` | `VERIFIED-METADATA`, `SOURCE-OBSERVED`, `UNRESOLVED` nonzero runtime | False if still present | Burn/destroy evidence, repair failure | High |
 | API-022 | `GetHomeState` | `EClass.Branch` | Read | `VERIFIED-METADATA`; current save no readable Home | Null | Home actions | High |
 | API-023 | `ReadResidents` | `FactionBranch.members`, `CountMembers(FactionMemberType,bool)` | Read | `VERIFIED-METADATA`, `SOURCE-OBSERVED` | Residents absent | Home routes/generation | High |
-| API-024 | `ReadMetrics` | `FactionBranch.elements.Value(int)` | Read | `VERIFIED-METADATA`, `SOURCE-DATA` | Metrics absent | Home modifiers | High |
+| API-024 | `ReadMetrics` | `FactionBranch.elements.Value(int)` | Read | `VERIFIED-METADATA`, `SOURCE-DATA` | Metrics absent; `fFood` is not treated as an absolute hunger/stock threshold | Home modifiers | High |
 | API-025 | `Capacity` | `FactionBranch.MaxPopulation = 5 + Evalue(2204 fFood)` | Read | `VERIFIED-METADATA`, `SOURCE-OBSERVED`, `SOURCE-DATA`, `STUB-VERIFIED` | Unknown if unreadable; never silent zero | Shelter routes | High |
 | API-026 | `TryAdmitResident` | `FactionBranch.AddMemeber(Chara)`; not `AddMember/AddResident/AddChara` | Mutation, `Relocate` | `VERIFIED-METADATA`, `SOURCE-OBSERVED`, `STUB-VERIFIED`, `UNRESOLVED` nonzero runtime | Capability unsupported or readback failure | Shelter/recruit specialist | High |
 | API-027 | `GetZoneOf` | `Chara.currentZone`, `Zone.uid`, `EClass._zone` fallback | Read | `VERIFIED-METADATA`, partial `VERIFIED-RUNTIME` PC zone | `EntityId.None` | Absence, follow, context | High |
@@ -51,7 +51,7 @@ Every current Elin-facing BQ dependency is listed here. `Last checked` is `EA 23
 | API-044 | `ProjectChoices` | `DramaEventTalk.choices/AddChoice`, `DramaChoice.SetOnClick` | Presentation mutation | `VERIFIED-METADATA`, `SOURCE-OBSERVED`, `UNRESOLVED` visual count | AlreadyProjected guard, action `MaxChoices` | Dialogue actions/news | High |
 | API-045 | `ShowJournal/Chronicle/CaseNotes/News` | `Msg.SayRaw`, `DramaManager.sequence.Exit()` | Presentation | `VERIFIED-METADATA`, `UNRESOLVED` open-Drama visibility | Log output remains | Journal/news delivery | Medium |
 | API-046 | `ElinBark.Speak` | `Card.SayRaw`, `Card.TalkRaw`, fallback `Msg.SayRaw` | Presentation | `VERIFIED-METADATA`, `SOURCE-OBSERVED`, `UNRESOLVED` live UI | Fallback message log | Ambient rumors/town news | Medium |
-| API-047 | Future journal native UI | `LayerJournal` plus `Plugins.UI.Window.AddTab/BuildTabs/SwitchContent/SetContent` | Presentation | `VERIFIED-METADATA`, `SOURCE-OBSERVED`, `UNRESOLVED` live UI | Current log-only journal | BQ-033+ UI | Medium |
+| API-047 | Native journal UI | `LayerJournal` plus `Plugins.UI.Window.AddTab/BuildTabs/SwitchContent/SetContent` | Presentation | `VERIFIED-METADATA`, `SOURCE-OBSERVED`, `VERIFIED-RUNTIME`, `UNRESOLVED` | Dialogue/log fallback; visual acceptance still open | BQ-033/BQ-034/BQ-138 UI | Medium |
 | API-048 | Future actor activity | `idTimeTable`, timetable goal methods, `GlobalData.goal/transition`, `TraitChara.UseGlobalGoal`, `GameDate.AdvanceHour` | Read | `VERIFIED-METADATA`, `SOURCE-OBSERVED`, `UNRESOLVED` live samples | No adapter yet | BQ-135/BQ-093+ | High |
 | API-049 | Zone catch-up | `Zone.OnVisit`, `Zone.Simulate`, `FactionBranch.OnAfterSimulate` | Observe/read | `VERIFIED-METADATA`, `SOURCE-OBSERVED`, `UNRESOLVED` live deltas | No integration yet | BQ-107/Home | High |
 
