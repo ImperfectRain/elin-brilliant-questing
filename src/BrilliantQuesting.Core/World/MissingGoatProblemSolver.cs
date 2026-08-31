@@ -1,4 +1,5 @@
 using System;
+using BrilliantQuesting.Foundation;
 
 namespace BrilliantQuesting.World
 {
@@ -45,11 +46,12 @@ namespace BrilliantQuesting.World
 
     public sealed class MissingGoatDecision
     {
-        public MissingGoatDecision(ProblemSolvingStyle style, MissingGoatResponse response, double score)
+        public MissingGoatDecision(ProblemSolvingStyle style, MissingGoatResponse response, double score, NpcGoal goal)
         {
             Style = style;
             Response = response;
             Score = score;
+            Goal = goal;
         }
 
         public ProblemSolvingStyle Style { get; }
@@ -57,6 +59,8 @@ namespace BrilliantQuesting.World
         public MissingGoatResponse Response { get; }
 
         public double Score { get; }
+
+        public NpcGoal Goal { get; }
     }
 
     public static class MissingGoatProblemSolver
@@ -101,7 +105,53 @@ namespace BrilliantQuesting.World
                 }
             }
 
-            return new MissingGoatDecision(best.Style, best.Response, bestScore);
+            return new MissingGoatDecision(best.Style, best.Response, bestScore, PreviewGoal(actor, problem, EntityId.None));
+        }
+
+        public static NpcGoal FormGoal(NarrativeNpc actor, MissingGoatProblem problem, EntityId subject)
+        {
+            if (actor == null)
+            {
+                throw new ArgumentNullException(nameof(actor));
+            }
+
+            if (problem == null)
+            {
+                throw new ArgumentNullException(nameof(problem));
+            }
+
+            ValueConcern concern = DominantConcern(actor, problem);
+            NpcGoal formed = PreviewGoal(actor, problem, subject);
+            NarrativeNeed need = NeedFor(concern);
+            double pressure = Pressure(actor, problem, concern);
+
+            actor.Needs.Set(need, Math.Max(actor.Needs.Get(need), pressure));
+
+            NpcGoal existing = FindOpenGoal(actor, formed.Kind, subject);
+            if (existing != null)
+            {
+                existing.Weight = formed.Weight;
+                existing.Reason = formed.Reason;
+                return existing;
+            }
+
+            NpcGoal goal = new NpcGoal(formed.Kind, subject, formed.Weight, formed.Reason);
+            actor.Goals.Add(goal);
+            return goal;
+        }
+
+        private static NpcGoal PreviewGoal(NarrativeNpc actor, MissingGoatProblem problem, EntityId subject)
+        {
+            ValueConcern concern = DominantConcern(actor, problem);
+            NarrativeNeed need = NeedFor(concern);
+            double pressure = Pressure(actor, problem, concern);
+            int weight = Math.Min(100, Math.Max(0, (int)Math.Round(pressure * 100.0)));
+            string reason = "need " + NeedName(need) + " rose from threatened value "
+                            + ConcernName(concern) + " (importance "
+                            + actor.Values.Get(concern).Importance.ToString("0.00") + ", flexibility "
+                            + actor.Values.Get(concern).Flexibility.ToString("0.00") + ")";
+
+            return new NpcGoal(GoalKindFor(concern, need), subject, weight, reason);
         }
 
         private static double Score(NarrativeNpc actor, MissingGoatProblem problem, ProblemSolvingStyle style)
@@ -145,6 +195,114 @@ namespace BrilliantQuesting.World
                     return score + ContradictionBias(contradiction, problem, style);
             }
         }
+
+        private static ValueConcern DominantConcern(NarrativeNpc actor, MissingGoatProblem problem)
+        {
+            ValueConcern best = ValueConcern.Status;
+            double bestPressure = Pressure(actor, problem, best);
+
+            if (problem.IsAnimalAtRisk)
+            {
+                Consider(actor, problem, ValueConcern.Animals, ref best, ref bestPressure);
+            }
+
+            if (problem.ThreatensFamily)
+            {
+                Consider(actor, problem, ValueConcern.Family, ref best, ref bestPressure);
+            }
+
+            if (problem.ThreatensStatus || problem.IsPubliclyEmbarrassing)
+            {
+                Consider(actor, problem, ValueConcern.Status, ref best, ref bestPressure);
+            }
+
+            return best;
+        }
+
+        private static void Consider(
+            NarrativeNpc actor,
+            MissingGoatProblem problem,
+            ValueConcern concern,
+            ref ValueConcern best,
+            ref double bestPressure)
+        {
+            double pressure = Pressure(actor, problem, concern);
+            if (pressure > bestPressure)
+            {
+                best = concern;
+                bestPressure = pressure;
+            }
+        }
+
+        private static double Pressure(NarrativeNpc actor, MissingGoatProblem problem, ValueConcern concern)
+        {
+            ValueConcernProfile value = actor.Values.Get(concern);
+            double threat = Threat(problem, concern);
+            return Math.Max(0.0, Math.Min(1.0, threat * value.Importance * (1.0 - (value.Flexibility * 0.5))));
+        }
+
+        private static double Threat(MissingGoatProblem problem, ValueConcern concern)
+        {
+            switch (concern)
+            {
+                case ValueConcern.Animals:
+                    return problem.IsAnimalAtRisk ? 1.0 : 0.0;
+                case ValueConcern.Family:
+                    return problem.ThreatensFamily ? 1.0 : 0.0;
+                case ValueConcern.Status:
+                    return problem.ThreatensStatus ? 1.0 : problem.IsPubliclyEmbarrassing ? 0.75 : 0.0;
+                default:
+                    return 0.0;
+            }
+        }
+
+        private static NarrativeNeed NeedFor(ValueConcern concern)
+        {
+            switch (concern)
+            {
+                case ValueConcern.Animals:
+                    return NarrativeNeed.Protection;
+                case ValueConcern.Family:
+                    return NarrativeNeed.Safety;
+                case ValueConcern.Status:
+                    return NarrativeNeed.Status;
+                default:
+                    return NarrativeNeed.Obligation;
+            }
+        }
+
+        private static string GoalKindFor(ValueConcern concern, NarrativeNeed need)
+        {
+            switch (concern)
+            {
+                case ValueConcern.Animals:
+                    return "protect_animal";
+                case ValueConcern.Family:
+                    return "protect_family";
+                case ValueConcern.Status:
+                    return "restore_status";
+                default:
+                    return "answer_need_" + NeedName(need);
+            }
+        }
+
+        private static NpcGoal FindOpenGoal(NarrativeNpc actor, string kind, EntityId subject)
+        {
+            for (int i = 0; i < actor.Goals.Count; i++)
+            {
+                NpcGoal goal = actor.Goals[i];
+                if (!goal.Satisfied && goal.Kind == kind && goal.Subject == subject)
+                {
+                    return goal;
+                }
+            }
+
+            return null;
+        }
+
+        private static string ConcernName(ValueConcern concern) => concern.ToString().ToLowerInvariant();
+
+        private static string NeedName(NarrativeNeed need) => need.ToString().ToLowerInvariant();
 
         private static double ContradictionBias(
             ContradictionProfile contradiction,

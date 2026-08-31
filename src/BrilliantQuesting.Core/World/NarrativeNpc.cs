@@ -33,6 +33,8 @@ namespace BrilliantQuesting.World
             Sensitivities = new SensitivityProfile();
             Contradiction = new ContradictionProfile();
             Quirk = new CharacterQuirkProfile();
+            Values = new ValueProfile();
+            Needs = new NarrativeNeedProfile();
             Goals = new List<NpcGoal>();
             OrganizationIds = new List<EntityId>();
             Alive = true;
@@ -81,6 +83,10 @@ namespace BrilliantQuesting.World
 
         public CharacterQuirkProfile Quirk { get; }
 
+        public ValueProfile Values { get; }
+
+        public NarrativeNeedProfile Needs { get; }
+
         public List<NpcGoal> Goals { get; }
 
         public List<EntityId> OrganizationIds { get; }
@@ -113,11 +119,12 @@ namespace BrilliantQuesting.World
     /// </summary>
     public sealed class NpcGoal
     {
-        public NpcGoal(string kind, EntityId subject, int weight)
+        public NpcGoal(string kind, EntityId subject, int weight, string reason = "")
         {
             Kind = kind;
             Subject = subject;
             Weight = weight;
+            Reason = reason ?? string.Empty;
         }
 
         /// <summary>Ontology term: "recover_property", "protect", "repay_debt", "avoid_exposure".</summary>
@@ -128,8 +135,20 @@ namespace BrilliantQuesting.World
         /// <summary>0..100. Higher wins when goals collide.</summary>
         public int Weight { get; set; }
 
+        /// <summary>Inspector-facing trace for why this goal exists or last changed.</summary>
+        public string Reason { get; set; }
+
         public bool Satisfied { get; set; }
 
-        public override string ToString() => Kind + "(" + Subject + ") w" + Weight + (Satisfied ? " [done]" : string.Empty);
+        public override string ToString()
+        {
+            string text = Kind + "(" + Subject + ") w" + Weight;
+            if (!string.IsNullOrEmpty(Reason))
+            {
+                text += " because " + Reason;
+            }
+
+            return text + (Satisfied ? " [done]" : string.Empty);
+        }
     }
 }

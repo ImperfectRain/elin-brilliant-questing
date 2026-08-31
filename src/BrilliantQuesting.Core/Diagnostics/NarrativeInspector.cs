@@ -86,6 +86,31 @@ namespace BrilliantQuesting.Diagnostics
 
             sb.Append('\n');
 
+            sb.Append("  values:");
+            AppendValue(sb, "family", npc.Values.Family);
+            AppendValue(sb, "wealth", npc.Values.Wealth);
+            AppendValue(sb, "law", npc.Values.Law);
+            AppendValue(sb, "faith", npc.Values.Faith);
+            AppendValue(sb, "status", npc.Values.Status);
+            AppendValue(sb, "animals", npc.Values.Animals);
+            AppendValue(sb, "knowledge", npc.Values.Knowledge);
+            AppendValue(sb, "freedom", npc.Values.Freedom);
+            sb.Append('\n');
+
+            sb.Append("  narrative needs:");
+            AppendNeed(sb, "safety", npc.Needs.Safety);
+            AppendNeed(sb, "belonging", npc.Needs.Belonging);
+            AppendNeed(sb, "debt_relief", npc.Needs.DebtRelief);
+            AppendNeed(sb, "status", npc.Needs.Status);
+            AppendNeed(sb, "loyalty", npc.Needs.Loyalty);
+            AppendNeed(sb, "justice", npc.Needs.Justice);
+            AppendNeed(sb, "secrecy", npc.Needs.Secrecy);
+            AppendNeed(sb, "revenge", npc.Needs.Revenge);
+            AppendNeed(sb, "protection", npc.Needs.Protection);
+            AppendNeed(sb, "material_shortage", npc.Needs.MaterialShortage);
+            AppendNeed(sb, "obligation", npc.Needs.Obligation);
+            sb.Append('\n');
+
             sb.Append("  goals:");
             if (npc.Goals.Count == 0)
             {
@@ -133,6 +158,21 @@ namespace BrilliantQuesting.Diagnostics
             }
 
             return sb.ToString();
+        }
+
+        private static void AppendValue(StringBuilder sb, string name, ValueConcernProfile value)
+        {
+            sb.Append(' ').Append(name).Append("(i ")
+              .Append(value.Importance.ToString("0.00")).Append(", f ")
+              .Append(value.Flexibility.ToString("0.00")).Append(')');
+        }
+
+        private static void AppendNeed(StringBuilder sb, string name, double pressure)
+        {
+            if (pressure > 0.0)
+            {
+                sb.Append(' ').Append(name).Append(' ').Append(pressure.ToString("0.00"));
+            }
         }
 
         public static string DescribeThread(NarrativeWorldState world, NarrativeThread thread)

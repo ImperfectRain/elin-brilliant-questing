@@ -130,6 +130,8 @@ namespace BrilliantQuesting.Persistence
                 JsonValue sensitivities = SensitivitiesToJson(npc.Sensitivities);
                 JsonValue contradiction = ContradictionToJson(npc.Contradiction);
                 JsonValue quirk = QuirkToJson(npc.Quirk);
+                JsonValue values = ValuesToJson(npc.Values);
+                JsonValue needs = NeedsToJson(npc.Needs);
 
                 JsonValue goals = JsonValue.Array();
                 foreach (NpcGoal goal in npc.Goals)
@@ -138,6 +140,7 @@ namespace BrilliantQuesting.Persistence
                         .Set("kind", goal.Kind)
                         .Set("subject", goal.Subject.Value)
                         .Set("weight", goal.Weight)
+                        .Set("reason", goal.Reason)
                         .Set("satisfied", goal.Satisfied));
                 }
 
@@ -156,6 +159,8 @@ namespace BrilliantQuesting.Persistence
                     .Set("sensitivities", sensitivities)
                     .Set("contradiction", contradiction)
                     .Set("quirk", quirk)
+                    .Set("values", values)
+                    .Set("needs", needs)
                     .Set("goals", goals)
                     .Set("organizations", Ids(npc.OrganizationIds)));
             }
@@ -503,9 +508,25 @@ namespace BrilliantQuesting.Persistence
                     ReadQuirk(npc.Quirk, quirk);
                 }
 
+                JsonValue values = json["values"];
+                if (values != null)
+                {
+                    ReadValues(npc.Values, values);
+                }
+
+                JsonValue needs = json["needs"];
+                if (needs != null)
+                {
+                    ReadNeeds(npc.Needs, needs);
+                }
+
                 foreach (JsonValue goalJson in json.GetArray("goals"))
                 {
-                    npc.Goals.Add(new NpcGoal(goalJson.GetString("kind"), EntityId.Parse(goalJson.GetString("subject")), goalJson.GetInt("weight"))
+                    npc.Goals.Add(new NpcGoal(
+                        goalJson.GetString("kind"),
+                        EntityId.Parse(goalJson.GetString("subject")),
+                        goalJson.GetInt("weight"),
+                        goalJson.GetString("reason"))
                     {
                         Satisfied = goalJson.GetBool("satisfied")
                     });
@@ -979,6 +1000,80 @@ namespace BrilliantQuesting.Persistence
             target.Assigned = profile.GetBool("assigned");
             target.Weirdness = weirdness;
             target.Kind = kind;
+        }
+
+        private static JsonValue ValuesToJson(ValueProfile profile)
+        {
+            return JsonValue.Object()
+                .Set("family", ValueConcernToJson(profile.Family))
+                .Set("wealth", ValueConcernToJson(profile.Wealth))
+                .Set("law", ValueConcernToJson(profile.Law))
+                .Set("faith", ValueConcernToJson(profile.Faith))
+                .Set("status", ValueConcernToJson(profile.Status))
+                .Set("animals", ValueConcernToJson(profile.Animals))
+                .Set("knowledge", ValueConcernToJson(profile.Knowledge))
+                .Set("freedom", ValueConcernToJson(profile.Freedom));
+        }
+
+        private static JsonValue ValueConcernToJson(ValueConcernProfile profile)
+        {
+            return JsonValue.Object()
+                .Set("importance", profile.Importance)
+                .Set("flexibility", profile.Flexibility);
+        }
+
+        private static void ReadValues(ValueProfile target, JsonValue values)
+        {
+            ReadValueConcern(target.Family, values["family"]);
+            ReadValueConcern(target.Wealth, values["wealth"]);
+            ReadValueConcern(target.Law, values["law"]);
+            ReadValueConcern(target.Faith, values["faith"]);
+            ReadValueConcern(target.Status, values["status"]);
+            ReadValueConcern(target.Animals, values["animals"]);
+            ReadValueConcern(target.Knowledge, values["knowledge"]);
+            ReadValueConcern(target.Freedom, values["freedom"]);
+        }
+
+        private static void ReadValueConcern(ValueConcernProfile target, JsonValue value)
+        {
+            if (value == null)
+            {
+                return;
+            }
+
+            target.Importance = value.GetNumber("importance", 0.5);
+            target.Flexibility = value.GetNumber("flexibility", 0.5);
+        }
+
+        private static JsonValue NeedsToJson(NarrativeNeedProfile profile)
+        {
+            return JsonValue.Object()
+                .Set("safety", profile.Safety)
+                .Set("belonging", profile.Belonging)
+                .Set("debtRelief", profile.DebtRelief)
+                .Set("status", profile.Status)
+                .Set("loyalty", profile.Loyalty)
+                .Set("justice", profile.Justice)
+                .Set("secrecy", profile.Secrecy)
+                .Set("revenge", profile.Revenge)
+                .Set("protection", profile.Protection)
+                .Set("materialShortage", profile.MaterialShortage)
+                .Set("obligation", profile.Obligation);
+        }
+
+        private static void ReadNeeds(NarrativeNeedProfile target, JsonValue needs)
+        {
+            target.Safety = needs.GetNumber("safety");
+            target.Belonging = needs.GetNumber("belonging");
+            target.DebtRelief = needs.GetNumber("debtRelief");
+            target.Status = needs.GetNumber("status");
+            target.Loyalty = needs.GetNumber("loyalty");
+            target.Justice = needs.GetNumber("justice");
+            target.Secrecy = needs.GetNumber("secrecy");
+            target.Revenge = needs.GetNumber("revenge");
+            target.Protection = needs.GetNumber("protection");
+            target.MaterialShortage = needs.GetNumber("materialShortage");
+            target.Obligation = needs.GetNumber("obligation");
         }
 
         private static JsonValue Strings(IReadOnlyList<string> values)

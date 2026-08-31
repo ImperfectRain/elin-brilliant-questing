@@ -427,6 +427,25 @@ namespace BrilliantQuesting.Tests
         }
 
         [Fact]
+        public void ValuesNeedsAndGoalReasonsArePersistedAsDurableCharacterState()
+        {
+            NarrativeWorldState world = new NarrativeWorldState(42);
+            NarrativeNpc npc = world.Registry.Add(new NarrativeNpc(EntityId.Parse("npc_00000001"), "Mira"));
+            npc.Values.Animals.Importance = 0.9;
+            npc.Values.Animals.Flexibility = 0.2;
+            npc.Needs.Protection = 0.81;
+            npc.Goals.Add(new NpcGoal("protect_animal", EntityId.Parse("goat"), 81, "need protection rose from threatened value animals"));
+
+            NarrativeWorldState reloaded = WorldStateSerializer.Load(WorldStateSerializer.Save(world, indented: false));
+            NarrativeNpc loaded = reloaded.Registry.GetNpc(npc.Id);
+
+            Assert.Equal(0.9, loaded.Values.Animals.Importance, 4);
+            Assert.Equal(0.2, loaded.Values.Animals.Flexibility, 4);
+            Assert.Equal(0.81, loaded.Needs.Protection, 4);
+            Assert.Equal("need protection rose from threatened value animals", loaded.Goals[0].Reason);
+        }
+
+        [Fact]
         public void VersionThreeSavesGainNeutralSensitivityProfiles()
         {
             JsonValue oldNpc = JsonValue.Object()
@@ -525,6 +544,43 @@ namespace BrilliantQuesting.Tests
             Assert.False(npc.Quirk.Assigned);
             Assert.Equal(CharacterWeirdnessTier.MostlyOrdinary, npc.Quirk.Weirdness);
             Assert.Equal(CharacterQuirk.None, npc.Quirk.Kind);
+        }
+
+        [Fact]
+        public void VersionSixSavesGainNeutralValueAndNeedProfiles()
+        {
+            JsonValue oldNpc = JsonValue.Object()
+                .Set("id", "npc_00000001")
+                .Set("name", "Old Mira")
+                .Set("charaRef", "vanilla/mira")
+                .Set("occupation", "merchant")
+                .Set("roles", JsonValue.Array())
+                .Set("homeSite", "")
+                .Set("importance", 2)
+                .Set("alive", true)
+                .Set("lastSimulated", 123)
+                .Set("personality", JsonValue.Object())
+                .Set("problemSolving", JsonValue.Object())
+                .Set("sensitivities", JsonValue.Object())
+                .Set("contradiction", JsonValue.Object())
+                .Set("quirk", JsonValue.Object())
+                .Set("goals", JsonValue.Array())
+                .Set("organizations", JsonValue.Array());
+
+            JsonValue oldRoot = JsonValue.Object()
+                .Set("schemaVersion", 6)
+                .Set("worldSeed", "7")
+                .Set("rngState", "7")
+                .Set("npcs", JsonValue.Array().Add(oldNpc));
+
+            NarrativeWorldState migrated = WorldStateSerializer.Load(oldRoot.ToJson(indented: false));
+            NarrativeNpc npc = migrated.Registry.GetNpc(EntityId.Parse("npc_00000001"));
+
+            Assert.Equal(NarrativeWorldState.CurrentSchemaVersion, migrated.SchemaVersion);
+            Assert.Equal(0.5, npc.Values.Animals.Importance, 4);
+            Assert.Equal(0.5, npc.Values.Animals.Flexibility, 4);
+            Assert.Equal(0.0, npc.Needs.Protection, 4);
+            Assert.Equal(0.0, npc.Needs.DebtRelief, 4);
         }
 
         [Fact]

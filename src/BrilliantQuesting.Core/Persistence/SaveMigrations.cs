@@ -20,6 +20,7 @@ namespace BrilliantQuesting.Persistence
             Register(3, AddSensitivityProfiles);
             Register(4, AddContradictionProfiles);
             Register(5, AddCharacterQuirkProfiles);
+            Register(6, AddValueAndNeedProfiles);
         }
 
         /// <summary>Registers an upgrade from <paramref name="fromVersion"/> to the next version.</summary>
@@ -198,6 +199,60 @@ namespace BrilliantQuesting.Persistence
                 .Set("assigned", false)
                 .Set("weirdness", "MostlyOrdinary")
                 .Set("kind", "None");
+        }
+
+        private static JsonValue AddValueAndNeedProfiles(JsonValue root)
+        {
+            foreach (JsonValue npc in root.GetArray("npcs"))
+            {
+                if (npc["values"] == null)
+                {
+                    npc.Set("values", NeutralValueProfile());
+                }
+
+                if (npc["needs"] == null)
+                {
+                    npc.Set("needs", NeutralNeedProfile());
+                }
+            }
+
+            return root.Set("schemaVersion", 7);
+        }
+
+        private static JsonValue NeutralValueProfile()
+        {
+            return JsonValue.Object()
+                .Set("family", NeutralValueConcern())
+                .Set("wealth", NeutralValueConcern())
+                .Set("law", NeutralValueConcern())
+                .Set("faith", NeutralValueConcern())
+                .Set("status", NeutralValueConcern())
+                .Set("animals", NeutralValueConcern())
+                .Set("knowledge", NeutralValueConcern())
+                .Set("freedom", NeutralValueConcern());
+        }
+
+        private static JsonValue NeutralValueConcern()
+        {
+            return JsonValue.Object()
+                .Set("importance", 0.5)
+                .Set("flexibility", 0.5);
+        }
+
+        private static JsonValue NeutralNeedProfile()
+        {
+            return JsonValue.Object()
+                .Set("safety", 0.0)
+                .Set("belonging", 0.0)
+                .Set("debtRelief", 0.0)
+                .Set("status", 0.0)
+                .Set("loyalty", 0.0)
+                .Set("justice", 0.0)
+                .Set("secrecy", 0.0)
+                .Set("revenge", 0.0)
+                .Set("protection", 0.0)
+                .Set("materialShortage", 0.0)
+                .Set("obligation", 0.0);
         }
     }
 }

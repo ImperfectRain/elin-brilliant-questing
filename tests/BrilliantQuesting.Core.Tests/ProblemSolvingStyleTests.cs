@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using BrilliantQuesting.Diagnostics;
 using BrilliantQuesting.Foundation;
+using BrilliantQuesting.Integration;
 using BrilliantQuesting.World;
 using Xunit;
 
@@ -59,6 +61,38 @@ namespace BrilliantQuesting.Tests
             timidWatcher.Contradiction.Kind = PersonalityContradiction.CowardlyButProtective;
 
             Assert.Equal(MissingGoatResponse.AskNeighbors, MissingGoatProblemSolver.Choose(timidWatcher, animalInDanger).Response);
+        }
+
+        [Fact]
+        public void ThreatenedValueChangesGoalAndIsTraceableInInspector()
+        {
+            NarrativeWorldState world = new NarrativeWorldState(42);
+            SandboxVanillaState vanilla = new SandboxVanillaState(EntityId.Parse("player"));
+            NarrativeNpc caretaker = NeutralActor("caretaker");
+            caretaker.Values.Animals.Importance = 1.0;
+            caretaker.Values.Animals.Flexibility = 0.0;
+            caretaker.Values.Status.Importance = 0.0;
+            world.Registry.Add(caretaker);
+            vanilla.Define(caretaker.Id);
+
+            MissingGoatProblem problem = new MissingGoatProblem(
+                isAnimalAtRisk: true,
+                isPubliclyEmbarrassing: true,
+                threatensStatus: true);
+
+            NpcGoal goal = MissingGoatProblemSolver.FormGoal(caretaker, problem, EntityId.Parse("goat"));
+
+            Assert.Equal("protect_animal", goal.Kind);
+            Assert.Equal(EntityId.Parse("goat"), goal.Subject);
+            Assert.True(goal.Weight > 80);
+            Assert.Equal(goal.Weight / 100.0, caretaker.Needs.Protection, 2);
+            Assert.Contains("threatened value animals", goal.Reason);
+
+            string report = NarrativeInspector.DescribeCharacter(world, vanilla, caretaker.Id);
+            Assert.Contains("narrative needs:", report);
+            Assert.Contains("protection", report);
+            Assert.Contains("protect_animal", report);
+            Assert.Contains("threatened value animals", report);
         }
 
         private static NarrativeNpc Actor(string key, ProblemSolvingStyle favoredStyle)
