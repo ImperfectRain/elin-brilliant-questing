@@ -3,6 +3,7 @@ using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Memory;
+using BrilliantQuesting.Obligations;
 using BrilliantQuesting.Relationships;
 using BrilliantQuesting.Threads;
 
@@ -30,6 +31,7 @@ namespace BrilliantQuesting.World
             Knowledge = new KnowledgeGraph();
             Memories = new MemoryLedger();
             Relationships = new RelationshipGraph();
+            Obligations = new SocialObligationLedger();
             Threads = new List<NarrativeThread>();
             Absences = new AbsenceLedger();
             Demands = new LocalDemandLedger();
@@ -52,6 +54,12 @@ namespace BrilliantQuesting.World
         public MemoryLedger Memories { get; }
 
         public RelationshipGraph Relationships { get; }
+
+        /// <summary>
+        /// Concrete social debts: favors, promises, sanctuary, sponsorships, grudges and debts.
+        /// These are scoped records with sources in history, not a second affinity meter.
+        /// </summary>
+        public SocialObligationLedger Obligations { get; }
 
         public List<NarrativeThread> Threads { get; }
 

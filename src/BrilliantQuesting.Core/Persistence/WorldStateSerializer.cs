@@ -4,6 +4,7 @@ using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Memory;
+using BrilliantQuesting.Obligations;
 using BrilliantQuesting.Relationships;
 using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
@@ -60,6 +61,7 @@ namespace BrilliantQuesting.Persistence
             root.Set("beliefs", BeliefsToJson(world));
             root.Set("memories", MemoriesToJson(world));
             root.Set("relationships", RelationshipsToJson(world));
+            root.Set("obligations", ObligationsToJson(world));
             root.Set("threads", ThreadsToJson(world));
             root.Set("absences", AbsencesToJson(world));
             root.Set("demands", DemandsToJson(world));
@@ -108,6 +110,7 @@ namespace BrilliantQuesting.Persistence
             ReadBeliefs(world, root);
             ReadMemories(world, root);
             ReadRelationships(world, root);
+            ReadObligations(world, root);
             ReadThreads(world, root);
             ReadAbsences(world, root);
             ReadDemands(world, root);
@@ -384,6 +387,28 @@ namespace BrilliantQuesting.Persistence
                         .Set("kind", edge.Kind.ToString())
                         .Set("sentiment", edge.Sentiment));
                 }
+            }
+
+            return array;
+        }
+
+        private static JsonValue ObligationsToJson(NarrativeWorldState world)
+        {
+            JsonValue array = JsonValue.Array();
+            foreach (SocialObligation obligation in world.Obligations.Records)
+            {
+                array.Add(JsonValue.Object()
+                    .Set("id", obligation.Id.Value)
+                    .Set("kind", obligation.Kind.ToString())
+                    .Set("debtor", obligation.Debtor.Value)
+                    .Set("creditor", obligation.Creditor.Value)
+                    .Set("subject", obligation.Subject.Value)
+                    .Set("purpose", obligation.Purpose)
+                    .Set("createdAt", obligation.CreatedAt.TotalMinutes)
+                    .Set("sourceEvent", obligation.SourceEventId.Value)
+                    .Set("strength", obligation.Strength)
+                    .Set("status", obligation.Status.ToString())
+                    .Set("resolvedAt", obligation.ResolvedAt.TotalMinutes));
             }
 
             return array;
@@ -696,6 +721,28 @@ namespace BrilliantQuesting.Persistence
                     EntityId.Parse(json.GetString("to")),
                     (RelationKind)Enum.Parse(typeof(RelationKind), json.GetString("kind")),
                     json.GetInt("sentiment"));
+            }
+        }
+
+        private static void ReadObligations(NarrativeWorldState world, JsonValue root)
+        {
+            foreach (JsonValue json in root.GetArray("obligations"))
+            {
+                SocialObligation obligation = new SocialObligation(
+                    EntityId.Parse(json.GetString("id")),
+                    (SocialObligationKind)Enum.Parse(typeof(SocialObligationKind), json.GetString("kind", "Favor")),
+                    EntityId.Parse(json.GetString("debtor")),
+                    EntityId.Parse(json.GetString("creditor")),
+                    EntityId.Parse(json.GetString("subject")),
+                    json.GetString("purpose"),
+                    new GameTime(json.GetLong("createdAt")),
+                    EntityId.Parse(json.GetString("sourceEvent")),
+                    json.GetInt("strength", 1));
+
+                obligation.Restore(
+                    (SocialObligationStatus)Enum.Parse(typeof(SocialObligationStatus), json.GetString("status", "Open")),
+                    new GameTime(json.GetLong("resolvedAt")));
+                world.Obligations.Restore(obligation);
             }
         }
 

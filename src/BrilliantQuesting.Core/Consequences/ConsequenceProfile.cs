@@ -56,6 +56,8 @@ namespace BrilliantQuesting.Consequences
                 { WorldEventType.DeceptionExposed, new ConsequenceProfile("caught_me_lying", MemoryWeight.Important, -15, -5) },
                 { WorldEventType.PromiseMade, new ConsequenceProfile("was_promised", MemoryWeight.Notable, 2) },
                 { WorldEventType.PromiseBroken, new ConsequenceProfile("was_let_down", MemoryWeight.Important, -22, -3) },
+                { WorldEventType.FavorOwed, new ConsequenceProfile("owes_a_favor", MemoryWeight.Notable, 0) },
+                { WorldEventType.FavorRedeemed, new ConsequenceProfile("called_in_a_favor", MemoryWeight.Notable, 4) },
                 { WorldEventType.Theft, new ConsequenceProfile("was_robbed", MemoryWeight.Important, -25, -8, karma: -3) },
                 { WorldEventType.ItemReturned, new ConsequenceProfile("got_property_back", MemoryWeight.Important, 20, 3, karma: 1) },
                 { WorldEventType.ItemGiven, new ConsequenceProfile("received_a_gift", MemoryWeight.Notable, 8) },

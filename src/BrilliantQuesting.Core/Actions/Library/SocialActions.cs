@@ -4,6 +4,7 @@ using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Obligations;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions.Library
@@ -241,6 +242,17 @@ namespace BrilliantQuesting.Actions.Library
             string who = context.NameOf(context.Target);
             ActionBinding binding = ActionBinding.Infer(context);
             string purpose = binding.Describe(context);
+            SocialObligation favor = context.World.Obligations.FindOpenFavor(context.Target, context.Actor, binding);
+            if (!check.Succeeded && favor != null)
+            {
+                favor.Fulfill(context.Now);
+                ActionOutcome repaid = new ActionOutcome(Id, null, who + " would have refused, but honours the favor they owe you and agrees to help with " + purpose + ".");
+                repaid.Events.Add(context.World.Record(WorldEventType.FavorRedeemed, context.Actor, context.Target, context.Now, 0.5, context.Zone, related: Related(binding, favor), threadId: ThreadId(context)));
+                repaid.Events.Add(context.World.Record(WorldEventType.PromiseMade, context.Target, context.Actor, context.Now, 0.5, context.Zone, related: Related(binding), threadId: ThreadId(context)));
+                repaid.Notes.Add("recorded favor " + favor.Id + " overcame failed persuasion: " + check.Outcome);
+                AdmitRestrictedSite(context, repaid);
+                return repaid;
+            }
 
             switch (check.Outcome)
             {
@@ -287,6 +299,16 @@ namespace BrilliantQuesting.Actions.Library
             }
 
             return null;
+        }
+
+        private static EntityId[] Related(ActionBinding binding, SocialObligation obligation)
+        {
+            if (binding != null && !binding.PropositionFact.IsNone)
+            {
+                return new[] { binding.PropositionFact, obligation.Id };
+            }
+
+            return new[] { obligation.Id };
         }
 
         private static void AdmitRestrictedSite(ActionContext context, ActionOutcome outcome)

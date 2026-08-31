@@ -18,6 +18,8 @@ namespace BrilliantQuesting.Events
         DeceptionExposed,
         PromiseMade,
         PromiseBroken,
+        FavorOwed,
+        FavorRedeemed,
         Theft,
         ItemReturned,
         ItemGiven,
