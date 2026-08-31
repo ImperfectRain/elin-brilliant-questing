@@ -380,6 +380,7 @@ namespace BrilliantQuesting.Plugin
                 new PettyTheftEscalation(_vanilla, rumors, distortion));
             _threads.Register(ShortageSituation.ArchetypeId, new ShortageEscalation(_vanilla));
             _threads.Register(HuntedWitnessSituation.ArchetypeId, new HuntedWitnessEscalation(_vanilla));
+            _threads.Register(HomeResidentSituation.ArchetypeId, new HomeResidentEscalation());
             _gossip = new RumorCirculation(rumors) { Distortion = distortion };
             _ambient = new AmbientTalk(rumors);
             _drama.AdvanceThreads = AdvanceThreads;
@@ -413,6 +414,7 @@ namespace BrilliantQuesting.Plugin
             _lastReconciledZone = _vanilla.GetZoneOf(_vanilla.PlayerId);
             RegisterLocalVanillaActors(_lastReconciledZone);
             MaybeGenerateLocalSituation(_lastReconciledZone);
+            MaybeGenerateHomeResidentSituation();
             GatherPrototypeParticipantsNearPlayer();
             ReportPlayerState();
             ReportProceduralParticipants();
@@ -683,6 +685,46 @@ namespace BrilliantQuesting.Plugin
             catch (Exception ex)
             {
                 _log.LogError("Local situation generation failed: " + ex);
+            }
+        }
+
+        /// <summary>
+        /// Lets the Home's own resident roll originate a situation when no settlement-local one
+        /// did. This is still bootstrap generation, not a scheduler: BQ-099 owns reactive world
+        /// pacing, and this pass only proves that residents are read as narrative actors rather
+        /// than as names printed in the attach log.
+        /// </summary>
+        private void MaybeGenerateHomeResidentSituation()
+        {
+            if (_world.Threads.Count > 0)
+            {
+                return;
+            }
+
+            if (!_vanilla.Supports(VanillaCapability.ReadHomeState))
+            {
+                _log.LogInfo("Home resident situation generation skipped: Home state is unreadable.");
+                return;
+            }
+
+            try
+            {
+                HomeResidentSituation situation = HomeResidentSituation.TryGenerate(_world, _vanilla, _vanilla.Now);
+                if (situation == null)
+                {
+                    _log.LogInfo("Home resident situation generation found no eligible resident pressure.");
+                    return;
+                }
+
+                _log.LogInfo("Generated " + situation.Thread.ArchetypeId + " from Home resident state.");
+                for (int i = 0; i < situation.Thread.GenerationCauses.Count; i++)
+                {
+                    _log.LogInfo("  cause: " + situation.Thread.GenerationCauses[i]);
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.LogError("Home resident situation generation failed: " + ex);
             }
         }
 
