@@ -128,6 +128,10 @@ namespace BrilliantQuesting.Events
         SiteDiscovered,
         SiteCleared,
         ThreadEscalated,
+        ThreadInherited,
+        ThreadMerged,
+        ThreadQuarantined,
+        ThreadReactivated,
         ThreadResolved,
 
         /// <summary>

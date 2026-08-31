@@ -14,6 +14,12 @@ namespace BrilliantQuesting.Threads
         /// <summary>Nothing pending, but it can wake up if the world touches it again.</summary>
         Dormant,
 
+        /// <summary>Closed as a live matter because another thread now carries it.</summary>
+        Inherited,
+
+        /// <summary>Preserved for inspection, but no longer allowed to advance or surface.</summary>
+        Quarantined,
+
         Resolved
     }
 
@@ -45,6 +51,10 @@ namespace BrilliantQuesting.Threads
         public string ArchetypeId { get; }
 
         public EntityId OriginEventId { get; set; }
+
+        public EntityId ParentThreadId { get; set; }
+
+        public EntityId SuccessorThreadId { get; set; }
 
         public GameTime CreatedAt { get; }
 
@@ -82,6 +92,9 @@ namespace BrilliantQuesting.Threads
 
         /// <summary>Set when resolved, so consequences can say which ending actually happened.</summary>
         public string Resolution { get; set; }
+
+        /// <summary>Inspector-facing lifecycle note: inherited, merged or quarantined and why.</summary>
+        public string LifecycleReason { get; set; }
 
         public bool IsLive => State == ThreadState.Latent || State == ThreadState.Active;
 

@@ -515,9 +515,16 @@ namespace BrilliantQuesting.Plugin
 
             try
             {
-                if (_threads.Advance(_world, _vanilla.Now) == 0)
+                int lifecycleChanges = ThreadLifecycle.Review(_world, _vanilla, _vanilla.Now);
+                int escalations = _threads.Advance(_world, _vanilla.Now);
+                if (lifecycleChanges == 0 && escalations == 0)
                 {
                     return;
+                }
+
+                if (lifecycleChanges > 0)
+                {
+                    _log.LogInfo("Thread lifecycle reviewed: " + lifecycleChanges + " thread(s) changed at " + _vanilla.Now + ".");
                 }
 
                 foreach (string applied in _threads.LastApplied)

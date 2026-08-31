@@ -394,12 +394,15 @@ namespace BrilliantQuesting.Persistence
                     .Set("id", thread.Id.Value)
                     .Set("archetype", thread.ArchetypeId)
                     .Set("originEvent", thread.OriginEventId.Value)
+                    .Set("parentThread", thread.ParentThreadId.Value)
+                    .Set("successorThread", thread.SuccessorThreadId.Value)
                     .Set("createdAt", thread.CreatedAt.TotalMinutes)
                     .Set("lastAdvancedAt", thread.LastAdvancedAt.TotalMinutes)
                     .Set("tension", thread.Tension)
                     .Set("importance", thread.Importance)
                     .Set("state", thread.State.ToString())
                     .Set("resolution", thread.Resolution)
+                    .Set("lifecycleReason", thread.LifecycleReason)
                     .Set("participants", Ids(thread.ParticipantIds))
                     .Set("sites", Ids(thread.SiteIds))
                     .Set("facts", Ids(thread.FactIds))
@@ -680,11 +683,14 @@ namespace BrilliantQuesting.Persistence
                     new GameTime(json.GetLong("createdAt")))
                 {
                     OriginEventId = EntityId.Parse(json.GetString("originEvent")),
+                    ParentThreadId = EntityId.Parse(json.GetString("parentThread")),
+                    SuccessorThreadId = EntityId.Parse(json.GetString("successorThread")),
                     LastAdvancedAt = new GameTime(json.GetLong("lastAdvancedAt")),
                     Tension = json.GetInt("tension"),
                     Importance = json.GetInt("importance"),
                     State = (ThreadState)Enum.Parse(typeof(ThreadState), json.GetString("state", "Latent")),
-                    Resolution = json.GetString("resolution", null)
+                    Resolution = json.GetString("resolution", null),
+                    LifecycleReason = json.GetString("lifecycleReason", null)
                 };
 
                 foreach (JsonValue participant in json.GetArray("participants"))

@@ -172,7 +172,7 @@ namespace BrilliantQuesting.Situations
         public int AdvanceDays(long days)
         {
             Vanilla.AdvanceDays(days);
-            return Threads.Advance(World, Vanilla.Now);
+            return ThreadLifecycle.Review(World, Vanilla, Vanilla.Now) + Threads.Advance(World, Vanilla.Now);
         }
     }
 }

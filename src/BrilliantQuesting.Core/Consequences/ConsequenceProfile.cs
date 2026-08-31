@@ -117,6 +117,10 @@ namespace BrilliantQuesting.Consequences
                 { WorldEventType.SiteDiscovered, new ConsequenceProfile("discovered_site", MemoryWeight.Routine, 0, 0, fame: 1) },
                 { WorldEventType.SiteCleared, new ConsequenceProfile("cleared_site", MemoryWeight.Important, 8, 3, fame: 2) },
                 { WorldEventType.ThreadEscalated, new ConsequenceProfile("thread_escalated", MemoryWeight.Routine, 0) },
+                { WorldEventType.ThreadInherited, new ConsequenceProfile("thread_inherited", MemoryWeight.Notable, 0) },
+                { WorldEventType.ThreadMerged, new ConsequenceProfile("thread_merged", MemoryWeight.Routine, 0) },
+                { WorldEventType.ThreadQuarantined, new ConsequenceProfile("thread_quarantined", MemoryWeight.Routine, 0) },
+                { WorldEventType.ThreadReactivated, new ConsequenceProfile("thread_reactivated", MemoryWeight.Routine, 0) },
                 { WorldEventType.ThreadResolved, new ConsequenceProfile("thread_resolved", MemoryWeight.Notable, 4, 1) },
 
                 // Being turned down costs the asker nothing with the person who turned them down.
