@@ -264,7 +264,7 @@ namespace BrilliantQuesting.Tests
         {
             TheftLaboratory lab = PlayedScenario();
             JsonValue root = WorldStateSerializer.ToJson(lab.World);
-            string tampered = root.ToJson().Replace("\"schemaVersion\":4", "\"schemaVersion\":99");
+            string tampered = root.ToJson().Replace("\"schemaVersion\":5", "\"schemaVersion\":99");
 
             Assert.Throws<NotSupportedException>(() => WorldStateSerializer.Load(tampered));
         }
@@ -356,7 +356,7 @@ namespace BrilliantQuesting.Tests
             NarrativeWorldState migrated = WorldStateSerializer.Load(oldRoot.ToJson(indented: false));
             NarrativeNpc npc = migrated.Registry.GetNpc(EntityId.Parse("npc_00000001"));
 
-            Assert.Equal(4, migrated.SchemaVersion);
+            Assert.Equal(NarrativeWorldState.CurrentSchemaVersion, migrated.SchemaVersion);
             Assert.Equal(0.6, npc.Personality.Boldness, 4);
             Assert.Equal(0.2, npc.Personality.Warmth, 4);
             Assert.Equal(0.2, npc.Personality.Generosity, 4);
@@ -393,6 +393,21 @@ namespace BrilliantQuesting.Tests
         }
 
         [Fact]
+        public void ContradictionIsPersistedAsDurableCharacterIdentity()
+        {
+            NarrativeWorldState world = new NarrativeWorldState(42);
+            NarrativeNpc npc = world.Registry.Add(new NarrativeNpc(EntityId.Parse("npc_00000001"), "Mira"));
+            npc.Contradiction.Kind = PersonalityContradiction.HonestExceptAboutFamily;
+            npc.Contradiction.Strength = 0.75;
+
+            NarrativeWorldState reloaded = WorldStateSerializer.Load(WorldStateSerializer.Save(world, indented: false));
+            NarrativeNpc loaded = reloaded.Registry.GetNpc(npc.Id);
+
+            Assert.Equal(PersonalityContradiction.HonestExceptAboutFamily, loaded.Contradiction.Kind);
+            Assert.Equal(0.75, loaded.Contradiction.Strength, 4);
+        }
+
+        [Fact]
         public void VersionThreeSavesGainNeutralSensitivityProfiles()
         {
             JsonValue oldNpc = JsonValue.Object()
@@ -423,6 +438,39 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(0.5, npc.Sensitivities.Animals, 4);
             Assert.Equal(0.5, npc.Sensitivities.PublicEmbarrassment, 4);
             Assert.Equal(0.5, npc.Sensitivities.Status, 4);
+        }
+
+        [Fact]
+        public void VersionFourSavesGainNeutralContradictionProfiles()
+        {
+            JsonValue oldNpc = JsonValue.Object()
+                .Set("id", "npc_00000001")
+                .Set("name", "Old Mira")
+                .Set("charaRef", "vanilla/mira")
+                .Set("occupation", "merchant")
+                .Set("roles", JsonValue.Array())
+                .Set("homeSite", "")
+                .Set("importance", 2)
+                .Set("alive", true)
+                .Set("lastSimulated", 123)
+                .Set("personality", JsonValue.Object())
+                .Set("problemSolving", JsonValue.Object())
+                .Set("sensitivities", JsonValue.Object())
+                .Set("goals", JsonValue.Array())
+                .Set("organizations", JsonValue.Array());
+
+            JsonValue oldRoot = JsonValue.Object()
+                .Set("schemaVersion", 4)
+                .Set("worldSeed", "7")
+                .Set("rngState", "7")
+                .Set("npcs", JsonValue.Array().Add(oldNpc));
+
+            NarrativeWorldState migrated = WorldStateSerializer.Load(oldRoot.ToJson(indented: false));
+            NarrativeNpc npc = migrated.Registry.GetNpc(EntityId.Parse("npc_00000001"));
+
+            Assert.Equal(NarrativeWorldState.CurrentSchemaVersion, migrated.SchemaVersion);
+            Assert.Equal(PersonalityContradiction.None, npc.Contradiction.Kind);
+            Assert.Equal(1.0, npc.Contradiction.Strength, 4);
         }
 
         [Fact]

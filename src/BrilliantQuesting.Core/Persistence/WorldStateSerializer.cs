@@ -128,6 +128,7 @@ namespace BrilliantQuesting.Persistence
                 JsonValue personality = PersonalityToJson(npc.Personality);
                 JsonValue problemSolving = ProblemSolvingToJson(npc.ProblemSolving);
                 JsonValue sensitivities = SensitivitiesToJson(npc.Sensitivities);
+                JsonValue contradiction = ContradictionToJson(npc.Contradiction);
 
                 JsonValue goals = JsonValue.Array();
                 foreach (NpcGoal goal in npc.Goals)
@@ -152,6 +153,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("personality", personality)
                     .Set("problemSolving", problemSolving)
                     .Set("sensitivities", sensitivities)
+                    .Set("contradiction", contradiction)
                     .Set("goals", goals)
                     .Set("organizations", Ids(npc.OrganizationIds)));
             }
@@ -485,6 +487,12 @@ namespace BrilliantQuesting.Persistence
                 if (sensitivities != null)
                 {
                     ReadSensitivities(npc.Sensitivities, sensitivities);
+                }
+
+                JsonValue contradiction = json["contradiction"];
+                if (contradiction != null)
+                {
+                    ReadContradiction(npc.Contradiction, contradiction);
                 }
 
                 foreach (JsonValue goalJson in json.GetArray("goals"))
@@ -916,6 +924,26 @@ namespace BrilliantQuesting.Persistence
             target.Theft = profile.GetNumber("theft", 0.5);
             target.Violence = profile.GetNumber("violence", 0.5);
             target.Dishonesty = profile.GetNumber("dishonesty", 0.5);
+        }
+
+        private static JsonValue ContradictionToJson(ContradictionProfile profile)
+        {
+            return JsonValue.Object()
+                .Set("kind", profile.Kind.ToString())
+                .Set("strength", profile.Strength);
+        }
+
+        private static void ReadContradiction(ContradictionProfile target, JsonValue profile)
+        {
+            string kind = profile.GetString("kind", "None");
+            PersonalityContradiction parsed;
+            if (!System.Enum.TryParse(kind, out parsed))
+            {
+                parsed = PersonalityContradiction.None;
+            }
+
+            target.Kind = parsed;
+            target.Strength = profile.GetNumber("strength", 1.0);
         }
 
         private static JsonValue Strings(IReadOnlyList<string> values)

@@ -42,6 +42,25 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(MissingGoatResponse.AccuseRival, MissingGoatProblemSolver.Choose(statusSensitive, sameEvent).Response);
         }
 
+        [Fact]
+        public void ContradictionCanOverridePersonalityAlone()
+        {
+            NarrativeNpc timidWatcher = NeutralActor("timid-watcher");
+            timidWatcher.Personality.Boldness = 0.0;
+            timidWatcher.Personality.Patience = 1.0;
+
+            MissingGoatProblem animalInDanger = new MissingGoatProblem(
+                isAnimalAtRisk: true,
+                isPubliclyEmbarrassing: false,
+                threatensStatus: false);
+
+            Assert.Equal(MissingGoatResponse.ComplainAndWait, MissingGoatProblemSolver.Choose(timidWatcher, animalInDanger).Response);
+
+            timidWatcher.Contradiction.Kind = PersonalityContradiction.CowardlyButProtective;
+
+            Assert.Equal(MissingGoatResponse.AskNeighbors, MissingGoatProblemSolver.Choose(timidWatcher, animalInDanger).Response);
+        }
+
         private static NarrativeNpc Actor(string key, ProblemSolvingStyle favoredStyle)
         {
             NarrativeNpc npc = new NarrativeNpc(EntityId.Parse("npc_" + key), key);
