@@ -230,6 +230,17 @@ namespace BrilliantQuesting.Persistence
             JsonValue array = JsonValue.Array();
             foreach (Organization organization in world.Registry.Organizations.Values)
             {
+                JsonValue goals = JsonValue.Array();
+                foreach (OrganizationGoal goal in organization.Goals)
+                {
+                    goals.Add(JsonValue.Object()
+                        .Set("kind", goal.Kind)
+                        .Set("subject", goal.Subject.Value)
+                        .Set("weight", goal.Weight)
+                        .Set("progress", goal.Progress)
+                        .Set("satisfied", goal.Satisfied));
+                }
+
                 array.Add(JsonValue.Object()
                     .Set("id", organization.Id.Value)
                     .Set("name", organization.Name)
@@ -238,6 +249,8 @@ namespace BrilliantQuesting.Persistence
                     .Set("wealth", organization.Wealth)
                     .Set("legitimacy", organization.Legitimacy)
                     .Set("aggression", organization.Aggression)
+                    .Set("lastActed", organization.LastActedAt.TotalMinutes)
+                    .Set("goals", goals)
                     .Set("members", Ids(organization.MemberIds))
                     .Set("sites", Ids(organization.SiteIds)));
             }
@@ -522,8 +535,21 @@ namespace BrilliantQuesting.Persistence
                     LeaderId = EntityId.Parse(json.GetString("leader")),
                     Wealth = json.GetInt("wealth"),
                     Legitimacy = json.GetInt("legitimacy"),
-                    Aggression = json.GetInt("aggression")
+                    Aggression = json.GetInt("aggression"),
+                    LastActedAt = new GameTime(json.GetLong("lastActed"))
                 };
+
+                foreach (JsonValue goalJson in json.GetArray("goals"))
+                {
+                    organization.Goals.Add(new OrganizationGoal(
+                        goalJson.GetString("kind"),
+                        EntityId.Parse(goalJson.GetString("subject")),
+                        goalJson.GetInt("weight"))
+                    {
+                        Progress = goalJson.GetInt("progress"),
+                        Satisfied = goalJson.GetBool("satisfied")
+                    });
+                }
 
                 foreach (JsonValue member in json.GetArray("members"))
                 {

@@ -114,6 +114,9 @@ namespace BrilliantQuesting.Consequences
                 { WorldEventType.Recruited, new ConsequenceProfile("joined_me", MemoryWeight.Defining, 10) },
                 { WorldEventType.OrganizationJoined, new ConsequenceProfile("joined_organization", MemoryWeight.Notable, 4, 1) },
                 { WorldEventType.OrganizationBetrayed, new ConsequenceProfile("betrayed_organization", MemoryWeight.Defining, -50, -12, karma: -2) },
+                // An organization pursuing its own goal is history, not a judgement. The specific
+                // effect lives in the organization's saved state and event tags.
+                { WorldEventType.OrganizationActed, new ConsequenceProfile("organization_acted", MemoryWeight.Notable, 0) },
                 { WorldEventType.SiteDiscovered, new ConsequenceProfile("discovered_site", MemoryWeight.Routine, 0, 0, fame: 1) },
                 { WorldEventType.SiteCleared, new ConsequenceProfile("cleared_site", MemoryWeight.Important, 8, 3, fame: 2) },
                 { WorldEventType.ThreadEscalated, new ConsequenceProfile("thread_escalated", MemoryWeight.Routine, 0) },

@@ -125,6 +125,8 @@ namespace BrilliantQuesting.Events
         Recruited,
         OrganizationJoined,
         OrganizationBetrayed,
+        /// <summary>A generated organization spent its own resources pursuing one of its goals.</summary>
+        OrganizationActed,
         SiteDiscovered,
         SiteCleared,
         ThreadEscalated,

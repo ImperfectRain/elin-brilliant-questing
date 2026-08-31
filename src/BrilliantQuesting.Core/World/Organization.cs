@@ -15,6 +15,7 @@ namespace BrilliantQuesting.World
             Id = id;
             Name = name;
             Type = type;
+            Goals = new List<OrganizationGoal>();
             MemberIds = new List<EntityId>();
             SiteIds = new List<EntityId>();
         }
@@ -27,6 +28,8 @@ namespace BrilliantQuesting.World
         public string Type { get; }
 
         public EntityId LeaderId { get; set; }
+
+        public List<OrganizationGoal> Goals { get; }
 
         public List<EntityId> MemberIds { get; }
 
@@ -41,6 +44,33 @@ namespace BrilliantQuesting.World
         /// <summary>0..100. How readily it answers a problem with violence.</summary>
         public int Aggression { get; set; } = 30;
 
+        /// <summary>Last day this organization took an autonomous off-screen action.</summary>
+        public GameTime LastActedAt { get; set; }
+
         public override string ToString() => Name + " [" + Type + ", " + MemberIds.Count + " members]";
+    }
+
+    /// <summary>Something an organization is trying to accomplish with its own resources.</summary>
+    public sealed class OrganizationGoal
+    {
+        public OrganizationGoal(string kind, EntityId subject, int weight)
+        {
+            Kind = kind;
+            Subject = subject;
+            Weight = weight;
+        }
+
+        public string Kind { get; }
+
+        public EntityId Subject { get; }
+
+        public int Weight { get; set; }
+
+        public int Progress { get; set; }
+
+        public bool Satisfied { get; set; }
+
+        public override string ToString() => Kind + "(" + Subject + ") w" + Weight + " p" + Progress
+            + (Satisfied ? " [done]" : string.Empty);
     }
 }
