@@ -352,6 +352,17 @@ namespace BrilliantQuesting.Actions.Library
             .WithActorSkill(VanillaSkill.Negotiation, 0.3)
             .WithActorSkill(VanillaSkill.Travel, 0.15);
 
+        /// <summary>
+        /// Public non-crisis competence: work the crowd, keep your hands steady, and make the
+        /// ordinary skill being judged count. It is deliberately local to low-stakes contests; a
+        /// cooking emergency still uses cookery, and a hard bargain still uses negotiation.
+        /// </summary>
+        public static readonly CheckProfile FestivalCompetition = new CheckProfile("proc_festival_competition", 11)
+            .WithActorSkill(VanillaSkill.Cooking, 0.3)
+            .WithActorSkill(VanillaSkill.Negotiation, 0.2)
+            .WithActorAttribute(VanillaAttribute.Dexterity, 0.2)
+            .WithActorAttribute(VanillaAttribute.Charisma, 0.15);
+
         /// <summary>Being believed when you make a public claim.</summary>
         public static readonly CheckProfile Credibility = new CheckProfile("proc_credibility", 12)
             .WithActorSkill(VanillaSkill.Negotiation, 0.3)

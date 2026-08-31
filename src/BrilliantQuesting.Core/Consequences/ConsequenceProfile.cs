@@ -89,6 +89,10 @@ namespace BrilliantQuesting.Consequences
                 // the ledger does not know whether the household just did a kindness or harboured
                 // a fugitive - that is a judgment, and judgments wait for BQ-046.
                 { WorldEventType.TakenIn, new ConsequenceProfile("was_taken_in", MemoryWeight.Defining, 28, 3, fame: 2) },
+                // A competition win is deliberately light: worth remembering and repeating, but
+                // not a legal or moral judgment. If the player wins, fame moves a little; if an
+                // NPC wins, the memory and news are the consequence.
+                { WorldEventType.CompetitionWon, new ConsequenceProfile("won_competition", MemoryWeight.Notable, 0, 1, fame: 1) },
                 { WorldEventType.CrimeWitnessed, new ConsequenceProfile("witnessed_a_crime", MemoryWeight.Notable, 0) },
                 { WorldEventType.CrimeReported, new ConsequenceProfile("reported_to_authorities", MemoryWeight.Important, -25, 0, karma: 2) },
                 { WorldEventType.RumorSpread, new ConsequenceProfile("heard_a_rumor", MemoryWeight.Routine, 0) },

@@ -133,6 +133,12 @@ namespace BrilliantQuesting.Knowledge
         public const string ShelteredBy = "sheltered_by";
 
         /// <summary>
+        /// Somebody won a public contest. Subject is the winner, object is the contest site, and
+        /// value names the event, because the later reference people care about is "who won what".
+        /// </summary>
+        public const string WonCompetition = "won_competition";
+
+        /// <summary>
         /// Whether this is the kind of thing people repeat to each other.
         ///
         /// Gossip is about what happened, not about how the world is arranged. "Kip stole the
@@ -178,6 +184,7 @@ namespace BrilliantQuesting.Knowledge
                 // Where a thing ended up is worth repeating precisely because it is actionable -
                 // it is what turns hearing about a theft into being able to go and look.
                 case LocatedAt:
+                case WonCompetition:
                     return true;
 
                 // Standing arrangements. True, queryable, and nobody's news: who owns what, who

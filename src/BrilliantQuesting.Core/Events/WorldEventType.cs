@@ -87,6 +87,14 @@ namespace BrilliantQuesting.Events
         /// to the ledger, and what the law makes of it is decided where the law is (BQ-046).
         /// </summary>
         TakenIn,
+
+        /// <summary>
+        /// A public contest was held and judged.
+        ///
+        /// This records the social event, not a quest reward. The winner is carried as the actor,
+        /// the judge as the target, and the related fact says what the crowd can repeat later.
+        /// </summary>
+        CompetitionWon,
         CrimeWitnessed,
         CrimeReported,
         RumorSpread,
