@@ -21,6 +21,7 @@ namespace BrilliantQuesting.Persistence
             Register(4, AddContradictionProfiles);
             Register(5, AddCharacterQuirkProfiles);
             Register(6, AddValueAndNeedProfiles);
+            Register(7, AddEmotionalStateProfiles);
         }
 
         /// <summary>Registers an upgrade from <paramref name="fromVersion"/> to the next version.</summary>
@@ -219,6 +220,19 @@ namespace BrilliantQuesting.Persistence
             return root.Set("schemaVersion", 7);
         }
 
+        private static JsonValue AddEmotionalStateProfiles(JsonValue root)
+        {
+            foreach (JsonValue npc in root.GetArray("npcs"))
+            {
+                if (npc["emotions"] == null)
+                {
+                    npc.Set("emotions", NeutralEmotionalStateProfile());
+                }
+            }
+
+            return root.Set("schemaVersion", 8);
+        }
+
         private static JsonValue NeutralValueProfile()
         {
             return JsonValue.Object()
@@ -253,6 +267,20 @@ namespace BrilliantQuesting.Persistence
                 .Set("protection", 0.0)
                 .Set("materialShortage", 0.0)
                 .Set("obligation", 0.0);
+        }
+
+        private static JsonValue NeutralEmotionalStateProfile()
+        {
+            return JsonValue.Object()
+                .Set("anger", 0.0)
+                .Set("fear", 0.0)
+                .Set("shame", 0.0)
+                .Set("grief", 0.0)
+                .Set("relief", 0.0)
+                .Set("suspicion", 0.0)
+                .Set("affection", 0.0)
+                .Set("stress", 0.0)
+                .Set("lastUpdated", 0L);
         }
     }
 }

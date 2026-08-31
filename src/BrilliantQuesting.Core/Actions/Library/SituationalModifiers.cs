@@ -1,6 +1,7 @@
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Memory;
+using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions.Library
 {
@@ -86,6 +87,29 @@ namespace BrilliantQuesting.Actions.Library
         }
 
         /// <summary>
+        /// Transient affect changes how hard a person is to draw out, but never decides what is true.
+        /// </summary>
+        public static CheckRequestExtensions.Modifier DisclosureMood(ActionContext context)
+        {
+            NarrativeNpc npc = context.TargetNpc;
+            if (npc == null)
+            {
+                return new CheckRequestExtensions.Modifier("emotional state", 0);
+            }
+
+            EmotionalStateProfile emotions = npc.Emotions;
+            int guarded = Scale(emotions.Get(EmotionalState.Anger, context.Now), 6)
+                          + Scale(emotions.Get(EmotionalState.Suspicion, context.Now), 4)
+                          + Scale(emotions.Get(EmotionalState.Stress, context.Now), 3)
+                          + Scale(emotions.Get(EmotionalState.Shame, context.Now), 2)
+                          + Scale(emotions.Get(EmotionalState.Fear, context.Now), 2)
+                          + Scale(emotions.Get(EmotionalState.Grief, context.Now), 1);
+            int softened = Scale(emotions.Get(EmotionalState.Affection, context.Now), 3)
+                           + Scale(emotions.Get(EmotionalState.Relief, context.Now), 2);
+            return new CheckRequestExtensions.Modifier("emotional state", Clamp(guarded - softened, -4, 8));
+        }
+
+        /// <summary>
         /// One of the settlement's own Home Skill elements, as difficulty.
         ///
         /// A well-run, well-fed, well-watched place makes the work it is being asked for easier,
@@ -125,6 +149,11 @@ namespace BrilliantQuesting.Actions.Library
         private static int Clamp(int value, int min, int max)
         {
             return value < min ? min : value > max ? max : value;
+        }
+
+        private static int Scale(double value, int max)
+        {
+            return (int)System.Math.Round(value * max);
         }
     }
 

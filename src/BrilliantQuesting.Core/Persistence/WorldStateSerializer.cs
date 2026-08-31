@@ -132,6 +132,7 @@ namespace BrilliantQuesting.Persistence
                 JsonValue quirk = QuirkToJson(npc.Quirk);
                 JsonValue values = ValuesToJson(npc.Values);
                 JsonValue needs = NeedsToJson(npc.Needs);
+                JsonValue emotions = EmotionsToJson(npc.Emotions);
 
                 JsonValue goals = JsonValue.Array();
                 foreach (NpcGoal goal in npc.Goals)
@@ -161,6 +162,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("quirk", quirk)
                     .Set("values", values)
                     .Set("needs", needs)
+                    .Set("emotions", emotions)
                     .Set("goals", goals)
                     .Set("organizations", Ids(npc.OrganizationIds)));
             }
@@ -518,6 +520,12 @@ namespace BrilliantQuesting.Persistence
                 if (needs != null)
                 {
                     ReadNeeds(npc.Needs, needs);
+                }
+
+                JsonValue emotions = json["emotions"];
+                if (emotions != null)
+                {
+                    ReadEmotions(npc.Emotions, emotions);
                 }
 
                 foreach (JsonValue goalJson in json.GetArray("goals"))
@@ -1074,6 +1082,33 @@ namespace BrilliantQuesting.Persistence
             target.Protection = needs.GetNumber("protection");
             target.MaterialShortage = needs.GetNumber("materialShortage");
             target.Obligation = needs.GetNumber("obligation");
+        }
+
+        private static JsonValue EmotionsToJson(EmotionalStateProfile profile)
+        {
+            return JsonValue.Object()
+                .Set("anger", profile.Anger)
+                .Set("fear", profile.Fear)
+                .Set("shame", profile.Shame)
+                .Set("grief", profile.Grief)
+                .Set("relief", profile.Relief)
+                .Set("suspicion", profile.Suspicion)
+                .Set("affection", profile.Affection)
+                .Set("stress", profile.Stress)
+                .Set("lastUpdated", profile.LastUpdatedAt.TotalMinutes);
+        }
+
+        private static void ReadEmotions(EmotionalStateProfile target, JsonValue emotions)
+        {
+            target.Anger = emotions.GetNumber("anger");
+            target.Fear = emotions.GetNumber("fear");
+            target.Shame = emotions.GetNumber("shame");
+            target.Grief = emotions.GetNumber("grief");
+            target.Relief = emotions.GetNumber("relief");
+            target.Suspicion = emotions.GetNumber("suspicion");
+            target.Affection = emotions.GetNumber("affection");
+            target.Stress = emotions.GetNumber("stress");
+            target.LastUpdatedAt = new GameTime(emotions.GetLong("lastUpdated"));
         }
 
         private static JsonValue Strings(IReadOnlyList<string> values)

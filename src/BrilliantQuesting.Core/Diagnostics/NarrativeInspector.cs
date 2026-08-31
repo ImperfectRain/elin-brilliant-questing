@@ -111,6 +111,17 @@ namespace BrilliantQuesting.Diagnostics
             AppendNeed(sb, "obligation", npc.Needs.Obligation);
             sb.Append('\n');
 
+            sb.Append("  emotions:");
+            AppendEmotion(sb, "anger", npc.Emotions.Anger);
+            AppendEmotion(sb, "fear", npc.Emotions.Fear);
+            AppendEmotion(sb, "shame", npc.Emotions.Shame);
+            AppendEmotion(sb, "grief", npc.Emotions.Grief);
+            AppendEmotion(sb, "relief", npc.Emotions.Relief);
+            AppendEmotion(sb, "suspicion", npc.Emotions.Suspicion);
+            AppendEmotion(sb, "affection", npc.Emotions.Affection);
+            AppendEmotion(sb, "stress", npc.Emotions.Stress);
+            sb.Append(" updated ").Append(npc.Emotions.LastUpdatedAt).Append('\n');
+
             sb.Append("  goals:");
             if (npc.Goals.Count == 0)
             {
@@ -206,6 +217,14 @@ namespace BrilliantQuesting.Diagnostics
             if (pressure > 0.0)
             {
                 sb.Append(' ').Append(name).Append(' ').Append(pressure.ToString("0.00"));
+            }
+        }
+
+        private static void AppendEmotion(StringBuilder sb, string name, double intensity)
+        {
+            if (intensity > 0.0)
+            {
+                sb.Append(' ').Append(name).Append(' ').Append(intensity.ToString("0.00"));
             }
         }
 

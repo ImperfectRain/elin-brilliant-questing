@@ -35,6 +35,7 @@ namespace BrilliantQuesting.World
             Quirk = new CharacterQuirkProfile();
             Values = new ValueProfile();
             Needs = new NarrativeNeedProfile();
+            Emotions = new EmotionalStateProfile();
             Goals = new List<NpcGoal>();
             OrganizationIds = new List<EntityId>();
             Alive = true;
@@ -86,6 +87,8 @@ namespace BrilliantQuesting.World
         public ValueProfile Values { get; }
 
         public NarrativeNeedProfile Needs { get; }
+
+        public EmotionalStateProfile Emotions { get; }
 
         public List<NpcGoal> Goals { get; }
 

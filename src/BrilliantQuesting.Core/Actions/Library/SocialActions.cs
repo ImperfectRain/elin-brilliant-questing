@@ -144,6 +144,7 @@ namespace BrilliantQuesting.Actions.Library
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Interrogation, context.Actor, context.Target)
                 .With(SituationalModifiers.Rapport(context))
                 .With(SituationalModifiers.Grudge(context))
+                .With(SituationalModifiers.DisclosureMood(context))
                 .With(SituationalModifiers.LegalStanding(context, helpfulWhenNotorious: false));
 
             CheckResult check = context.Checks.Resolve(request, context.Rng);
