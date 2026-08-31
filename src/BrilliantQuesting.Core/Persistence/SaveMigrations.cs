@@ -17,6 +17,7 @@ namespace BrilliantQuesting.Persistence
         {
             Register(1, MigratePersonalityWeightsToBehavioralDimensions);
             Register(2, AddProblemSolvingProfiles);
+            Register(3, AddSensitivityProfiles);
         }
 
         /// <summary>Registers an upgrade from <paramref name="fromVersion"/> to the next version.</summary>
@@ -128,6 +129,32 @@ namespace BrilliantQuesting.Persistence
                 .Set("flee", 0.5)
                 .Set("publicize", 0.5)
                 .Set("conceal", 0.5);
+        }
+
+        private static JsonValue AddSensitivityProfiles(JsonValue root)
+        {
+            foreach (JsonValue npc in root.GetArray("npcs"))
+            {
+                if (npc["sensitivities"] == null)
+                {
+                    npc.Set("sensitivities", NeutralSensitivityProfile());
+                }
+            }
+
+            return root.Set("schemaVersion", 4);
+        }
+
+        private static JsonValue NeutralSensitivityProfile()
+        {
+            return JsonValue.Object()
+                .Set("publicEmbarrassment", 0.5)
+                .Set("unpaidDebt", 0.5)
+                .Set("familyThreat", 0.5)
+                .Set("animals", 0.5)
+                .Set("status", 0.5)
+                .Set("theft", 0.5)
+                .Set("violence", 0.5)
+                .Set("dishonesty", 0.5);
         }
     }
 }

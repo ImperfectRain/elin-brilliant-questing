@@ -30,6 +30,7 @@ namespace BrilliantQuesting.World
             Name = name;
             Personality = new PersonalityWeights();
             ProblemSolving = new ProblemSolvingProfile();
+            Sensitivities = new SensitivityProfile();
             Goals = new List<NpcGoal>();
             OrganizationIds = new List<EntityId>();
             Alive = true;
@@ -71,6 +72,8 @@ namespace BrilliantQuesting.World
         public PersonalityWeights Personality { get; }
 
         public ProblemSolvingProfile ProblemSolving { get; }
+
+        public SensitivityProfile Sensitivities { get; }
 
         public List<NpcGoal> Goals { get; }
 

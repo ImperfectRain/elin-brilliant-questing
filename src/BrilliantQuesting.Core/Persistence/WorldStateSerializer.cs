@@ -127,6 +127,7 @@ namespace BrilliantQuesting.Persistence
             {
                 JsonValue personality = PersonalityToJson(npc.Personality);
                 JsonValue problemSolving = ProblemSolvingToJson(npc.ProblemSolving);
+                JsonValue sensitivities = SensitivitiesToJson(npc.Sensitivities);
 
                 JsonValue goals = JsonValue.Array();
                 foreach (NpcGoal goal in npc.Goals)
@@ -150,6 +151,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("lastSimulated", npc.LastSimulatedAt.TotalMinutes)
                     .Set("personality", personality)
                     .Set("problemSolving", problemSolving)
+                    .Set("sensitivities", sensitivities)
                     .Set("goals", goals)
                     .Set("organizations", Ids(npc.OrganizationIds)));
             }
@@ -477,6 +479,12 @@ namespace BrilliantQuesting.Persistence
                 if (problemSolving != null)
                 {
                     ReadProblemSolving(npc.ProblemSolving, problemSolving);
+                }
+
+                JsonValue sensitivities = json["sensitivities"];
+                if (sensitivities != null)
+                {
+                    ReadSensitivities(npc.Sensitivities, sensitivities);
                 }
 
                 foreach (JsonValue goalJson in json.GetArray("goals"))
@@ -883,6 +891,31 @@ namespace BrilliantQuesting.Persistence
             target.Flee = profile.GetNumber("flee", 0.5);
             target.Publicize = profile.GetNumber("publicize", 0.5);
             target.Conceal = profile.GetNumber("conceal", 0.5);
+        }
+
+        private static JsonValue SensitivitiesToJson(SensitivityProfile profile)
+        {
+            return JsonValue.Object()
+                .Set("publicEmbarrassment", profile.PublicEmbarrassment)
+                .Set("unpaidDebt", profile.UnpaidDebt)
+                .Set("familyThreat", profile.FamilyThreat)
+                .Set("animals", profile.Animals)
+                .Set("status", profile.Status)
+                .Set("theft", profile.Theft)
+                .Set("violence", profile.Violence)
+                .Set("dishonesty", profile.Dishonesty);
+        }
+
+        private static void ReadSensitivities(SensitivityProfile target, JsonValue profile)
+        {
+            target.PublicEmbarrassment = profile.GetNumber("publicEmbarrassment", 0.5);
+            target.UnpaidDebt = profile.GetNumber("unpaidDebt", 0.5);
+            target.FamilyThreat = profile.GetNumber("familyThreat", 0.5);
+            target.Animals = profile.GetNumber("animals", 0.5);
+            target.Status = profile.GetNumber("status", 0.5);
+            target.Theft = profile.GetNumber("theft", 0.5);
+            target.Violence = profile.GetNumber("violence", 0.5);
+            target.Dishonesty = profile.GetNumber("dishonesty", 0.5);
         }
 
         private static JsonValue Strings(IReadOnlyList<string> values)

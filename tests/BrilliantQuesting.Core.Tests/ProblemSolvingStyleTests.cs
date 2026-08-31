@@ -27,12 +27,43 @@ namespace BrilliantQuesting.Tests
             Assert.Contains(MissingGoatResponse.PrayForReturn, responses);
         }
 
+        [Fact]
+        public void OneSensitivityChangesReactionToTheSameMissingGoatEvent()
+        {
+            NarrativeNpc animalSensitive = NeutralActor("animal-sensitive");
+            NarrativeNpc statusSensitive = NeutralActor("status-sensitive");
+
+            animalSensitive.Sensitivities.Set(SensitivityTopic.Animals, 1.0);
+            statusSensitive.Sensitivities.Set(SensitivityTopic.Status, 1.0);
+
+            MissingGoatProblem sameEvent = MissingGoatProblem.OrdinaryLoss;
+
+            Assert.Equal(MissingGoatResponse.AskNeighbors, MissingGoatProblemSolver.Choose(animalSensitive, sameEvent).Response);
+            Assert.Equal(MissingGoatResponse.AccuseRival, MissingGoatProblemSolver.Choose(statusSensitive, sameEvent).Response);
+        }
+
         private static NarrativeNpc Actor(string key, ProblemSolvingStyle favoredStyle)
         {
             NarrativeNpc npc = new NarrativeNpc(EntityId.Parse("npc_" + key), key);
             foreach (ProblemSolvingStyle style in AllStyles())
             {
                 npc.ProblemSolving.Set(style, style == favoredStyle ? 1.0 : 0.0);
+            }
+
+            return npc;
+        }
+
+        private static NarrativeNpc NeutralActor(string key)
+        {
+            NarrativeNpc npc = new NarrativeNpc(EntityId.Parse("npc_" + key), key);
+            foreach (ProblemSolvingStyle style in AllStyles())
+            {
+                npc.ProblemSolving.Set(style, 0.5);
+            }
+
+            foreach (SensitivityTopic topic in AllSensitivityTopics())
+            {
+                npc.Sensitivities.Set(topic, 0.0);
             }
 
             return npc;
@@ -54,6 +85,18 @@ namespace BrilliantQuesting.Tests
             yield return ProblemSolvingStyle.Flee;
             yield return ProblemSolvingStyle.Publicize;
             yield return ProblemSolvingStyle.Conceal;
+        }
+
+        private static IEnumerable<SensitivityTopic> AllSensitivityTopics()
+        {
+            yield return SensitivityTopic.PublicEmbarrassment;
+            yield return SensitivityTopic.UnpaidDebt;
+            yield return SensitivityTopic.FamilyThreat;
+            yield return SensitivityTopic.Animals;
+            yield return SensitivityTopic.Status;
+            yield return SensitivityTopic.Theft;
+            yield return SensitivityTopic.Violence;
+            yield return SensitivityTopic.Dishonesty;
         }
     }
 }
