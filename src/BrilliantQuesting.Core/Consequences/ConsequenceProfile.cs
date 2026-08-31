@@ -110,6 +110,7 @@ namespace BrilliantQuesting.Consequences
                 // to where they had gone.
                 { WorldEventType.WentAbsent, new ConsequenceProfile("went_away", MemoryWeight.Notable, 0) },
                 { WorldEventType.Returned, new ConsequenceProfile("came_back", MemoryWeight.Notable, 0) },
+                { WorldEventType.BusinessStateChanged, new ConsequenceProfile("business_changed", MemoryWeight.Notable, 0) },
                 { WorldEventType.Recruited, new ConsequenceProfile("joined_me", MemoryWeight.Defining, 10) },
                 { WorldEventType.OrganizationJoined, new ConsequenceProfile("joined_organization", MemoryWeight.Notable, 4, 1) },
                 { WorldEventType.OrganizationBetrayed, new ConsequenceProfile("betrayed_organization", MemoryWeight.Defining, -50, -12, karma: -2) },

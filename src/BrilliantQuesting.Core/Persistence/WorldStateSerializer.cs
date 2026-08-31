@@ -63,6 +63,7 @@ namespace BrilliantQuesting.Persistence
             root.Set("threads", ThreadsToJson(world));
             root.Set("absences", AbsencesToJson(world));
             root.Set("demands", DemandsToJson(world));
+            root.Set("businesses", BusinessesToJson(world));
             return root;
         }
 
@@ -110,6 +111,7 @@ namespace BrilliantQuesting.Persistence
             ReadThreads(world, root);
             ReadAbsences(world, root);
             ReadDemands(world, root);
+            ReadBusinesses(world, root);
             return world;
         }
 
@@ -198,6 +200,26 @@ namespace BrilliantQuesting.Persistence
                     .Set("began", pressure.BeganAt.TotalMinutes)
                     .Set("expectedRelief", pressure.ExpectedReliefAt.TotalMinutes)
                     .Set("sourceFact", pressure.SourceFactId.Value));
+            }
+
+            return array;
+        }
+
+        private static JsonValue BusinessesToJson(NarrativeWorldState world)
+        {
+            JsonValue array = JsonValue.Array();
+            foreach (BusinessRecord business in world.Businesses.Records)
+            {
+                array.Add(JsonValue.Object()
+                    .Set("id", business.BusinessId.Value)
+                    .Set("place", business.PlaceId.Value)
+                    .Set("operator", business.OperatorId.Value)
+                    .Set("state", (int)business.State)
+                    .Set("began", business.BeganAt.TotalMinutes)
+                    .Set("lastChanged", business.LastChangedAt.TotalMinutes)
+                    .Set("causeFact", business.CauseFactId.Value)
+                    .Set("replacementOperator", business.ReplacementOperatorId.Value)
+                    .Set("inheritedBy", business.InheritedById.Value));
             }
 
             return array;
@@ -468,6 +490,23 @@ namespace BrilliantQuesting.Persistence
                     new GameTime(json.GetLong("began")),
                     new GameTime(json.GetLong("expectedRelief")),
                     EntityId.Parse(json.GetString("sourceFact"))));
+            }
+        }
+
+        private static void ReadBusinesses(NarrativeWorldState world, JsonValue root)
+        {
+            foreach (JsonValue json in root.GetArray("businesses"))
+            {
+                world.Businesses.Restore(new BusinessRecord(
+                    EntityId.Parse(json.GetString("id")),
+                    EntityId.Parse(json.GetString("place")),
+                    EntityId.Parse(json.GetString("operator")),
+                    (BusinessContinuityState)json.GetInt("state"),
+                    new GameTime(json.GetLong("began")),
+                    new GameTime(json.GetLong("lastChanged")),
+                    EntityId.Parse(json.GetString("causeFact")),
+                    EntityId.Parse(json.GetString("replacementOperator")),
+                    EntityId.Parse(json.GetString("inheritedBy"))));
             }
         }
 

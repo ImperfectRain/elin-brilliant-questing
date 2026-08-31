@@ -33,6 +33,7 @@ namespace BrilliantQuesting.World
             Threads = new List<NarrativeThread>();
             Absences = new AbsenceLedger();
             Demands = new LocalDemandLedger();
+            Businesses = new BusinessLedger();
             Rng = new DeterministicRng(worldSeed);
         }
 
@@ -70,6 +71,12 @@ namespace BrilliantQuesting.World
         /// narrative pressures over places, not a commodity simulator and not a quest counter.
         /// </summary>
         public LocalDemandLedger Demands { get; }
+
+        /// <summary>
+        /// Persistent business continuity. Elin still owns the live shop surface: the operator's
+        /// sleep, hobby, shift state and stock are projection inputs, not saved procedural facts.
+        /// </summary>
+        public BusinessLedger Businesses { get; }
 
         /// <summary>World-level stream. Subsystems should Fork() rather than draw from this.</summary>
         public DeterministicRng Rng { get; }
