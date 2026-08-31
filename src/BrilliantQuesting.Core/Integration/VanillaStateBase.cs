@@ -38,6 +38,16 @@ namespace BrilliantQuesting.Integration
             return chara.IsNone ? NarrativeActorClass.Unknown : GetActorClassCore(chara);
         }
 
+        public NarrativeActorKind GetActorKind(EntityId chara)
+        {
+            return chara.IsNone ? NarrativeActorKind.Unknown : GetActorKindCore(chara);
+        }
+
+        public SocialAgency GetSocialAgency(EntityId chara)
+        {
+            return chara.IsNone ? SocialAgency.Unknown : GetSocialAgencyCore(chara);
+        }
+
         // -- the gated writes ---------------------------------------------------------------
         //
         // One shape throughout: refuse and change nothing, or delegate. A void write that is
@@ -126,6 +136,10 @@ namespace BrilliantQuesting.Integration
         // -- what an implementation supplies ------------------------------------------------
 
         protected abstract NarrativeActorClass GetActorClassCore(EntityId chara);
+
+        protected abstract NarrativeActorKind GetActorKindCore(EntityId chara);
+
+        protected abstract SocialAgency GetSocialAgencyCore(EntityId chara);
 
         /// <summary>
         /// Says that a write was refused and why. A write that quietly does nothing is

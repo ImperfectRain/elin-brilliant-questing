@@ -142,6 +142,144 @@ namespace BrilliantQuesting.Tests
             Assert.False(lab.World.Knowledge.Knows(Player, situation.TheftFactId));
         }
 
+        [Fact]
+        public void OrdinarySocialActorsRemainEligibleForTheftRoles()
+        {
+            Lab lab = PressuredMarket();
+
+            SettlementSituationPlan plan = new SettlementSituationGenerator().Evaluate(lab.World, lab.Vanilla, Market);
+
+            Assert.NotEmpty(plan.Candidates);
+            SituationCandidate best = plan.Candidates[0];
+            Assert.Equal(lab.Thief, best.ActorIn(SituationRoles.Actor));
+            Assert.Equal(lab.Victim, best.ActorIn(SituationRoles.Target));
+            Assert.Equal(NarrativeActorKind.Person, plan.Profile.Of(lab.Thief).ActorKind);
+            Assert.Equal(SocialAgency.Full, plan.Profile.Of(lab.Thief).SocialAgency);
+        }
+
+        [Fact]
+        public void LivestockDoesNotBecomePettyTheftPerpetratorBecauseItHasDexterityAndInventory()
+        {
+            Lab lab = new Lab(Market);
+            lab.Victim = lab.Local("merchant", "Merchant", money: 800, greed: 0.3, carriedValue: 900);
+            EntityId cow = lab.Local(
+                "cow",
+                "Dairy Cow",
+                money: 0,
+                greed: 1.0,
+                pickpocket: 20,
+                stealth: 20,
+                dexterity: 40,
+                actorKind: NarrativeActorKind.Animal,
+                socialAgency: SocialAgency.None);
+            lab.Local("clerk", "Clerk", money: 140, greed: 0.3, perception: 10);
+
+            SettlementSituationPlan plan = new SettlementSituationGenerator().Evaluate(lab.World, lab.Vanilla, Market);
+
+            Assert.NotNull(plan.Profile.Of(cow));
+            Assert.Equal(NarrativeActorKind.Animal, plan.Profile.Of(cow).ActorKind);
+            Assert.DoesNotContain(plan.Candidates, c => c.ActorIn(SituationRoles.Actor) == cow);
+        }
+
+        [Fact]
+        public void AnimalsStayInTheLocalAffordanceProfile()
+        {
+            Lab lab = PressuredMarket();
+            EntityId goat = lab.Local(
+                "goat",
+                "Goat",
+                money: 0,
+                greed: 0.2,
+                actorKind: NarrativeActorKind.Animal,
+                socialAgency: SocialAgency.None);
+
+            LocalAffordanceProfile profile = LocalAffordanceProfile.Read(lab.World, lab.Vanilla, Market);
+
+            Assert.NotNull(profile.Of(goat));
+            Assert.Equal(3, profile.SocialActorCount);
+            Assert.Equal(1, profile.OtherLivingActorCount);
+            Assert.Contains("other living locals: 1", profile.Features);
+        }
+
+        [Fact]
+        public void MutationPolicyIsIndependentOfActorKind()
+        {
+            Lab lab = PressuredMarket();
+            lab.Vanilla.SetActorKind(lab.Thief, NarrativeActorKind.Animal);
+            lab.Vanilla.SetSocialAgency(lab.Thief, SocialAgency.Full);
+            lab.Vanilla.SetActorClass(lab.Victim, NarrativeActorClass.StoryCritical);
+
+            Assert.True(MutationPolicies.Permits(lab.Vanilla.GetActorClass(lab.Thief), MutationKind.Inventory));
+            Assert.False(MutationPolicies.Permits(lab.Vanilla.GetActorClass(lab.Victim), MutationKind.Inventory));
+            Assert.Equal(NarrativeActorKind.Animal, lab.Vanilla.GetActorKind(lab.Thief));
+        }
+
+        [Fact]
+        public void UnknownSocialAgencyFailsSafelyForTheftRoles()
+        {
+            Lab lab = new Lab(Market);
+            lab.Victim = lab.Local("merchant", "Merchant", money: 800, greed: 0.3, carriedValue: 900);
+            lab.Thief = lab.Local(
+                "stranger",
+                "Unreadable Stranger",
+                money: 15,
+                greed: 0.8,
+                pickpocket: 8,
+                stealth: 6,
+                actorKind: NarrativeActorKind.Unknown,
+                socialAgency: SocialAgency.Unknown);
+            lab.Local("clerk", "Clerk", money: 140, greed: 0.3, perception: 10);
+
+            SettlementSituationPlan plan = new SettlementSituationGenerator().Evaluate(lab.World, lab.Vanilla, Market);
+
+            Assert.NotNull(plan.Profile.Of(lab.Thief));
+            Assert.DoesNotContain(plan.Candidates, c => c.ActorIn(SituationRoles.Actor) == lab.Thief);
+        }
+
+        [Fact]
+        public void StoryCriticalActorsAreNotSelectedForInventoryMutatingTheftRoles()
+        {
+            Lab lab = new Lab(Market);
+            EntityId storyVictim = lab.Local(
+                "duke",
+                "Duke",
+                money: 1000,
+                greed: 0.2,
+                carriedValue: 2000,
+                actorClass: NarrativeActorClass.StoryCritical);
+            EntityId storyThief = lab.Local(
+                "oracle",
+                "Oracle",
+                money: 0,
+                greed: 1.0,
+                pickpocket: 20,
+                stealth: 20,
+                actorClass: NarrativeActorClass.StoryCritical);
+            lab.Local("merchant", "Merchant", money: 800, greed: 0.3, carriedValue: 900);
+            lab.Local("cutpurse", "Cutpurse", money: 15, greed: 0.8, pickpocket: 8, stealth: 6);
+            lab.Local("clerk", "Clerk", money: 140, greed: 0.3, perception: 10);
+
+            SettlementSituationPlan plan = new SettlementSituationGenerator().Evaluate(lab.World, lab.Vanilla, Market);
+
+            Assert.DoesNotContain(plan.Candidates, c => c.ActorIn(SituationRoles.Actor) == storyThief);
+            Assert.DoesNotContain(plan.Candidates, c => c.ActorIn(SituationRoles.Target) == storyVictim);
+            Assert.False(lab.Vanilla.TryTransferItem(EntityId.Parse("item_duke_valuable"), storyVictim, storyThief));
+            Assert.Contains(lab.Vanilla.Refusals, r => r.Contains("StoryCritical") && r.Contains("Inventory"));
+        }
+
+        [Fact]
+        public void TheftOpportunityCountsSocialBystandersSeparatelyFromOtherLivingActors()
+        {
+            Lab lab = PressuredMarket();
+            lab.Local("goat", "Goat", money: 0, greed: 0.2, actorKind: NarrativeActorKind.Animal, socialAgency: SocialAgency.None);
+            lab.Local("cow", "Cow", money: 0, greed: 0.2, actorKind: NarrativeActorKind.Animal, socialAgency: SocialAgency.None);
+
+            SituationCandidate best = BestOf(lab);
+
+            Assert.Contains(best.Causes, c => c.Contains("1 socially capable local(s) nearby"));
+            Assert.Contains(best.Causes, c => c.Contains("2 other living local(s) also present"));
+        }
+
         // -- F. motive dimensions are independent ------------------------------------------------
 
         [Fact]
@@ -545,7 +683,10 @@ namespace BrilliantQuesting.Tests
                 int dexterity = -1,
                 int perception = 4,
                 int spotHidden = 0,
-                string occupation = "local")
+                string occupation = "local",
+                NarrativeActorClass actorClass = NarrativeActorClass.OrdinaryCitizen,
+                NarrativeActorKind actorKind = NarrativeActorKind.Person,
+                SocialAgency socialAgency = SocialAgency.Full)
             {
                 EntityId id = EntityId.Parse("npc_" + key);
                 NarrativeNpc npc = World.Registry.Add(new NarrativeNpc(id, name)
@@ -556,6 +697,9 @@ namespace BrilliantQuesting.Tests
                 npc.Personality.Greed = greed;
 
                 Vanilla.Define(id, money: money, zone: _zone)
+                    .SetActorClass(id, actorClass)
+                    .SetActorKind(id, actorKind)
+                    .SetSocialAgency(id, socialAgency)
                     .SetSkill(id, VanillaSkill.Pickpocket, pickpocket)
                     .SetSkill(id, VanillaSkill.Stealth, stealth)
                     .SetSkill(id, VanillaSkill.SpotHidden, spotHidden)

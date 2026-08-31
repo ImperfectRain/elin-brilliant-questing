@@ -33,7 +33,7 @@ namespace BrilliantQuesting.Tests
         /// </summary>
         private static readonly string[] SeamReads =
         {
-            "Now", "PlayerId", "Supports", "GetActorClass",
+            "Now", "PlayerId", "Supports", "GetActorClass", "GetActorKind", "GetSocialAgency",
             "IsAlive", "GetAttribute", "GetSkill", "GetLevel", "GetAffinity",
             "Karma", "Fame", "GetInfluence", "IsGuildMember", "GetGuildRank", "GetGuildContribution",
             "GetWorshippedDeity", "GetPiety",
@@ -423,9 +423,13 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(NarrativeActorClass.Generated, vanilla.GetActorClass(staged));
             Assert.Equal(NarrativeActorClass.OrdinaryCitizen, vanilla.GetActorClass(Ordinary));
             Assert.Equal(NarrativeActorClass.StoryCritical, vanilla.GetActorClass(Protected));
+            Assert.Equal(NarrativeActorKind.Person, vanilla.GetActorKind(Player));
+            Assert.Equal(SocialAgency.Full, vanilla.GetSocialAgency(Player));
 
             // Nobody is not an actor, and asking about nobody is not a licence.
             Assert.Equal(NarrativeActorClass.Unknown, vanilla.GetActorClass(EntityId.None));
+            Assert.Equal(NarrativeActorKind.Unknown, vanilla.GetActorKind(EntityId.None));
+            Assert.Equal(SocialAgency.Unknown, vanilla.GetSocialAgency(EntityId.None));
             Assert.False(vanilla.MayMutate(EntityId.None, MutationKind.Relocate));
         }
 

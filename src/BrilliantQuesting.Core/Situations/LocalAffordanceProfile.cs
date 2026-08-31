@@ -55,6 +55,8 @@ namespace BrilliantQuesting.Situations
             EntityId actorId,
             string name,
             NarrativeActorClass actorClass,
+            NarrativeActorKind actorKind,
+            SocialAgency socialAgency,
             EntityId zoneId,
             string occupation,
             IReadOnlyCollection<string> roles,
@@ -66,6 +68,8 @@ namespace BrilliantQuesting.Situations
             ActorId = actorId;
             Name = name;
             ActorClass = actorClass;
+            ActorKind = actorKind;
+            SocialAgency = socialAgency;
             ZoneId = zoneId;
             Occupation = occupation ?? string.Empty;
             Roles = roles;
@@ -96,6 +100,12 @@ namespace BrilliantQuesting.Situations
 
         /// <summary>How far the mod may reach into this person. Not a statement about who they are.</summary>
         public NarrativeActorClass ActorClass { get; }
+
+        /// <summary>Broad narrative casting kind. Not a mutation-policy classification.</summary>
+        public NarrativeActorKind ActorKind { get; }
+
+        /// <summary>Whether ordinary social roles can treat this actor as a speaker/participant.</summary>
+        public SocialAgency SocialAgency { get; }
 
         /// <summary>Where the game has them standing, which is the whole of "present" today.</summary>
         public EntityId ZoneId { get; }
@@ -189,6 +199,10 @@ namespace BrilliantQuesting.Situations
         /// <summary>Everything carried by everybody here, added up.</summary>
         public int TotalCarriedValue { get; private set; }
 
+        public int SocialActorCount { get; private set; }
+
+        public int OtherLivingActorCount { get; private set; }
+
         /// <summary>Human-readable summary lines, for the inspector and the live log.</summary>
         public IReadOnlyList<string> Features => _features;
 
@@ -219,6 +233,8 @@ namespace BrilliantQuesting.Situations
                     continue;
                 }
 
+                NarrativeActorKind actorKind = vanilla.GetActorKind(actor);
+                SocialAgency socialAgency = vanilla.GetSocialAgency(actor);
                 Dictionary<VanillaSkill, int> skills = new Dictionary<VanillaSkill, int>();
                 for (int s = 0; s < AffordanceReads.Skills.Length; s++)
                 {
@@ -247,6 +263,8 @@ namespace BrilliantQuesting.Situations
                     actor,
                     world.Registry.NameOf(actor),
                     actorClass,
+                    actorKind,
+                    socialAgency,
                     zoneId,
                     npc.Occupation,
                     npc.Roles,
@@ -278,6 +296,15 @@ namespace BrilliantQuesting.Situations
                     commercial++;
                 }
 
+                if (actor.SocialAgency == SocialAgency.Full)
+                {
+                    SocialActorCount++;
+                }
+                else
+                {
+                    OtherLivingActorCount++;
+                }
+
                 if (actor.MostValuableCarried != null)
                 {
                     carrying++;
@@ -292,6 +319,8 @@ namespace BrilliantQuesting.Situations
                     : (purses[purses.Length / 2 - 1] + purses[purses.Length / 2]) / 2;
 
             _features.Add("locals present: " + _actors.Count);
+            _features.Add("social locals: " + SocialActorCount);
+            _features.Add("other living locals: " + OtherLivingActorCount);
             _features.Add("locals carrying something: " + carrying);
             _features.Add("carried value here: " + TotalCarriedValue);
             _features.Add("median local purse: " + MedianMoney);

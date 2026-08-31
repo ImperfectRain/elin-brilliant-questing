@@ -101,6 +101,31 @@ namespace BrilliantQuesting.Integration
     }
 
     /// <summary>
+    /// What broad kind of living actor this is for narrative casting. This is deliberately not a
+    /// mutation policy: a cow being an animal says nothing about whether Elin would let BQ move
+    /// it, and a nonhuman with real social affordances should still be able to fill social roles.
+    /// </summary>
+    public enum NarrativeActorKind
+    {
+        Unknown = 0,
+        Person = 1,
+        Animal = 2,
+        Creature = 3
+    }
+
+    /// <summary>
+    /// Whether this actor can carry ordinary social roles such as thief, victim or witness.
+    /// Unknown fails closed for roles that explicitly require social agency.
+    /// </summary>
+    public enum SocialAgency
+    {
+        Unknown = 0,
+        None = 1,
+        Limited = 2,
+        Full = 3
+    }
+
+    /// <summary>
     /// Names, on a seam member, what that member does to the game and to whom.
     ///
     /// Put on <see cref="IVanillaState"/> rather than on the implementations, because the contract

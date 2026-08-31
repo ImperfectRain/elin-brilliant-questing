@@ -202,7 +202,7 @@ namespace BrilliantQuesting.Situations
             {
                 ActorAffordances observer = profile.Actors[i];
                 ranked[i] = observer;
-                attention[i] = Attention(observer);
+                attention[i] = PettyTheftPressure.CanFillSocialTheftRole(observer) ? Attention(observer) : int.MinValue;
                 tieBreak[i] = new DeterministicRng(world.WorldSeed)
                     .Fork(PettyTheftSituation.ArchetypeId + "|witness|" + observer.ActorId.Value)
                     .NextUInt64();
@@ -243,7 +243,8 @@ namespace BrilliantQuesting.Situations
             for (int i = 0; i < ranked.Length; i++)
             {
                 ActorAffordances observer = ranked[i];
-                if (observer.ActorId != thief.ActorId && observer.ActorId != victim.ActorId)
+                if (PettyTheftPressure.CanFillSocialTheftRole(observer)
+                    && observer.ActorId != thief.ActorId && observer.ActorId != victim.ActorId)
                 {
                     return observer;
                 }

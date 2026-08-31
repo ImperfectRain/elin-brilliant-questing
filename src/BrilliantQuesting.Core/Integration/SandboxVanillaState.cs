@@ -36,6 +36,8 @@ namespace BrilliantQuesting.Integration
             /// untellable actor says so with <see cref="SandboxVanillaState.SetActorClass"/>.
             /// </summary>
             public NarrativeActorClass ActorClass = NarrativeActorClass.OrdinaryCitizen;
+            public NarrativeActorKind ActorKind = NarrativeActorKind.Person;
+            public SocialAgency SocialAgency = SocialAgency.Full;
         }
 
         private readonly Dictionary<EntityId, CharaState> _charas = new Dictionary<EntityId, CharaState>();
@@ -153,6 +155,18 @@ namespace BrilliantQuesting.Integration
         public SandboxVanillaState SetActorClass(EntityId chara, NarrativeActorClass actorClass)
         {
             Ensure(chara).ActorClass = actorClass;
+            return this;
+        }
+
+        public SandboxVanillaState SetActorKind(EntityId chara, NarrativeActorKind actorKind)
+        {
+            Ensure(chara).ActorKind = actorKind;
+            return this;
+        }
+
+        public SandboxVanillaState SetSocialAgency(EntityId chara, SocialAgency agency)
+        {
+            Ensure(chara).SocialAgency = agency;
             return this;
         }
 
@@ -463,6 +477,16 @@ namespace BrilliantQuesting.Integration
         protected override NarrativeActorClass GetActorClassCore(EntityId chara)
         {
             return chara == PlayerId ? NarrativeActorClass.Player : Ensure(chara).ActorClass;
+        }
+
+        protected override NarrativeActorKind GetActorKindCore(EntityId chara)
+        {
+            return chara == PlayerId ? NarrativeActorKind.Person : Ensure(chara).ActorKind;
+        }
+
+        protected override SocialAgency GetSocialAgencyCore(EntityId chara)
+        {
+            return chara == PlayerId ? SocialAgency.Full : Ensure(chara).SocialAgency;
         }
 
         protected override void OnMutationRefused(string message) => _refusals.Add(message);

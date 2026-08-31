@@ -128,6 +128,19 @@ namespace BrilliantQuesting.Situations
             ActorAffordances victim,
             ActorAffordances witness)
         {
+            if (!CanFillSocialTheftRole(thief)
+                || !CanFillSocialTheftRole(victim)
+                || !CanMutateInventory(thief)
+                || !CanMutateInventory(victim))
+            {
+                return null;
+            }
+
+            if (witness != null && !CanFillSocialTheftRole(witness))
+            {
+                witness = null;
+            }
+
             ItemDescriptor stake = WorthTaking(victim);
             if (stake == null)
             {
@@ -198,6 +211,16 @@ namespace BrilliantQuesting.Situations
         /// a constant standing in for them - which is what the first cut of this had - is a number
         /// that claims to describe the world without consulting it.
         /// </summary>
+        internal static bool CanFillSocialTheftRole(ActorAffordances actor)
+        {
+            return actor != null && actor.SocialAgency == SocialAgency.Full;
+        }
+
+        internal static bool CanMutateInventory(ActorAffordances actor)
+        {
+            return actor != null && MutationPolicies.Permits(actor.ActorClass, MutationKind.Inventory);
+        }
+
         private static int ScoreOpportunity(
             LocalAffordanceProfile profile,
             ActorAffordances thief,
@@ -205,11 +228,34 @@ namespace BrilliantQuesting.Situations
             ActorAffordances witness,
             SituationCandidateBuilder builder)
         {
-            int bystanders = Math.Max(0, profile.Actors.Count - 2);
-            int opportunity = UnwatchedOpening - bystanders * CrowdEyesPenalty;
-            builder.Cause(bystanders == 0
-                ? "opportunity: " + thief.Name + " and " + victim.Name + " are the only locals here"
-                : "opportunity: " + bystanders + " other local(s) nearby");
+            int socialBystanders = 0;
+            int otherLiving = 0;
+            for (int i = 0; i < profile.Actors.Count; i++)
+            {
+                ActorAffordances local = profile.Actors[i];
+                if (local.ActorId == thief.ActorId || local.ActorId == victim.ActorId)
+                {
+                    continue;
+                }
+
+                if (CanFillSocialTheftRole(local))
+                {
+                    socialBystanders++;
+                }
+                else
+                {
+                    otherLiving++;
+                }
+            }
+
+            int opportunity = UnwatchedOpening - socialBystanders * CrowdEyesPenalty;
+            builder.Cause(socialBystanders == 0
+                ? "opportunity: " + thief.Name + " and " + victim.Name + " are the only socially capable locals here"
+                : "opportunity: " + socialBystanders + " socially capable local(s) nearby");
+            if (otherLiving > 0)
+            {
+                builder.Cause("opportunity: " + otherLiving + " other living local(s) also present");
+            }
 
             if (witness != null)
             {

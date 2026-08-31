@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Persistence;
 using BrilliantQuesting.Situations;
+using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 using Xunit;
 
@@ -113,6 +115,55 @@ namespace BrilliantQuesting.Tests
             lab.World.ExternalRefs[lab.Situation.ItemId] = "5091";
 
             Assert.Empty(new EvidenceTraceAuditor(lab.World, lab.Vanilla).InvalidProofs());
+        }
+
+        [Fact]
+        public void OrganicGeneratedEvidenceIsNotRecreatedFromAStaleReloadBinding()
+        {
+            EntityId zone = EntityId.Parse("zone_market");
+            EntityId victim = EntityId.Parse("npc_victim");
+            EntityId thief = EntityId.Parse("npc_thief");
+            NarrativeWorldState world = new NarrativeWorldState(7);
+            world.Registry.Add(new NarrativeNpc(Player, "Player"));
+            world.Registry.Add(new NarrativeNpc(victim, "Victim"));
+            world.Registry.Add(new NarrativeNpc(thief, "Thief"));
+
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.Define(Player, zone: zone);
+            vanilla.Define(victim, money: 800, zone: zone);
+            vanilla.Define(thief, money: 10, zone: zone)
+                .SetSkill(thief, VanillaSkill.Pickpocket, 8)
+                .SetSkill(thief, VanillaSkill.Stealth, 6)
+                .SetAttribute(thief, VanillaAttribute.Dexterity, 14);
+            vanilla.GiveItem(victim, new ItemDescriptor(Ring, "iron shotgun", "weapon", 1900, sourceId: null));
+
+            PettyTheftSituation situation = new SettlementSituationGenerator()
+                .TryGenerate(world, vanilla, zone, vanilla.Now);
+            Assert.NotNull(situation);
+            Assert.NotEmpty(situation.Thread.GenerationCauses);
+            world.Knowledge.Teach(
+                Player,
+                situation.TheftFactId,
+                KnowledgeSource.Document,
+                1.0,
+                vanilla.Now,
+                canProve: true,
+                proofs: new[] { new ProofLink(ProofKind.PhysicalEvidence, situation.ItemId) });
+            world.ExternalRefs[situation.ItemId] = "5091";
+
+            NarrativeWorldState reloaded = WorldStateSerializer.Load(WorldStateSerializer.Save(world));
+            vanilla.DestroyItem(situation.ItemId);
+
+            Assert.False(EvidenceReconciliationPolicy.MayRecreateMissingPhysicalEvidence(reloaded.Threads[0]));
+            Assert.NotEmpty(new EvidenceTraceAuditor(reloaded, vanilla).InvalidProofs());
+        }
+
+        [Fact]
+        public void StagedPrototypeEvidenceCanStillUseTheRepairPath()
+        {
+            NarrativeThread thread = new NarrativeThread(EntityId.Parse("thread_lab"), "petty_theft", GameTime.Zero);
+
+            Assert.True(EvidenceReconciliationPolicy.MayRecreateMissingPhysicalEvidence(thread));
         }
     }
 }

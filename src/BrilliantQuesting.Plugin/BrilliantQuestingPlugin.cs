@@ -52,6 +52,10 @@ namespace BrilliantQuesting.Plugin
         private long _lastAdvancedDay = long.MinValue;
         private long _lastAmbientCheck = long.MinValue;
         private EntityId _lastReconciledZone;
+        private readonly System.Collections.Generic.HashSet<EntityId> _reportedVerifiedEvidence =
+            new System.Collections.Generic.HashSet<EntityId>();
+        private readonly System.Collections.Generic.HashSet<EntityId> _reportedMissingEvidence =
+            new System.Collections.Generic.HashSet<EntityId>();
 
         private bool _live;
         private ConfigEntry<bool> _stageTestScenario;
@@ -396,7 +400,7 @@ namespace BrilliantQuesting.Plugin
             _log.LogInfo("Simulation attached: " + _world.Registry.Npcs.Count + " people, "
                          + _world.Ledger.Count + " events, " + _world.Threads.Count + " threads.");
 
-            EnsurePrototypeEvidenceExists();
+            ReconcilePettyTheftEvidence();
             _lastAdvancedDay = _vanilla.Now.TotalDays;
             AdvanceThreads();
             CirculateRumors();
@@ -763,7 +767,7 @@ namespace BrilliantQuesting.Plugin
             return null;
         }
 
-        private void EnsurePrototypeEvidenceExists()
+        private void ReconcilePettyTheftEvidence()
         {
             NarrativeThread thread = FindLivePettyTheftThread();
             if (thread == null)
@@ -779,8 +783,26 @@ namespace BrilliantQuesting.Plugin
                     continue;
                 }
 
-                if (_bindings.TryGetUid(fact.Object, out int itemUid) && EClass.game?.cards?.Find(itemUid) != null)
+                if (FindEvidenceCard(fact.Object) != null)
                 {
+                    if (_reportedVerifiedEvidence.Add(fact.Object))
+                    {
+                        _log.LogInfo("Physical evidence verified for " + fact.Id + ": '"
+                                     + fact.Value + "' [" + fact.Object + "].");
+                    }
+
+                    return;
+                }
+
+                if (!EvidenceReconciliationPolicy.MayRecreateMissingPhysicalEvidence(thread))
+                {
+                    if (_reportedMissingEvidence.Add(fact.Object))
+                    {
+                        _log.LogWarning("Physical evidence missing for organic petty theft " + fact.Id
+                                        + ": restored binding for '" + fact.Value + "' [" + fact.Object
+                                        + "] did not resolve to a loaded carried or loose object. BQ did not recreate it.");
+                    }
+
                     return;
                 }
 
@@ -798,17 +820,49 @@ namespace BrilliantQuesting.Plugin
                     400,
                     "ring");
                 _stager.StageItem(fact.Subject, evidence);
-                _log.LogInfo("Repaired missing prototype evidence '" + evidence.Name + "' on "
+                _log.LogInfo("Reconciled missing staged evidence '" + evidence.Name + "' on "
                              + _world.Registry.NameOf(fact.Subject) + ".");
                 return;
             }
+        }
+
+        private Card FindEvidenceCard(EntityId item)
+        {
+            if (item.IsNone)
+            {
+                return null;
+            }
+
+            Chara player = _bindings.ResolveChara(_vanilla.PlayerId);
+            Thing heldByPlayer = _bindings.ResolveThing(item, player);
+            if (heldByPlayer != null)
+            {
+                return heldByPlayer;
+            }
+
+            foreach (NarrativeNpc npc in _world.Registry.Npcs.Values)
+            {
+                Chara holder = _bindings.ResolveChara(npc.Id);
+                Thing held = _bindings.ResolveThing(item, holder);
+                if (held != null)
+                {
+                    return held;
+                }
+            }
+
+            if (_bindings.TryGetUid(item, out int itemUid))
+            {
+                return EClass.game?.cards?.Find(itemUid);
+            }
+
+            return null;
         }
 
         private void RepairMissingEvidenceNearPlayer(Fact fact)
         {
             if (EClass._zone == null || EClass.pc?.pos == null)
             {
-                _log.LogWarning("Prototype evidence '" + fact.Value + "' is missing, but there is no loaded zone to repair it in.");
+                _log.LogWarning("Staged evidence '" + fact.Value + "' is missing, but there is no loaded zone to repair it in.");
                 return;
             }
 
@@ -819,13 +873,13 @@ namespace BrilliantQuesting.Plugin
             }
             catch (Exception ex)
             {
-                _log.LogWarning("Could not repair missing prototype evidence '" + fact.Value + "': " + ex.Message);
+                _log.LogWarning("Could not reconcile missing staged evidence '" + fact.Value + "': " + ex.Message);
                 return;
             }
 
             if (thing == null)
             {
-                _log.LogWarning("Could not repair missing prototype evidence '" + fact.Value + "': ThingGen returned nothing.");
+                _log.LogWarning("Could not reconcile missing staged evidence '" + fact.Value + "': ThingGen returned nothing.");
                 return;
             }
 
@@ -837,7 +891,7 @@ namespace BrilliantQuesting.Plugin
             Point spot = FindNearbyPrototypeSpot(8) ?? EClass.pc.pos;
             EClass._zone.AddCard(thing, spot);
             _bindings.Bind(fact.Object, thing.uid);
-            _log.LogInfo("Repaired missing prototype evidence '" + thing.Name
+            _log.LogInfo("Reconciled missing staged evidence '" + thing.Name
                          + "' as a loose item near the player at " + spot + ".");
         }
 

@@ -403,7 +403,7 @@ namespace BrilliantQuesting.Plugin
                 return;
             }
 
-            string notes = CaseNotes(thread, subjectFact);
+            string notes = CaseNotes(thread, subjectFact, target);
             Msg.SayRaw(notes);
             _log.LogInfo("Case notes shown: " + notes);
         }
@@ -754,7 +754,7 @@ namespace BrilliantQuesting.Plugin
             return string.Join("\n", lines);
         }
 
-        private string CaseNotes(NarrativeThread thread, EntityId theftFactId)
+        private string CaseNotes(NarrativeThread thread, EntityId theftFactId, EntityId target)
         {
             Fact theft = _world.Knowledge.GetFact(theftFactId);
             if (theft == null)
@@ -764,6 +764,12 @@ namespace BrilliantQuesting.Plugin
 
             EntityId victim = FindVictim(thread, theft.Object);
             EntityId witness = FindWitness(theftFactId, theft.Subject);
+            EntityId knownWitness = WitnessDisclosure.KnownWitnessToPlayer(
+                _world.Knowledge,
+                _vanilla.PlayerId,
+                theftFactId,
+                witness,
+                target);
             bool named = !string.IsNullOrEmpty(theft.Value);
             string anItem = named ? Article(theft.Value) : "something";
             string theItem = named ? "the " + theft.Value : "it";
@@ -779,7 +785,7 @@ namespace BrilliantQuesting.Plugin
             {
                 "Case notes: " + _world.Registry.NameOf(victim) + " is missing " + anItem + ".",
                 "People: " + _world.Registry.NameOf(victim) + " lost it; "
-                + _world.Registry.NameOf(witness) + " may have seen something; "
+                + WitnessLine(knownWitness) + "; "
                 + (playerKnows
                     ? _world.Registry.NameOf(theft.Subject) + " is the current suspect."
                     : "the thief is still unidentified."),
@@ -802,7 +808,10 @@ namespace BrilliantQuesting.Plugin
             }
             else
             {
-                lines.Add("Next: ask the witness, search the scene, build rapport, or pressure someone.");
+                lines.Add(knownWitness.IsNone
+                    ? "Next: ask around, search the scene, build rapport, or pressure someone."
+                    : "Next: ask " + _world.Registry.NameOf(knownWitness)
+                      + ", search the scene, build rapport, or pressure someone.");
             }
 
             return string.Join(" ", lines);
@@ -856,6 +865,13 @@ namespace BrilliantQuesting.Plugin
             }
 
             return EntityId.None;
+        }
+
+        private string WitnessLine(EntityId knownWitness)
+        {
+            return knownWitness.IsNone
+                ? "no known witness has come forward"
+                : _world.Registry.NameOf(knownWitness) + " may have seen something";
         }
 
         /// <summary>

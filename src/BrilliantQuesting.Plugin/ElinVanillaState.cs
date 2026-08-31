@@ -287,6 +287,28 @@ namespace BrilliantQuesting.Plugin
             return ElinActorClasses.Classify(resolved, _log);
         }
 
+        protected override NarrativeActorKind GetActorKindCore(EntityId chara)
+        {
+            Chara resolved = _bindings.ResolveChara(chara);
+            if (resolved == null)
+            {
+                return NarrativeActorKind.Unknown;
+            }
+
+            return ElinActorClasses.ClassifyKind(resolved, _log);
+        }
+
+        protected override SocialAgency GetSocialAgencyCore(EntityId chara)
+        {
+            Chara resolved = _bindings.ResolveChara(chara);
+            if (resolved == null)
+            {
+                return SocialAgency.Unknown;
+            }
+
+            return ElinActorClasses.ClassifySocialAgency(resolved, _log);
+        }
+
         /// <param name="absentReason">
         /// Why an empty probe means "not here" for this capability. Most reads are missing only
         /// when the runtime object is; a Home is also legitimately absent on a save where the

@@ -30,6 +30,15 @@ namespace BrilliantQuesting.Integration
         /// </summary>
         NarrativeActorClass GetActorClass(EntityId chara);
 
+        /// <summary>
+        /// Broad narrative kind for role casting. Unknown is a real answer, not a fallback to
+        /// personhood.
+        /// </summary>
+        NarrativeActorKind GetActorKind(EntityId chara);
+
+        /// <summary>How much ordinary testimony/commerce/deception agency this actor presents.</summary>
+        SocialAgency GetSocialAgency(EntityId chara);
+
         // -- characters -------------------------------------------------------------------
         bool IsAlive(EntityId chara);
 

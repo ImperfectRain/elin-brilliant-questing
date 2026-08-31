@@ -242,6 +242,31 @@ namespace BrilliantQuesting.Integration
             }
         }
 
+        public static string ReadText(object target, params string[] names)
+        {
+            if (target == null || names == null)
+            {
+                return string.Empty;
+            }
+
+            for (int i = 0; i < names.Length; i++)
+            {
+                object read = ReadObject(target, names[i]);
+                if (read == null)
+                {
+                    continue;
+                }
+
+                string text = read.ToString();
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    return text.Trim();
+                }
+            }
+
+            return string.Empty;
+        }
+
         public static T GetKnownField<T>(object instance, string name) where T : class
         {
             Type type = instance?.GetType();

@@ -5,6 +5,7 @@ using System.Reflection;
 using BepInEx.Logging;
 using BrilliantQuesting.Diagnostics;
 using BrilliantQuesting.Foundation;
+using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
@@ -43,22 +44,29 @@ namespace BrilliantQuesting.Plugin
 
             _log = log;
             Harmony harmony = new Harmony(ModInfo.Guid + ".journal_native");
-            MethodInfo target = AccessTools.Method(typeof(Window), nameof(Window.BuildTabs), new[] { typeof(int) });
-            MethodInfo prefix = AccessTools.Method(typeof(NativeJournalSurface), nameof(BeforeBuildTabs));
-            if (target == null || prefix == null)
+            MethodInfo buildTabs = AccessTools.Method(typeof(Window), nameof(Window.BuildTabs), new[] { typeof(int) });
+            MethodInfo init = AccessTools.Method(typeof(Window), "Init");
+            MethodInfo onKill = AccessTools.Method(typeof(Window), "OnKill");
+            MethodInfo buildPrefix = AccessTools.Method(typeof(NativeJournalSurface), nameof(BeforeBuildTabs));
+            MethodInfo initPrefix = AccessTools.Method(typeof(NativeJournalSurface), nameof(BeforeInit));
+            MethodInfo killPostfix = AccessTools.Method(typeof(NativeJournalSurface), nameof(AfterOnKill));
+            if (buildTabs == null || init == null || onKill == null
+                || buildPrefix == null || initPrefix == null || killPostfix == null)
             {
                 _installed = true;
                 _patchesAvailable = false;
-                log.LogInfo("Native Brilliant Questing journal disabled: Window.BuildTabs(int) could not be resolved. Dialogue/log fallback remains enabled.");
+                log.LogInfo("Native Brilliant Questing journal disabled: Window.BuildTabs/Init/OnKill could not all be resolved. Dialogue/log fallback remains enabled.");
                 return;
             }
 
             try
             {
-                harmony.Patch(target, prefix: new HarmonyMethod(prefix));
+                harmony.Patch(buildTabs, prefix: new HarmonyMethod(buildPrefix));
+                harmony.Patch(init, prefix: new HarmonyMethod(initPrefix));
+                harmony.Patch(onKill, postfix: new HarmonyMethod(killPostfix));
                 _installed = true;
                 _patchesAvailable = true;
-                log.LogInfo("Native Brilliant Questing journal patch installed.");
+                log.LogInfo("Native Brilliant Questing journal patch installed with LayerJournal tab-memory guard.");
             }
             catch (Exception ex)
             {
@@ -66,6 +74,32 @@ namespace BrilliantQuesting.Plugin
                 _installed = true;
                 _patchesAvailable = false;
                 log.LogInfo("Native Brilliant Questing journal disabled after patch failure: " + ex.GetType().Name + ": " + ex.Message + ". Dialogue/log fallback remains enabled.");
+            }
+        }
+
+        private static void BeforeInit(Window __instance)
+        {
+            try
+            {
+                NormalizeRememberedJournalTab(__instance, "before Init");
+            }
+            catch (Exception ex)
+            {
+                _log?.LogWarning("Native Brilliant Questing journal memory guard skipped before Init: "
+                                 + ex.GetType().Name + ": " + ex.Message + ".");
+            }
+        }
+
+        private static void AfterOnKill(Window __instance)
+        {
+            try
+            {
+                NormalizeRememberedJournalTab(__instance, "after OnKill");
+            }
+            catch (Exception ex)
+            {
+                _log?.LogWarning("Native Brilliant Questing journal memory guard skipped after OnKill: "
+                                 + ex.GetType().Name + ": " + ex.Message + ".");
             }
         }
 
@@ -117,9 +151,38 @@ namespace BrilliantQuesting.Plugin
                 content.skinType = clonedTemplate.skinType;
                 content.idDefaultText = clonedTemplate.idDefaultText;
                 content.layout = clonedTemplate.layout;
+                UnityEngine.Object.Destroy(clonedTemplate);
             }
 
             return content;
+        }
+
+        private static void NormalizeRememberedJournalTab(Window window, string phase)
+        {
+            if (_disabled || window == null || !IsJournal(window))
+            {
+                return;
+            }
+
+            object setting = ReadField(window, "setting");
+            IList tabs = ReadField(setting, "tabs") as IList;
+            IDictionary remembered = ReadRememberedTabs(window);
+            object idWindow = ReadField(window, "idWindow");
+            if (tabs == null || remembered == null || idWindow == null || !remembered.Contains(idWindow))
+            {
+                return;
+            }
+
+            int index = ToInt(remembered[idWindow], -1);
+            bool dynamicTab = index >= 0 && index < tabs.Count && IsBrilliantQuestingTab(tabs[index]);
+            if (!DynamicTabMemoryPolicy.ShouldResetRememberedTab(index, tabs.Count, dynamicTab))
+            {
+                return;
+            }
+
+            remembered[idWindow] = 0;
+            _log?.LogInfo("Native Brilliant Questing journal reset remembered LayerJournal tab "
+                          + index + " to vanilla tab 0 " + phase + ".");
         }
 
         private static UIContent FirstEnabledContent(Window window)
@@ -155,12 +218,7 @@ namespace BrilliantQuesting.Plugin
             for (int i = 0; i < tabs.Count; i++)
             {
                 object tab = tabs[i];
-                if (StringValue(ReadField(tab, "idLang")) == TabId)
-                {
-                    return true;
-                }
-
-                if (ReadField(tab, "content") is BrilliantQuestingJournalContent)
+                if (IsBrilliantQuestingTab(tab))
                 {
                     return true;
                 }
@@ -179,6 +237,28 @@ namespace BrilliantQuesting.Plugin
             object controller = ReadField(window, "controller");
             return controller != null
                    && controller.GetType().Name.IndexOf("Journal", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static bool IsBrilliantQuestingTab(object tab)
+        {
+            if (StringValue(ReadField(tab, "idLang")) == TabId)
+            {
+                return true;
+            }
+
+            return ReadField(tab, "content") is BrilliantQuestingJournalContent;
+        }
+
+        private static IDictionary ReadRememberedTabs(Window window)
+        {
+            object local = ReadField(window, "dictTab");
+            if (local is IDictionary localDict)
+            {
+                return localDict;
+            }
+
+            FieldInfo field = AccessTools.Field(typeof(Window), "dictTab");
+            return field == null ? null : field.GetValue(field.IsStatic ? null : window) as IDictionary;
         }
 
         private static bool IsDisabled(object tab)
@@ -201,6 +281,23 @@ namespace BrilliantQuesting.Plugin
         private static string StringValue(object value)
         {
             return value == null ? string.Empty : value.ToString();
+        }
+
+        private static int ToInt(object value, int fallback)
+        {
+            if (value is int number)
+            {
+                return number;
+            }
+
+            try
+            {
+                return Convert.ToInt32(value);
+            }
+            catch
+            {
+                return fallback;
+            }
         }
 
         private sealed class BrilliantQuestingJournalContent : UIContent
