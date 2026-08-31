@@ -77,11 +77,11 @@ namespace BrilliantQuesting.Plugin
             }
         }
 
-        private static void BeforeInit(Window __instance)
+        private static void BeforeInit(Window __instance, Layer _layer)
         {
             try
             {
-                NormalizeRememberedJournalTab(__instance, "before Init");
+                NormalizeRememberedJournalTab(__instance, _layer, "before Init");
             }
             catch (Exception ex)
             {
@@ -94,7 +94,7 @@ namespace BrilliantQuesting.Plugin
         {
             try
             {
-                NormalizeRememberedJournalTab(__instance, "after OnKill");
+                NormalizeRememberedJournalTab(__instance, null, "after OnKill");
             }
             catch (Exception ex)
             {
@@ -157,9 +157,9 @@ namespace BrilliantQuesting.Plugin
             return content;
         }
 
-        private static void NormalizeRememberedJournalTab(Window window, string phase)
+        private static void NormalizeRememberedJournalTab(Window window, Layer initLayer, string phase)
         {
-            if (_disabled || window == null || !IsJournal(window))
+            if (_disabled || window == null || !IsJournal(window, initLayer))
             {
                 return;
             }
@@ -167,7 +167,7 @@ namespace BrilliantQuesting.Plugin
             object setting = ReadField(window, "setting");
             IList tabs = ReadField(setting, "tabs") as IList;
             IDictionary remembered = ReadRememberedTabs(window);
-            object idWindow = ReadField(window, "idWindow");
+            object idWindow = WindowKey(window, initLayer);
             if (tabs == null || remembered == null || idWindow == null || !remembered.Contains(idWindow))
             {
                 return;
@@ -229,6 +229,16 @@ namespace BrilliantQuesting.Plugin
 
         private static bool IsJournal(Window window)
         {
+            return IsJournal(window, null);
+        }
+
+        private static bool IsJournal(Window window, Layer initLayer)
+        {
+            if (initLayer is LayerJournal)
+            {
+                return true;
+            }
+
             if (window.GetComponentInParent<LayerJournal>() != null)
             {
                 return true;
@@ -237,6 +247,14 @@ namespace BrilliantQuesting.Plugin
             object controller = ReadField(window, "controller");
             return controller != null
                    && controller.GetType().Name.IndexOf("Journal", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static object WindowKey(Window window, Layer initLayer)
+        {
+            int windowIndex = window.windowIndex;
+            Layer layer = initLayer ?? window.layer;
+            string layerUid = layer == null ? null : layer.uid;
+            return DynamicTabMemoryPolicy.WindowKey(layerUid, windowIndex);
         }
 
         private static bool IsBrilliantQuestingTab(object tab)

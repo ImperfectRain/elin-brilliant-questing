@@ -9,6 +9,11 @@ namespace BrilliantQuesting.Integration
     /// </summary>
     public static class DynamicTabMemoryPolicy
     {
+        public static string WindowKey(string layerUid, int windowIndex)
+        {
+            return (string.IsNullOrEmpty(layerUid) ? "nolayer" : layerUid) + windowIndex;
+        }
+
         public static bool ShouldResetRememberedTab(int rememberedIndex, int currentTabCount, bool rememberedTabIsDynamic)
         {
             return currentTabCount <= 0

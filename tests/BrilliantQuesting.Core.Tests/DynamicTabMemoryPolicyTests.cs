@@ -6,6 +6,13 @@ namespace BrilliantQuesting.Tests
     public class DynamicTabMemoryPolicyTests
     {
         [Fact]
+        public void PreInitKeyUsesIncomingLayerRatherThanUnassignedWindowLayer()
+        {
+            Assert.Equal("journal1", DynamicTabMemoryPolicy.WindowKey("journal", 1));
+            Assert.NotEqual(DynamicTabMemoryPolicy.WindowKey(null, 1), DynamicTabMemoryPolicy.WindowKey("journal", 1));
+        }
+
+        [Fact]
         public void OutOfRangeRememberedTabIsResetBeforeVanillaIndexesIt()
         {
             Assert.True(DynamicTabMemoryPolicy.ShouldResetRememberedTab(10, 10, rememberedTabIsDynamic: false));
