@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
+using BrilliantQuesting.Relationships;
 
 namespace BrilliantQuesting.World
 {
@@ -14,6 +15,7 @@ namespace BrilliantQuesting.World
         public const string ExpandMembership = "expand_membership";
         public const string BuildReserves = "build_reserves";
         public const string ProtectHolding = "protect_holding";
+        public const string RaidOrganization = "raid_organization";
 
         private readonly NarrativeWorldState _world;
 
@@ -61,6 +63,10 @@ namespace BrilliantQuesting.World
             else if (goal.Kind == ProtectHolding)
             {
                 changed = Fortify(organization, goal, now);
+            }
+            else if (goal.Kind == RaidOrganization)
+            {
+                changed = Raid(organization, goal, now);
             }
             else
             {
@@ -185,6 +191,43 @@ namespace BrilliantQuesting.World
                 site.Id,
                 new[] { site.Id },
                 tags: new[] { ProtectHolding, "site_fortified" });
+            return true;
+        }
+
+        private bool Raid(Organization organization, OrganizationGoal goal, GameTime now)
+        {
+            Organization target = _world.Registry.GetOrganization(goal.Subject);
+            if (target == null || target.Id == organization.Id)
+            {
+                return BuildWealth(organization, goal, now);
+            }
+
+            int damage = 2 + organization.Aggression / 25;
+            int cost = 1 + (100 - organization.Legitimacy) / 50;
+            target.Wealth = LocalDemandPressure.Clamp(target.Wealth - damage, 0, 100);
+            organization.Wealth = LocalDemandPressure.Clamp(organization.Wealth - cost, 0, 100);
+            goal.Progress += 25 + organization.Aggression / 10;
+            goal.Satisfied = goal.Progress >= 100;
+
+            RelationshipEdge targetStanding = _world.Relationships.Find(target.Id, organization.Id)
+                                              ?? _world.Relationships.Connect(target.Id, organization.Id, RelationKind.Rival, 0);
+            targetStanding.Sentiment = LocalDemandPressure.Clamp(targetStanding.Sentiment - 20, -100, 100);
+            targetStanding.Kind = targetStanding.Sentiment <= -40 ? RelationKind.Enemy : RelationKind.Rival;
+
+            RelationshipEdge raiderStanding = _world.Relationships.Find(organization.Id, target.Id)
+                                              ?? _world.Relationships.Connect(organization.Id, target.Id, RelationKind.Rival, 0);
+            raiderStanding.Sentiment = LocalDemandPressure.Clamp(raiderStanding.Sentiment - 8, -100, 100);
+            raiderStanding.Kind = raiderStanding.Sentiment <= -60 ? RelationKind.Enemy : RelationKind.Rival;
+
+            _world.Record(
+                WorldEventType.OrganizationActed,
+                organization.LeaderId,
+                target.Id,
+                now,
+                0.5,
+                PrimarySite(target),
+                new[] { organization.Id, target.Id },
+                tags: new[] { RaidOrganization, "standing_changed", "wealth_damaged" });
             return true;
         }
 

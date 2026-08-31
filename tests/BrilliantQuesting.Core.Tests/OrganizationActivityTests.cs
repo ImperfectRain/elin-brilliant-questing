@@ -2,6 +2,7 @@ using System.Linq;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Persistence;
+using BrilliantQuesting.Relationships;
 using BrilliantQuesting.World;
 using Xunit;
 
@@ -12,7 +13,10 @@ namespace BrilliantQuesting.Tests
     {
         private static readonly EntityId Hall = EntityId.Parse("site_hall");
         private static readonly EntityId Crew = EntityId.Parse("org_crew");
+        private static readonly EntityId RivalCrew = EntityId.Parse("org_rival_crew");
+        private static readonly EntityId FightersGuild = EntityId.Parse("guild_fighters");
         private static readonly EntityId Leader = EntityId.Parse("npc_leader");
+        private static readonly EntityId RivalLeader = EntityId.Parse("npc_rival_leader");
         private static readonly EntityId Recruit = EntityId.Parse("npc_recruit");
 
         [Fact]
@@ -90,6 +94,54 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(GameTime.Zero, restored.LastActedAt);
         }
 
+        [Fact]
+        public void AGroupRaidWorsensItsStandingWithAnotherGroupWithoutPlayerInvolvement()
+        {
+            NarrativeWorldState world = World();
+            Organization raiders = CrewRecord(world);
+            Organization target = RivalRecord(world);
+            raiders.Wealth = 40;
+            raiders.Aggression = 75;
+            raiders.Legitimacy = 20;
+            target.Wealth = 30;
+            world.Relationships.Connect(target.Id, raiders.Id, RelationKind.Rival, -10);
+            raiders.Goals.Add(new OrganizationGoal(OrganizationActivity.RaidOrganization, target.Id, 100));
+
+            int acted = new OrganizationActivity(world).Advance(GameTime.FromDays(5));
+
+            Assert.Equal(1, acted);
+            Assert.Equal(38, raiders.Wealth);
+            Assert.Equal(25, target.Wealth);
+            RelationshipEdge targetStanding = world.Relationships.Find(target.Id, raiders.Id);
+            RelationshipEdge raiderStanding = world.Relationships.Find(raiders.Id, target.Id);
+            Assert.Equal(-30, targetStanding.Sentiment);
+            Assert.Equal(-8, raiderStanding.Sentiment);
+            Assert.Equal(RelationKind.Rival, targetStanding.Kind);
+            Assert.Equal(RelationKind.Rival, raiderStanding.Kind);
+
+            WorldEvent action = Assert.Single(world.Ledger.Events, e => e.Type == WorldEventType.OrganizationActed);
+            Assert.Equal(Leader, action.Actor);
+            Assert.Equal(target.Id, action.Target);
+            Assert.DoesNotContain(EntityId.Parse("player"), action.Related);
+            Assert.Contains(OrganizationActivity.RaidOrganization, action.Tags);
+            Assert.Contains("standing_changed", action.Tags);
+        }
+
+        [Fact]
+        public void OrganizationStandingWithAVanillaGuildIdSurvivesSaveLoad()
+        {
+            NarrativeWorldState world = World();
+            Organization organization = CrewRecord(world);
+            world.Relationships.Connect(organization.Id, FightersGuild, RelationKind.Rival, -25);
+
+            NarrativeWorldState reloaded = WorldStateSerializer.Load(WorldStateSerializer.Save(world));
+
+            RelationshipEdge restored = reloaded.Relationships.Find(organization.Id, FightersGuild);
+            Assert.NotNull(restored);
+            Assert.Equal(RelationKind.Rival, restored.Kind);
+            Assert.Equal(-25, restored.Sentiment);
+        }
+
         private static NarrativeWorldState World()
         {
             NarrativeWorldState world = new NarrativeWorldState(53);
@@ -109,6 +161,21 @@ namespace BrilliantQuesting.Tests
             organization.MemberIds.Add(Leader);
             organization.SiteIds.Add(Hall);
             world.Registry.GetNpc(Leader).OrganizationIds.Add(Crew);
+            world.Registry.Add(organization);
+            return organization;
+        }
+
+        private static Organization RivalRecord(NarrativeWorldState world)
+        {
+            world.Registry.Add(new NarrativeNpc(RivalLeader, "Selle") { HomeSiteId = Hall });
+            Organization organization = new Organization(RivalCrew, "Blueglass Company", "merchant_association")
+            {
+                LeaderId = RivalLeader
+            };
+
+            organization.MemberIds.Add(RivalLeader);
+            organization.SiteIds.Add(Hall);
+            world.Registry.GetNpc(RivalLeader).OrganizationIds.Add(RivalCrew);
             world.Registry.Add(organization);
             return organization;
         }
