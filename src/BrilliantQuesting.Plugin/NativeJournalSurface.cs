@@ -31,6 +31,7 @@ namespace BrilliantQuesting.Plugin
         private static bool _reportedContentLifecycleSwitch;
         private static bool _reportedContentRefresh;
         private static bool _reportedContentBuilt;
+        private static bool _reportedContentMount;
 
         internal static bool UseDialogueFallback => !_patchesAvailable || _disabled;
 
@@ -146,14 +147,16 @@ namespace BrilliantQuesting.Plugin
                 return null;
             }
 
-            GameObject clone = UnityEngine.Object.Instantiate(
-                template.gameObject,
-                template.transform.parent,
-                false);
-            clone.name = "BrilliantQuestingJournalContent";
-            clone.SetActive(false);
+            UIContent instantiated = Util.Instantiate(template, window.view);
+            if (instantiated == null)
+            {
+                return null;
+            }
 
-            UIContent clonedTemplate = clone.GetComponent<UIContent>();
+            GameObject gameObject = instantiated.gameObject;
+            gameObject.name = "BrilliantQuestingJournalContent";
+            gameObject.SetActive(false);
+
             if (!_reportedTemplateContent)
             {
                 _reportedTemplateContent = true;
@@ -162,22 +165,29 @@ namespace BrilliantQuesting.Plugin
             }
 
             Dictionary<string, object> copied = CopyFields(
-                clonedTemplate,
+                instantiated,
                 "target",
                 "prof",
                 "skinType",
                 "idDefaultText",
                 "layout");
-            if (clonedTemplate != null)
+            UnityEngine.Object.DestroyImmediate(instantiated);
+
+            BrilliantQuestingJournalContent content = gameObject.AddComponent<BrilliantQuestingJournalContent>();
+            ApplyFields(content, copied);
+            content.OnInstantiate();
+            if (!_reportedContentMount)
             {
-                UnityEngine.Object.DestroyImmediate(clonedTemplate);
+                _reportedContentMount = true;
+                _log?.LogInfo("Native Brilliant Questing journal content mounted: parentIsWindowView="
+                              + (content.transform.parent == window.view)
+                              + "; isPrefab="
+                              + content.IsPrefab()
+                              + "; UIContent components="
+                              + ContentComponentTypes(gameObject)
+                              + ".");
             }
 
-            BrilliantQuestingJournalContent content = clone.AddComponent<BrilliantQuestingJournalContent>();
-            ApplyFields(content, copied);
-            _log?.LogInfo("Native Brilliant Questing journal clone UIContent components after setup: "
-                          + ContentComponentTypes(clone) + "; parent "
-                          + TypeName(clone.transform.parent) + ".");
             return content;
         }
 
