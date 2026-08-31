@@ -19,6 +19,7 @@ namespace BrilliantQuesting.Persistence
             Register(2, AddProblemSolvingProfiles);
             Register(3, AddSensitivityProfiles);
             Register(4, AddContradictionProfiles);
+            Register(5, AddCharacterQuirkProfiles);
         }
 
         /// <summary>Registers an upgrade from <paramref name="fromVersion"/> to the next version.</summary>
@@ -176,6 +177,27 @@ namespace BrilliantQuesting.Persistence
             return JsonValue.Object()
                 .Set("kind", "None")
                 .Set("strength", 1.0);
+        }
+
+        private static JsonValue AddCharacterQuirkProfiles(JsonValue root)
+        {
+            foreach (JsonValue npc in root.GetArray("npcs"))
+            {
+                if (npc["quirk"] == null)
+                {
+                    npc.Set("quirk", NeutralCharacterQuirkProfile());
+                }
+            }
+
+            return root.Set("schemaVersion", 6);
+        }
+
+        private static JsonValue NeutralCharacterQuirkProfile()
+        {
+            return JsonValue.Object()
+                .Set("assigned", false)
+                .Set("weirdness", "MostlyOrdinary")
+                .Set("kind", "None");
         }
     }
 }

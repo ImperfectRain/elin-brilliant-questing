@@ -32,6 +32,7 @@ namespace BrilliantQuesting.World
             ProblemSolving = new ProblemSolvingProfile();
             Sensitivities = new SensitivityProfile();
             Contradiction = new ContradictionProfile();
+            Quirk = new CharacterQuirkProfile();
             Goals = new List<NpcGoal>();
             OrganizationIds = new List<EntityId>();
             Alive = true;
@@ -77,6 +78,8 @@ namespace BrilliantQuesting.World
         public SensitivityProfile Sensitivities { get; }
 
         public ContradictionProfile Contradiction { get; }
+
+        public CharacterQuirkProfile Quirk { get; }
 
         public List<NpcGoal> Goals { get; }
 

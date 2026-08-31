@@ -264,7 +264,9 @@ namespace BrilliantQuesting.Tests
         {
             TheftLaboratory lab = PlayedScenario();
             JsonValue root = WorldStateSerializer.ToJson(lab.World);
-            string tampered = root.ToJson().Replace("\"schemaVersion\":5", "\"schemaVersion\":99");
+            string tampered = root.ToJson().Replace(
+                "\"schemaVersion\":" + NarrativeWorldState.CurrentSchemaVersion,
+                "\"schemaVersion\":99");
 
             Assert.Throws<NotSupportedException>(() => WorldStateSerializer.Load(tampered));
         }
@@ -408,6 +410,23 @@ namespace BrilliantQuesting.Tests
         }
 
         [Fact]
+        public void QuirkIsPersistedAsDurableCharacterIdentity()
+        {
+            NarrativeWorldState world = new NarrativeWorldState(42);
+            NarrativeNpc npc = world.Registry.Add(new NarrativeNpc(EntityId.Parse("npc_00000001"), "Mira"));
+            npc.Quirk.Assigned = true;
+            npc.Quirk.Weirdness = CharacterWeirdnessTier.Unforgettable;
+            npc.Quirk.Kind = CharacterQuirk.FurnitureRemembersInsults;
+
+            NarrativeWorldState reloaded = WorldStateSerializer.Load(WorldStateSerializer.Save(world, indented: false));
+            NarrativeNpc loaded = reloaded.Registry.GetNpc(npc.Id);
+
+            Assert.True(loaded.Quirk.Assigned);
+            Assert.Equal(CharacterWeirdnessTier.Unforgettable, loaded.Quirk.Weirdness);
+            Assert.Equal(CharacterQuirk.FurnitureRemembersInsults, loaded.Quirk.Kind);
+        }
+
+        [Fact]
         public void VersionThreeSavesGainNeutralSensitivityProfiles()
         {
             JsonValue oldNpc = JsonValue.Object()
@@ -471,6 +490,41 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(NarrativeWorldState.CurrentSchemaVersion, migrated.SchemaVersion);
             Assert.Equal(PersonalityContradiction.None, npc.Contradiction.Kind);
             Assert.Equal(1.0, npc.Contradiction.Strength, 4);
+        }
+
+        [Fact]
+        public void VersionFiveSavesGainUnassignedCharacterQuirkProfiles()
+        {
+            JsonValue oldNpc = JsonValue.Object()
+                .Set("id", "npc_00000001")
+                .Set("name", "Old Mira")
+                .Set("charaRef", "vanilla/mira")
+                .Set("occupation", "merchant")
+                .Set("roles", JsonValue.Array())
+                .Set("homeSite", "")
+                .Set("importance", 2)
+                .Set("alive", true)
+                .Set("lastSimulated", 123)
+                .Set("personality", JsonValue.Object())
+                .Set("problemSolving", JsonValue.Object())
+                .Set("sensitivities", JsonValue.Object())
+                .Set("contradiction", JsonValue.Object())
+                .Set("goals", JsonValue.Array())
+                .Set("organizations", JsonValue.Array());
+
+            JsonValue oldRoot = JsonValue.Object()
+                .Set("schemaVersion", 5)
+                .Set("worldSeed", "7")
+                .Set("rngState", "7")
+                .Set("npcs", JsonValue.Array().Add(oldNpc));
+
+            NarrativeWorldState migrated = WorldStateSerializer.Load(oldRoot.ToJson(indented: false));
+            NarrativeNpc npc = migrated.Registry.GetNpc(EntityId.Parse("npc_00000001"));
+
+            Assert.Equal(NarrativeWorldState.CurrentSchemaVersion, migrated.SchemaVersion);
+            Assert.False(npc.Quirk.Assigned);
+            Assert.Equal(CharacterWeirdnessTier.MostlyOrdinary, npc.Quirk.Weirdness);
+            Assert.Equal(CharacterQuirk.None, npc.Quirk.Kind);
         }
 
         [Fact]

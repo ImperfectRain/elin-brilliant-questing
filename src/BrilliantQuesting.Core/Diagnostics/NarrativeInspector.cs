@@ -70,6 +70,21 @@ namespace BrilliantQuesting.Diagnostics
             StringBuilder sb = new StringBuilder();
             sb.Append(npc.Name).Append(" (").Append(npc.Occupation).Append(", ").Append(npc.Importance).Append(")\n");
             sb.Append("  alive: ").Append(vanilla.IsAlive(id)).Append("   affinity to player: ").Append(vanilla.GetAffinity(id)).Append('\n');
+            sb.Append("  quirk: ");
+            if (!npc.Quirk.Assigned)
+            {
+                sb.Append("unassigned");
+            }
+            else if (!npc.Quirk.HasQuirk)
+            {
+                sb.Append(npc.Quirk.Weirdness);
+            }
+            else
+            {
+                sb.Append(npc.Quirk.Weirdness).Append(' ').Append(npc.Quirk.Kind);
+            }
+
+            sb.Append('\n');
 
             sb.Append("  goals:");
             if (npc.Goals.Count == 0)

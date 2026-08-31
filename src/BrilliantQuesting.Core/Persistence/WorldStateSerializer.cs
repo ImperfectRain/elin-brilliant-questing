@@ -129,6 +129,7 @@ namespace BrilliantQuesting.Persistence
                 JsonValue problemSolving = ProblemSolvingToJson(npc.ProblemSolving);
                 JsonValue sensitivities = SensitivitiesToJson(npc.Sensitivities);
                 JsonValue contradiction = ContradictionToJson(npc.Contradiction);
+                JsonValue quirk = QuirkToJson(npc.Quirk);
 
                 JsonValue goals = JsonValue.Array();
                 foreach (NpcGoal goal in npc.Goals)
@@ -154,6 +155,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("problemSolving", problemSolving)
                     .Set("sensitivities", sensitivities)
                     .Set("contradiction", contradiction)
+                    .Set("quirk", quirk)
                     .Set("goals", goals)
                     .Set("organizations", Ids(npc.OrganizationIds)));
             }
@@ -493,6 +495,12 @@ namespace BrilliantQuesting.Persistence
                 if (contradiction != null)
                 {
                     ReadContradiction(npc.Contradiction, contradiction);
+                }
+
+                JsonValue quirk = json["quirk"];
+                if (quirk != null)
+                {
+                    ReadQuirk(npc.Quirk, quirk);
                 }
 
                 foreach (JsonValue goalJson in json.GetArray("goals"))
@@ -944,6 +952,33 @@ namespace BrilliantQuesting.Persistence
 
             target.Kind = parsed;
             target.Strength = profile.GetNumber("strength", 1.0);
+        }
+
+        private static JsonValue QuirkToJson(CharacterQuirkProfile profile)
+        {
+            return JsonValue.Object()
+                .Set("assigned", profile.Assigned)
+                .Set("weirdness", profile.Weirdness.ToString())
+                .Set("kind", profile.Kind.ToString());
+        }
+
+        private static void ReadQuirk(CharacterQuirkProfile target, JsonValue profile)
+        {
+            CharacterWeirdnessTier weirdness;
+            if (!Enum.TryParse(profile.GetString("weirdness", "MostlyOrdinary"), out weirdness))
+            {
+                weirdness = CharacterWeirdnessTier.MostlyOrdinary;
+            }
+
+            CharacterQuirk kind;
+            if (!Enum.TryParse(profile.GetString("kind", "None"), out kind))
+            {
+                kind = CharacterQuirk.None;
+            }
+
+            target.Assigned = profile.GetBool("assigned");
+            target.Weirdness = weirdness;
+            target.Kind = kind;
         }
 
         private static JsonValue Strings(IReadOnlyList<string> values)
