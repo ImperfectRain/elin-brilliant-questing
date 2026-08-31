@@ -32,6 +32,8 @@ namespace BrilliantQuesting.Plugin
         private static bool _reportedContentRefresh;
         private static bool _reportedContentBuilt;
         private static bool _reportedContentMount;
+        private static bool _reportedBqContentSwitchMount;
+        private static bool _reportedVanillaContentMount;
 
         internal static bool UseDialogueFallback => !_patchesAvailable || _disabled;
 
@@ -51,23 +53,26 @@ namespace BrilliantQuesting.Plugin
             _log = log;
             Harmony harmony = new Harmony(ModInfo.Guid + ".journal_native");
             MethodInfo buildTabs = AccessTools.Method(typeof(Window), nameof(Window.BuildTabs), new[] { typeof(int) });
+            MethodInfo switchContent = AccessTools.Method(typeof(Window), nameof(Window.SwitchContent), new[] { typeof(int) });
             MethodInfo init = AccessTools.Method(typeof(Window), "Init");
             MethodInfo onKill = AccessTools.Method(typeof(Window), "OnKill");
             MethodInfo buildPrefix = AccessTools.Method(typeof(NativeJournalSurface), nameof(BeforeBuildTabs));
+            MethodInfo switchPostfix = AccessTools.Method(typeof(NativeJournalSurface), nameof(AfterSwitchContent));
             MethodInfo initPrefix = AccessTools.Method(typeof(NativeJournalSurface), nameof(BeforeInit));
             MethodInfo killPostfix = AccessTools.Method(typeof(NativeJournalSurface), nameof(AfterOnKill));
-            if (buildTabs == null || init == null || onKill == null
-                || buildPrefix == null || initPrefix == null || killPostfix == null)
+            if (buildTabs == null || switchContent == null || init == null || onKill == null
+                || buildPrefix == null || switchPostfix == null || initPrefix == null || killPostfix == null)
             {
                 _installed = true;
                 _patchesAvailable = false;
-                log.LogInfo("Native Brilliant Questing journal disabled: Window.BuildTabs/Init/OnKill could not all be resolved. Dialogue/log fallback remains enabled.");
+                log.LogInfo("Native Brilliant Questing journal disabled: Window.BuildTabs/SwitchContent/Init/OnKill could not all be resolved. Dialogue/log fallback remains enabled.");
                 return;
             }
 
             try
             {
                 harmony.Patch(buildTabs, prefix: new HarmonyMethod(buildPrefix));
+                harmony.Patch(switchContent, postfix: new HarmonyMethod(switchPostfix));
                 harmony.Patch(init, prefix: new HarmonyMethod(initPrefix));
                 harmony.Patch(onKill, postfix: new HarmonyMethod(killPostfix));
                 _installed = true;
@@ -80,6 +85,56 @@ namespace BrilliantQuesting.Plugin
                 _installed = true;
                 _patchesAvailable = false;
                 log.LogInfo("Native Brilliant Questing journal disabled after patch failure: " + ex.GetType().Name + ": " + ex.Message + ". Dialogue/log fallback remains enabled.");
+            }
+        }
+
+        private static void AfterSwitchContent(Window __instance, int index, UIContent __result)
+        {
+            try
+            {
+                if (_disabled || __instance == null || !IsJournal(__instance) || __result == null
+                    || _reportedVanillaContentMount && _reportedBqContentSwitchMount)
+                {
+                    return;
+                }
+
+                bool brilliantQuesting = __result is BrilliantQuestingJournalContent;
+                if (brilliantQuesting && !_reportedBqContentSwitchMount || !brilliantQuesting && !_reportedVanillaContentMount)
+                {
+                    if (brilliantQuesting)
+                    {
+                        _reportedBqContentSwitchMount = true;
+                    }
+                    else
+                    {
+                        _reportedVanillaContentMount = true;
+                    }
+
+                    _log?.LogInfo("Native Brilliant Questing journal content comparison after Window.SwitchContent("
+                                  + index
+                                  + "): role="
+                                  + (brilliantQuesting ? "BrilliantQuesting" : "Vanilla")
+                                  + "; content="
+                                  + DescribeComponent(__result)
+                                  + "; parent="
+                                  + DescribeTransform(__result.transform.parent)
+                                  + "; window.view="
+                                  + DescribeComponent(__instance.view)
+                                  + "; view.transform="
+                                  + DescribeTransform(__instance.view == null ? null : __instance.view.transform)
+                                  + "; parentIsWindowView="
+                                  + (__instance.view != null && __result.transform.parent == __instance.view.transform)
+                                  + "; parentIsWindowViewComponent="
+                                  + (__result.transform.parent == __instance.view)
+                                  + "; isPrefab="
+                                  + __result.IsPrefab()
+                                  + ".");
+                }
+            }
+            catch (Exception ex)
+            {
+                _log?.LogWarning("Native Brilliant Questing journal content comparison skipped after SwitchContent: "
+                                 + ex.GetType().Name + ": " + ex.Message + ".");
             }
         }
 
@@ -179,10 +234,20 @@ namespace BrilliantQuesting.Plugin
             if (!_reportedContentMount)
             {
                 _reportedContentMount = true;
-                _log?.LogInfo("Native Brilliant Questing journal content mounted: parentIsWindowView="
-                              + (content.transform.parent == window.view)
+                _log?.LogInfo("Native Brilliant Questing journal content mounted after Util.Instantiate: parentIsWindowViewTransform="
+                              + (window.view != null && content.transform.parent == window.view.transform)
                               + "; isPrefab="
                               + content.IsPrefab()
+                              + "; content="
+                              + DescribeComponent(content)
+                              + "; parent="
+                              + DescribeTransform(content.transform.parent)
+                              + "; window.view="
+                              + DescribeComponent(window.view)
+                              + "; view.transform="
+                              + DescribeTransform(window.view == null ? null : window.view.transform)
+                              + "; parentIsWindowViewComponent="
+                              + (content.transform.parent == window.view)
                               + "; UIContent components="
                               + ContentComponentTypes(gameObject)
                               + ".");
@@ -418,6 +483,57 @@ namespace BrilliantQuesting.Plugin
         private static string TypeName(object value)
         {
             return value == null ? "null" : value.GetType().FullName;
+        }
+
+        private static string DescribeComponent(Component component)
+        {
+            if (component == null)
+            {
+                return "null";
+            }
+
+            return TypeName(component)
+                   + "[name="
+                   + component.name
+                   + ", id="
+                   + component.GetInstanceID()
+                   + "]";
+        }
+
+        private static string DescribeTransform(Transform transform)
+        {
+            if (transform == null)
+            {
+                return "null";
+            }
+
+            return TypeName(transform)
+                   + "[name="
+                   + transform.name
+                   + ", id="
+                   + transform.GetInstanceID()
+                   + ", path="
+                   + TransformPath(transform)
+                   + "]";
+        }
+
+        private static string TransformPath(Transform transform)
+        {
+            if (transform == null)
+            {
+                return "null";
+            }
+
+            List<string> names = new List<string>();
+            Transform current = transform;
+            while (current != null && names.Count < 12)
+            {
+                names.Add(current.name);
+                current = current.parent;
+            }
+
+            names.Reverse();
+            return string.Join("/", names.ToArray());
         }
 
         private static int ToInt(object value, int fallback)
