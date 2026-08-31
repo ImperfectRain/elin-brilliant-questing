@@ -32,6 +32,7 @@ namespace BrilliantQuesting.World
             Relationships = new RelationshipGraph();
             Threads = new List<NarrativeThread>();
             Absences = new AbsenceLedger();
+            Demands = new LocalDemandLedger();
             Rng = new DeterministicRng(worldSeed);
         }
 
@@ -63,6 +64,12 @@ namespace BrilliantQuesting.World
         /// <see cref="AbsenceLifecycle"/> is what puts records in and takes them out.
         /// </summary>
         public AbsenceLedger Absences { get; }
+
+        /// <summary>
+        /// Coarse local pressures such as Food, Medicine and Safety. These are persistent
+        /// narrative pressures over places, not a commodity simulator and not a quest counter.
+        /// </summary>
+        public LocalDemandLedger Demands { get; }
 
         /// <summary>World-level stream. Subsystems should Fork() rather than draw from this.</summary>
         public DeterministicRng Rng { get; }

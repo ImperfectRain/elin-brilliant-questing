@@ -205,6 +205,7 @@ namespace BrilliantQuesting.Actions.Library
 
             ActionOutcome outcome = new ActionOutcome(Id, null,
                 "You spend " + cost + " orens and buy " + spec.Describe() + " for " + context.NameOf(context.Target) + ".");
+            ActionSupport.RelieveDemand(context, demand, spec, outcome, 25, 2);
             outcome.Events.Add(context.World.Record(
                 WorldEventType.Helped,
                 context.Actor,

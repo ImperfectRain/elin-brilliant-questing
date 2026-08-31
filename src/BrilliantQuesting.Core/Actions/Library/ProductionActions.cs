@@ -400,6 +400,7 @@ namespace BrilliantQuesting.Actions.Library
         private void Settle(ActionContext context, Fact demand, ProductionSpec spec, ActionOutcome outcome, double magnitude)
         {
             demand.Truth = TruthState.Superseded;
+            ActionSupport.RelieveDemand(context, demand, spec, outcome, 35, 3);
             outcome.Events.Add(context.World.Record(
                 WorldEventType.Helped,
                 context.Actor,

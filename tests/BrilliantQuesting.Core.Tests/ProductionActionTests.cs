@@ -138,11 +138,17 @@ namespace BrilliantQuesting.Tests
         public void WorkingFromStockConsumesItAndFillsTheDemand()
         {
             ShortageLab lab = ShortageLab.Create();
+            LocalDemandPressure before = lab.Demand(LocalDemandCategory.Food);
+            int beforeSeverity = before.Severity;
+            GameTime beforeRelief = before.ExpectedReliefAt;
 
             ActionOutcome outcome = lab.Run("cook", lab.Village, lab.Reeve);
+            LocalDemandPressure after = lab.Demand(LocalDemandCategory.Food);
 
             Assert.True(outcome.Succeeded);
             Assert.Equal(TruthState.Superseded, lab.Fact(lab.Situation.BreadDemandId).Truth);
+            Assert.True(after.Severity < beforeSeverity);
+            Assert.True(after.ExpectedReliefAt < beforeRelief);
             Assert.Contains(outcome.Events, e => e.Type == WorldEventType.Helped && e.Target == lab.Reeve);
         }
 
@@ -209,6 +215,7 @@ namespace BrilliantQuesting.Tests
             Assert.Null(outcome.Check);
             Assert.True(lab.Vanilla.GetMoney(lab.Player) < before);
             Assert.Equal(TruthState.Superseded, lab.Fact(lab.Situation.BreadDemandId).Truth);
+            Assert.True(lab.Demand(LocalDemandCategory.Food).ExpectedReliefAt < GameTime.FromDays(10));
             Assert.Equal(TruthState.True, lab.Fact(lab.Situation.RemedyDemandId).Truth);
             Assert.Equal(TruthState.True, lab.Fact(lab.Situation.WheelDamageId).Truth);
             Assert.Equal(ThreadState.Active, lab.Situation.Thread.State);
@@ -245,6 +252,7 @@ namespace BrilliantQuesting.Tests
             Assert.True(lab.Vanilla.GetMoney(lab.Miller) > millerBefore);
             Assert.Equal(TruthState.Superseded, lab.Fact(lab.Situation.WheelDamageId).Truth);
             Assert.Equal(TruthState.Superseded, lab.Fact(lab.Situation.BreadDemandId).Truth);
+            Assert.True(lab.Demand(LocalDemandCategory.Food).ExpectedReliefAt < GameTime.FromDays(10));
             Assert.Equal(TruthState.True, lab.Fact(lab.Situation.RemedyDemandId).Truth);
             Assert.Equal(ThreadState.Active, lab.Situation.Thread.State);
             Assert.Contains(outcome.Events, e => e.Type == WorldEventType.Helped && e.Target == lab.Miller);
@@ -539,8 +547,12 @@ namespace BrilliantQuesting.Tests
 
             Fact bread = reloaded.Knowledge.GetFact(lab.Situation.BreadDemandId);
             Fact remedy = reloaded.Knowledge.GetFact(lab.Situation.RemedyDemandId);
+            LocalDemandPressure pressure = reloaded.Demands.Get(lab.Village, LocalDemandCategory.Medicine, lab.Situation.RemedyDemandId);
             Assert.Equal(TruthState.Superseded, bread.Truth);
             Assert.Equal(TruthState.True, remedy.Truth);
+            Assert.NotNull(pressure);
+            Assert.Equal(45, pressure.Severity);
+            Assert.Equal(GameTime.FromDays(4), pressure.ExpectedReliefAt);
 
             ProductionSpec spec = ProductionSpec.Parse(remedy.Value);
             Assert.Equal("medicine", spec.CategoryTag);
@@ -616,6 +628,11 @@ namespace BrilliantQuesting.Tests
             }
 
             public Fact Fact(EntityId id) => World.Knowledge.GetFact(id);
+
+            public LocalDemandPressure Demand(string category)
+            {
+                return World.Demands.Get(Village, category);
+            }
 
             public Fact SingleFact(string predicate)
             {

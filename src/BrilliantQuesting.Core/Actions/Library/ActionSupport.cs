@@ -355,12 +355,39 @@ namespace BrilliantQuesting.Actions.Library
                     && fact.Object == cause)
                 {
                     fact.Truth = TruthState.Superseded;
+                    RelieveDemand(context, fact, null, outcome, 45, 30);
                     outcome?.Notes.Add("no longer wanted: " + Describe(context, fact.Id));
                     closed++;
                 }
             }
 
             return closed;
+        }
+
+        public static void RelieveDemand(
+            ActionContext context,
+            Fact demand,
+            ProductionSpec spec,
+            ActionOutcome outcome,
+            int amount,
+            long days)
+        {
+            if (context == null || demand == null)
+            {
+                return;
+            }
+
+            string category = spec == null ? demand.Value : spec.CategoryTag;
+            EntityId place = context.Thread != null && context.Thread.SiteIds.Count > 0
+                ? context.Thread.SiteIds[0]
+                : context.Zone;
+
+            if (context.World.Demands.Relieve(place, category, demand.Id, amount, days, context.Now))
+            {
+                LocalDemandPressure pressure = context.World.Demands.Get(place, category, demand.Id);
+                outcome?.Notes.Add("local " + pressure.Category + " pressure now " + pressure.Severity
+                    + ", expected relief " + pressure.ExpectedReliefAt);
+            }
         }
 
         public static string Describe(ActionContext context, EntityId factId)

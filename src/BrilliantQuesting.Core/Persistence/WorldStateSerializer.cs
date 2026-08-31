@@ -62,6 +62,7 @@ namespace BrilliantQuesting.Persistence
             root.Set("relationships", RelationshipsToJson(world));
             root.Set("threads", ThreadsToJson(world));
             root.Set("absences", AbsencesToJson(world));
+            root.Set("demands", DemandsToJson(world));
             return root;
         }
 
@@ -108,6 +109,7 @@ namespace BrilliantQuesting.Persistence
             ReadRelationships(world, root);
             ReadThreads(world, root);
             ReadAbsences(world, root);
+            ReadDemands(world, root);
             return world;
         }
 
@@ -179,6 +181,23 @@ namespace BrilliantQuesting.Persistence
                     .Set("expectedReturn", absence.ExpectedReturn.TotalMinutes)
                     .Set("awayZone", absence.AwayZoneId.Value)
                     .Set("homeZone", absence.HomeZoneId.Value));
+            }
+
+            return array;
+        }
+
+        private static JsonValue DemandsToJson(NarrativeWorldState world)
+        {
+            JsonValue array = JsonValue.Array();
+            foreach (LocalDemandPressure pressure in world.Demands.Pressures)
+            {
+                array.Add(JsonValue.Object()
+                    .Set("place", pressure.PlaceId.Value)
+                    .Set("category", pressure.Category)
+                    .Set("severity", pressure.Severity)
+                    .Set("began", pressure.BeganAt.TotalMinutes)
+                    .Set("expectedRelief", pressure.ExpectedReliefAt.TotalMinutes)
+                    .Set("sourceFact", pressure.SourceFactId.Value));
             }
 
             return array;
@@ -435,6 +454,20 @@ namespace BrilliantQuesting.Persistence
                     new GameTime(json.GetLong("expectedReturn", ActorAbsence.NoScheduledReturn.TotalMinutes)),
                     EntityId.Parse(json.GetString("awayZone")),
                     EntityId.Parse(json.GetString("homeZone"))));
+            }
+        }
+
+        private static void ReadDemands(NarrativeWorldState world, JsonValue root)
+        {
+            foreach (JsonValue json in root.GetArray("demands"))
+            {
+                world.Demands.Restore(new LocalDemandPressure(
+                    EntityId.Parse(json.GetString("place")),
+                    json.GetString("category"),
+                    json.GetInt("severity"),
+                    new GameTime(json.GetLong("began")),
+                    new GameTime(json.GetLong("expectedRelief")),
+                    EntityId.Parse(json.GetString("sourceFact"))));
             }
         }
 

@@ -150,6 +150,7 @@ namespace BrilliantQuesting.Situations
                 Bread.ToFactValue(), TruthState.True);
             world.Knowledge.AddFact(bread);
             situation.BreadDemandId = bread.Id;
+            world.Demands.AddOrUpdate(village, Bread.CategoryTag, 65, now, now.PlusDays(10), bread.Id);
 
             // The child's fever has no broken machine behind it, so there is nothing to mend and
             // the only route is the compounding itself.
@@ -158,6 +159,7 @@ namespace BrilliantQuesting.Situations
                 Remedy.ToFactValue(), TruthState.True);
             world.Knowledge.AddFact(remedy);
             situation.RemedyDemandId = remedy.Id;
+            world.Demands.AddOrUpdate(village, Remedy.CategoryTag, 45, now, now.PlusDays(4), remedy.Id);
 
             // -- who knows what ---------------------------------------------------------------
             // All of it is common knowledge. A village does not keep quiet about having no bread,
