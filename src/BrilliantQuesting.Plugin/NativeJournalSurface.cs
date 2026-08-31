@@ -146,7 +146,10 @@ namespace BrilliantQuesting.Plugin
                 return null;
             }
 
-            GameObject clone = UnityEngine.Object.Instantiate(template.gameObject);
+            GameObject clone = UnityEngine.Object.Instantiate(
+                template.gameObject,
+                template.transform.parent,
+                false);
             clone.name = "BrilliantQuestingJournalContent";
             clone.SetActive(false);
 
@@ -173,7 +176,8 @@ namespace BrilliantQuesting.Plugin
             BrilliantQuestingJournalContent content = clone.AddComponent<BrilliantQuestingJournalContent>();
             ApplyFields(content, copied);
             _log?.LogInfo("Native Brilliant Questing journal clone UIContent components after setup: "
-                          + ContentComponentTypes(clone) + ".");
+                          + ContentComponentTypes(clone) + "; parent "
+                          + TypeName(clone.transform.parent) + ".");
             return content;
         }
 
