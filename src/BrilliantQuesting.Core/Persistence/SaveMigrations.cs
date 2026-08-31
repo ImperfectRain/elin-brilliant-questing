@@ -16,6 +16,7 @@ namespace BrilliantQuesting.Persistence
         static SaveMigrations()
         {
             Register(1, MigratePersonalityWeightsToBehavioralDimensions);
+            Register(2, AddProblemSolvingProfiles);
         }
 
         /// <summary>Registers an upgrade from <paramref name="fromVersion"/> to the next version.</summary>
@@ -95,6 +96,38 @@ namespace BrilliantQuesting.Persistence
             }
 
             return root.Set("schemaVersion", 2);
+        }
+
+        private static JsonValue AddProblemSolvingProfiles(JsonValue root)
+        {
+            foreach (JsonValue npc in root.GetArray("npcs"))
+            {
+                if (npc["problemSolving"] == null)
+                {
+                    npc.Set("problemSolving", NeutralProblemSolvingProfile());
+                }
+            }
+
+            return root.Set("schemaVersion", 3);
+        }
+
+        private static JsonValue NeutralProblemSolvingProfile()
+        {
+            return JsonValue.Object()
+                .Set("confront", 0.5)
+                .Set("avoid", 0.5)
+                .Set("askAuthority", 0.5)
+                .Set("askFriends", 0.5)
+                .Set("paySomeone", 0.5)
+                .Set("doItSelf", 0.5)
+                .Set("manipulate", 0.5)
+                .Set("useViolence", 0.5)
+                .Set("seekGuild", 0.5)
+                .Set("seekReligiousHelp", 0.5)
+                .Set("wait", 0.5)
+                .Set("flee", 0.5)
+                .Set("publicize", 0.5)
+                .Set("conceal", 0.5);
         }
     }
 }

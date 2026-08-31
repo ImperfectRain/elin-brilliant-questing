@@ -264,7 +264,7 @@ namespace BrilliantQuesting.Tests
         {
             TheftLaboratory lab = PlayedScenario();
             JsonValue root = WorldStateSerializer.ToJson(lab.World);
-            string tampered = root.ToJson().Replace("\"schemaVersion\":2", "\"schemaVersion\":99");
+            string tampered = root.ToJson().Replace("\"schemaVersion\":3", "\"schemaVersion\":99");
 
             Assert.Throws<NotSupportedException>(() => WorldStateSerializer.Load(tampered));
         }
@@ -300,6 +300,23 @@ namespace BrilliantQuesting.Tests
             Assert.DoesNotContain("\"courage\"", json);
             Assert.DoesNotContain("\"greed\"", json);
             Assert.DoesNotContain("\"ambition\"", json);
+        }
+
+        [Fact]
+        public void ProblemSolvingStyleIsPersistedAsDurableCharacterIdentity()
+        {
+            NarrativeWorldState world = new NarrativeWorldState(42);
+            NarrativeNpc npc = world.Registry.Add(new NarrativeNpc(EntityId.Parse("npc_00000001"), "Mira"));
+            npc.ProblemSolving.AskAuthority = 0.9;
+            npc.ProblemSolving.Manipulate = 0.1;
+            npc.ProblemSolving.SeekReligiousHelp = 0.7;
+
+            NarrativeWorldState reloaded = WorldStateSerializer.Load(WorldStateSerializer.Save(world, indented: false));
+            NarrativeNpc loaded = reloaded.Registry.GetNpc(npc.Id);
+
+            Assert.Equal(0.9, loaded.ProblemSolving.AskAuthority, 4);
+            Assert.Equal(0.1, loaded.ProblemSolving.Manipulate, 4);
+            Assert.Equal(0.7, loaded.ProblemSolving.SeekReligiousHelp, 4);
         }
 
         [Fact]
@@ -339,7 +356,7 @@ namespace BrilliantQuesting.Tests
             NarrativeWorldState migrated = WorldStateSerializer.Load(oldRoot.ToJson(indented: false));
             NarrativeNpc npc = migrated.Registry.GetNpc(EntityId.Parse("npc_00000001"));
 
-            Assert.Equal(2, migrated.SchemaVersion);
+            Assert.Equal(3, migrated.SchemaVersion);
             Assert.Equal(0.6, npc.Personality.Boldness, 4);
             Assert.Equal(0.2, npc.Personality.Warmth, 4);
             Assert.Equal(0.2, npc.Personality.Generosity, 4);
@@ -352,6 +369,7 @@ namespace BrilliantQuesting.Tests
 
             string rewritten = WorldStateSerializer.Save(migrated, indented: false);
             Assert.Contains("\"boldness\"", rewritten);
+            Assert.Contains("\"problemSolving\"", rewritten);
             Assert.DoesNotContain("\"courage\"", rewritten);
             Assert.DoesNotContain("\"greed\"", rewritten);
         }

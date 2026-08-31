@@ -126,6 +126,7 @@ namespace BrilliantQuesting.Persistence
             foreach (NarrativeNpc npc in world.Registry.Npcs.Values)
             {
                 JsonValue personality = PersonalityToJson(npc.Personality);
+                JsonValue problemSolving = ProblemSolvingToJson(npc.ProblemSolving);
 
                 JsonValue goals = JsonValue.Array();
                 foreach (NpcGoal goal in npc.Goals)
@@ -148,6 +149,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("alive", npc.Alive)
                     .Set("lastSimulated", npc.LastSimulatedAt.TotalMinutes)
                     .Set("personality", personality)
+                    .Set("problemSolving", problemSolving)
                     .Set("goals", goals)
                     .Set("organizations", Ids(npc.OrganizationIds)));
             }
@@ -469,6 +471,12 @@ namespace BrilliantQuesting.Persistence
                 if (personality != null)
                 {
                     ReadPersonality(npc.Personality, personality);
+                }
+
+                JsonValue problemSolving = json["problemSolving"];
+                if (problemSolving != null)
+                {
+                    ReadProblemSolving(npc.ProblemSolving, problemSolving);
                 }
 
                 foreach (JsonValue goalJson in json.GetArray("goals"))
@@ -838,6 +846,43 @@ namespace BrilliantQuesting.Persistence
             target.Curiosity = personality.GetNumber("curiosity", 0.5);
             target.Conventionality = personality.GetNumber("conventionality", 0.5);
             target.StatusBlindness = personality.GetNumber("statusBlindness", 0.5);
+        }
+
+        private static JsonValue ProblemSolvingToJson(ProblemSolvingProfile profile)
+        {
+            return JsonValue.Object()
+                .Set("confront", profile.Confront)
+                .Set("avoid", profile.Avoid)
+                .Set("askAuthority", profile.AskAuthority)
+                .Set("askFriends", profile.AskFriends)
+                .Set("paySomeone", profile.PaySomeone)
+                .Set("doItSelf", profile.DoItSelf)
+                .Set("manipulate", profile.Manipulate)
+                .Set("useViolence", profile.UseViolence)
+                .Set("seekGuild", profile.SeekGuild)
+                .Set("seekReligiousHelp", profile.SeekReligiousHelp)
+                .Set("wait", profile.Wait)
+                .Set("flee", profile.Flee)
+                .Set("publicize", profile.Publicize)
+                .Set("conceal", profile.Conceal);
+        }
+
+        private static void ReadProblemSolving(ProblemSolvingProfile target, JsonValue profile)
+        {
+            target.Confront = profile.GetNumber("confront", 0.5);
+            target.Avoid = profile.GetNumber("avoid", 0.5);
+            target.AskAuthority = profile.GetNumber("askAuthority", 0.5);
+            target.AskFriends = profile.GetNumber("askFriends", 0.5);
+            target.PaySomeone = profile.GetNumber("paySomeone", 0.5);
+            target.DoItSelf = profile.GetNumber("doItSelf", 0.5);
+            target.Manipulate = profile.GetNumber("manipulate", 0.5);
+            target.UseViolence = profile.GetNumber("useViolence", 0.5);
+            target.SeekGuild = profile.GetNumber("seekGuild", 0.5);
+            target.SeekReligiousHelp = profile.GetNumber("seekReligiousHelp", 0.5);
+            target.Wait = profile.GetNumber("wait", 0.5);
+            target.Flee = profile.GetNumber("flee", 0.5);
+            target.Publicize = profile.GetNumber("publicize", 0.5);
+            target.Conceal = profile.GetNumber("conceal", 0.5);
         }
 
         private static JsonValue Strings(IReadOnlyList<string> values)
