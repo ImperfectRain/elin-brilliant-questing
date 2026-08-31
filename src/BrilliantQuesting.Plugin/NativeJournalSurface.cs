@@ -26,6 +26,11 @@ namespace BrilliantQuesting.Plugin
         private static ManualLogSource _log;
         private static NarrativeWorldState _world;
         private static ElinVanillaState _vanilla;
+        private static bool _reportedTemplateContent;
+        private static bool _reportedContentLifecycleInstantiate;
+        private static bool _reportedContentLifecycleSwitch;
+        private static bool _reportedContentRefresh;
+        private static bool _reportedContentBuilt;
 
         internal static bool UseDialogueFallback => !_patchesAvailable || _disabled;
 
@@ -121,7 +126,10 @@ namespace BrilliantQuesting.Plugin
                 }
 
                 __instance.AddTab(TabId, content, null, null, TabId);
-                _log?.LogInfo("Native Brilliant Questing journal tab added to LayerJournal window " + __instance.GetInstanceID() + ".");
+                object stored = BrilliantQuestingTabContent(__instance);
+                _log?.LogInfo("Native Brilliant Questing journal tab added to LayerJournal window "
+                              + __instance.GetInstanceID() + "; stored content "
+                              + TypeName(stored) + ".");
             }
             catch (Exception ex)
             {
@@ -143,17 +151,29 @@ namespace BrilliantQuesting.Plugin
             clone.SetActive(false);
 
             UIContent clonedTemplate = clone.GetComponent<UIContent>();
-            BrilliantQuestingJournalContent content = clone.AddComponent<BrilliantQuestingJournalContent>();
-            if (clonedTemplate != null)
+            if (!_reportedTemplateContent)
             {
-                content.target = clonedTemplate.target;
-                content.prof = clonedTemplate.prof;
-                content.skinType = clonedTemplate.skinType;
-                content.idDefaultText = clonedTemplate.idDefaultText;
-                content.layout = clonedTemplate.layout;
-                UnityEngine.Object.Destroy(clonedTemplate);
+                _reportedTemplateContent = true;
+                _log?.LogInfo("Native Brilliant Questing journal content template type: "
+                              + TypeName(template) + ".");
             }
 
+            Dictionary<string, object> copied = CopyFields(
+                clonedTemplate,
+                "target",
+                "prof",
+                "skinType",
+                "idDefaultText",
+                "layout");
+            if (clonedTemplate != null)
+            {
+                UnityEngine.Object.DestroyImmediate(clonedTemplate);
+            }
+
+            BrilliantQuestingJournalContent content = clone.AddComponent<BrilliantQuestingJournalContent>();
+            ApplyFields(content, copied);
+            _log?.LogInfo("Native Brilliant Questing journal clone UIContent components after setup: "
+                          + ContentComponentTypes(clone) + ".");
             return content;
         }
 
@@ -227,6 +247,27 @@ namespace BrilliantQuesting.Plugin
             return false;
         }
 
+        private static object BrilliantQuestingTabContent(Window window)
+        {
+            object setting = ReadField(window, "setting");
+            IList tabs = ReadField(setting, "tabs") as IList;
+            if (tabs == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < tabs.Count; i++)
+            {
+                object tab = tabs[i];
+                if (StringValue(ReadField(tab, "idLang")) == TabId)
+                {
+                    return ReadField(tab, "content");
+                }
+            }
+
+            return null;
+        }
+
         private static bool IsJournal(Window window)
         {
             return IsJournal(window, null);
@@ -296,9 +337,73 @@ namespace BrilliantQuesting.Plugin
             return field == null ? null : field.GetValue(instance);
         }
 
+        private static Dictionary<string, object> CopyFields(object instance, params string[] names)
+        {
+            Dictionary<string, object> values = new Dictionary<string, object>();
+            if (instance == null || names == null)
+            {
+                return values;
+            }
+
+            for (int i = 0; i < names.Length; i++)
+            {
+                FieldInfo field = AccessTools.Field(instance.GetType(), names[i]);
+                if (field != null)
+                {
+                    values[names[i]] = field.GetValue(instance);
+                }
+            }
+
+            return values;
+        }
+
+        private static void ApplyFields(object instance, Dictionary<string, object> values)
+        {
+            if (instance == null || values == null)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<string, object> pair in values)
+            {
+                FieldInfo field = AccessTools.Field(instance.GetType(), pair.Key);
+                if (field != null)
+                {
+                    field.SetValue(instance, pair.Value);
+                }
+            }
+        }
+
         private static string StringValue(object value)
         {
             return value == null ? string.Empty : value.ToString();
+        }
+
+        private static string ContentComponentTypes(GameObject gameObject)
+        {
+            if (gameObject == null)
+            {
+                return "none";
+            }
+
+            UIContent[] contents = gameObject.GetComponents<UIContent>();
+            if (contents == null || contents.Length == 0)
+            {
+                return "none";
+            }
+
+            List<string> names = new List<string>();
+            for (int i = 0; i < contents.Length; i++)
+            {
+                names.Add(TypeName(contents[i]));
+            }
+
+            return string.Join(", ", names.ToArray());
+        }
+
+        private static string TypeName(object value)
+        {
+            return value == null ? "null" : value.GetType().FullName;
         }
 
         private static int ToInt(object value, int fallback)
@@ -322,16 +427,34 @@ namespace BrilliantQuesting.Plugin
         {
             public override void OnInstantiate()
             {
+                if (!_reportedContentLifecycleInstantiate)
+                {
+                    _reportedContentLifecycleInstantiate = true;
+                    _log?.LogInfo("Native Brilliant Questing journal content OnInstantiate invoked.");
+                }
+
                 Refresh();
             }
 
             public override void OnSwitchContent(int idTab)
             {
+                if (!_reportedContentLifecycleSwitch)
+                {
+                    _reportedContentLifecycleSwitch = true;
+                    _log?.LogInfo("Native Brilliant Questing journal content OnSwitchContent invoked for tab " + idTab + ".");
+                }
+
                 Refresh();
             }
 
             private void Refresh()
             {
+                if (!_reportedContentRefresh)
+                {
+                    _reportedContentRefresh = true;
+                    _log?.LogInfo("Native Brilliant Questing journal content Refresh invoked.");
+                }
+
                 Clear();
                 AddHeader("Brilliant Questing", null);
 
@@ -350,6 +473,14 @@ namespace BrilliantQuesting.Plugin
                 AddKnownClaims(world, player);
                 AddResolvedMatters(world, player);
                 Build();
+                if (!_reportedContentBuilt)
+                {
+                    _reportedContentBuilt = true;
+                    _log?.LogInfo("Native Brilliant Questing journal content Build completed with "
+                                  + world.Registry.Npcs.Count + " people, "
+                                  + world.Ledger.Count + " events, "
+                                  + world.Threads.Count + " thread(s).");
+                }
             }
 
             private void AddActiveMatters(NarrativeWorldState world, EntityId player)
