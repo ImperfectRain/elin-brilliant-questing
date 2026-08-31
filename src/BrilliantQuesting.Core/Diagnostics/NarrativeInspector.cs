@@ -160,6 +160,40 @@ namespace BrilliantQuesting.Diagnostics
             return sb.ToString();
         }
 
+        public static string DescribeGoalFormation(NarrativeWorldState world, GoalFormationTrace trace)
+        {
+            if (trace == null)
+            {
+                return "goal formation: none\n";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("goal formation for ").Append(world.Registry.NameOf(trace.ActorId)).Append('\n');
+            sb.Append("  world state: ").Append(trace.Problem).Append('\n');
+            sb.Append("  need: ").Append(trace.Need).Append(" pressure ")
+              .Append(trace.NeedPressure.ToString("0.00")).Append('\n');
+            sb.Append("  values and sensitivities: value ").Append(trace.ValueConcern)
+              .Append(" drives desire; action scores include sensitivity terms below\n");
+            sb.Append("  desire: ").Append(trace.Desire).Append('\n');
+            sb.Append("  candidate goal: ").Append(trace.CandidateGoal).Append('\n');
+            sb.Append("  candidate actions:\n");
+            foreach (GoalActionTrace action in trace.CandidateActions)
+            {
+                sb.Append(action == trace.ChosenAction ? "    [chosen] " : "             ");
+                sb.Append(action.Action).Append(" -> ").Append(action.Outcome)
+                  .Append(" via ").Append(action.Style).Append(" score ")
+                  .Append(action.Score.ToString("0.00")).Append('\n');
+                for (int i = 0; i < action.ScoreTerms.Count; i++)
+                {
+                    sb.Append("      - ").Append(action.ScoreTerms[i]).Append('\n');
+                }
+            }
+
+            sb.Append("  chosen action: ").Append(trace.ChosenAction.Action)
+              .Append(" -> ").Append(trace.ChosenAction.Outcome).Append('\n');
+            return sb.ToString();
+        }
+
         private static void AppendValue(StringBuilder sb, string name, ValueConcernProfile value)
         {
             sb.Append(' ').Append(name).Append("(i ")
@@ -344,7 +378,7 @@ namespace BrilliantQuesting.Diagnostics
             }
 
             sb.Append("\n-- questions whose systems do not exist yet --\n");
-            sb.Append("  why did an NPC choose an action?      not simulated; NPC autonomy arrives at BQ-093.\n");
+            sb.Append("  why did an autonomous NPC embody an action? not simulated; NPC autonomy arrives at BQ-093.\n");
             sb.Append("  why did a shop close or NPC vanish?   not simulated; continuity arrives at BQ-051, BQ-032.\n");
             sb.Append("  why was a site selected or generated? not simulated; sites arrive at BQ-087 onward.\n");
             sb.Append("  why did this person choose to tell you? not decided; disclosure arrives at BQ-071.\n");

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
 
 namespace BrilliantQuesting.World
@@ -83,6 +84,16 @@ namespace BrilliantQuesting.World
 
         public static MissingGoatDecision Choose(NarrativeNpc actor, MissingGoatProblem problem)
         {
+            GoalFormationTrace trace = Trace(actor, problem, EntityId.None);
+            return new MissingGoatDecision(
+                trace.ChosenAction.Style,
+                (MissingGoatResponse)Enum.Parse(typeof(MissingGoatResponse), trace.ChosenAction.Outcome),
+                trace.ChosenAction.Score,
+                trace.CandidateGoal);
+        }
+
+        public static GoalFormationTrace Trace(NarrativeNpc actor, MissingGoatProblem problem, EntityId subject)
+        {
             if (actor == null)
             {
                 throw new ArgumentNullException(nameof(actor));
@@ -93,19 +104,39 @@ namespace BrilliantQuesting.World
                 throw new ArgumentNullException(nameof(problem));
             }
 
-            Candidate best = Candidates[0];
-            double bestScore = Score(actor, problem, best.Style);
+            ValueConcern concern = DominantConcern(actor, problem);
+            NarrativeNeed need = NeedFor(concern);
+            double pressure = Pressure(actor, problem, concern);
+
+            int bestIndex = 0;
+            ScoreBreakdown bestScore = Score(actor, problem, Candidates[0].Style);
+            List<GoalActionTrace> actions = new List<GoalActionTrace>();
+            actions.Add(ActionTrace(Candidates[0], bestScore));
+
             for (int i = 1; i < Candidates.Length; i++)
             {
-                double score = Score(actor, problem, Candidates[i].Style);
-                if (score > bestScore)
+                ScoreBreakdown score = Score(actor, problem, Candidates[i].Style);
+                actions.Add(ActionTrace(Candidates[i], score));
+                if (score.Total > bestScore.Total)
                 {
-                    best = Candidates[i];
+                    bestIndex = i;
                     bestScore = score;
                 }
             }
 
-            return new MissingGoatDecision(best.Style, best.Response, bestScore, PreviewGoal(actor, problem, EntityId.None));
+            GoalActionTrace chosen = actions[bestIndex];
+            GoalFormationTrace trace = new GoalFormationTrace(
+                actor.Id,
+                ProblemSummary(problem),
+                need,
+                concern,
+                pressure,
+                "answer " + NeedName(need) + " pressure caused by " + ConcernName(concern),
+                PreviewGoal(actor, problem, subject),
+                chosen);
+
+            trace.CandidateActions.AddRange(actions);
+            return trace;
         }
 
         public static NpcGoal FormGoal(NarrativeNpc actor, MissingGoatProblem problem, EntityId subject)
@@ -154,46 +185,80 @@ namespace BrilliantQuesting.World
             return new NpcGoal(GoalKindFor(concern, need), subject, weight, reason);
         }
 
-        private static double Score(NarrativeNpc actor, MissingGoatProblem problem, ProblemSolvingStyle style)
+        private static ScoreBreakdown Score(NarrativeNpc actor, MissingGoatProblem problem, ProblemSolvingStyle style)
         {
-            double score = actor.ProblemSolving.Get(style);
+            ScoreBreakdown score = new ScoreBreakdown();
+            score.Add("style preference " + style, actor.ProblemSolving.Get(style));
             PersonalityWeights personality = actor.Personality;
             SensitivityProfile sensitivities = actor.Sensitivities;
             ContradictionProfile contradiction = actor.Contradiction;
             switch (style)
             {
                 case ProblemSolvingStyle.AskAuthority:
-                    return score + (personality.Orderliness * 0.2) + (personality.Trust * 0.1)
-                        + If(problem.ThreatensStatus, sensitivities.Status * 0.15)
-                        + ContradictionBias(contradiction, problem, style);
+                    score.Add("personality orderliness", personality.Orderliness * 0.2);
+                    score.Add("personality trust", personality.Trust * 0.1);
+                    score.Add("sensitivity status", If(problem.ThreatensStatus, sensitivities.Status * 0.15));
+                    score.Add("contradiction", ContradictionBias(contradiction, problem, style));
+                    return score;
                 case ProblemSolvingStyle.AskFriends:
-                    return score + (personality.Warmth * 0.2) + (personality.Trust * 0.1)
-                        + If(problem.IsAnimalAtRisk, sensitivities.Animals * 0.35)
-                        + ContradictionBias(contradiction, problem, style);
+                    score.Add("personality warmth", personality.Warmth * 0.2);
+                    score.Add("personality trust", personality.Trust * 0.1);
+                    score.Add("sensitivity animals", If(problem.IsAnimalAtRisk, sensitivities.Animals * 0.35));
+                    score.Add("contradiction", ContradictionBias(contradiction, problem, style));
+                    return score;
                 case ProblemSolvingStyle.PaySomeone:
-                    return score + (personality.Generosity * 0.2) + (personality.Patience * 0.1)
-                        + If(problem.IsAnimalAtRisk, sensitivities.Animals * 0.2)
-                        + ContradictionBias(contradiction, problem, style);
+                    score.Add("personality generosity", personality.Generosity * 0.2);
+                    score.Add("personality patience", personality.Patience * 0.1);
+                    score.Add("sensitivity animals", If(problem.IsAnimalAtRisk, sensitivities.Animals * 0.2));
+                    score.Add("contradiction", ContradictionBias(contradiction, problem, style));
+                    return score;
                 case ProblemSolvingStyle.Manipulate:
-                    return score + ((1.0 - personality.Honesty) * 0.25) + ((1.0 - personality.Humility) * 0.05)
-                        + If(problem.ThreatensStatus, sensitivities.Status * 0.3)
-                        + If(problem.IsPubliclyEmbarrassing, sensitivities.PublicEmbarrassment * 0.2)
-                        + ContradictionBias(contradiction, problem, style);
+                    score.Add("personality low honesty", (1.0 - personality.Honesty) * 0.25);
+                    score.Add("personality low humility", (1.0 - personality.Humility) * 0.05);
+                    score.Add("sensitivity status", If(problem.ThreatensStatus, sensitivities.Status * 0.3));
+                    score.Add("sensitivity public embarrassment", If(problem.IsPubliclyEmbarrassing, sensitivities.PublicEmbarrassment * 0.2));
+                    score.Add("contradiction", ContradictionBias(contradiction, problem, style));
+                    return score;
                 case ProblemSolvingStyle.Conceal:
-                    return score + ((1.0 - personality.Honesty) * 0.15) + ((1.0 - personality.Generosity) * 0.15)
-                        + If(problem.IsPubliclyEmbarrassing, sensitivities.PublicEmbarrassment * 0.3)
-                        + ContradictionBias(contradiction, problem, style);
+                    score.Add("personality low honesty", (1.0 - personality.Honesty) * 0.15);
+                    score.Add("personality low generosity", (1.0 - personality.Generosity) * 0.15);
+                    score.Add("sensitivity public embarrassment", If(problem.IsPubliclyEmbarrassing, sensitivities.PublicEmbarrassment * 0.3));
+                    score.Add("contradiction", ContradictionBias(contradiction, problem, style));
+                    return score;
                 case ProblemSolvingStyle.SeekReligiousHelp:
-                    return score + (personality.Conventionality * 0.2) + (personality.Patience * 0.1)
-                        + ContradictionBias(contradiction, problem, style);
+                    score.Add("personality conventionality", personality.Conventionality * 0.2);
+                    score.Add("personality patience", personality.Patience * 0.1);
+                    score.Add("contradiction", ContradictionBias(contradiction, problem, style));
+                    return score;
                 case ProblemSolvingStyle.Wait:
-                    return score + (personality.Patience * 0.2) + ((1.0 - personality.Boldness) * 0.1)
-                        - If(problem.IsAnimalAtRisk, sensitivities.Animals * 0.2)
-                        - If(problem.IsPubliclyEmbarrassing, sensitivities.PublicEmbarrassment * 0.1)
-                        + ContradictionBias(contradiction, problem, style);
+                    score.Add("personality patience", personality.Patience * 0.2);
+                    score.Add("personality low boldness", (1.0 - personality.Boldness) * 0.1);
+                    score.Add("sensitivity animals", -If(problem.IsAnimalAtRisk, sensitivities.Animals * 0.2));
+                    score.Add("sensitivity public embarrassment", -If(problem.IsPubliclyEmbarrassing, sensitivities.PublicEmbarrassment * 0.1));
+                    score.Add("contradiction", ContradictionBias(contradiction, problem, style));
+                    return score;
                 default:
-                    return score + ContradictionBias(contradiction, problem, style);
+                    score.Add("contradiction", ContradictionBias(contradiction, problem, style));
+                    return score;
             }
+        }
+
+        private static GoalActionTrace ActionTrace(Candidate candidate, ScoreBreakdown score)
+        {
+            return new GoalActionTrace(
+                candidate.Style,
+                "missing_goat." + candidate.Style,
+                candidate.Response.ToString(),
+                score.Total,
+                score.Terms);
+        }
+
+        private static string ProblemSummary(MissingGoatProblem problem)
+        {
+            return "missing_goat animal_at_risk=" + problem.IsAnimalAtRisk
+                   + " public_embarrassment=" + problem.IsPubliclyEmbarrassing
+                   + " threatens_status=" + problem.ThreatensStatus
+                   + " threatens_family=" + problem.ThreatensFamily;
         }
 
         private static ValueConcern DominantConcern(NarrativeNpc actor, MissingGoatProblem problem)
@@ -369,6 +434,21 @@ namespace BrilliantQuesting.World
             public ProblemSolvingStyle Style { get; }
 
             public MissingGoatResponse Response { get; }
+        }
+
+        private sealed class ScoreBreakdown
+        {
+            private readonly List<string> _terms = new List<string>();
+
+            public IReadOnlyList<string> Terms => _terms;
+
+            public double Total { get; private set; }
+
+            public void Add(string name, double value)
+            {
+                Total += value;
+                _terms.Add(name + " " + value.ToString("0.00"));
+            }
         }
     }
 }

@@ -95,6 +95,38 @@ namespace BrilliantQuesting.Tests
             Assert.Contains("threatened value animals", report);
         }
 
+        [Fact]
+        public void GoalFormationTraceShowsEveryLinkToTheChosenAction()
+        {
+            NarrativeWorldState world = new NarrativeWorldState(62);
+            SandboxVanillaState vanilla = new SandboxVanillaState(EntityId.Parse("player"));
+            NarrativeNpc caretaker = NeutralActor("caretaker");
+            caretaker.Values.Animals.Importance = 1.0;
+            caretaker.Values.Animals.Flexibility = 0.0;
+            caretaker.Sensitivities.Animals = 1.0;
+            caretaker.Personality.Warmth = 1.0;
+            caretaker.ProblemSolving.AskFriends = 0.9;
+            world.Registry.Add(caretaker);
+            vanilla.Define(caretaker.Id);
+
+            GoalFormationTrace trace = MissingGoatProblemSolver.Trace(
+                caretaker,
+                MissingGoatProblem.OrdinaryLoss,
+                EntityId.Parse("goat"));
+            string report = NarrativeInspector.DescribeGoalFormation(world, trace);
+
+            Assert.Equal(ProblemSolvingStyle.AskFriends, trace.ChosenAction.Style);
+            Assert.Contains("world state: missing_goat", report);
+            Assert.Contains("need: Protection", report);
+            Assert.Contains("values and sensitivities: value Animals", report);
+            Assert.Contains("desire: answer protection pressure", report);
+            Assert.Contains("candidate goal: protect_animal(goat)", report);
+            Assert.Contains("candidate actions:", report);
+            Assert.Contains("personality warmth", report);
+            Assert.Contains("sensitivity animals", report);
+            Assert.Contains("chosen action: missing_goat.AskFriends -> AskNeighbors", report);
+        }
+
         private static NarrativeNpc Actor(string key, ProblemSolvingStyle favoredStyle)
         {
             NarrativeNpc npc = new NarrativeNpc(EntityId.Parse("npc_" + key), key);
