@@ -108,6 +108,25 @@ namespace BrilliantQuesting.Knowledge
         public const string BlocksAccessTo = "blocks_access_to";
 
         /// <summary>
+        /// A damaged plant or field reads as a cultivation problem to somebody whose work is tied
+        /// to growing things. It is an interpretation of evidence, not a replacement for the
+        /// original fact that the crop is damaged.
+        /// </summary>
+        public const string HasSoilTrouble = "has_soil_trouble";
+
+        /// <summary>
+        /// A damaged object, body or crop reads as contamination to somebody with an alchemical
+        /// or medical frame. The same physical evidence may still support other local readings.
+        /// </summary>
+        public const string IsContaminated = "is_contaminated";
+
+        /// <summary>
+        /// A damaged object or crop reads as possible hostile action to somebody whose local
+        /// frame is law, security or social order.
+        /// </summary>
+        public const string MayBeSabotaged = "may_be_sabotaged";
+
+        /// <summary>
         /// Somebody is not safe where they are. Subject is the person, object is whoever or
         /// whatever they are not safe from (nobody, when the danger has no face), and
         /// <see cref="Fact.Value"/> says what kind of exposure it is - a witness, a refugee, a

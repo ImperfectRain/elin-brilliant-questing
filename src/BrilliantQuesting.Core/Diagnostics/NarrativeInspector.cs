@@ -205,6 +205,31 @@ namespace BrilliantQuesting.Diagnostics
             return sb.ToString();
         }
 
+        public static string DescribeInterpretation(NarrativeWorldState world, ActorInterpretationTrace trace)
+        {
+            if (trace == null)
+            {
+                return "interpretation: none\n";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("interpretation for ").Append(world.Registry.NameOf(trace.ActorId)).Append('\n');
+            sb.Append("  source: ").Append(trace.Source).Append(" [").Append(trace.SourceFactId).Append("]\n");
+            sb.Append("  lens: ").Append(trace.Lens).Append('\n');
+            sb.Append("  derived fact: ").Append(trace.DerivedPredicate.Replace('_', ' '))
+              .Append(" = ").Append(trace.DerivedValue).Append(" [")
+              .Append(trace.DerivedFactId).Append("]\n");
+            sb.Append("  confidence: ").Append(trace.Confidence.ToString("0.00"))
+              .Append(" via inference\n");
+            sb.Append("  score terms:\n");
+            for (int i = 0; i < trace.ScoreTerms.Count; i++)
+            {
+                sb.Append("    - ").Append(trace.ScoreTerms[i]).Append('\n');
+            }
+
+            return sb.ToString();
+        }
+
         private static void AppendValue(StringBuilder sb, string name, ValueConcernProfile value)
         {
             sb.Append(' ').Append(name).Append("(i ")
