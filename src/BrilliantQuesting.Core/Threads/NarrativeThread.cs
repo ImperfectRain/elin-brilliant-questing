@@ -41,6 +41,7 @@ namespace BrilliantQuesting.Threads
             FactIds = new List<EntityId>();
             OpenQuestions = new List<string>();
             GenerationCauses = new List<string>();
+            RecoveryRoutes = new List<RecoveryRoute>();
             Escalation = new List<EscalationStep>();
             CompletedSteps = new List<string>();
             StoryletFirings = new List<StoryletFiring>();
@@ -78,6 +79,12 @@ namespace BrilliantQuesting.Threads
         /// player knowledge and must not be projected as journal questions.
         /// </summary>
         public List<string> GenerationCauses { get; }
+
+        /// <summary>
+        /// Inspector-facing routes from an irreversible-looking loss back into play. These are
+        /// promises about existing verbs or vanilla systems, not quest objectives.
+        /// </summary>
+        public List<RecoveryRoute> RecoveryRoutes { get; }
 
         /// <summary>Scheduled deterioration. Milestones, not a countdown to failure.</summary>
         public List<EscalationStep> Escalation { get; }
@@ -129,6 +136,28 @@ namespace BrilliantQuesting.Threads
         {
             return ArchetypeId + " [" + State + ", tension " + Tension + ", " + CompletedSteps.Count + "/" + Escalation.Count + " steps]";
         }
+    }
+
+    public sealed class RecoveryRoute
+    {
+        public RecoveryRoute(string worstOutcome, string actionId, string price, string uncertainty, string restores)
+        {
+            WorstOutcome = worstOutcome ?? string.Empty;
+            ActionId = actionId ?? string.Empty;
+            Price = price ?? string.Empty;
+            Uncertainty = uncertainty ?? string.Empty;
+            Restores = restores ?? string.Empty;
+        }
+
+        public string WorstOutcome { get; }
+
+        public string ActionId { get; }
+
+        public string Price { get; }
+
+        public string Uncertainty { get; }
+
+        public string Restores { get; }
     }
 
     /// <summary>

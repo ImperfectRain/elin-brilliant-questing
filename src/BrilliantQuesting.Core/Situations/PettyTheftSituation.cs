@@ -180,6 +180,7 @@ namespace BrilliantQuesting.Situations
             thread.Escalation.Add(new EscalationStep("thief_deflects", 8, "The thief points at somebody else."));
             thread.Escalation.Add(new EscalationStep("accusation", 10, "The victim acts on what they believe."));
             thread.Escalation.Add(new EscalationStep("feud", 14, "The two households stop speaking."));
+            ArchetypeRecoveryRoutes.AddPettyTheft(thread);
 
             world.Threads.Add(thread);
             situation.Thread = thread;
@@ -305,6 +306,7 @@ namespace BrilliantQuesting.Situations
             thread.Escalation.Add(new EscalationStep("thief_deflects", 8, "The thief points at somebody else."));
             thread.Escalation.Add(new EscalationStep("accusation", 10, "The victim acts on what they believe."));
             thread.Escalation.Add(new EscalationStep("feud", 14, "The two households stop speaking."));
+            ArchetypeRecoveryRoutes.AddPettyTheft(thread);
 
             world.Threads.Add(thread);
             situation.Thread = thread;

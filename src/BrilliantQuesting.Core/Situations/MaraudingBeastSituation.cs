@@ -192,6 +192,7 @@ namespace BrilliantQuesting.Situations
             thread.OpenQuestions.Add("What is taking people on the Wick road?");
             thread.Escalation.Add(new EscalationStep("road_closes", 5, "Nothing moves on the Wick road."));
             thread.Escalation.Add(new EscalationStep("wickstead_empties", 14, "Wickstead starts to empty."));
+            ArchetypeRecoveryRoutes.AddRecognizedViolence(thread);
 
             world.Threads.Add(thread);
             situation.Thread = thread;

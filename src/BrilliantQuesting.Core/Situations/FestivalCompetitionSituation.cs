@@ -106,6 +106,7 @@ namespace BrilliantQuesting.Situations
             thread.OpenQuestions.Add("Who will win " + situation.ContestName + "?");
             thread.OpenQuestions.Add("Will the player outcook the locals?");
             thread.Escalation.Add(new EscalationStep("crowd_repeats_result", 2, "The town starts talking about the winner."));
+            ArchetypeRecoveryRoutes.AddFestivalCompetition(thread);
 
             world.Threads.Add(thread);
             situation.Thread = thread;

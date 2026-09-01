@@ -146,6 +146,7 @@ namespace BrilliantQuesting.Situations
             thread.SiteIds.Add(market);
             thread.OpenQuestions.Add("Who will the market believe stole the reliquary?");
             thread.OpenQuestions.Add("What proof survives the accusation?");
+            ArchetypeRecoveryRoutes.AddFalseAccusation(thread);
 
             world.Threads.Add(thread);
             situation.Thread = thread;

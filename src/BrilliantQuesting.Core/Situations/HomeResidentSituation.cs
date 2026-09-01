@@ -119,6 +119,7 @@ namespace BrilliantQuesting.Situations
             thread.GenerationCauses.Add(world.Registry.NameOf(resident.Id) + " is on the Home resident roll.");
             thread.GenerationCauses.Add("Home is at its food-supported capacity: " + home.ResidentCount + "/" + home.Capacity + " residents, fFood " + food + ".");
             thread.Escalation.Add(new EscalationStep("household_pressure_mounts", 5, "The household's capacity pressure worsens."));
+            ArchetypeRecoveryRoutes.AddHomeResidentProblem(thread);
 
             world.Threads.Add(thread);
             situation.Thread = thread;

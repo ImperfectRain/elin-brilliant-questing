@@ -463,6 +463,17 @@ namespace BrilliantQuesting.Persistence
                         .Set("consequenceHooks", Strings(firing.ConsequenceHookIds)));
                 }
 
+                JsonValue recoveryRoutes = JsonValue.Array();
+                foreach (RecoveryRoute route in thread.RecoveryRoutes)
+                {
+                    recoveryRoutes.Add(JsonValue.Object()
+                        .Set("worstOutcome", route.WorstOutcome)
+                        .Set("action", route.ActionId)
+                        .Set("price", route.Price)
+                        .Set("uncertainty", route.Uncertainty)
+                        .Set("restores", route.Restores));
+                }
+
                 array.Add(JsonValue.Object()
                     .Set("id", thread.Id.Value)
                     .Set("archetype", thread.ArchetypeId)
@@ -481,6 +492,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("facts", Ids(thread.FactIds))
                     .Set("openQuestions", Strings(thread.OpenQuestions))
                     .Set("generationCauses", Strings(thread.GenerationCauses))
+                    .Set("recoveryRoutes", recoveryRoutes)
                     .Set("escalation", steps)
                     .Set("completedSteps", Strings(thread.CompletedSteps))
                     .Set("storyletFirings", storyletFirings));
@@ -896,6 +908,16 @@ namespace BrilliantQuesting.Persistence
             foreach (JsonValue cause in json.GetArray("generationCauses"))
             {
                 thread.GenerationCauses.Add(cause.StringValue);
+            }
+
+            foreach (JsonValue route in json.GetArray("recoveryRoutes"))
+            {
+                thread.RecoveryRoutes.Add(new RecoveryRoute(
+                    route.GetString("worstOutcome"),
+                    route.GetString("action"),
+                    route.GetString("price"),
+                    route.GetString("uncertainty"),
+                    route.GetString("restores")));
             }
 
             foreach (JsonValue step in json.GetArray("escalation"))

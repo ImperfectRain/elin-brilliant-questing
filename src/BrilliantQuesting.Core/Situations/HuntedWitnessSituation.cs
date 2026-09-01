@@ -156,6 +156,7 @@ namespace BrilliantQuesting.Situations
             thread.SiteIds.Add(guardPost);
             thread.OpenQuestions.Add("Where can Sella be, that Brann is not?");
             thread.Escalation.Add(new EscalationStep("brann_finds_her", 4, "Brann finds Sella alone."));
+            ArchetypeRecoveryRoutes.AddHuntedWitness(thread);
 
             world.Threads.Add(thread);
             situation.Thread = thread;

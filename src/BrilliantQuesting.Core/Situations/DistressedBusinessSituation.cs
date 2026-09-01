@@ -118,6 +118,7 @@ namespace BrilliantQuesting.Situations
             thread.OpenQuestions.Add("Will " + owner.Name + "'s shop survive the debt?");
             thread.Escalation.Add(new EscalationStep("creditor_calls_note", 3, "The creditor calls in the debt."));
             thread.Escalation.Add(new EscalationStep("business_fails", 7, "The shop fails under the debt."));
+            ArchetypeRecoveryRoutes.AddDistressedBusiness(thread);
 
             world.Threads.Add(thread);
             situation.Thread = thread;
@@ -213,6 +214,36 @@ namespace BrilliantQuesting.Situations
             return changed;
         }
 
+        public static bool TryRecoverFailedBusiness(ActionContext context, ActionOutcome outcome, out int cost)
+        {
+            cost = 0;
+            BusinessRecord business = FindFailedBusiness(context);
+            Fact debt = FindDebtById(context, business?.CauseFactId ?? EntityId.None, out int amount);
+            if (business == null || debt == null)
+            {
+                return false;
+            }
+
+            cost = RecoveryCost(amount);
+            bool changed = new BusinessContinuity(context.World).TryChangeState(
+                business.BusinessId,
+                BusinessContinuityState.Recovered,
+                context.Now,
+                debt.Id,
+                context.Actor);
+            if (changed)
+            {
+                outcome?.Notes.Add("failed business reopened after a recovery investment");
+            }
+
+            return changed;
+        }
+
+        public static int RecoveryCost(int amount)
+        {
+            return amount <= 0 ? 0 : amount * 3;
+        }
+
         internal static Fact FindDebt(ActionContext context, out int amount)
         {
             amount = 0;
@@ -242,6 +273,36 @@ namespace BrilliantQuesting.Situations
             return null;
         }
 
+        internal static BusinessRecord FindFailedBusiness(ActionContext context)
+        {
+            if (context?.Thread == null || context.Thread.ArchetypeId != ArchetypeId)
+            {
+                return null;
+            }
+
+            foreach (BusinessRecord record in context.World.Businesses.Records)
+            {
+                if (record.State == BusinessContinuityState.Failed && context.Thread.FactIds.Contains(record.CauseFactId))
+                {
+                    return record;
+                }
+            }
+
+            return null;
+        }
+
+        internal static Fact FindDebtById(ActionContext context, EntityId debtFactId, out int amount)
+        {
+            amount = 0;
+            if (context?.Thread == null || context.Thread.ArchetypeId != ArchetypeId || debtFactId.IsNone)
+            {
+                return null;
+            }
+
+            Fact fact = context.World.Knowledge.GetFact(debtFactId);
+            return IsDebtInThisBusiness(context, fact, out amount) ? fact : null;
+        }
+
         private static bool IsLiveDebtInThisBusiness(ActionContext context, Fact fact, out int amount)
         {
             amount = 0;
@@ -250,6 +311,20 @@ namespace BrilliantQuesting.Situations
                 || fact.Truth != TruthState.True
                 || (!context.Target.IsNone && fact.Object != context.Target)
                 || (!context.ThirdParty.IsNone && fact.Subject != context.ThirdParty))
+            {
+                return false;
+            }
+
+            return TryParseOrens(fact.Value, out amount) && amount > 0;
+        }
+
+        private static bool IsDebtInThisBusiness(ActionContext context, Fact fact, out int amount)
+        {
+            amount = 0;
+            if (fact == null
+                || fact.Predicate != FactPredicates.Owes
+                || (!context.Target.IsNone && fact.Subject != context.Target)
+                || (!context.ThirdParty.IsNone && fact.Object != context.ThirdParty))
             {
                 return false;
             }

@@ -83,6 +83,7 @@ namespace BrilliantQuesting.Actions
                 case "deliver_harvest":
                 case "invest_in_supplier":
                 case "buy_business":
+                case "reopen_business":
                 case "donate_to_museum":
                 case "shelter":
                 case "assign_protection":

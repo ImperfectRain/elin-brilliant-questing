@@ -285,6 +285,20 @@ namespace BrilliantQuesting.Diagnostics
                 }
             }
 
+            if (thread.RecoveryRoutes.Count > 0)
+            {
+                sb.Append("  recovery routes:\n");
+                foreach (RecoveryRoute route in thread.RecoveryRoutes)
+                {
+                    sb.Append("    - ").Append(route.WorstOutcome)
+                        .Append(" -> ").Append(route.ActionId)
+                        .Append("; price: ").Append(route.Price)
+                        .Append("; risk: ").Append(route.Uncertainty)
+                        .Append("; restores: ").Append(route.Restores)
+                        .Append('\n');
+                }
+            }
+
             sb.Append("  escalation:\n");
             foreach (EscalationStep step in thread.Escalation)
             {

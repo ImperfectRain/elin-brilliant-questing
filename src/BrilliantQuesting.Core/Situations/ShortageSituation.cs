@@ -192,6 +192,7 @@ namespace BrilliantQuesting.Situations
 
             thread.Escalation.Add(new EscalationStep("child_worsens", 4, "The child stops taking water."));
             thread.Escalation.Add(new EscalationStep("village_leaves", 10, "Kell's Ford starts to empty."));
+            ArchetypeRecoveryRoutes.AddShortage(thread);
 
             world.Threads.Add(thread);
             situation.Thread = thread;

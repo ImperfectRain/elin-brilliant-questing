@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Collections.Generic;
+using BrilliantQuesting.Checks;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
@@ -183,6 +184,86 @@ namespace BrilliantQuesting.Actions.Library
             }
 
             outcome.Notes.Add("spent " + cost + " orens");
+            return outcome;
+        }
+    }
+
+    /// <summary>
+    /// Buy a failed shop back into service. The failure stays in history; this records the later,
+    /// expensive attempt to make the counter usable again.
+    /// </summary>
+    public sealed class ReopenFailedBusinessAction : NarrativeAction
+    {
+        public ReopenFailedBusinessAction() : base("reopen_business", ActionFamily.Economic, "Reopen business")
+        {
+        }
+
+        public override Availability GetAvailability(ActionContext context)
+        {
+            if (!context.Vanilla.Supports(VanillaCapability.SpendMoney))
+            {
+                return Availability.Impossible("money transfers are unavailable on this build");
+            }
+
+            BusinessRecord business = DistressedBusinessSituation.FindFailedBusiness(context);
+            Fact debt = DistressedBusinessSituation.FindDebtById(context, business?.CauseFactId ?? EntityId.None, out int amount);
+            if (business == null || debt == null)
+            {
+                return Availability.NotRelevant("no failed business can be reopened here");
+            }
+
+            int cost = DistressedBusinessSituation.RecoveryCost(amount);
+            return context.Vanilla.GetMoney(context.Actor) < cost
+                ? Availability.Impossible("you cannot reopen the business for " + cost + " orens you do not have")
+                : Availability.Available("costs " + cost + " orens and may still fail");
+        }
+
+        public override ActionOutcome Perform(ActionContext context)
+        {
+            BusinessRecord business = DistressedBusinessSituation.FindFailedBusiness(context);
+            Fact debt = DistressedBusinessSituation.FindDebtById(context, business?.CauseFactId ?? EntityId.None, out int amount);
+            if (business == null || debt == null)
+            {
+                ActionOutcome refused = new ActionOutcome(Id, null, "There is no failed business here to reopen.");
+                refused.Notes.Add("no failed distressed-business record tied to this thread");
+                return refused;
+            }
+
+            int cost = DistressedBusinessSituation.RecoveryCost(amount);
+            if (!context.Vanilla.TrySpendMoney(context.Actor, business.OperatorId, cost))
+            {
+                ActionOutcome broke = new ActionOutcome(Id, null, "You cannot cover the reopening stake.");
+                broke.Notes.Add("payment failed for " + cost + " orens");
+                return broke;
+            }
+
+            CheckRequest request = new CheckRequest(
+                    ProceduralCheckProfiles.RecoveryInvestment,
+                    context.Actor,
+                    business.OperatorId)
+                .WithModifier("failed business", 4);
+            CheckResult check = context.Checks.Resolve(request, context.Rng);
+            ActionOutcome outcome = new ActionOutcome(Id, check, check.Succeeded
+                ? "You sink " + cost + " orens into the failed counter, and there is enough left to open the doors again."
+                : "You sink " + cost + " orens into the failed counter, but it is not enough to bring the business back.");
+
+            outcome.Events.Add(context.World.Record(
+                WorldEventType.Helped,
+                context.Actor,
+                business.OperatorId,
+                context.Now,
+                check.Succeeded ? 0.7 : 0.25,
+                business.PlaceId,
+                related: new[] { debt.Id },
+                witnesses: ActionSupport.Bystanders(context, true),
+                threadId: context.Thread?.Id ?? EntityId.None));
+            outcome.Notes.Add("spent " + cost + " orens on a recovery attempt");
+
+            if (check.Succeeded)
+            {
+                DistressedBusinessSituation.TryRecoverFailedBusiness(context, outcome, out int _);
+            }
+
             return outcome;
         }
     }

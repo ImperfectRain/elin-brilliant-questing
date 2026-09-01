@@ -260,6 +260,15 @@ namespace BrilliantQuesting.Actions.Library
             .WithActorAttribute(VanillaAttribute.Charisma, 0.2)
             .WithActorAttribute(VanillaAttribute.Will, 0.15);
 
+        /// <summary>
+        /// Putting a collapsed business back on its feet. Money opens the attempt; Investing and
+        /// Negotiation decide whether the old counter can actually trade again.
+        /// </summary>
+        public static readonly CheckProfile RecoveryInvestment = new CheckProfile("proc_recovery_investment", 14)
+            .WithActorSkill(VanillaSkill.Investing, 0.45)
+            .WithActorSkill(VanillaSkill.Negotiation, 0.2)
+            .WithActorAttribute(VanillaAttribute.Learning, 0.15);
+
         /// <summary>Moving a physical obstruction by strength and stamina.</summary>
         public static readonly CheckProfile Clearing = new CheckProfile("proc_clearing", 12)
             .WithActorAttribute(VanillaAttribute.Strength, 0.35)
@@ -466,6 +475,7 @@ namespace BrilliantQuesting.Actions.Library
                 case "provide_supplies": return Logistics;
                 case "buy_supplies": return null;
                 case "invest_in_supplier": return null;
+                case "reopen_business": return RecoveryInvestment;
 
                 // Putting something into your own household's keeping is not a skill test. Either
                 // there is a Home with somebody in it to hold the thing, or there is not, and both
