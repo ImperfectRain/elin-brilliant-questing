@@ -52,9 +52,20 @@ namespace BrilliantQuesting.Situations
             }
 
             HomeResident resident = FirstResident(home);
-            if (resident == null || HasLiveResidentProblem(world, resident.Id, home.ZoneId))
+            if (resident == null)
             {
                 return null;
+            }
+
+            NarrativeThread existing = ExistingUnresolvedResidentProblem(world, resident.Id, home.ZoneId);
+            if (existing != null)
+            {
+                if (existing.IsLive)
+                {
+                    return null;
+                }
+
+                return ReactivateFoodProblem(world, home, resident, food, now, existing);
             }
 
             return CreateFoodProblem(world, vanilla.PlayerId, home, resident, food, now);
@@ -76,7 +87,7 @@ namespace BrilliantQuesting.Situations
 
             EnsureHomeSite(world, home);
             NarrativeNpc npc = EnsureResident(world, home, resident);
-            npc.Goals.Add(new NpcGoal("keep_home_fed", home.ZoneId, 70));
+            AddKeepHomeFedGoal(npc, home.ZoneId);
 
             Fact need = new Fact(
                 world.NewId("fact"),
@@ -150,21 +161,82 @@ namespace BrilliantQuesting.Situations
             return best;
         }
 
-        private static bool HasLiveResidentProblem(NarrativeWorldState world, EntityId resident, EntityId home)
+        private static HomeResidentSituation ReactivateFoodProblem(
+            NarrativeWorldState world,
+            HomeState home,
+            HomeResident resident,
+            int food,
+            GameTime now,
+            NarrativeThread thread)
+        {
+            HomeResidentSituation situation = new HomeResidentSituation
+            {
+                ResidentId = resident.Id,
+                HomeZoneId = home.ZoneId,
+                Thread = thread,
+                NeedFactId = FirstOpenNeedFact(world, thread)
+            };
+
+            EnsureHomeSite(world, home);
+            NarrativeNpc npc = EnsureResident(world, home, resident);
+            AddKeepHomeFedGoal(npc, home.ZoneId);
+
+            if (!situation.NeedFactId.IsNone)
+            {
+                world.Demands.AddOrUpdate(
+                    home.ZoneId,
+                    LocalDemandCategory.Food,
+                    55 - food,
+                    thread.CreatedAt,
+                    now.PlusDays(5),
+                    situation.NeedFactId);
+            }
+
+            ThreadLifecycle.Reactivate(
+                world,
+                thread,
+                now,
+                "Home pressure still exists for " + world.Registry.NameOf(resident.Id));
+            return situation;
+        }
+
+        private static NarrativeThread ExistingUnresolvedResidentProblem(NarrativeWorldState world, EntityId resident, EntityId home)
         {
             for (int i = 0; i < world.Threads.Count; i++)
             {
                 NarrativeThread thread = world.Threads[i];
                 if (thread.ArchetypeId == ArchetypeId
-                    && thread.IsLive
+                    && IsUnresolved(thread)
                     && thread.ParticipantIds.Contains(resident)
-                    && thread.SiteIds.Contains(home))
+                    && thread.SiteIds.Contains(home)
+                    && !FirstOpenNeedFact(world, thread).IsNone)
                 {
-                    return true;
+                    return thread;
                 }
             }
 
-            return false;
+            return null;
+        }
+
+        private static bool IsUnresolved(NarrativeThread thread)
+        {
+            return thread.State == ThreadState.Latent
+                   || thread.State == ThreadState.Active
+                   || thread.State == ThreadState.Dormant;
+        }
+
+        private static EntityId FirstOpenNeedFact(NarrativeWorldState world, NarrativeThread thread)
+        {
+            for (int i = 0; i < thread.FactIds.Count; i++)
+            {
+                Fact fact = world.Knowledge.GetFact(thread.FactIds[i]);
+                if (fact != null && fact.Predicate == FactPredicates.Needs && fact.Truth == TruthState.True)
+                {
+                    return fact.Id;
+                }
+            }
+
+            return EntityId.None;
         }
 
         private static void EnsureHomeSite(NarrativeWorldState world, HomeState home)
@@ -211,6 +283,20 @@ namespace BrilliantQuesting.Situations
             }
 
             return npc;
+        }
+
+        private static void AddKeepHomeFedGoal(NarrativeNpc npc, EntityId home)
+        {
+            for (int i = 0; i < npc.Goals.Count; i++)
+            {
+                NpcGoal goal = npc.Goals[i];
+                if (goal.Kind == "keep_home_fed" && goal.Subject == home && !goal.Satisfied)
+                {
+                    return;
+                }
+            }
+
+            npc.Goals.Add(new NpcGoal("keep_home_fed", home, 70));
         }
     }
 

@@ -32,7 +32,7 @@ namespace BrilliantQuesting.Events
             Magnitude = magnitude;
             Zone = zone;
             Related = related ?? Empty;
-            Witnesses = witnesses ?? Empty;
+            Witnesses = CleanWitnesses(witnesses, actor, target);
             Evidence = evidence ?? Empty;
             Tags = tags ?? EmptyTags;
             ThreadId = threadId;
@@ -73,6 +73,31 @@ namespace BrilliantQuesting.Events
         public override string ToString()
         {
             return Time + " " + Type + " " + Actor + " -> " + Target;
+        }
+
+        private static IReadOnlyList<EntityId> CleanWitnesses(
+            IReadOnlyList<EntityId> witnesses,
+            EntityId actor,
+            EntityId target)
+        {
+            if (witnesses == null || witnesses.Count == 0)
+            {
+                return Empty;
+            }
+
+            List<EntityId> cleaned = new List<EntityId>();
+            for (int i = 0; i < witnesses.Count; i++)
+            {
+                EntityId witness = witnesses[i];
+                if (witness.IsNone || witness == actor || witness == target || cleaned.Contains(witness))
+                {
+                    continue;
+                }
+
+                cleaned.Add(witness);
+            }
+
+            return cleaned.Count == 0 ? Empty : cleaned.ToArray();
         }
     }
 }

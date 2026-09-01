@@ -142,7 +142,7 @@ namespace BrilliantQuesting.Situations
                 now,
                 0.35,
                 FestivalSiteId,
-                witnesses: WitnessesFor(winner.ActorId, player),
+                witnesses: WitnessesFor(),
                 threadId: Thread.Id);
 
             Fact result = new Fact(
@@ -202,21 +202,9 @@ namespace BrilliantQuesting.Situations
             }
         }
 
-        private EntityId[] WitnessesFor(EntityId winner, EntityId player)
+        private EntityId[] WitnessesFor()
         {
-            List<EntityId> witnesses = new List<EntityId> { JudgeId };
-            AddWitness(witnesses, player, winner);
-            AddWitness(witnesses, BakerId, winner);
-            AddWitness(witnesses, FarmerId, winner);
-            return witnesses.ToArray();
-        }
-
-        private static void AddWitness(List<EntityId> witnesses, EntityId candidate, EntityId winner)
-        {
-            if (!candidate.IsNone && candidate != winner && !witnesses.Contains(candidate))
-            {
-                witnesses.Add(candidate);
-            }
+            return new EntityId[0];
         }
 
         private static int Score(CheckResult check)

@@ -53,6 +53,33 @@ namespace BrilliantQuesting.Tests
         }
 
         [Fact]
+        public void CompetitionWinnerAndJudgeAreNotAlsoUnrelatedWitnesses()
+        {
+            Lab lab = new Lab();
+            lab.Checks
+                .Then(CheckOutcome.Fail)
+                .Then(CheckOutcome.CriticalPass)
+                .Then(CheckOutcome.Pass);
+
+            lab.Situation.Resolve(
+                lab.World,
+                lab.Vanilla,
+                lab.Checks,
+                new DeterministicRng(71),
+                Player,
+                lab.Vanilla.Now);
+
+            WorldEvent won = lab.World.Ledger.Events.Single(e => e.Type == WorldEventType.CompetitionWon);
+            Assert.Equal(lab.Situation.BakerId, won.Actor);
+            Assert.Equal(lab.Situation.JudgeId, won.Target);
+            Assert.DoesNotContain(won.Actor, won.Witnesses);
+            Assert.DoesNotContain(won.Target, won.Witnesses);
+            Assert.DoesNotContain(Player, won.Witnesses);
+            Assert.DoesNotContain(lab.Situation.FarmerId, won.Witnesses);
+            Assert.Equal(won.Witnesses.Count, won.Witnesses.Distinct().Count());
+        }
+
+        [Fact]
         public void ThePublicResultCanBeReferencedLater()
         {
             Lab lab = new Lab();

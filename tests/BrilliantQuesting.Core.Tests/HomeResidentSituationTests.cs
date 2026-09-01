@@ -105,6 +105,33 @@ namespace BrilliantQuesting.Tests
         }
 
         [Fact]
+        public void DormantResidentProblemIsReactivatedRatherThanDuplicated()
+        {
+            NarrativeWorldState world = new NarrativeWorldState(42);
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.SetHome(LowFoodHome());
+            HomeResidentSituation first = HomeResidentSituation.TryGenerate(world, vanilla, vanilla.Now);
+            ThreadEngine threads = new ThreadEngine();
+            threads.Register(HomeResidentSituation.ArchetypeId, new HomeResidentEscalation());
+            threads.Advance(world, vanilla.Now.PlusDays(5));
+
+            Assert.Equal(ThreadState.Dormant, first.Thread.State);
+
+            HomeResidentSituation reactivated = HomeResidentSituation.TryGenerate(
+                world,
+                vanilla,
+                vanilla.Now.PlusDays(7));
+
+            Assert.NotNull(reactivated);
+            Assert.Equal(first.Thread.Id, reactivated.Thread.Id);
+            Assert.Equal(ThreadState.Active, first.Thread.State);
+            Assert.Contains("Home pressure still exists", first.Thread.LifecycleReason);
+            Assert.Single(world.Threads);
+            Assert.Single(world.Knowledge.Facts.Values, f => f.Predicate == FactPredicates.Needs);
+            Assert.Single(world.Ledger.OfType(WorldEventType.ThreadReactivated), e => e.ThreadId == first.Thread.Id);
+        }
+
+        [Fact]
         public void ResidentFoodProblemEscalatesIntoHistory()
         {
             NarrativeWorldState world = new NarrativeWorldState(42);
