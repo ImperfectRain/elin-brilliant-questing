@@ -1,0 +1,35 @@
+id: storylet.gossip
+kind: storylet
+payload:
+  situationTags:
+    - theft
+    - gossip
+  toneTags:
+    - indirect
+    - social
+  requiredRoles:
+    - id: speaker
+      source: Actor
+    - id: subject
+      source: Target
+    - id: knower
+      source: AnyParticipantWhoKnowsFocus
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: stole
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: speaker
+    - kind: RoleAlive
+      role: speaker
+    - kind: RoleAlive
+      role: subject
+  beats:
+    - open_with_hearsay
+    - shade_detail
+    - test_listener
+    - pass_on_hook
+  consequenceHooks:
+    - record_gossip_pressure

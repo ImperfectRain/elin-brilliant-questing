@@ -1,0 +1,33 @@
+id: storylet.confession
+kind: storylet
+payload:
+  situationTags:
+    - theft
+    - confession
+  toneTags:
+    - direct
+    - pressured
+  requiredRoles:
+    - id: listener
+      source: Actor
+    - id: confessor
+      source: FactSubject
+    - id: injured_party
+      source: FactObject
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: stole
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleAlive
+      role: listener
+    - kind: RoleAlive
+      role: confessor
+  beats:
+    - admit_act
+    - name_reason
+    - face_response
+    - leave_commitment
+  consequenceHooks:
+    - record_confession_pressure

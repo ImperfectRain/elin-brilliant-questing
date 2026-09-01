@@ -1,0 +1,35 @@
+id: storylet.request_for_help
+kind: storylet
+payload:
+  situationTags:
+    - theft
+    - request
+  toneTags:
+    - vulnerable
+    - practical
+  requiredRoles:
+    - id: requester
+      source: Actor
+    - id: suspect
+      source: Target
+    - id: victim
+      source: FactObject
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: stole
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: requester
+    - kind: RoleAlive
+      role: requester
+    - kind: RoleAlive
+      role: suspect
+  beats:
+    - identify_loss
+    - ask_for_help
+    - name_lead
+    - set_stakes
+  consequenceHooks:
+    - record_help_request

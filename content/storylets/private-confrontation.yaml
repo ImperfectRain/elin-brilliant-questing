@@ -1,0 +1,36 @@
+id: storylet.private_confrontation
+kind: storylet
+payload:
+  situationTags:
+    - theft
+    - confrontation
+  toneTags:
+    - private
+    - tense
+  requiredRoles:
+    - id: challenger
+      source: Actor
+    - id: accused
+      source: Target
+  optionalRoles:
+    - id: witness
+      source: AnyParticipantWhoKnowsFocus
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: stole
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: challenger
+    - kind: RoleAlive
+      role: challenger
+    - kind: RoleAlive
+      role: accused
+  beats:
+    - close_distance
+    - state_suspicion
+    - offer_quiet_exit
+    - record_boundary
+  consequenceHooks:
+    - record_private_pressure

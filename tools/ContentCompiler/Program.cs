@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using BrilliantQuesting.Content;
 using BrilliantQuesting.Persistence;
+using BrilliantQuesting.Storylets;
 
 namespace BrilliantQuesting.ContentCompiler
 {
@@ -95,6 +96,7 @@ namespace BrilliantQuesting.ContentCompiler
                     throw new CompilerException(source.Location("content.id.duplicate: " + source.Id + " is already defined."));
                 }
 
+                ValidateSource(source);
                 records.Add(JsonValue.Object()
                     .Set("id", source.Id)
                     .Set("kind", source.Kind)
@@ -107,6 +109,24 @@ namespace BrilliantQuesting.ContentCompiler
                 .Set("records", records);
 
             return new CompileResult(bundle, files.Length);
+        }
+
+        private static void ValidateSource(SourceRecord source)
+        {
+            if (!string.Equals(source.Kind, "storylet", StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            ContentBundle bundle = new ContentBundle(
+                ContentBundle.CurrentVersion,
+                new[] { new ContentRecord(source.Id, source.Kind, source.Payload) });
+            IReadOnlyList<ContentDiagnostic> diagnostics;
+            StoryletContent.LoadDefinitions(bundle, out diagnostics);
+            if (diagnostics.Count > 0)
+            {
+                throw new CompilerException(source.Location(diagnostics[0].Code + ": " + diagnostics[0].Message));
+            }
         }
 
         private sealed class CompileResult

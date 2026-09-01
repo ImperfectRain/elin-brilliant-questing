@@ -1,0 +1,36 @@
+id: storylet.public_accusation
+kind: storylet
+payload:
+  situationTags:
+    - theft
+    - accusation
+  toneTags:
+    - public
+    - tense
+  requiredRoles:
+    - id: accuser
+      source: Actor
+    - id: accused
+      source: Target
+    - id: knower
+      source: AnyParticipantWhoKnowsFocus
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: stole
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: accuser
+    - kind: RoleAlive
+      role: accuser
+    - kind: RoleAlive
+      role: accused
+  beats:
+    - gather_attention
+    - name_charge
+    - demand_answer
+    - invite_witness
+    - leave_pressure
+  consequenceHooks:
+    - record_public_pressure

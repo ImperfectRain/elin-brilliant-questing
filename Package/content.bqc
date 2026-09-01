@@ -9,6 +9,315 @@
         "name": "Accuse",
         "purpose": "Name a suspected wrongdoing without attaching rendered dialogue."
       }
+    },
+    {
+      "id": "storylet.confession",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "theft",
+          "confession"
+        ],
+        "toneTags": [
+          "direct",
+          "pressured"
+        ],
+        "requiredRoles": [
+          {
+            "id": "listener",
+            "source": "Actor"
+          },
+          {
+            "id": "confessor",
+            "source": "FactSubject"
+          },
+          {
+            "id": "injured_party",
+            "source": "FactObject"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "stole"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "listener"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "confessor"
+          }
+        ],
+        "beats": [
+          "admit_act",
+          "name_reason",
+          "face_response",
+          "leave_commitment"
+        ],
+        "consequenceHooks": [
+          "record_confession_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.gossip",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "theft",
+          "gossip"
+        ],
+        "toneTags": [
+          "indirect",
+          "social"
+        ],
+        "requiredRoles": [
+          {
+            "id": "speaker",
+            "source": "Actor"
+          },
+          {
+            "id": "subject",
+            "source": "Target"
+          },
+          {
+            "id": "knower",
+            "source": "AnyParticipantWhoKnowsFocus"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "stole"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "speaker"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "speaker"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "subject"
+          }
+        ],
+        "beats": [
+          "open_with_hearsay",
+          "shade_detail",
+          "test_listener",
+          "pass_on_hook"
+        ],
+        "consequenceHooks": [
+          "record_gossip_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.private_confrontation",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "theft",
+          "confrontation"
+        ],
+        "toneTags": [
+          "private",
+          "tense"
+        ],
+        "requiredRoles": [
+          {
+            "id": "challenger",
+            "source": "Actor"
+          },
+          {
+            "id": "accused",
+            "source": "Target"
+          }
+        ],
+        "optionalRoles": [
+          {
+            "id": "witness",
+            "source": "AnyParticipantWhoKnowsFocus"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "stole"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "challenger"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "challenger"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "accused"
+          }
+        ],
+        "beats": [
+          "close_distance",
+          "state_suspicion",
+          "offer_quiet_exit",
+          "record_boundary"
+        ],
+        "consequenceHooks": [
+          "record_private_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.public_accusation",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "theft",
+          "accusation"
+        ],
+        "toneTags": [
+          "public",
+          "tense"
+        ],
+        "requiredRoles": [
+          {
+            "id": "accuser",
+            "source": "Actor"
+          },
+          {
+            "id": "accused",
+            "source": "Target"
+          },
+          {
+            "id": "knower",
+            "source": "AnyParticipantWhoKnowsFocus"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "stole"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "accuser"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "accuser"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "accused"
+          }
+        ],
+        "beats": [
+          "gather_attention",
+          "name_charge",
+          "demand_answer",
+          "invite_witness",
+          "leave_pressure"
+        ],
+        "consequenceHooks": [
+          "record_public_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.request_for_help",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "theft",
+          "request"
+        ],
+        "toneTags": [
+          "vulnerable",
+          "practical"
+        ],
+        "requiredRoles": [
+          {
+            "id": "requester",
+            "source": "Actor"
+          },
+          {
+            "id": "suspect",
+            "source": "Target"
+          },
+          {
+            "id": "victim",
+            "source": "FactObject"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "stole"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "requester"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "requester"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "suspect"
+          }
+        ],
+        "beats": [
+          "identify_loss",
+          "ask_for_help",
+          "name_lead",
+          "set_stakes"
+        ],
+        "consequenceHooks": [
+          "record_help_request"
+        ]
+      }
     }
   ]
 }
