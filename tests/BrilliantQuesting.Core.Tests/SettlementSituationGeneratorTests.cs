@@ -9,6 +9,7 @@ using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Persistence;
+using BrilliantQuesting.Relationships;
 using BrilliantQuesting.Situations;
 using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
@@ -411,7 +412,52 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(Elsewhere, there.Candidates[0].SiteIn(SituationRoles.Place));
         }
 
-        // -- J. the world does not tell the same story twice --------------------------------------
+        // -- J. family and dependents are weighted when the graph offers them --------------------
+
+        [Fact]
+        public void FamilyAtRiskOutranksAMerelyBusinessTarget()
+        {
+            Lab lab = FamilyAndBusinessPressure(seed: 42);
+
+            SettlementSituationPlan plan = new SettlementSituationGenerator().Evaluate(lab.World, lab.Vanilla, Market);
+
+            SituationCandidate best = plan.BestCandidate;
+            Assert.NotNull(best);
+            Assert.Contains(
+                best.ActorIn(SituationRoles.Target),
+                new[] { EntityId.Parse("npc_sibling"), EntityId.Parse("npc_spouse") });
+            Assert.True(best.Pressure(PettyTheftPressure.PersonAtRisk) >= 40);
+            Assert.Contains(best.Causes, c => c.Contains(" is at personal risk through "));
+
+            SituationCandidate business = plan.Candidates.Single(c =>
+                c.ActorIn(SituationRoles.Target) == EntityId.Parse("npc_merchant"));
+            Assert.Equal(0, business.Pressure(PettyTheftPressure.PersonAtRisk));
+        }
+
+        [Fact]
+        public void FamilyOrSpouseTargetsWinAClearMajorityWhenTheGraphOffersAChoice()
+        {
+            int domesticTargets = 0;
+            const int runs = 100;
+
+            for (int i = 0; i < runs; i++)
+            {
+                Lab lab = FamilyAndBusinessPressure((ulong)(1000 + i));
+                PettyTheftSituation situation = new SettlementSituationGenerator()
+                    .TryGenerate(lab.World, lab.Vanilla, Market, lab.Vanilla.Now);
+
+                Assert.NotNull(situation);
+                if (situation.VictimId == EntityId.Parse("npc_sibling")
+                    || situation.VictimId == EntityId.Parse("npc_spouse"))
+                {
+                    domesticTargets++;
+                }
+            }
+
+            Assert.True(domesticTargets >= 75, domesticTargets + " domestic targets out of " + runs);
+        }
+
+        // -- K. the world does not tell the same story twice --------------------------------------
 
         [Fact]
         public void TheSameCausalTheftIsNotGeneratedAgainButADistinctOneRemainsEligible()
@@ -510,7 +556,7 @@ namespace BrilliantQuesting.Tests
             return BestOf(lab).ActorIn(SituationRoles.Witness);
         }
 
-        // -- K. persistence ------------------------------------------------------------------------
+        // -- L. persistence ------------------------------------------------------------------------
 
         [Fact]
         public void GeneratedSituationSurvivesSaveReloadWithoutRedispatch()
@@ -529,7 +575,7 @@ namespace BrilliantQuesting.Tests
             Assert.Single(reloaded.Ledger.Events, e => e.Type == WorldEventType.Theft);
         }
 
-        // -- L. the inspector can account for the whole of it -------------------------------------
+        // -- M. the inspector can account for the whole of it -------------------------------------
 
         [Fact]
         public void InspectorNamesEveryPressureBehindAGeneratedSituation()
@@ -596,6 +642,26 @@ namespace BrilliantQuesting.Tests
             return lab;
         }
 
+        private static Lab FamilyAndBusinessPressure(ulong seed)
+        {
+            Lab lab = new Lab(Market, seed);
+            EntityId thief = lab.Local("cutpurse", "Cutpurse", money: 15, greed: 0.8, pickpocket: 8, stealth: 6);
+            EntityId sibling = lab.Local("sibling", "Sibling", money: 260, greed: 0.3, carriedValue: 520);
+            EntityId spouse = lab.Local("spouse", "Spouse", money: 250, greed: 0.3, carriedValue: 500);
+            EntityId merchant = lab.Local("merchant", "Merchant", money: 900, greed: 0.3, carriedValue: 900, occupation: "shopkeeper");
+            EntityId clerk = lab.Local("clerk", "Clerk", money: 120, greed: 0.3, perception: 8);
+
+            lab.Thief = thief;
+            lab.Victim = sibling;
+            lab.Witness = clerk;
+
+            lab.World.Relationships.ConnectMutual(clerk, sibling, RelationKind.Family, 80);
+            lab.World.Relationships.ConnectMutual(clerk, spouse, RelationKind.Spouse, 80);
+            lab.World.Relationships.Connect(merchant, clerk, RelationKind.Employer, 70);
+            lab.World.Relationships.Connect(clerk, merchant, RelationKind.Employee, 70);
+            return lab;
+        }
+
         private static SettlementSituationPlan BestPlanFor(EntityId zone)
         {
             Lab lab = new Lab(zone);
@@ -652,7 +718,7 @@ namespace BrilliantQuesting.Tests
 
         private sealed class Lab
         {
-            public readonly NarrativeWorldState World = new NarrativeWorldState(42);
+            public readonly NarrativeWorldState World;
             public readonly SandboxVanillaState Vanilla = new SandboxVanillaState(Player);
             private readonly EntityId _zone;
 
@@ -661,8 +727,9 @@ namespace BrilliantQuesting.Tests
             public EntityId Witness;
             public EntityId Item;
 
-            public Lab(EntityId zone)
+            public Lab(EntityId zone, ulong seed = 42)
             {
+                World = new NarrativeWorldState(seed);
                 _zone = zone;
                 Vanilla.Define(Player, zone: zone);
             }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
+using BrilliantQuesting.Relationships;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Situations
@@ -29,6 +30,7 @@ namespace BrilliantQuesting.Situations
         public const string Means = "means";
         public const string TargetWorth = "target";
         public const string Opportunity = "opportunity";
+        public const string PersonAtRisk = "person_at_risk";
 
         // -- motive -----------------------------------------------------------------------------
 
@@ -74,6 +76,10 @@ namespace BrilliantQuesting.Situations
 
         /// <summary>Somebody who visibly handles money for a living is a known mark.</summary>
         private const int CommercialTargetWorth = 10;
+
+        /// <summary>A spouse or close family member at risk should outrank a merely useful mark.</summary>
+        private const int SpouseAtRiskWeight = 45;
+        private const int FamilyAtRiskWeight = 40;
 
         // -- opportunity ------------------------------------------------------------------------
 
@@ -195,12 +201,64 @@ namespace BrilliantQuesting.Situations
             int opportunity = ScoreOpportunity(profile, thief, victim, witness, builder);
             builder.Pressure(Opportunity, opportunity, null);
 
+            int personalStake = ScorePersonAtRisk(world, victim.ActorId, out string personalCause);
+            if (personalStake > 0)
+            {
+                builder.Pressure(PersonAtRisk, personalStake, personalCause);
+            }
+
             if (witness != null)
             {
                 builder.Bind(SituationRoles.Witness, witness.ActorId);
             }
 
             return builder.Build();
+        }
+
+        private static int ScorePersonAtRisk(NarrativeWorldState world, EntityId victim, out string cause)
+        {
+            cause = null;
+            RelationshipEdge best = null;
+            int bestScore = 0;
+
+            foreach (RelationshipEdge edge in world.Relationships.EdgesTo(victim))
+            {
+                int score = PersonAtRiskScore(edge);
+                if (score <= bestScore)
+                {
+                    continue;
+                }
+
+                best = edge;
+                bestScore = score;
+            }
+
+            if (best == null)
+            {
+                return 0;
+            }
+
+            cause = world.Registry.NameOf(victim) + " is at personal risk through "
+                    + best.Kind + " tie to " + world.Registry.NameOf(best.From);
+            return bestScore;
+        }
+
+        private static int PersonAtRiskScore(RelationshipEdge edge)
+        {
+            if (edge == null || edge.Sentiment <= 0)
+            {
+                return 0;
+            }
+
+            switch (edge.Kind)
+            {
+                case RelationKind.Spouse:
+                    return SpouseAtRiskWeight;
+                case RelationKind.Family:
+                    return FamilyAtRiskWeight;
+                default:
+                    return 0;
+            }
         }
 
         /// <summary>
