@@ -22,6 +22,7 @@ namespace BrilliantQuesting.Persistence
             Register(5, AddCharacterQuirkProfiles);
             Register(6, AddValueAndNeedProfiles);
             Register(7, AddEmotionalStateProfiles);
+            Register(8, AddStoryletFirings);
         }
 
         /// <summary>Registers an upgrade from <paramref name="fromVersion"/> to the next version.</summary>
@@ -231,6 +232,19 @@ namespace BrilliantQuesting.Persistence
             }
 
             return root.Set("schemaVersion", 8);
+        }
+
+        private static JsonValue AddStoryletFirings(JsonValue root)
+        {
+            foreach (JsonValue thread in root.GetArray("threads"))
+            {
+                if (thread["storyletFirings"] == null)
+                {
+                    thread.Set("storyletFirings", JsonValue.Array());
+                }
+            }
+
+            return root.Set("schemaVersion", 9);
         }
 
         private static JsonValue NeutralValueProfile()

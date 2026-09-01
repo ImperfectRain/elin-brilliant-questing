@@ -434,6 +434,24 @@ namespace BrilliantQuesting.Persistence
                         .Set("description", step.Description));
                 }
 
+                JsonValue storyletFirings = JsonValue.Array();
+                foreach (StoryletFiring firing in thread.StoryletFirings)
+                {
+                    JsonValue roles = JsonValue.Object();
+                    foreach (KeyValuePair<string, EntityId> role in firing.RoleBindings)
+                    {
+                        roles.Set(role.Key, role.Value.Value);
+                    }
+
+                    storyletFirings.Add(JsonValue.Object()
+                        .Set("storylet", firing.StoryletId)
+                        .Set("focusFact", firing.FocusFactId.Value)
+                        .Set("firedAt", firing.FiredAt.TotalMinutes)
+                        .Set("roles", roles)
+                        .Set("beats", Strings(firing.BeatIds))
+                        .Set("consequenceHooks", Strings(firing.ConsequenceHookIds)));
+                }
+
                 array.Add(JsonValue.Object()
                     .Set("id", thread.Id.Value)
                     .Set("archetype", thread.ArchetypeId)
@@ -453,7 +471,8 @@ namespace BrilliantQuesting.Persistence
                     .Set("openQuestions", Strings(thread.OpenQuestions))
                     .Set("generationCauses", Strings(thread.GenerationCauses))
                     .Set("escalation", steps)
-                    .Set("completedSteps", Strings(thread.CompletedSteps)));
+                    .Set("completedSteps", Strings(thread.CompletedSteps))
+                    .Set("storyletFirings", storyletFirings));
             }
 
             return array;
@@ -843,6 +862,35 @@ namespace BrilliantQuesting.Persistence
                 foreach (JsonValue completed in json.GetArray("completedSteps"))
                 {
                     thread.CompletedSteps.Add(completed.StringValue);
+                }
+
+                foreach (JsonValue firingJson in json.GetArray("storyletFirings"))
+                {
+                    StoryletFiring firing = new StoryletFiring(
+                        firingJson.GetString("storylet"),
+                        EntityId.Parse(firingJson.GetString("focusFact")),
+                        new GameTime(firingJson.GetLong("firedAt")));
+
+                    JsonValue roles = firingJson["roles"];
+                    if (roles != null)
+                    {
+                        foreach (KeyValuePair<string, JsonValue> role in roles.Members)
+                        {
+                            firing.RoleBindings[role.Key] = EntityId.Parse(role.Value.StringValue);
+                        }
+                    }
+
+                    foreach (JsonValue beat in firingJson.GetArray("beats"))
+                    {
+                        firing.BeatIds.Add(beat.StringValue);
+                    }
+
+                    foreach (JsonValue hook in firingJson.GetArray("consequenceHooks"))
+                    {
+                        firing.ConsequenceHookIds.Add(hook.StringValue);
+                    }
+
+                    thread.StoryletFirings.Add(firing);
                 }
 
                 world.Threads.Add(thread);

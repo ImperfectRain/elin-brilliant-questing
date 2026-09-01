@@ -43,6 +43,7 @@ namespace BrilliantQuesting.Threads
             GenerationCauses = new List<string>();
             Escalation = new List<EscalationStep>();
             CompletedSteps = new List<string>();
+            StoryletFirings = new List<StoryletFiring>();
             State = ThreadState.Latent;
         }
 
@@ -82,6 +83,13 @@ namespace BrilliantQuesting.Threads
         public List<EscalationStep> Escalation { get; }
 
         public List<string> CompletedSteps { get; }
+
+        /// <summary>
+        /// Durable record of social/dramatic presentations that happened for this thread. The
+        /// content that defined the storylet is not saved; only the stable ids and bindings that
+        /// became history are.
+        /// </summary>
+        public List<StoryletFiring> StoryletFirings { get; }
 
         /// <summary>0..100. How badly this wants to become someone's problem.</summary>
         public int Tension { get; set; }
@@ -143,5 +151,30 @@ namespace BrilliantQuesting.Threads
         public string Description { get; }
 
         public override string ToString() => "day +" + DayOffset + ": " + Id;
+    }
+
+    public sealed class StoryletFiring
+    {
+        public StoryletFiring(string storyletId, EntityId focusFactId, GameTime firedAt)
+        {
+            StoryletId = storyletId;
+            FocusFactId = focusFactId;
+            FiredAt = firedAt;
+            RoleBindings = new Dictionary<string, EntityId>();
+            BeatIds = new List<string>();
+            ConsequenceHookIds = new List<string>();
+        }
+
+        public string StoryletId { get; }
+
+        public EntityId FocusFactId { get; }
+
+        public GameTime FiredAt { get; }
+
+        public Dictionary<string, EntityId> RoleBindings { get; }
+
+        public List<string> BeatIds { get; }
+
+        public List<string> ConsequenceHookIds { get; }
     }
 }

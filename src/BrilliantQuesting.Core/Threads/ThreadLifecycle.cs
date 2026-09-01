@@ -100,6 +100,7 @@ namespace BrilliantQuesting.Threads
             AddMissing(target.OpenQuestions, source.OpenQuestions);
             AddMissing(target.GenerationCauses, source.GenerationCauses);
             AddMissing(target.CompletedSteps, source.CompletedSteps);
+            AddMissing(target.StoryletFirings, source.StoryletFirings);
 
             source.State = ThreadState.Inherited;
             source.SuccessorThreadId = target.Id;
@@ -141,6 +142,7 @@ namespace BrilliantQuesting.Threads
             AddMissing(successor.GenerationCauses, thread.GenerationCauses);
             AddMissing(successor.Escalation, thread.Escalation);
             AddMissing(successor.CompletedSteps, thread.CompletedSteps);
+            AddMissing(successor.StoryletFirings, thread.StoryletFirings);
 
             thread.State = ThreadState.Inherited;
             thread.SuccessorThreadId = successor.Id;
