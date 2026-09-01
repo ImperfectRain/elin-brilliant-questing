@@ -12,14 +12,20 @@ diagnostics.
   ten configured slots, including enabled quest/key item/location/faction/religion/codex/gallery/
   hall of fame content and disabled null log/story tabs (`VERIFIED-RUNTIME`).
 - `NativeJournalSurface` appends one Brilliant Questing tab before `Window.BuildTabs(int)`. It
-  clones an existing enabled journal `UIContent` object for layout fields, removes the cloned
-  template `UIContent` component from the clone, renders derived
-  BQ-033/BQ-034 state through `UINote` helpers, and disables itself on setup failure so the
-  dialogue/log fallback remains available (`SOURCE-OBSERVED`).
+  instantiates an existing enabled journal `UIContent` template with `Util.Instantiate(template,
+  window.view)`, removes the instantiated template component, adds the BQ content component to the
+  same mounted GameObject, renders derived BQ-033/BQ-034 state through `UINote` helpers, and
+  disables itself on setup failure so the dialogue/log fallback remains available
+  (`SOURCE-OBSERVED`, `VERIFIED-RUNTIME`).
+- BQ-138 runtime verification confirmed the mounted BQ content and vanilla `ContentQuest` both use
+  the same Content View `RectTransform`, are directly parented to `window.view.transform`, and are
+  non-prefab after setup/switch. The BQ tab rendered populated content, `OnInstantiate`, `Refresh`,
+  `Build`, and `OnSwitchContent` executed, switching and reopen were crash-free, and the remembered
+  dynamic tab reset to vanilla tab 0 on close (`VERIFIED-RUNTIME`).
 - `DramaChoiceProjector.ShowJournal`, `ShowChronicle`, and case notes use `Msg.SayRaw` plus
   BepInEx log output as fallback/debug surfaces (`VERIFIED-METADATA`, `VERIFIED-RUNTIME` for
   logging route generally).
 
-`BQ-138` replaced the read-only `JournalShapeProbe` with bounded native tab injection. Final
-scrolling/clipping polish still requires live visual acceptance with enough BQ content to exceed
-one page.
+`BQ-138` replaced the read-only `JournalShapeProbe` with bounded native tab injection. Runtime
+verification confirmed visible populated content and vanilla-equivalent mounting through
+`window.view.transform`.
