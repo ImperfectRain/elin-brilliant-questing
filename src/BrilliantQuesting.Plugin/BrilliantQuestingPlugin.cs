@@ -381,6 +381,7 @@ namespace BrilliantQuesting.Plugin
             _threads.Register(ShortageSituation.ArchetypeId, new ShortageEscalation(_vanilla));
             _threads.Register(HuntedWitnessSituation.ArchetypeId, new HuntedWitnessEscalation(_vanilla));
             _threads.Register(HomeResidentSituation.ArchetypeId, new HomeResidentEscalation());
+            _threads.Register(DistressedBusinessSituation.ArchetypeId, new DistressedBusinessEscalation());
             _gossip = new RumorCirculation(rumors) { Distortion = distortion };
             _ambient = new AmbientTalk(rumors);
             _drama.AdvanceThreads = AdvanceThreads;

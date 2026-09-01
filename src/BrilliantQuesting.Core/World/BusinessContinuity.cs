@@ -17,7 +17,9 @@ namespace BrilliantQuesting.World
         ReplacementOperator = 5,
         Recovered = 6,
         Failed = 7,
-        Inherited = 8
+        Inherited = 8,
+        BoughtOut = 9,
+        Extorted = 10
     }
 
     /// <summary>What the live game currently says about the person behind the counter.</summary>
@@ -241,9 +243,15 @@ namespace BrilliantQuesting.World
 
             if (record.State == BusinessContinuityState.ReplacementOperator
                 || record.State == BusinessContinuityState.Inherited
-                || record.State == BusinessContinuityState.Recovered)
+                || record.State == BusinessContinuityState.Recovered
+                || record.State == BusinessContinuityState.BoughtOut)
             {
                 return new BusinessProjection(record.State, ServiceContinuitySurface.Available, true, "business changed");
+            }
+
+            if (record.State == BusinessContinuityState.Extorted)
+            {
+                return new BusinessProjection(record.State, ServiceContinuitySurface.Interrupted, true, "business changed under duress");
             }
 
             if (snapshot != null && !snapshot.HasUsableStock)

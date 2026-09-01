@@ -80,6 +80,7 @@ namespace BrilliantQuesting.Actions
                 // is the regression this table was written to stop.
                 case "buy_supplies":
                 case "invest_in_supplier":
+                case "buy_business":
                 case "shelter":
                 case "assign_protection":
                 case "provide_supplies":

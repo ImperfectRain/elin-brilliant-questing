@@ -5,6 +5,7 @@ using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Situations;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions.Library
@@ -139,8 +140,49 @@ namespace BrilliantQuesting.Actions.Library
                 threadId: context.Thread?.Id ?? EntityId.None));
 
             ActionSupport.Resolve(context, outcome, "debt_paid", 0.8);
+            DistressedBusinessSituation.TryMarkSaved(context, debt.Id, outcome);
 
             outcome.Notes.Add("paid " + amount + " orens");
+            return outcome;
+        }
+    }
+
+    public sealed class BuyDistressedBusinessAction : NarrativeAction
+    {
+        public BuyDistressedBusinessAction() : base("buy_business", ActionFamily.Economic, "Buy the business")
+        {
+        }
+
+        public override Availability GetAvailability(ActionContext context)
+        {
+            if (!context.Vanilla.Supports(VanillaCapability.SpendMoney))
+            {
+                return Availability.Impossible("money transfers are unavailable on this build");
+            }
+
+            Fact debt = DistressedBusinessSituation.FindDebt(context, out int amount);
+            if (debt == null)
+            {
+                return Availability.NotRelevant("no distressed business can be bought here");
+            }
+
+            int cost = amount * 2;
+            return context.Vanilla.GetMoney(context.Actor) < cost
+                ? Availability.Impossible("you cannot buy the business for " + cost + " orens you do not have")
+                : Availability.Available("costs " + cost + " orens");
+        }
+
+        public override ActionOutcome Perform(ActionContext context)
+        {
+            ActionOutcome outcome = new ActionOutcome(Id, null, "You buy out the failing business and its debt stops hanging over the counter.");
+            if (!DistressedBusinessSituation.TryMarkBought(context, out int cost, outcome))
+            {
+                ActionOutcome refused = new ActionOutcome(Id, null, "There is no buyout to make here.");
+                refused.Notes.Add("no live distressed-business debt, business record, or payable funds at resolution time");
+                return refused;
+            }
+
+            outcome.Notes.Add("spent " + cost + " orens");
             return outcome;
         }
     }

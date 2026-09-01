@@ -4,6 +4,7 @@ using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Situations;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions.Library
@@ -695,6 +696,7 @@ namespace BrilliantQuesting.Actions.Library
                     ActionSupport.WarnUnderInvestigation(
                         context, context.Target, context.Actor, outcome,
                         note: who + " knows exactly what you have on them, and who has it");
+                    DistressedBusinessSituation.TryMarkExtorted(context, outcome);
                     break;
                 }
 
