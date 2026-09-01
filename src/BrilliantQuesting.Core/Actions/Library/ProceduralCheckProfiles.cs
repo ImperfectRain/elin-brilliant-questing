@@ -363,6 +363,24 @@ namespace BrilliantQuesting.Actions.Library
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.2)
             .WithActorAttribute(VanillaAttribute.Charisma, 0.15);
 
+        /// <summary>Winning a room with the game's own performance skill.</summary>
+        public static readonly CheckProfile Performance = new CheckProfile("proc_performance", 11)
+            .WithActorSkill(VanillaSkill.Music, 0.45)
+            .WithActorAttribute(VanillaAttribute.Charisma, 0.25)
+            .WithTargetAttribute(VanillaAttribute.Will, 0.15);
+
+        /// <summary>Turning time spent fishing into a supply route, not a dialogue claim.</summary>
+        public static readonly CheckProfile FishingHaul = new CheckProfile("proc_fishing_haul", 10)
+            .WithActorSkill(VanillaSkill.Fishing, 0.45)
+            .WithActorAttribute(VanillaAttribute.Perception, 0.2)
+            .WithActorAttribute(VanillaAttribute.Endurance, 0.1);
+
+        /// <summary>Turning harvested crops into a supply route, through Elin's Farming skill.</summary>
+        public static readonly CheckProfile Harvest = new CheckProfile("proc_harvest", 10)
+            .WithActorSkill(VanillaSkill.Farming, 0.45)
+            .WithActorAttribute(VanillaAttribute.Learning, 0.15)
+            .WithActorAttribute(VanillaAttribute.Endurance, 0.15);
+
         /// <summary>Being believed when you make a public claim.</summary>
         public static readonly CheckProfile Credibility = new CheckProfile("proc_credibility", 12)
             .WithActorSkill(VanillaSkill.Negotiation, 0.3)
@@ -382,6 +400,7 @@ namespace BrilliantQuesting.Actions.Library
             switch (actionId)
             {
                 case "question": return Interrogation;
+                case "perform": return Performance;
                 case "persuade": return Persuasion;
                 case "lie": return Deception;
                 case "intimidate": return Intimidation;
@@ -409,6 +428,8 @@ namespace BrilliantQuesting.Actions.Library
                 case "smuggle": return Smuggling;
 
                 case "cook": return Cookery;
+                case "deliver_fishing_haul": return FishingHaul;
+                case "deliver_harvest": return Harvest;
                 case "brew": return Brewing;
                 case "alchemy": return Compounding;
                 case "build": return Construction;

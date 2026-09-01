@@ -49,7 +49,16 @@ namespace BrilliantQuesting.Integration
         /// Elin's generic making skill, and the spine of the verb that makes to a specification
         /// nobody's named craft covers.
         /// </summary>
-        Handicraft
+        Handicraft,
+
+        /// <summary>Public performance as Elin levels it, not a private dialogue stat.</summary>
+        Music,
+
+        /// <summary>Bringing food out of water, as a route for players who fish.</summary>
+        Fishing,
+
+        /// <summary>Growing useful supplies, as a route for players who farm.</summary>
+        Farming
     }
 
     public enum GuildId

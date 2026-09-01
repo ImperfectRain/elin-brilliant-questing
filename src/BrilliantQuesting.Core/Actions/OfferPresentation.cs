@@ -79,11 +79,15 @@ namespace BrilliantQuesting.Actions
                 // the ending of the situation it belongs to, and displacing `return_item` for one
                 // is the regression this table was written to stop.
                 case "buy_supplies":
+                case "deliver_fishing_haul":
+                case "deliver_harvest":
                 case "invest_in_supplier":
                 case "buy_business":
+                case "donate_to_museum":
                 case "shelter":
                 case "assign_protection":
                 case "provide_supplies":
+                case "give_bred_animal":
                 // Physical endings in their own situations. They sit below the cross-situation
                 // resolution tier so a capped synthetic "everything is available" surface still
                 // keeps the older global endings it was built to protect.
@@ -101,6 +105,7 @@ namespace BrilliantQuesting.Actions
 
                 // Moves someone who is not yet willing.
                 case "persuade":
+                case "perform":
                 case "intimidate":
                 case "bribe":
                 case "pickpocket":

@@ -138,6 +138,18 @@ namespace BrilliantQuesting.Plugin
                 log, source, ProceduralCheckProfiles.Craftsmanship,
                 ActorSkill(VanillaSkill.Handicraft, 0.4f),
                 ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.FishingHaul,
+                ActorSkill(VanillaSkill.Fishing, 0.45f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Harvest,
+                ActorSkill(VanillaSkill.Farming, 0.45f),
+                ElementProjection.None);
+            installed += InstallRow(
+                log, source, ProceduralCheckProfiles.Performance,
+                ActorSkill(VanillaSkill.Music, 0.45f),
+                TargetAttribute(VanillaAttribute.Will, 0.15f));
 
             // Asking a god. Uncontested for the same reason the crafts are - the other party is
             // not a character the resolver can read stats off - and what decides whether the

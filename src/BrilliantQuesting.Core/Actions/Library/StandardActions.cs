@@ -3,7 +3,7 @@ namespace BrilliantQuesting.Actions.Library
     /// <summary>
     /// The verb set the headless laboratories run on.
     ///
-    /// Fifty-nine verbs, spanning all eight solution families. The target was roughly forty - but
+    /// Sixty-four verbs, spanning all eight solution families. The target was roughly forty - but
     /// only once each verb has proven it can carry a situation on its own, since a verb that
     /// cannot be the whole answer to some problem is not pulling its weight.
     /// </summary>
@@ -14,11 +14,13 @@ namespace BrilliantQuesting.Actions.Library
             return new ActionRegistry()
                 .Register(new BuildRapportAction())
                 .Register(new QuestionAction())
+                .Register(new PerformForCrowdAction())
                 .Register(new PersuadeAction())
                 .Register(new LieAction())
                 .Register(new IntimidateAction())
                 .Register(new BribeAction())
                 .Register(new PayDebtAction())
+                .Register(new DonateToMuseumAction())
                 .Register(new BuyDistressedBusinessAction())
                 .Register(new BuySuppliesAction())
                 .Register(new InvestInSupplierAction())
@@ -47,6 +49,8 @@ namespace BrilliantQuesting.Actions.Library
                 .Register(new ForgeAction())
                 .Register(new SmuggleAction())
                 .Register(new CookAction())
+                .Register(new DeliverFishingHaulAction())
+                .Register(new DeliverHarvestAction())
                 .Register(new BrewAction())
                 .Register(new AlchemyAction())
                 .Register(new BuildAction())
@@ -64,6 +68,7 @@ namespace BrilliantQuesting.Actions.Library
                 .Register(new RestrainAction())
                 .Register(new EscortAction())
                 .Register(new ShelterAction())
+                .Register(new GiveBredAnimalAction())
                 .Register(new HostAction())
                 .Register(new RecruitSpecialistAction())
                 .Register(new AssignProtectionAction())

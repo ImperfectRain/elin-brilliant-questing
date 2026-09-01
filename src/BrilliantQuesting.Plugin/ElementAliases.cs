@@ -54,7 +54,10 @@ namespace BrilliantQuesting.Plugin
                 { VanillaSkill.Mining, "mining" },
                 { VanillaSkill.Carpentry, "carpentry" },
                 { VanillaSkill.Building, "building" },
-                { VanillaSkill.Handicraft, "handicraft" }
+                { VanillaSkill.Handicraft, "handicraft" },
+                { VanillaSkill.Music, "music" },
+                { VanillaSkill.Fishing, "fishing" },
+                { VanillaSkill.Farming, "farming" }
             };
 
         /// <summary>
