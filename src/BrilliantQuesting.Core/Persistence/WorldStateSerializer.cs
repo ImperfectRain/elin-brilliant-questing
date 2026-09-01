@@ -71,13 +71,24 @@ namespace BrilliantQuesting.Persistence
 
         public static NarrativeWorldState Load(string json)
         {
+            return LoadWithDiagnostics(json).World;
+        }
+
+        public static WorldStateLoadResult LoadWithDiagnostics(string json)
+        {
             JsonValue root = SaveMigrations.Migrate(JsonValue.Parse(json), NarrativeWorldState.CurrentSchemaVersion);
-            return FromJson(root);
+            return FromJsonWithDiagnostics(root);
         }
 
         public static NarrativeWorldState FromJson(JsonValue root)
         {
+            return FromJsonWithDiagnostics(root).World;
+        }
+
+        public static WorldStateLoadResult FromJsonWithDiagnostics(JsonValue root)
+        {
             NarrativeWorldState world = new NarrativeWorldState(ulong.Parse(root.GetString("worldSeed", "0")));
+            List<SaveLoadDiagnostic> diagnostics = new List<SaveLoadDiagnostic>();
             world.SchemaVersion = root.GetInt("schemaVersion", NarrativeWorldState.CurrentSchemaVersion);
             world.Rng.RestoreState(ulong.Parse(root.GetString("rngState", "0")));
 
@@ -111,11 +122,11 @@ namespace BrilliantQuesting.Persistence
             ReadMemories(world, root);
             ReadRelationships(world, root);
             ReadObligations(world, root);
-            ReadThreads(world, root);
+            ReadThreads(world, root, diagnostics);
             ReadAbsences(world, root);
             ReadDemands(world, root);
             ReadBusinesses(world, root);
-            return world;
+            return new WorldStateLoadResult(world, diagnostics);
         }
 
         // -- write ---------------------------------------------------------------------------
@@ -809,14 +820,47 @@ namespace BrilliantQuesting.Persistence
             }
         }
 
-        private static void ReadThreads(NarrativeWorldState world, JsonValue root)
+        private static void ReadThreads(NarrativeWorldState world, JsonValue root, List<SaveLoadDiagnostic> diagnostics)
         {
+            int index = 0;
             foreach (JsonValue json in root.GetArray("threads"))
             {
-                NarrativeThread thread = new NarrativeThread(
-                    EntityId.Parse(json.GetString("id")),
-                    json.GetString("archetype"),
-                    new GameTime(json.GetLong("createdAt")))
+                try
+                {
+                    NarrativeThread thread = ReadThread(json);
+                    string quarantineReason = ThreadQuarantineReason(world, thread);
+                    if (quarantineReason != null)
+                    {
+                        thread.State = ThreadState.Quarantined;
+                        thread.LifecycleReason = quarantineReason;
+                        diagnostics.Add(new SaveLoadDiagnostic(
+                            "save.thread.quarantined",
+                            "threads[" + index + "]",
+                            quarantineReason));
+                    }
+
+                    world.Threads.Add(thread);
+                }
+                catch (Exception ex)
+                {
+                    NarrativeThread thread = QuarantinedThread(json, index, ex.Message);
+                    world.Threads.Add(thread);
+                    diagnostics.Add(new SaveLoadDiagnostic(
+                        "save.thread.quarantined",
+                        "threads[" + index + "]",
+                        thread.LifecycleReason));
+                }
+
+                index++;
+            }
+        }
+
+        private static NarrativeThread ReadThread(JsonValue json)
+        {
+            NarrativeThread thread = new NarrativeThread(
+                EntityId.Parse(json.GetString("id")),
+                json.GetString("archetype"),
+                new GameTime(json.GetLong("createdAt")))
                 {
                     OriginEventId = EntityId.Parse(json.GetString("originEvent")),
                     ParentThreadId = EntityId.Parse(json.GetString("parentThread")),
@@ -829,72 +873,132 @@ namespace BrilliantQuesting.Persistence
                     LifecycleReason = json.GetString("lifecycleReason", null)
                 };
 
-                foreach (JsonValue participant in json.GetArray("participants"))
-                {
-                    thread.ParticipantIds.Add(EntityId.Parse(participant.StringValue));
-                }
-
-                foreach (JsonValue site in json.GetArray("sites"))
-                {
-                    thread.SiteIds.Add(EntityId.Parse(site.StringValue));
-                }
-
-                foreach (JsonValue fact in json.GetArray("facts"))
-                {
-                    thread.FactIds.Add(EntityId.Parse(fact.StringValue));
-                }
-
-                foreach (JsonValue question in json.GetArray("openQuestions"))
-                {
-                    thread.OpenQuestions.Add(question.StringValue);
-                }
-
-                foreach (JsonValue cause in json.GetArray("generationCauses"))
-                {
-                    thread.GenerationCauses.Add(cause.StringValue);
-                }
-
-                foreach (JsonValue step in json.GetArray("escalation"))
-                {
-                    thread.Escalation.Add(new EscalationStep(step.GetString("id"), step.GetLong("dayOffset"), step.GetString("description")));
-                }
-
-                foreach (JsonValue completed in json.GetArray("completedSteps"))
-                {
-                    thread.CompletedSteps.Add(completed.StringValue);
-                }
-
-                foreach (JsonValue firingJson in json.GetArray("storyletFirings"))
-                {
-                    StoryletFiring firing = new StoryletFiring(
-                        firingJson.GetString("storylet"),
-                        EntityId.Parse(firingJson.GetString("focusFact")),
-                        new GameTime(firingJson.GetLong("firedAt")));
-
-                    JsonValue roles = firingJson["roles"];
-                    if (roles != null)
-                    {
-                        foreach (KeyValuePair<string, JsonValue> role in roles.Members)
-                        {
-                            firing.RoleBindings[role.Key] = EntityId.Parse(role.Value.StringValue);
-                        }
-                    }
-
-                    foreach (JsonValue beat in firingJson.GetArray("beats"))
-                    {
-                        firing.BeatIds.Add(beat.StringValue);
-                    }
-
-                    foreach (JsonValue hook in firingJson.GetArray("consequenceHooks"))
-                    {
-                        firing.ConsequenceHookIds.Add(hook.StringValue);
-                    }
-
-                    thread.StoryletFirings.Add(firing);
-                }
-
-                world.Threads.Add(thread);
+            foreach (JsonValue participant in json.GetArray("participants"))
+            {
+                thread.ParticipantIds.Add(EntityId.Parse(participant.StringValue));
             }
+
+            foreach (JsonValue site in json.GetArray("sites"))
+            {
+                thread.SiteIds.Add(EntityId.Parse(site.StringValue));
+            }
+
+            foreach (JsonValue fact in json.GetArray("facts"))
+            {
+                thread.FactIds.Add(EntityId.Parse(fact.StringValue));
+            }
+
+            foreach (JsonValue question in json.GetArray("openQuestions"))
+            {
+                thread.OpenQuestions.Add(question.StringValue);
+            }
+
+            foreach (JsonValue cause in json.GetArray("generationCauses"))
+            {
+                thread.GenerationCauses.Add(cause.StringValue);
+            }
+
+            foreach (JsonValue step in json.GetArray("escalation"))
+            {
+                thread.Escalation.Add(new EscalationStep(step.GetString("id"), step.GetLong("dayOffset"), step.GetString("description")));
+            }
+
+            foreach (JsonValue completed in json.GetArray("completedSteps"))
+            {
+                thread.CompletedSteps.Add(completed.StringValue);
+            }
+
+            foreach (JsonValue firingJson in json.GetArray("storyletFirings"))
+            {
+                StoryletFiring firing = new StoryletFiring(
+                    firingJson.GetString("storylet"),
+                    EntityId.Parse(firingJson.GetString("focusFact")),
+                    new GameTime(firingJson.GetLong("firedAt")));
+
+                JsonValue roles = firingJson["roles"];
+                if (roles != null)
+                {
+                    foreach (KeyValuePair<string, JsonValue> role in roles.Members)
+                    {
+                        firing.RoleBindings[role.Key] = EntityId.Parse(role.Value.StringValue);
+                    }
+                }
+
+                foreach (JsonValue beat in firingJson.GetArray("beats"))
+                {
+                    firing.BeatIds.Add(beat.StringValue);
+                }
+
+                foreach (JsonValue hook in firingJson.GetArray("consequenceHooks"))
+                {
+                    firing.ConsequenceHookIds.Add(hook.StringValue);
+                }
+
+                thread.StoryletFirings.Add(firing);
+            }
+
+            return thread;
+        }
+
+        private static NarrativeThread QuarantinedThread(JsonValue json, int index, string reason)
+        {
+            EntityId id = EntityId.Parse(json.GetString("id"));
+            if (id.IsNone)
+            {
+                id = EntityId.Parse("thread_quarantined_" + index.ToString("x8"));
+            }
+
+            NarrativeThread thread = new NarrativeThread(
+                id,
+                json.GetString("archetype", "quarantined"),
+                new GameTime(json.GetLong("createdAt")))
+            {
+                State = ThreadState.Quarantined,
+                LifecycleReason = "quarantined during save load: " + reason
+            };
+            return thread;
+        }
+
+        private static string ThreadQuarantineReason(NarrativeWorldState world, NarrativeThread thread)
+        {
+            for (int i = 0; i < thread.ParticipantIds.Count; i++)
+            {
+                EntityId participant = thread.ParticipantIds[i];
+                if (!participant.IsNone && !world.Registry.Npcs.ContainsKey(participant))
+                {
+                    return "quarantined during save load: missing participant " + participant.Value;
+                }
+            }
+
+            for (int i = 0; i < thread.FactIds.Count; i++)
+            {
+                EntityId fact = thread.FactIds[i];
+                if (!fact.IsNone && !world.Knowledge.Facts.ContainsKey(fact))
+                {
+                    return "quarantined during save load: missing fact " + fact.Value;
+                }
+            }
+
+            for (int i = 0; i < thread.StoryletFirings.Count; i++)
+            {
+                StoryletFiring firing = thread.StoryletFirings[i];
+                if (!firing.FocusFactId.IsNone && !world.Knowledge.Facts.ContainsKey(firing.FocusFactId))
+                {
+                    return "quarantined during save load: storylet " + firing.StoryletId
+                        + " references missing focus fact " + firing.FocusFactId.Value;
+                }
+
+                foreach (KeyValuePair<string, EntityId> role in firing.RoleBindings)
+                {
+                    if (!role.Value.IsNone && !world.Registry.Npcs.ContainsKey(role.Value))
+                    {
+                        return "quarantined during save load: storylet " + firing.StoryletId
+                            + " role " + role.Key + " references missing actor " + role.Value.Value;
+                    }
+                }
+            }
+
+            return null;
         }
 
         // -- helpers -------------------------------------------------------------------------
@@ -1231,6 +1335,42 @@ namespace BrilliantQuesting.Persistence
             }
 
             return proofs;
+        }
+    }
+
+    public sealed class WorldStateLoadResult
+    {
+        public WorldStateLoadResult(NarrativeWorldState world, IEnumerable<SaveLoadDiagnostic> diagnostics)
+        {
+            World = world;
+            Diagnostics = new List<SaveLoadDiagnostic>(diagnostics ?? new SaveLoadDiagnostic[0]).AsReadOnly();
+        }
+
+        public NarrativeWorldState World { get; }
+
+        public IReadOnlyList<SaveLoadDiagnostic> Diagnostics { get; }
+    }
+
+    public sealed class SaveLoadDiagnostic
+    {
+        public SaveLoadDiagnostic(string code, string location, string message)
+        {
+            Code = code;
+            Location = location;
+            Message = message;
+        }
+
+        public string Code { get; }
+
+        public string Location { get; }
+
+        public string Message { get; }
+
+        public override string ToString()
+        {
+            return string.IsNullOrEmpty(Location)
+                ? Code + ": " + Message
+                : Code + " at " + Location + ": " + Message;
         }
     }
 }

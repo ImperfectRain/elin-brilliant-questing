@@ -272,6 +272,54 @@ namespace BrilliantQuesting.Tests
         }
 
         [Fact]
+        public void AThreadWithAMissingActorIsQuarantinedWithoutDiscardingTheSave()
+        {
+            TheftLaboratory lab = PlayedScenario();
+            JsonValue root = WorldStateSerializer.ToJson(lab.World);
+            JsonValue threadJson = root["threads"].Items[0];
+            threadJson["participants"].Add(JsonValue.String("npc_missing"));
+
+            WorldStateLoadResult loaded = WorldStateSerializer.LoadWithDiagnostics(root.ToJson(indented: false));
+
+            Assert.Equal(lab.World.Registry.Npcs.Count, loaded.World.Registry.Npcs.Count);
+            Assert.Equal(lab.World.Ledger.Count, loaded.World.Ledger.Count);
+            Assert.Equal(lab.World.Knowledge.Facts.Count, loaded.World.Knowledge.Facts.Count);
+
+            NarrativeThread thread = Assert.Single(loaded.World.Threads);
+            Assert.Equal(ThreadState.Quarantined, thread.State);
+            Assert.Contains("missing participant npc_missing", thread.LifecycleReason);
+            SaveLoadDiagnostic diagnostic = Assert.Single(loaded.Diagnostics);
+            Assert.Equal("save.thread.quarantined", diagnostic.Code);
+            Assert.Equal("threads[0]", diagnostic.Location);
+        }
+
+        [Fact]
+        public void AStoryletFiringWithAMissingActorQuarantinesOnlyItsThread()
+        {
+            TheftLaboratory lab = PlayedScenario();
+            JsonValue root = WorldStateSerializer.ToJson(lab.World);
+            JsonValue threadJson = root["threads"].Items[0];
+            threadJson["storyletFirings"].Add(JsonValue.Object()
+                .Set("storylet", "content/storylet/public_accusation")
+                .Set("focusFact", lab.Situation.TheftFactId.Value)
+                .Set("firedAt", lab.Vanilla.Now.TotalMinutes)
+                .Set("roles", JsonValue.Object().Set("Accuser", "npc_missing"))
+                .Set("beats", JsonValue.Array())
+                .Set("consequenceHooks", JsonValue.Array()));
+
+            WorldStateLoadResult loaded = WorldStateSerializer.LoadWithDiagnostics(root.ToJson(indented: false));
+
+            Assert.Equal(lab.World.Registry.Npcs.Count, loaded.World.Registry.Npcs.Count);
+            Assert.Equal(lab.World.Knowledge.Facts.Count, loaded.World.Knowledge.Facts.Count);
+
+            NarrativeThread thread = Assert.Single(loaded.World.Threads);
+            Assert.Equal(ThreadState.Quarantined, thread.State);
+            Assert.Contains("storylet content/storylet/public_accusation", thread.LifecycleReason);
+            Assert.Contains("role Accuser references missing actor npc_missing", thread.LifecycleReason);
+            Assert.Single(loaded.Diagnostics);
+        }
+
+        [Fact]
         public void AMigrationStepUpgradesAnOlderDocument()
         {
             // Version 0 is fictional - what is under test is that the mechanism runs before the

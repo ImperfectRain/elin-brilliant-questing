@@ -1115,7 +1115,13 @@ namespace BrilliantQuesting.Plugin
 
             try
             {
-                return WorldStateSerializer.Load(json);
+                WorldStateLoadResult result = WorldStateSerializer.LoadWithDiagnostics(json);
+                for (int i = 0; i < result.Diagnostics.Count; i++)
+                {
+                    _log.LogWarning("Saved world warning: " + result.Diagnostics[i]);
+                }
+
+                return result.World;
             }
             catch (Exception ex)
             {
