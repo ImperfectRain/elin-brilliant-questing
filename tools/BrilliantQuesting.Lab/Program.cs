@@ -29,6 +29,11 @@ namespace BrilliantQuesting.Lab
                 return 0;
             }
 
+            if (args.Length > 0 && args[0] == "--integration")
+            {
+                return IntegrationHarness.RunCli(args);
+            }
+
             if (args.Length > 0 && args[0] == "--questline-sweep")
             {
                 Questline.Sweep(args.Length > 1 && int.TryParse(args[1], out int count) ? count : 50);

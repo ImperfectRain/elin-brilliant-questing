@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrilliantQuesting.Lab", "to
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiDump", "tools\ApiDump\ApiDump.csproj", "{9B4D325F-CE51-4E6F-9B4D-325FCE514E6F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BrilliantQuesting.Lab.Tests", "tests\BrilliantQuesting.Lab.Tests\BrilliantQuesting.Lab.Tests.csproj", "{1D32AA72-45CB-4F18-A76F-52A421FB692F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{9B4D325F-CE51-4E6F-9B4D-325FCE514E6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B4D325F-CE51-4E6F-9B4D-325FCE514E6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B4D325F-CE51-4E6F-9B4D-325FCE514E6F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D32AA72-45CB-4F18-A76F-52A421FB692F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D32AA72-45CB-4F18-A76F-52A421FB692F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D32AA72-45CB-4F18-A76F-52A421FB692F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D32AA72-45CB-4F18-A76F-52A421FB692F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
