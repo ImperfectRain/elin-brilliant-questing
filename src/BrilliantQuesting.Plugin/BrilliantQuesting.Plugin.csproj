@@ -18,6 +18,8 @@
     -->
     <ElinLib Condition="'$(ElinLib)' == ''">$(MSBuildThisFileDirectory)..\..\lib\Elin</ElinLib>
     <BepInExLib Condition="'$(BepInExLib)' == ''">$(MSBuildThisFileDirectory)..\..\lib\BepInEx\BepInEx\core</BepInExLib>
+    <ContentRoot Condition="'$(ContentRoot)' == ''">$(MSBuildThisFileDirectory)..\..\content</ContentRoot>
+    <ContentBundlePath Condition="'$(ContentBundlePath)' == ''">$(MSBuildThisFileDirectory)..\..\Package\content.bqc</ContentBundlePath>
   </PropertyGroup>
 
   <Target Name="CheckElinReferences" BeforeTargets="BeforeBuild">
@@ -25,6 +27,10 @@
            Text="Elin.dll not found at $(ElinLib). Copy the assemblies listed in docs/plugin-build.md out of your own Elin install, or set the ElinLib property." />
     <Error Condition="!Exists('$(BepInExLib)\BepInEx.Core.dll')"
            Text="BepInEx.Core.dll not found at $(BepInExLib). See docs/plugin-build.md." />
+  </Target>
+
+  <Target Name="CheckContentBundle" BeforeTargets="BeforeBuild">
+    <Exec Command="dotnet run --project &quot;$(MSBuildThisFileDirectory)..\..\tools\ContentCompiler\ContentCompiler.csproj&quot; -- --content &quot;$(ContentRoot)&quot; --output &quot;$(ContentBundlePath)&quot; --check" />
   </Target>
 
   <ItemGroup>
@@ -91,6 +97,7 @@
 
   <ItemGroup>
     <None Update="package.xml" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="$(ContentBundlePath)" Link="content.bqc" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

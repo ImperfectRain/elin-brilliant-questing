@@ -1,0 +1,6 @@
+id: act.accuse
+kind: speechAct
+payload:
+  name: Accuse
+  purpose: |
+    Name a suspected wrongdoing without attaching rendered dialogue.
