@@ -62,6 +62,7 @@ namespace BrilliantQuesting.Plugin
         private ConfigEntry<bool> _gatherPrototypeNpcs;
         private ConfigEntry<bool> _explainInDialogue;
         private ConfigEntry<bool> _offscreenAbsence;
+        private ConfigEntry<bool> _generateSituationsOnLoad;
 
         private void Awake()
         {
@@ -110,6 +111,15 @@ namespace BrilliantQuesting.Plugin
                 + "explanation - why the situation exists, who knows what, why each option is or "
                 + "is not offered, and which check it rolls - to BepInEx/LogOutput.log. Reads "
                 + "only; it changes nothing in the world.");
+
+            _generateSituationsOnLoad = Config.Bind(
+                "Testing",
+                "GenerateSituationsOnLoad",
+                false,
+                "Let Brilliant Questing commit the first eligible generated situation when a save "
+                + "loads and no thread exists yet. This can move vanilla items or create BQ-owned "
+                + "world state, so it is off by default; leave it off when ordinary Elin play "
+                + "should be indistinguishable from an unmodded save.");
 
             // Elin publishes its own lifecycle. Subscribing to it beats both polling in Update and
             // Harmony-patching the load path: it is the same route the game's bundled Scripting
@@ -644,6 +654,11 @@ namespace BrilliantQuesting.Plugin
         /// </summary>
         private void MaybeGenerateLocalSituation(EntityId zoneId)
         {
+            if (_generateSituationsOnLoad == null || !_generateSituationsOnLoad.Value)
+            {
+                return;
+            }
+
             if (zoneId.IsNone || _world.Threads.Count > 0)
             {
                 return;
@@ -704,6 +719,11 @@ namespace BrilliantQuesting.Plugin
         /// </summary>
         private void MaybeGenerateHomeResidentSituation()
         {
+            if (_generateSituationsOnLoad == null || !_generateSituationsOnLoad.Value)
+            {
+                return;
+            }
+
             if (_world.Threads.Count > 0)
             {
                 return;

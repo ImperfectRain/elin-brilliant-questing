@@ -80,8 +80,7 @@ namespace BrilliantQuesting.Tests
 
             IReadOnlyList<NarrativeContentEntry> entries = NarrativeContentProjection.Entries(lab.World, Player);
 
-            NarrativeContentEntry only = Assert.Single(entries);
-            Assert.Equal(NarrativeContentClass.Situation, only.ContentClass);
+            Assert.Empty(entries);
             Assert.Empty(NarrativeContentProjection.BoardEntries(lab.World, Player));
         }
 

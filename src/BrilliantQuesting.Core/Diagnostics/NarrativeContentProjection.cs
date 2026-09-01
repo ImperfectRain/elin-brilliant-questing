@@ -74,12 +74,16 @@ namespace BrilliantQuesting.Diagnostics
                     continue;
                 }
 
-                entries.Add(new NarrativeContentEntry(
-                    NarrativeContentClass.Situation,
-                    thread.Id,
-                    Words(thread.ArchetypeId),
-                    "tension " + thread.Tension,
-                    thread.CreatedAt));
+                bool threadIsKnown = PlayerCanKnowThread(world, player, thread);
+                if (threadIsKnown)
+                {
+                    entries.Add(new NarrativeContentEntry(
+                        NarrativeContentClass.Situation,
+                        thread.Id,
+                        Words(thread.ArchetypeId),
+                        "tension " + thread.Tension,
+                        thread.CreatedAt));
+                }
 
                 AddKnownFactContent(world, player, thread, entries);
                 AddKnownEventContent(world, player, thread, entries);
@@ -227,6 +231,30 @@ namespace BrilliantQuesting.Diagnostics
             for (int i = 0; i < worldEvent.Related.Count; i++)
             {
                 if (world.Knowledge.Knows(player, worldEvent.Related[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool PlayerCanKnowThread(NarrativeWorldState world, EntityId player, NarrativeThread thread)
+        {
+            for (int i = 0; i < thread.FactIds.Count; i++)
+            {
+                if (world.Knowledge.Knows(player, thread.FactIds[i]))
+                {
+                    return true;
+                }
+            }
+
+            IReadOnlyList<WorldEvent> events = world.Ledger.Events;
+            for (int i = 0; i < events.Count; i++)
+            {
+                WorldEvent worldEvent = events[i];
+                if ((worldEvent.ThreadId == thread.Id || NamesFactOf(worldEvent, thread))
+                    && PlayerCanKnow(world, player, worldEvent))
                 {
                     return true;
                 }
