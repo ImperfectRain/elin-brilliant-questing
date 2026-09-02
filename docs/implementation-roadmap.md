@@ -1153,6 +1153,28 @@ BQ-134 here; preserve the later BQ-070+, BQ-083 and BQ-093 dependencies on the m
 Ask, Answer, Accuse, Deny, Admit, Request, Refuse, Threaten, Apologize, Gossip — meaning before wording.
 - **Depends** BQ-006, BQ-066, BQ-134.
 - **Done when** a speech act is produced with no text attached, and the log shows its full semantic content.
+- **Current implementation** `SpeechAct` carries a type, a speaker, an audience, an
+  `ActionBinding` of content, the person that content is about and the act it responds to — and
+  nothing else. There is no text field anywhere on the contract, which a reflection test enforces
+  rather than trusts, and `NarrativeInspector.DescribeSpeechAct` prints the whole of what was
+  communicated with `wording: none` stated on its own line. `SpeechActProfile` holds what is true
+  of every instance of an act type — its stance toward the proposition, which way it moves, what
+  content and which participants it cannot do without, and what it may respond to — so a consumer
+  reasons about meaning from a table rather than from a sentence. Composition refuses rather than
+  repairs: an accusation naming nobody, an admission about somebody else, gossip told to its own
+  subject and an answer to nothing are not weaker acts but different ones or none.
+  The seam onto BQ-134 is `SpeechActMeaning`, and it runs one way. It reads an intent the
+  projection already produced and says what saying it would amount to; it never consults
+  availability, resolves a check or writes anything, so the vocabulary cannot become a second
+  action system. The mapping is many-to-one and partial on purpose — telling a neighbour and
+  reporting to a guard are one act, most verbs communicate nothing, and six of the ten have no
+  player verb at all because they are moves inside a conversation.
+  Deferred: emotion, urgency, publicity and social practice are readings of state the world
+  already holds and are not copied onto the act; acts are transient and have no save entry,
+  because the durable record of having spoken is an event, a belief or an obligation; storylet
+  beats do not yet name acts, and `lie` maps to nothing, because a lie is a stance held against
+  the speaker's own belief rather than an act type — BQ-073 decides which act carries one, and
+  BQ-070 owes it only the fixed stance that makes the contradiction computable.
 - **Sources** CD §17, §17.1, §38 Phase B.
 
 #### BQ-071 — Disclosure decisions

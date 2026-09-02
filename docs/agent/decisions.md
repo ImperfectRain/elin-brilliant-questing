@@ -407,4 +407,41 @@ ways to get that wrong are both worse than not doing it: gating admission on per
 attachment out, and recording who is household turns every sale, marriage and death into a stale
 claim that outlives the thing it described.
 
+## D030 — A speech act is a meaning, never an authority
+
+BQ-070 adds a communicative vocabulary. Three rules keep it from becoming a second gameplay
+system, which is the failure the step is most exposed to.
+
+**Meaning decides nothing.** A speech act has no availability, no check, no outcome and no
+`Perform`. It never decides whether a choice is offered, whether an attempt succeeds, what it costs
+or what history records — all of that stays with `NarrativeAction` and the registry (`D016`).
+`SpeechActMeaning` reads an intent BQ-134 has already projected and says what communicating it
+amounts to; the dependency runs one way, and nothing in the action library asks it for permission.
+The mapping is deliberately many-to-one and partial: two attempts with different consequences can
+be one act, most verbs communicate nothing, and half the vocabulary has no player verb at all
+because answering, denying, owning up, refusing, apologizing and passing something on are moves
+inside a conversation rather than options on a menu.
+
+**Speech has no private model of what things are about.** An act's content is an `ActionBinding` —
+the same proposition, object, destination or undertaking the action layer already infers — so
+nothing the simulation says can disagree with what the player was offered. What an act adds beyond
+that binding is only what the binding cannot express: who is speaking, who is being spoken to, and
+who the content is *about*. That last one is separate on purpose and is never reconciled against
+the claim: an accusation that names somebody the fact does not is a well-formed false accusation,
+and correcting it here would delete the move investigation exists to make catchable.
+
+**An act is transient, and stance is fixed by type.** There is no save entry, because the durable
+record of having spoken is an event, a belief, a memory or an obligation, and those layers already
+own it; a stored act would be a second history racing the ledger (`D005`). Emotion, urgency,
+publicity and social practice are likewise readings of state the world already holds and are not
+copied onto the act. What the type does fix is stance — an answer affirms, a denial denies, an
+apology cannot be for something the speaker says they did not do — which is the whole of what
+BQ-070 owes BQ-073: "what was put forward" and "what the speaker believes" become two separately
+readable things, so a lie is the gap between them rather than a fourth kind of sentence.
+
+Reason: a dialogue layer that starts from wording can never afterwards say what was communicated,
+and a speech vocabulary that starts from authority becomes the verb registry wearing a different
+name. Keeping meaning downstream of the action system and upstream of every word is what lets
+disclosure, lying, conversation state and realization all consume the same small contract.
+
 Add a new entry only when the decision is both load-bearing and durable.

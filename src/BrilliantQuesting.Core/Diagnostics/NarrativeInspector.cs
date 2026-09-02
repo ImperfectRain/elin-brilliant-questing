@@ -4,6 +4,7 @@ using BrilliantQuesting.Actions;
 using BrilliantQuesting.Actions.Library;
 using BrilliantQuesting.Checks;
 using BrilliantQuesting.Developments;
+using BrilliantQuesting.Dialogue;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
@@ -59,6 +60,125 @@ namespace BrilliantQuesting.Diagnostics
             HashSet<ActionFamily> families = registry.AvailableFamilies(context);
             sb.Append("  solution families open: ").Append(families.Count).Append('\n');
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// BQ-070. Everything one speech act means, and the proof that it means it without words.
+        ///
+        /// The step's done-when condition is read off this dump: an act is produced, no text is
+        /// attached to it anywhere, and the log still shows the whole of what was communicated -
+        /// who spoke, to whom, about which claim, against whom, what it does to that claim, which
+        /// way it moves, and what it answers. Anything a realizer (BQ-074) later chooses is absent
+        /// here because it does not exist yet and is not needed to know what happened.
+        /// </summary>
+        public static string DescribeSpeechAct(NarrativeWorldState world, SpeechAct act)
+        {
+            if (act == null)
+            {
+                return "no speech act.\n";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("speech act: ").Append(act.Type).Append('\n');
+            sb.Append("  speaker:     ").Append(Who(world, act.Speaker)).Append('\n');
+            sb.Append("  addressees:  ");
+            for (int i = 0; i < act.Addressees.Count; i++)
+            {
+                if (i > 0)
+                {
+                    sb.Append(", ");
+                }
+
+                sb.Append(Who(world, act.Addressees[i]));
+            }
+
+            sb.Append('\n');
+            sb.Append("  stance:      ").Append(act.Stance).Append("   direction: ").Append(act.Direction).Append('\n');
+
+            sb.Append("  about:       ");
+            if (act.About.IsNone)
+            {
+                sb.Append("no claim");
+            }
+            else
+            {
+                Fact fact = world == null ? null : world.Knowledge.GetFact(act.About);
+                sb.Append(act.About.Value);
+                if (fact != null)
+                {
+                    sb.Append("  (").Append(fact).Append(')');
+                }
+            }
+
+            sb.Append('\n');
+            sb.Append("  referent:    ").Append(act.Referent.IsNone ? "nobody named" : Who(world, act.Referent)).Append('\n');
+            sb.Append("  content:     ").Append(DescribeContent(act)).Append('\n');
+
+            sb.Append("  in reply to: ");
+            if (act.InReplyTo == null)
+            {
+                sb.Append("nothing - opens the exchange");
+            }
+            else
+            {
+                sb.Append(act.InReplyTo.Type).Append(" by ").Append(Who(world, act.InReplyTo.Speaker));
+            }
+
+            sb.Append('\n');
+
+            // Stated rather than implied by omission: the absence of wording is the step's
+            // condition, not an unfinished part of the dump.
+            sb.Append("  wording:     none - this layer produces meaning only\n");
+            sb.Append("  signature:   ").Append(act.Signature).Append('\n');
+            return sb.ToString();
+        }
+
+        private static string DescribeContent(SpeechAct act)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (act.Content.HasProposition)
+            {
+                sb.Append("proposition ").Append(act.Content.PropositionFact.Value);
+            }
+
+            if (act.Content.HasItem)
+            {
+                Separate(sb);
+                sb.Append("item ").Append(act.Content.Item.Value);
+            }
+
+            if (act.Content.HasDestination)
+            {
+                Separate(sb);
+                sb.Append("destination ").Append(act.Content.Destination.Value);
+            }
+
+            if (!string.IsNullOrEmpty(act.Content.Purpose))
+            {
+                Separate(sb);
+                sb.Append("purpose ").Append(act.Content.Purpose);
+            }
+
+            return sb.Length == 0 ? "carried by what it answers" : sb.ToString();
+        }
+
+        private static void Separate(StringBuilder sb)
+        {
+            if (sb.Length > 0)
+            {
+                sb.Append(", ");
+            }
+        }
+
+        private static string Who(NarrativeWorldState world, EntityId id)
+        {
+            if (id.IsNone)
+            {
+                return "nobody";
+            }
+
+            string name = world == null ? null : world.Registry.NameOf(id);
+            return string.IsNullOrEmpty(name) ? id.Value : name + " (" + id.Value + ")";
         }
 
         public static string DescribeCharacter(NarrativeWorldState world, IVanillaState vanilla, EntityId id)
