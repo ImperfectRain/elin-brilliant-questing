@@ -483,12 +483,13 @@ namespace BrilliantQuesting.Tests
         }
 
         /// <summary>
-        /// Recruiting reaches the same act from the other direction: not somebody who needs a
-        /// place, but somebody worth having one. It is refused when the settlement already has
-        /// that trade, and an unread job never counts as nobody doing the work.
+        /// BQ-116. Recruiting reaches the same act from the other direction: not merely somebody
+        /// who needs a place, but a known situation participant whose trade the player's own
+        /// settlement lacks. It is refused when the settlement already has that trade, and an
+        /// unread job never counts as nobody doing the work.
         /// </summary>
         [Fact]
-        public void ASpecialistIsOfferedAPlaceOnlyWhereTheSettlementLacksTheTrade()
+        public void ASituationSpecialistIsOfferedAPlaceOnlyWhereTheSettlementLacksTheTrade()
         {
             SanctuaryLab already = SanctuaryLab.Create(
                 CheckOutcome.Pass,
@@ -511,6 +512,24 @@ namespace BrilliantQuesting.Tests
             Assert.True(outcome.Succeeded);
             Assert.True(unreadJob.Vanilla.GetHomeState().IsResident(unreadJob.Witness));
             Assert.Equal(Undertakings.Specialist, unreadJob.World.Knowledge.FindFact(unreadJob.Witness, FactPredicates.ShelteredBy).Value);
+        }
+
+        /// <summary>
+        /// The historical skip left `recruit_specialist` as a generic Home offer: if an NPC had
+        /// an occupation and the Home lacked that job, they could be asked to move in with no
+        /// situation making them reachable. BQ-116 makes the simulation the supply line instead.
+        /// </summary>
+        [Fact]
+        public void ATradeAloneDoesNotMakeSomeoneASupplyLineSpecialist()
+        {
+            SanctuaryLab lab = SanctuaryLab.Create(CheckOutcome.Pass);
+            EntityId carpenter = lab.AddPasserby("Oda", "carpenter");
+
+            Availability availability = lab.Can("recruit_specialist", carpenter);
+
+            Assert.False(availability.IsAvailable);
+            Assert.Contains("no known situation", availability.Reason);
+            Assert.False(lab.Vanilla.GetHomeState().IsResident(carpenter));
         }
 
         /// <summary>
@@ -827,6 +846,18 @@ namespace BrilliantQuesting.Tests
             public Availability Can(string actionId, EntityId target)
             {
                 return Actions.Get(actionId).GetAvailability(Context(target));
+            }
+
+            public EntityId AddPasserby(string name, string occupation)
+            {
+                EntityId id = World.NewId("npc");
+                World.Registry.Add(new NarrativeNpc(id, name)
+                {
+                    Occupation = occupation,
+                    Importance = NarrativeImportance.Background
+                });
+                Vanilla.Define(id, level: 4, money: 100, zone: Situation.LaneZoneId);
+                return id;
             }
 
             public int AdvanceDays(long days)

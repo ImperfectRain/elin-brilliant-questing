@@ -496,6 +496,11 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.NotRelevant("they have no trade to bring");
             }
 
+            if (!IsKnownSupplyLineSpecialist(context))
+            {
+                return Availability.NotRelevant("no known situation makes " + context.NameOf(context.Target) + "'s " + trade + " work reachable");
+            }
+
             string[] words = { trade };
             for (int i = 0; i < home.Residents.Count; i++)
             {
@@ -509,6 +514,46 @@ namespace BrilliantQuesting.Actions.Library
             }
 
             return Availability.Available("nobody here is a " + trade);
+        }
+
+        private static bool IsKnownSupplyLineSpecialist(ActionContext context)
+        {
+            if (context.Thread == null)
+            {
+                return false;
+            }
+
+            bool participates = false;
+            for (int i = 0; i < context.Thread.ParticipantIds.Count; i++)
+            {
+                if (context.Thread.ParticipantIds[i] == context.Target)
+                {
+                    participates = true;
+                    break;
+                }
+            }
+
+            if (!participates)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < context.Thread.FactIds.Count; i++)
+            {
+                EntityId factId = context.Thread.FactIds[i];
+                if (!context.World.Knowledge.Knows(context.Actor, factId))
+                {
+                    continue;
+                }
+
+                Fact fact = context.World.Knowledge.GetFact(factId);
+                if (fact != null && (fact.Subject == context.Target || fact.Object == context.Target))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         protected override string NarrateAcceptance(ActionContext context)
