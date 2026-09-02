@@ -315,9 +315,11 @@ namespace BrilliantQuesting.Storylets
         ///
         /// Thread participants first, in the order the situation cast them, because the people a
         /// matter is already about are the people it is most likely to be about again; then
-        /// everybody else the game says is standing here, the faces the player already knows before
-        /// the strangers (BQ-114), and by id within each so two runs agree. The player is never in
-        /// the pool: a scene may be *with* the player, and the caller says so through
+        /// everybody else the game says is standing here, the faces the player will recognise before
+        /// the strangers - the ones they already know (BQ-114), and in a save too new to hold any
+        /// history, the ones it elected to keep bringing back (BQ-115) - and by id within each so
+        /// two runs agree. The player is never in the pool: a scene may be *with* the player, and
+        /// the caller says so through
         /// <see cref="StoryletCastingContext.Actor"/>, but the mod does not write the player into
         /// a role they did not choose.
         ///
@@ -376,15 +378,32 @@ namespace BrilliantQuesting.Storylets
                 // offers is cast separately, and walking the player's whole history to order a
                 // pool of one would make finding scenes cost more than playing them.
                 PlayerFamiliarity familiarity = PlayerFamiliarity.Read(context.World, context.Vanilla);
+                EarlyContactCast elected = EarlyContacts.Elect(context.World, context.Vanilla, context.Place);
                 others.Sort(delegate(EntityId left, EntityId right)
                 {
-                    int known = familiarity.ScoreOf(right).CompareTo(familiarity.ScoreOf(left));
+                    int known = Recognisability(familiarity, elected, right)
+                        .CompareTo(Recognisability(familiarity, elected, left));
                     return known != 0 ? known : string.CompareOrdinal(left.Value, right.Value);
                 });
             }
 
             pool.AddRange(others);
             return pool;
+        }
+
+        /// <summary>
+        /// How likely the player is to recognise a name, from either half of the evidence.
+        ///
+        /// BQ-115. The history the player made says most when there is any; in a save the mod has
+        /// only just attached to there is none for anybody, and without the elected cast this
+        /// ordering collapsed to id order - which is not a reason for anything.
+        /// </summary>
+        private static int Recognisability(
+            PlayerFamiliarity familiarity,
+            EarlyContactCast elected,
+            EntityId actor)
+        {
+            return Math.Max(familiarity.ScoreOf(actor), elected.WeightOf(actor));
         }
 
         /// <summary>

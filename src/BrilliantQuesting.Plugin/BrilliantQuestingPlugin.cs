@@ -10,6 +10,7 @@ using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Persistence;
+using BrilliantQuesting.Relationships;
 using BrilliantQuesting.Situations;
 using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
@@ -424,6 +425,7 @@ namespace BrilliantQuesting.Plugin
             ReconcileAbsences();
             _lastReconciledZone = _vanilla.GetZoneOf(_vanilla.PlayerId);
             RegisterLocalVanillaActors(_lastReconciledZone);
+            EstablishEarlyContacts(_lastReconciledZone);
             MaybeGenerateLocalSituation(_lastReconciledZone);
             MaybeGenerateHomeResidentSituation();
             GatherPrototypeParticipantsNearPlayer();
@@ -638,6 +640,45 @@ namespace BrilliantQuesting.Plugin
             if (registered > 0)
             {
                 _log.LogInfo("Registered " + registered + " local vanilla actor(s) for situation generation.");
+            }
+        }
+
+        /// <summary>
+        /// BQ-115. Names the handful of faces this save keeps bringing back, before it is asked to
+        /// produce anything to bring them back *for*.
+        ///
+        /// Ordered ahead of both generation passes on purpose, and that ordering is the whole of
+        /// the step's done-when: a save that produced its first situation first would cast whoever
+        /// the pressure landed on, because in a save this new there is no history for BQ-114 to
+        /// read and every face in town reads as a stranger.
+        ///
+        /// Not flag-gated, and safe not to be: electing writes nothing to the game, records no
+        /// event, and moves nobody. The only mark it leaves is on BQ's own importance ladder, and
+        /// it runs on every attach because election is a pure reading - the same settlement elects
+        /// the same faces, so a reload is not a re-roll.
+        /// </summary>
+        private void EstablishEarlyContacts(EntityId zoneId)
+        {
+            try
+            {
+                EarlyContactCast cast = EarlyContacts.Establish(_world, _vanilla, zoneId);
+                if (cast.Count == 0)
+                {
+                    _log.LogInfo("No early contacts elected: nobody here the save can keep bringing back.");
+                    return;
+                }
+
+                _log.LogInfo("Elected " + cast.Count + " early contact(s) before any situation exists.");
+                for (int i = 0; i < cast.Contacts.Count; i++)
+                {
+                    _log.LogInfo("  early contact: " + cast.Contacts[i].Because);
+                }
+            }
+            catch (Exception ex)
+            {
+                // A settlement that cannot be read is a settlement with no elected faces, which is
+                // an ordinary answer. It must never be a reason the save fails to attach.
+                _log.LogError("Early contact election failed: " + ex);
             }
         }
 

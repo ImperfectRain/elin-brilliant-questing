@@ -1410,6 +1410,34 @@ A handful of low-stakes recurring contacts appear in the first hours — a shopk
 you, a neighbour with a small complaint — before any crisis exists.
 - **Depends** BQ-114.
 - **Done when** a new save produces recognisable recurring faces before it produces its first situation.
+- **Current implementation** `EarlyContacts` elects a handful — three — of the people a settlement
+  already holds, on grounds the save already carries: standing here and living on the player's land
+  is a **neighbour**, handling goods and money with strangers here is a **shopkeeper**, anybody else
+  present is a **regular**. It elects and elects only. It records no meeting the player did not have,
+  writes no event, mints no relationship and moves no affinity, because manufacturing history to
+  make a face familiar would corrupt the very reading BQ-114 exists to take. Nothing is stored
+  either: election is a pure reading of the settlement, so the same save names the same faces on
+  every pass and across a reload, and the recurrence *is* the determinism rather than a roster in
+  the save (`D022`). The one write is `Promote(NarrativeImportance.Recurring)`, which is a statement
+  about the mod's own attention and cannot lie about the player. That rung was previously reachable
+  only *after* a high-weight memory, i.e. only after something had already happened to somebody,
+  which is the backwards ladder `engagement §4` and `PM §19` both name.
+  Both casting surfaces read it beside familiarity and after eligibility, so `D027` holds: a
+  settlement with no pressure stays quiet however many faces were elected in it. History wins
+  wherever there is any — an elected face is capped below `PlayerFamiliarity.HouseholdWeight`, and a
+  candidate records `player_familiarity` or `recurring_contact` but never both, so the inspector
+  says which evidence carried the decision. Somebody who lives on the player's land but is standing
+  elsewhere is deliberately *not* elected: BQ-114 already reads them as the strongest tie the game
+  has, so a slot spent on them would buy nothing and cost the settlement one of its three.
+  Because BQ-115 was skipped, the defect it was holding up was measured before repairing it: on a
+  genuinely fresh save — empty ledger, no relationships, zero affinity — BQ-114 read *every* face in
+  town as a stranger, and the first situation cast the intended acquaintance in 25 runs of 100,
+  which is one mark in four, which is chance. BQ-114's own done-when only reached 100/100 because
+  its fixture writes an affinity of 70 by hand, a premise nothing in the mod produced. The same
+  inertness sat in the storylet caster, where a fresh save's pool fell back to id order. Both now
+  order on recognisability; no role requirement was relaxed, so `D026` is unchanged.
+  Not in scope here: authored low-stakes beats for these faces to actually recur *through*, which is
+  content and belongs with BQ-131.
 - **Sources** engagement §4; PM §19.
 - **Why** cheap to build, disproportionate in effect: it is what makes the first real situation land.
 

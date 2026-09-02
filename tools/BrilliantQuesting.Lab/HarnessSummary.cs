@@ -30,6 +30,9 @@ namespace BrilliantQuesting.Lab
         public int RumorRoutes { get; set; }
         public int ThreadEscalations { get; set; }
         public int GeneratedSituations { get; set; }
+
+        /// <summary>BQ-115. Faces the primary settlement elected to keep bringing back.</summary>
+        public int EarlyContacts { get; set; }
         public int OrganizationActions { get; set; }
         public int AbsenceReturns { get; set; }
         public int AbsenceEnforcements { get; set; }
@@ -63,6 +66,7 @@ namespace BrilliantQuesting.Lab
                 RumorRoutes = runtime.RumorRoutes,
                 ThreadEscalations = runtime.ThreadEscalations,
                 GeneratedSituations = runtime.GeneratedSituations,
+                EarlyContacts = runtime.EarlyContacts,
                 OrganizationActions = runtime.OrganizationActions,
                 AbsenceReturns = runtime.AbsenceReturns,
                 AbsenceEnforcements = runtime.AbsenceEnforcements,
@@ -135,6 +139,7 @@ namespace BrilliantQuesting.Lab
                 .Set("rumorRoutes", RumorRoutes)
                 .Set("threadEscalations", ThreadEscalations)
                 .Set("generatedSituations", GeneratedSituations)
+                .Set("earlyContacts", EarlyContacts)
                 .Set("organizationActions", OrganizationActions)
                 .Set("absenceReturns", AbsenceReturns)
                 .Set("absenceEnforcements", AbsenceEnforcements)

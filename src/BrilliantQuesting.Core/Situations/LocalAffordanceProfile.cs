@@ -65,7 +65,8 @@ namespace BrilliantQuesting.Situations
             List<ItemDescriptor> carried,
             Dictionary<VanillaSkill, int> skills,
             Dictionary<VanillaAttribute, int> attributes,
-            FamiliarityReading familiarity)
+            FamiliarityReading familiarity,
+            EarlyContact earlyContact)
         {
             ActorId = actorId;
             Name = name;
@@ -80,6 +81,7 @@ namespace BrilliantQuesting.Situations
             _skills = skills;
             _attributes = attributes;
             Familiarity = familiarity;
+            EarlyContact = earlyContact;
 
             for (int i = 0; i < carried.Count; i++)
             {
@@ -94,7 +96,7 @@ namespace BrilliantQuesting.Situations
                 }
             }
 
-            IsCommercial = LooksCommercial(Occupation, roles);
+            IsCommercial = ReadsAsCommercial(Occupation, roles);
         }
 
         public EntityId ActorId { get; }
@@ -121,6 +123,18 @@ namespace BrilliantQuesting.Situations
 
         /// <summary>Shorthand for the common question: has the player any history with them at all.</summary>
         public bool KnownToPlayer => Familiarity.IsKnown;
+
+        /// <summary>
+        /// BQ-115. Whether this save elected them as one of the handful of faces it keeps bringing
+        /// back, and on what ground. Null for almost everybody, which is the ordinary answer.
+        ///
+        /// Deliberately separate from <see cref="Familiarity"/>: one is history the player made,
+        /// the other is a casting decision made before they made any.
+        /// </summary>
+        public EarlyContact EarlyContact { get; }
+
+        /// <summary>Whether the player will recognise them at all - through history or through casting.</summary>
+        public bool RecognisableToPlayer => KnownToPlayer || EarlyContact != null;
 
         public string Occupation { get; }
 
@@ -151,8 +165,19 @@ namespace BrilliantQuesting.Situations
         public int Attribute(VanillaAttribute attribute) =>
             _attributes.TryGetValue(attribute, out int value) ? value : 0;
 
-        private static bool LooksCommercial(string occupation, IReadOnlyCollection<string> roles)
+        /// <summary>
+        /// Whether an occupation and a set of roles describe somebody who handles goods and money
+        /// with strangers for a living.
+        ///
+        /// Public because BQ-115 elects the settlement's shopkeeper before any affordance profile
+        /// is read, and two ideas of what a shopkeeper is would mean a face the generator treats as
+        /// commercial and the early-contact pass does not.
+        /// </summary>
+        public static bool ReadsAsCommercial(string occupation, IReadOnlyCollection<string> roles)
         {
+            occupation = occupation ?? string.Empty;
+            roles = roles ?? new string[0];
+
             if (occupation.IndexOf("shop", StringComparison.OrdinalIgnoreCase) >= 0
                 || occupation.IndexOf("merchant", StringComparison.OrdinalIgnoreCase) >= 0
                 || occupation.IndexOf("trader", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -233,6 +258,11 @@ namespace BrilliantQuesting.Situations
             // the player's history does not change between two of them.
             PlayerFamiliarity familiarity = PlayerFamiliarity.Read(world, vanilla);
 
+            // BQ-115, read on the same terms and for the same reason. In a save the mod has only
+            // just attached to the reading above is empty for the whole town, and this is the only
+            // thing that can tell one face here from another.
+            EarlyContactCast earlyContacts = EarlyContacts.Elect(world, vanilla, zoneId);
+
             IReadOnlyList<EntityId> present = vanilla.GetCharactersInZone(zoneId);
             for (int i = 0; i < present.Count; i++)
             {
@@ -288,7 +318,8 @@ namespace BrilliantQuesting.Situations
                     carried,
                     skills,
                     attributes,
-                    familiarity.Of(actor));
+                    familiarity.Of(actor),
+                    earlyContacts.Of(actor));
 
                 profile._actors.Add(affordances);
                 profile._byId.Add(actor, affordances);
@@ -304,6 +335,7 @@ namespace BrilliantQuesting.Situations
             int commercial = 0;
             int carrying = 0;
             int known = 0;
+            int elected = 0;
             for (int i = 0; i < _actors.Count; i++)
             {
                 ActorAffordances actor = _actors[i];
@@ -332,6 +364,11 @@ namespace BrilliantQuesting.Situations
                 {
                     known++;
                 }
+
+                if (actor.EarlyContact != null)
+                {
+                    elected++;
+                }
             }
 
             Array.Sort(purses);
@@ -349,6 +386,7 @@ namespace BrilliantQuesting.Situations
             _features.Add("median local purse: " + MedianMoney);
             _features.Add("commercial locals: " + commercial);
             _features.Add("locals the player knows: " + known);
+            _features.Add("early contacts elected here: " + elected);
         }
     }
 }

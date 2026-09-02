@@ -329,4 +329,42 @@ world that manufactures pressure around whoever the player likes. Separating the
 simulation still decides what happens and the player's history only decides which of the things
 that could happen is worth telling first.
 
+## D028 — An early contact is a casting decision, never manufactured history
+
+BQ-115 elects a handful of the people a settlement already holds as the faces a save will keep
+bringing back. It is what makes BQ-114 mean anything in a new save, where the ledger is empty,
+nobody lives on the player's land and Elin's affinity is zero for the whole town, so every reading
+`PlayerFamiliarity` can take says "stranger".
+
+**Elect; never fabricate.** The mod may decide who a story is about. It may never record that the
+player met, helped or dealt with somebody they did not - writing a `Met` event to make a face
+familiar would corrupt the very reading BQ-114 exists to take, and would put a lie in the ledger
+that memory, rumour and the Chronicle would all go on to repeat. So election writes no event, mints
+no relationship and moves no affinity.
+
+**Recurrence is determinism, not a roster.** Election is a pure reading of the settlement, so the
+same save names the same faces on every pass and after every reload without anything being stored
+to make it so (`D022`). Nothing about it enters the save.
+
+**Both grounds answer one question, and history wins.** Familiarity and election both say whether
+the player will recognise a cast. A candidate records `player_familiarity` or `recurring_contact`,
+never both, and an elected face is capped below `PlayerFamiliarity.HouseholdWeight` so it can never
+outrank history the player actually made. Election sits exactly where familiarity sits: after
+eligibility, so `D027` holds unchanged - a quiet settlement stays quiet however many faces were
+elected in it.
+
+**Only faces that are here.** Somebody living on the player's land but standing elsewhere is not
+elected: BQ-114 already reads them as the strongest tie the game has, and a slot spent on them buys
+nothing while costing the settlement one of its three.
+
+**The importance ladder is allowed a rung before the crisis.** `NarrativeImportance.Recurring` used
+to be reachable only after a high-weight memory - only after something had already happened to
+somebody. Being a face the save keeps is now its own ground for it, which is what `engagement §4`
+means by attachment before stakes and what `PM §19` means by importance that is emergent rather
+than designated.
+
+Reason: a threat to a stranger is an errand, and the first situation a save produces is the one
+that decides whether the player thinks the system is for them. The honest way to make that first
+cast land is to choose who it is about, not to invent a history for them.
+
 Add a new entry only when the decision is both load-bearing and durable.

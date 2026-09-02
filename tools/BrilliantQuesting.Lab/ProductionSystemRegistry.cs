@@ -5,6 +5,7 @@ using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Memory;
+using BrilliantQuesting.Relationships;
 using BrilliantQuesting.Situations;
 using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
@@ -30,6 +31,9 @@ namespace BrilliantQuesting.Lab
         public int RumorRoutes { get; set; }
         public int ThreadEscalations { get; set; }
         public int GeneratedSituations { get; set; }
+
+        /// <summary>BQ-115. Faces the settlement elected to keep bringing back.</summary>
+        public int EarlyContacts { get; set; }
         public int OrganizationActions { get; set; }
         public int AbsenceReturns { get; set; }
         public int AbsenceEnforcements { get; set; }
@@ -72,6 +76,15 @@ namespace BrilliantQuesting.Lab
                 new ProductionSystemDescriptor("consequence_engine", HarnessPhase.Initialize, AttachConsequences, "production Core"),
                 new ProductionSystemDescriptor("rumor_system", HarnessPhase.Initialize, BuildRumors, "production Core"),
                 new ProductionSystemDescriptor("thread_engine", HarnessPhase.Initialize, BuildThreads, "production Core"),
+                // BQ-115 runs ahead of both generation passes, exactly as the plugin's attach path
+                // orders them. The ordering is the step: faces have to be elected before there is a
+                // situation for them to be cast into.
+                new ProductionSystemDescriptor(
+                    "early_contacts",
+                    HarnessPhase.Daily,
+                    EstablishEarlyContacts,
+                    "production Core",
+                    "Electing writes no event and no thread, so coverage reads Available rather than Exercised even on a pass that elected a full cast."),
                 new ProductionSystemDescriptor("settlement_generation", HarnessPhase.Daily, GenerateSettlementSituation, "production Core"),
                 new ProductionSystemDescriptor("home_resident_pressure", HarnessPhase.Daily, GenerateHomeResidentPressure, "production Core"),
                 new ProductionSystemDescriptor("thread_lifecycle", HarnessPhase.Daily, ReviewThreadLifecycle, "production Core"),
@@ -122,6 +135,13 @@ namespace BrilliantQuesting.Lab
             runtime.Threads.Register(ShortageSituation.ArchetypeId, new ShortageEscalation(state.Vanilla));
             runtime.Threads.Register(HuntedWitnessSituation.ArchetypeId, new HuntedWitnessEscalation(state.Vanilla));
             runtime.Threads.Register(HomeResidentSituation.ArchetypeId, new HomeResidentEscalation());
+        }
+
+        private static void EstablishEarlyContacts(HarnessState state, HarnessRuntime runtime)
+        {
+            runtime.EarlyContacts = EarlyContacts
+                .Establish(state.World, state.Vanilla, state.PrimaryZoneId)
+                .Count;
         }
 
         private static void GenerateSettlementSituation(HarnessState state, HarnessRuntime runtime)

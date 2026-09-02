@@ -52,6 +52,18 @@ namespace BrilliantQuesting.Situations
         /// quiet however many friends the player has in it.
         /// </summary>
         public const string PlayerFamiliarity = "player_familiarity";
+
+        /// <summary>
+        /// BQ-115. Whether this proposal is about one of the handful of faces the save elected to
+        /// keep bringing back.
+        ///
+        /// The same shape and the same placement as <see cref="PlayerFamiliarity"/>, and recorded
+        /// instead of it rather than beside it: they answer one question - will the player
+        /// recognise anybody here - from two different halves of the evidence, and a face that is
+        /// both known and elected is still one face. Which of the two is recorded says which
+        /// evidence actually carried the decision, so the inspector never has to guess.
+        /// </summary>
+        public const string RecurringContact = "recurring_contact";
     }
 
     /// <summary>A vanilla-setting term the candidate's premise is explicitly rooted in.</summary>

@@ -111,14 +111,14 @@ namespace BrilliantQuesting.Situations
                     SituationCandidate candidate = _theft.Evaluate(world, profile, thief, victim, witness);
 
                     // Eligibility is decided on the world's own pressure, before anybody asks who
-                    // the player knows. BQ-114 chooses between the situations a settlement already
-                    // supports; it is never the reason one of them exists.
+                    // the player knows. BQ-114 and BQ-115 choose between the situations a settlement
+                    // already supports; neither is ever the reason one of them exists.
                     if (candidate == null || candidate.Score < PettyTheftPressure.MinimumScore)
                     {
                         continue;
                     }
 
-                    candidate = PreferFamiliarFaces(profile, candidate);
+                    candidate = PreferRecognisableFaces(profile, candidate);
 
                     string refusal = RepetitionReason(world, candidate, vanilla.Now);
                     if (refusal != null)
@@ -187,7 +187,9 @@ namespace BrilliantQuesting.Situations
         }
 
         /// <summary>
-        /// BQ-114. Adds what the player's own history says about the people a proposal is about.
+        /// BQ-114 and BQ-115. Adds whatever says the player will recognise the people a proposal
+        /// is about - the history they made, or the casting decision the save made before they made
+        /// any.
         ///
         /// Applied here rather than inside an archetype because it means the same thing for every
         /// archetype - a shortage that starves the shopkeeper the player buys from is the same kind
@@ -198,26 +200,47 @@ namespace BrilliantQuesting.Situations
         /// Only the principals count, and only the best-known of them: a familiar face among the
         /// people a situation is *about* is what makes it land, and knowing the witness as well
         /// does not make it land twice as hard. A cast of strangers records no term at all rather
-        /// than a zero, because a stranger is an absence of history, not a measurement of it.
+        /// than a zero, because a stranger is an absence of history, not a measurement of it - and
+        /// a cast nobody elected and nobody knows is exactly that.
         /// </summary>
-        private static SituationCandidate PreferFamiliarFaces(
+        private static SituationCandidate PreferRecognisableFaces(
             LocalAffordanceProfile profile,
             SituationCandidate candidate)
         {
-            FamiliarityReading best = null;
+            ActorAffordances best = null;
             AppraiseRole(profile, candidate, SituationRoles.Actor, ref best);
             AppraiseRole(profile, candidate, SituationRoles.Target, ref best);
+            if (best == null)
+            {
+                return candidate;
+            }
 
-            return best == null || !best.IsKnown
+            // BQ-115. History wins when there is any, because it is something the player actually
+            // did; the elected face is what answers the question in a save where there is none.
+            // One term either way - a face that is both known and elected is still one face.
+            int known = best.Familiarity.Score;
+            EarlyContact elected = best.EarlyContact;
+            if (elected != null && elected.Weight > known)
+            {
+                return candidate.WithPressure(
+                    SituationPressures.RecurringContact, elected.Weight, elected.Because);
+            }
+
+            return known <= 0
                 ? candidate
-                : candidate.WithPressure(SituationPressures.PlayerFamiliarity, best.Score, best.Because);
+                : candidate.WithPressure(
+                    SituationPressures.PlayerFamiliarity, known, best.Familiarity.Because);
         }
 
+        /// <summary>
+        /// The principal the player is most likely to recognise, by whichever of the two grounds
+        /// says more about them, then by id so the answer does not depend on binding order.
+        /// </summary>
         private static void AppraiseRole(
             LocalAffordanceProfile profile,
             SituationCandidate candidate,
             string role,
-            ref FamiliarityReading best)
+            ref ActorAffordances best)
         {
             IReadOnlyList<EntityId> bound = candidate.ActorsIn(role);
             for (int i = 0; i < bound.Count; i++)
@@ -228,17 +251,21 @@ namespace BrilliantQuesting.Situations
                     continue;
                 }
 
-                FamiliarityReading reading = local.Familiarity;
+                int here = Recognisability(local);
+                int incumbent = best == null ? -1 : Recognisability(best);
                 if (best == null
-                    || reading.Score > best.Score
-                    || (reading.Score == best.Score
-                        && reading.IsKnown
-                        && string.CompareOrdinal(reading.Actor.Value, best.Actor.Value) < 0))
+                    || here > incumbent
+                    || (here == incumbent
+                        && here > 0
+                        && string.CompareOrdinal(local.ActorId.Value, best.ActorId.Value) < 0))
                 {
-                    best = reading;
+                    best = local;
                 }
             }
         }
+
+        private static int Recognisability(ActorAffordances local) =>
+            Math.Max(local.Familiarity.Score, local.EarlyContact == null ? 0 : local.EarlyContact.Weight);
 
         /// <summary>
         /// The people here in the order they would be the one to have noticed something, most

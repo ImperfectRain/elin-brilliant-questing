@@ -182,6 +182,7 @@ namespace BrilliantQuesting.Lab
                 RumorRoutes = previous.RumorRoutes,
                 ThreadEscalations = previous.ThreadEscalations,
                 GeneratedSituations = previous.GeneratedSituations,
+                EarlyContacts = previous.EarlyContacts,
                 OrganizationActions = previous.OrganizationActions,
                 AbsenceReturns = previous.AbsenceReturns,
                 AbsenceEnforcements = previous.AbsenceEnforcements,
@@ -326,6 +327,7 @@ namespace BrilliantQuesting.Lab
             Console.WriteLine("mode=" + result.Mode + " source=" + result.Source + " days=" + result.Days);
             Console.WriteLine("events=" + result.Events + " facts=" + result.Facts + " memories=" + result.Memories
                               + " threads=" + result.Threads + " npcs=" + result.Npcs);
+            Console.WriteLine("early contacts=" + result.EarlyContacts);
             Console.WriteLine("generated=" + result.GeneratedSituations + " escalations=" + result.ThreadEscalations
                               + " rumors=" + result.RumorTells + "/" + result.RumorRoutes);
             Console.WriteLine("coverage:");
