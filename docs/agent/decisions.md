@@ -492,4 +492,46 @@ interrogation, blackmail, friendship and secrets all be the same mechanism seen 
 sides — and keeping falsehood out of it is what leaves BQ-073 a lie that is catchable rather than a
 refusal that quietly became one.
 
+## D032 — Depth is a second axis over the same decision, and it is capped rather than bought
+
+BQ-072 asks how much of a fact comes out, not whether it does. That is deliberately not a fifth rung
+of `D031`'s ladder: willingness and depth are independent, and a hedge that carried fewer
+particulars than a confident answer would quietly make "less sure" and "less forthcoming" the same
+thing. `DisclosureDecision` therefore gained `Depth` — `Nothing`, `Gist`, `Detail`, `InConfidence` —
+beside the strategy BQ-071 already computed, and nothing about that computation changed.
+
+**Three ceilings, and the lowest wins.** Depth is the least of what the speaker knows, what the
+relationship reaches, and what their own restraint leaves them free to give. Ceilings rather than
+terms in a sum, because a sum is exactly what lets a deep enough tie buy its way past a fear or past
+the edge of what somebody actually holds, and neither is a thing affection does. So a frightened
+witness who answers her husband anyway speaks and then stops short of how she knows: her willingness
+was never in question and the fear still took the last rung.
+
+**Knowledge is the hard cap.** Particulars require the claim to have any; provenance requires the
+speaker to be able to give one — their own part in it, a teller they can name, or something they can
+produce — and to hold it firmly enough to stand behind. Hearsay from nobody in particular stops at
+`Detail` for everyone in the world, however close. This is `D008` and `D031`'s belief gate applied a
+second time: a relationship may fail to reach knowledge and may never invent it, and a depth ladder
+that filled the gap would be manufacturing detail at exactly the moment the player believed they
+had earned it.
+
+**The relationship is not the affinity number.** `Standing` reads sentiment, what the tie is (via
+the same `KindBonus` willingness uses, so there is no second opinion about what a spouse is), the
+obligation ledger between the two — a kept promise, a shelter still standing, a broken promise, an
+open grudge, bounded so a ledger of small favours cannot outweigh what the two people are to each
+other — and whether the listener holds a tie back at all. It is derived on the spot and stored
+nowhere, exactly as `Balance` is, so there is still no standing that can drift out of agreement with
+the ties and debts it was read from.
+
+**Every rung is the truth.** A shallower answer is a smaller true answer, never a shaded one; there
+is no rung on which somebody misleads, and shading remains BQ-073's. `Compose` is untouched, because
+depth changes what a realizer has to say and never which act it is or which claim it names — that is
+BQ-074's.
+
+Reason: without depth, a relationship only decides whether a fact is spent, and every informant is a
+switch — the stranger gets nothing, the friend gets everything, and there is nothing left to earn
+from somebody who already answers. Making depth a capped reading of knowledge, tie and restraint is
+what turns a mended relationship into more of a fact while keeping fear, loyalty and privacy as
+things that hold, and keeping the world's knowledge as the thing nobody can talk their way past.
+
 Add a new entry only when the decision is both load-bearing and durable.

@@ -142,6 +142,10 @@ namespace BrilliantQuesting.Diagnostics
         /// actually believes about it, every pressure that applied with its sign, its size and the
         /// state it was read from, the balance they add to, and which of them settled it.
         ///
+        /// BQ-072 adds two lines rather than a second dump: how deep the disclosure went, which of
+        /// the three ceilings held it there, and what each of them permitted. A shallow answer
+        /// from a friend is otherwise indistinguishable from a bug.
+        ///
         /// Two things are stated rather than left to be inferred. A speaker who holds no belief is
         /// reported as having nothing to disclose and no pressures at all, because "would not" and
         /// "could not" are different answers. And the dump says it produced no wording, for
@@ -192,6 +196,15 @@ namespace BrilliantQuesting.Diagnostics
             sb.Append(decision.WillDisclose && !decision.Committed ? " (will not stand behind it)" : string.Empty).Append('\n');
             sb.Append("  balance:     ").Append(decision.Balance.ToString("+0.00;-0.00;0.00")).Append('\n');
 
+            // BQ-072. How far in they went, and which of the three ceilings stopped them - the
+            // question a shallow answer actually raises. Printed even when nothing was disclosed,
+            // because "no depth, they are not saying it" is the answer in that case and leaving
+            // the line out would read as an unfinished dump.
+            sb.Append("  depth:       ").Append(decision.Depth).Append(" - ").Append(Held(decision.Limit)).Append('\n');
+            sb.Append("  ceilings:    knows ").Append(decision.KnownDepth);
+            sb.Append(", standing ").Append(decision.Standing.ToString("+0.00;-0.00;0.00"));
+            sb.Append(" reaches ").Append(decision.StandingDepth).Append('\n');
+
             if (decision.Pressures.Count == 0)
             {
                 sb.Append("  pressures:   none weighed");
@@ -239,6 +252,24 @@ namespace BrilliantQuesting.Diagnostics
 
             sb.Append("  wording:     none - this layer decides meaning only\n");
             return sb.ToString();
+        }
+
+        /// <summary>Which ceiling held a disclosure where it is, in the words it would be said in.</summary>
+        private static string Held(DisclosureLimit limit)
+        {
+            switch (limit)
+            {
+                case DisclosureLimit.Unspoken:
+                    return "the claim is not being put forward at all";
+                case DisclosureLimit.Knowledge:
+                    return "that is as much as they hold";
+                case DisclosureLimit.Restraint:
+                    return "something other than the relationship keeps the rest back";
+                case DisclosureLimit.Standing:
+                    return "the tie does not reach further";
+                default:
+                    return "nothing held anything back";
+            }
         }
 
         private static string DescribeContent(SpeechAct act)

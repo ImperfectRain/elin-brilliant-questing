@@ -1202,9 +1202,10 @@ fear, loyalty, leverage, legal risk and social practice.
   forthcoming rungs, `Refuse` for the refusal.
   Deferred by design: a deflection composes to *no act*, because there is no `Evade` in the
   vocabulary and adding one is BQ-073's call; there is no lie strategy and no way to express one,
-  so a refusal cannot silently become a falsehood; there is no maximum-detail field, because a
-  hedge is a weaker commitment to the whole claim rather than a smaller part of it and graduated
-  depth is BQ-072's. Social practice is the one pressure on CD §17.5's list that is absent, because
+  so a refusal cannot silently become a falsehood; a hedge is a weaker commitment to the whole
+  claim rather than a smaller part of it, and graduated depth — added by BQ-072 as a second axis on
+  the same decision, leaving the ladder and every pressure here untouched — is what says how much
+  of the claim comes with it. Social practice is the one pressure on CD §17.5's list that is absent, because
   §16's norms are not state yet and a pressure derived from nothing would be a number pretending to
   be a reason.
 - **Sources** CD §17.5; PM §38.
@@ -1214,6 +1215,29 @@ Affinity changes not just willingness but how much is revealed, from "nothing to
 "something I didn't tell the guards".
 - **Depends** BQ-071.
 - **Done when** raising affinity on one NPC unlocks strictly more of one fact, in stages.
+- **Current implementation** a second axis on `DisclosureDecision`, not a fifth rung of BQ-071's
+  ladder: `DisclosureDepth` runs `Nothing`, `Gist`, `Detail`, `InConfidence` — the claim bare, its
+  particulars, and how the speaker comes to hold it (their own part in it, who told them, what they
+  can produce), which is the "something I didn't tell the guards" end. BQ-071 is unchanged and
+  still decides whether anything is said; depth decides how much comes with it, and the two vary
+  independently — a hedge can carry every particular and a committed answer can be bare. Depth is
+  the lowest of three ceilings, kept as ceilings rather than terms in a sum so that nothing buys
+  its way past another. `KnownDepth` is what the belief supports: particulars need the fact to have
+  any, provenance needs a first-hand source, a named teller or a proof plus the conviction to stand
+  behind it, so hearsay from nobody in particular stops at `Detail` however close the listener is.
+  `StandingDepth` bands a `Standing` read from the whole relationship rather than from affinity —
+  sentiment, what the tie is (BQ-071's own `KindBonus`, so there is no second opinion about what a
+  spouse is), the obligation ledger between the two (a kept promise, a shelter still standing, a
+  broken promise or an open grudge, bounded so a ledger of small favours cannot outweigh the tie
+  itself) and whether the listener holds a tie back. The third is `Restraint`: the magnitudes of the
+  weighed pressures against saying it, the relationship excluded, so a frightened witness who
+  answers her husband anyway still does not tell him how she knows. `Limit` names which ceiling
+  bound it and `NarrativeInspector.DescribeDisclosure` prints all three, because a shallow answer
+  from a friend is otherwise indistinguishable from a bug. Nothing is stored, nothing is written,
+  and the reading is arithmetic over the graph and the ledger performed on the spot.
+  Deferred by design: `Compose` is untouched — depth changes what a realizer has to say, never
+  which act it is or which claim it names, and rendering the rungs as words is BQ-074's. Every rung
+  is the truth, less of it; there is still no way to express a falsehood, which stays BQ-073's.
 - **Sources** PM §38; LW §3.4; CD §17.5.
 
 #### BQ-073 — Lying and evasion as outcomes

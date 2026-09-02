@@ -393,10 +393,12 @@ namespace BrilliantQuesting.Tests
 
         /// <summary>
         /// A hedge is a weaker commitment to the whole claim, not a smaller piece of it - the line
-        /// that leaves BQ-072 something to build.
+        /// BQ-072 then built on rather than blurred.
         ///
-        /// Asserted twice over: the hedged act names the same fact the confident one does, and the
-        /// decision has nowhere to put a depth at all.
+        /// The hedged act names the same fact the confident one does, and the two are the same act
+        /// on the wire. How much of that fact comes out is the separate axis BQ-072 added, and it
+        /// is asserted here to be separate: at one tie, both answers reveal the same amount, so
+        /// nothing about hedging is a smaller disclosure.
         /// </summary>
         [Fact]
         public void HedgingIsLessCommitmentRatherThanLessOfTheFact()
@@ -412,13 +414,14 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(committed.About, hedged.About);
             Assert.Equal(committed.Signature, hedged.Signature);
 
-            string[] properties = typeof(DisclosureDecision)
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Select(p => p.Name)
-                .ToArray();
+            // Depth is BQ-072's separate axis, and it is not what separates these two: a hedge
+            // still puts the whole claim forward, and how much comes with it is decided by the
+            // tie rather than by how firmly the claim is said.
+            DisclosureDecision hedging = town.AskAs(RelationKind.Acquaintance, 40);
 
-            Assert.DoesNotContain(properties, name => name.IndexOf("Detail", StringComparison.Ordinal) >= 0);
-            Assert.DoesNotContain(properties, name => name.IndexOf("Depth", StringComparison.Ordinal) >= 0);
+            Assert.Equal(DisclosureStrategy.Hedge, hedging.Strategy);
+            Assert.True(hedging.WillDisclose);
+            Assert.True(hedging.Reaches(DisclosureDepth.Gist));
         }
 
         // -- a character decision, not a difficulty check --------------------------------------------

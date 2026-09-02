@@ -42,9 +42,15 @@ namespace BrilliantQuesting.Dialogue
     ///
     /// <b>Withholding is never lying.</b> The strategies are four ways of being more or less
     /// forthcoming and none of them asserts anything false. Which act carries an untruth, and how
-    /// the world records one so it can be caught later, is BQ-073's; how much of a single claim
-    /// comes out as a tie deepens is BQ-072's. Both consume this decision rather than replacing
-    /// it.
+    /// the world records one so it can be caught later, is BQ-073's, and it consumes this decision
+    /// rather than replacing it.
+    ///
+    /// BQ-072 adds the second axis without touching the first: the same weighing decides whether
+    /// the claim comes out, and <see cref="DisclosureDepth"/> then decides how much of what the
+    /// speaker holds comes with it. Depth is the lowest of three ceilings - what they actually
+    /// know, how far the relationship reaches, and what the restraining pressures leave them free
+    /// to say - so a deep tie buys more of a fact and never invents one, and never overrides a
+    /// fear, a loyalty or a privacy that was holding the rest back.
     /// </summary>
     public static class Disclosure
     {
@@ -65,6 +71,33 @@ namespace BrilliantQuesting.Dialogue
         /// same reason: saying a thing you would not act on is exactly what hedging is.
         /// </summary>
         public const double ConvictionToStandBehind = 0.5;
+
+        /// <summary>
+        /// The standing at which a tie starts buying particulars rather than only an answer, and
+        /// the standing at which it buys the part that does not go into an official account.
+        ///
+        /// Two thresholds on one reading, for the same reason the strategy bands are thresholds:
+        /// the output is a small number of discrete rungs, and a threshold is the thing an
+        /// inspector can name and a test can cross. What crosses them is the relationship
+        /// changing - a warmer tie, a kept promise, a shelter given.
+        /// </summary>
+        public const double DetailAt = 0.45;
+
+        public const double InConfidenceAt = 1.00;
+
+        /// <summary>
+        /// How much restraint - from everything that is not the relationship - keeps the rest
+        /// back. Beyond <see cref="GuardedAt"/> a speaker gives particulars but not provenance;
+        /// beyond <see cref="HeldBackAt"/> they give the claim and nothing around it.
+        ///
+        /// Read from the same pressures the strategy was banded from rather than from a second
+        /// weighing, and applied as a cap rather than as a subtraction, which is what stops a warm
+        /// enough tie from buying its way past a fear or a loyalty. Affection does not make
+        /// somebody unafraid.
+        /// </summary>
+        public const double GuardedAt = 0.45;
+
+        public const double HeldBackAt = 0.80;
 
         /// <summary>
         /// What this speaker would do if this person asked them about this claim now.
@@ -125,8 +158,29 @@ namespace BrilliantQuesting.Dialogue
 
             double balance = Sum(pressures);
             DisclosureStrategy strategy = Band(balance, belief.Confidence);
+
+            // The second axis. Nothing above is re-read or re-weighed: how far they go is decided
+            // from the belief they hold, the tie they have and the pressures already weighed.
+            double standing = Standing(world, speaker, asker);
+            double restraint = Restraint(pressures);
+            DisclosureDepth known = KnownDepth(fact, belief);
+            DisclosureDepth reached = StandingDepth(standing);
+            DisclosureDepth depth = Depth(strategy, known, reached, restraint);
+
             return new DisclosureDecision(
-                speaker, asker, factId, strategy, balance, pressures, Decisive(pressures, balance, belief.Confidence, strategy), string.Empty);
+                speaker,
+                asker,
+                factId,
+                strategy,
+                balance,
+                pressures,
+                Decisive(pressures, balance, belief.Confidence, strategy),
+                string.Empty,
+                depth,
+                known,
+                reached,
+                standing,
+                Bound(strategy, depth, known, reached, restraint));
         }
 
         /// <summary>
@@ -550,6 +604,263 @@ namespace BrilliantQuesting.Dialogue
                 "anger " + anger.ToString("0.00") + " toward " + world.Registry.NameOf(subject) + ", vengefulness " + npc.Personality.Vengefulness.ToString("0.00"));
         }
 
+        // -- depth (BQ-072) ------------------------------------------------------------------------
+        //
+        // Three ceilings and the lowest of them wins. They are ceilings rather than terms in a sum
+        // on purpose: a sum lets a deep enough tie buy its way past a fear or past the edge of what
+        // somebody actually knows, and both of those are things no amount of affection does.
+
+        /// <summary>
+        /// How much of what they hold comes out, given that something does.
+        ///
+        /// <see cref="DisclosureDepth.Nothing"/> whenever the claim is not being put forward, so
+        /// the two axes never disagree about whether anything was said. Otherwise the least of
+        /// what they know, what the tie reaches and what their own restraint leaves them free to
+        /// give. Never below <see cref="DisclosureDepth.Gist"/> without needing a floor: somebody
+        /// answering has said the claim, and no ceiling can fall beneath it.
+        /// </summary>
+        private static DisclosureDepth Depth(
+            DisclosureStrategy strategy,
+            DisclosureDepth known,
+            DisclosureDepth standing,
+            double restraint)
+        {
+            if (strategy < DisclosureStrategy.Hedge)
+            {
+                return DisclosureDepth.Nothing;
+            }
+
+            DisclosureDepth depth = known < standing ? known : standing;
+            DisclosureDepth allowed = RestrainedDepth(restraint);
+            return allowed < depth ? allowed : depth;
+        }
+
+        /// <summary>
+        /// The deepest rung this belief could support - the hard cap, and the only one that is
+        /// never traded against anything.
+        ///
+        /// Particulars require the claim to have any: a fact with no object, no value and no
+        /// evidence is the whole of what its holder knows, and there is no second rung of it to
+        /// unlock however close the listener is. Provenance requires them to be able to give one -
+        /// their own part in it, the person who told them, or something they can produce - and to
+        /// hold it firmly enough to stand behind, since <see cref="DisclosureDepth.InConfidence"/>
+        /// is what somebody kept back rather than what they are still unsure of.
+        ///
+        /// A hearsay belief from nobody in particular, with nothing to show for it, therefore
+        /// stops at <see cref="DisclosureDepth.Detail"/> no matter who is asking. That is the
+        /// invariant: depth is a reading of knowledge, and a tie can only ever fail to reach it.
+        /// </summary>
+        private static DisclosureDepth KnownDepth(Fact fact, KnowledgeRecord belief)
+        {
+            bool particulars = !fact.Object.IsNone
+                || (fact.Value != null && fact.Value.Length != 0)
+                || fact.EvidenceIds.Count > 0;
+            if (!particulars)
+            {
+                return DisclosureDepth.Gist;
+            }
+
+            bool provenance = FirstHand(belief.Source) || !belief.ToldBy.IsNone || belief.CanProve;
+            return provenance && belief.Confidence >= ConvictionToStandBehind
+                ? DisclosureDepth.InConfidence
+                : DisclosureDepth.Detail;
+        }
+
+        /// <summary>
+        /// Whether the way they came to hold this is something they could actually recount. Being
+        /// there, reading it, being told it by the subject: each is an account of its own that a
+        /// speaker can give or keep back. An inference is not - the reasoning is not a thing they
+        /// witnessed - so it reaches provenance only through a named teller or a proof.
+        /// </summary>
+        private static bool FirstHand(KnowledgeSource source)
+        {
+            switch (source)
+            {
+                case KnowledgeSource.Witnessed:
+                case KnowledgeSource.Participant:
+                case KnowledgeSource.Document:
+                case KnowledgeSource.Admission:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// What the relationship itself reaches, as one reading of everything the world holds
+        /// about these two.
+        ///
+        /// Deliberately not affinity. Sentiment is one term of four: what the tie <em>is</em>
+        /// carries its own weight (<see cref="KindBonus"/>, the same table willingness reads, so
+        /// there is no second opinion about what a spouse is), the obligation ledger contributes
+        /// what the two of them have actually done for and to each other, and a tie the listener
+        /// holds back makes the relationship mutual rather than one-sided. A history of kept
+        /// promises and given shelter is a deeper relationship than a warm number, and it is the
+        /// difference PM §38 is really describing.
+        ///
+        /// Read, never stored: like <see cref="DisclosureDecision.Balance"/> this is arithmetic
+        /// over the graph and the ledger, performed on the spot and discarded, so no standing can
+        /// drift out of agreement with the ties and debts it describes.
+        /// </summary>
+        private static double Standing(NarrativeWorldState world, EntityId speaker, EntityId asker)
+        {
+            double standing = 0.0;
+            RelationshipEdge tie = world.Relationships.Find(speaker, asker);
+            if (tie != null)
+            {
+                standing += tie.Sentiment / 100.0;
+                standing += KindBonus(tie.Kind) * 1.5;
+            }
+
+            RelationshipEdge back = world.Relationships.Find(asker, speaker);
+            if (back != null && back.Sentiment > 0)
+            {
+                // A tie somebody holds back is not the same relationship as one they do not.
+                standing += back.Sentiment / 100.0 * 0.20;
+            }
+
+            return standing + History(world, speaker, asker);
+        }
+
+        /// <summary>
+        /// What the two of them have actually done for and to each other, from the obligation
+        /// ledger - the part of a relationship that is a record rather than a feeling.
+        ///
+        /// A settled debt or a kept promise counts whichever way it ran: being helped and having
+        /// helped both deepen a tie, and the ledger already says which happened and how much was
+        /// at stake. Shelter and sponsorship still standing count for more, because they are the
+        /// obligations somebody took a risk to enter. A broken obligation or an open grudge counts
+        /// against, for the same reason and in the same units.
+        ///
+        /// Bounded, because history informs a relationship rather than replacing it: a ledger full
+        /// of small favours should not out-weigh what the two people are to each other.
+        /// </summary>
+        private static double History(NarrativeWorldState world, EntityId speaker, EntityId asker)
+        {
+            double history = 0.0;
+            IReadOnlyList<SocialObligation> records = world.Obligations.Records;
+            for (int i = 0; i < records.Count; i++)
+            {
+                SocialObligation obligation = records[i];
+                bool between = (obligation.Debtor == speaker && obligation.Creditor == asker)
+                    || (obligation.Debtor == asker && obligation.Creditor == speaker);
+                if (!between)
+                {
+                    continue;
+                }
+
+                double weight = 0.10 + (obligation.Strength / 100.0 * 0.20);
+                switch (obligation.Status)
+                {
+                    case SocialObligationStatus.Fulfilled:
+                    case SocialObligationStatus.Forgiven:
+                        history += obligation.Kind == SocialObligationKind.Grudge ? 0.0 : weight;
+                        break;
+                    case SocialObligationStatus.Broken:
+                        history -= weight;
+                        break;
+                    case SocialObligationStatus.Open:
+                        if (obligation.Kind == SocialObligationKind.Grudge)
+                        {
+                            history -= weight;
+                        }
+                        else if (obligation.Kind == SocialObligationKind.Sanctuary
+                            || obligation.Kind == SocialObligationKind.Sponsorship)
+                        {
+                            history += weight;
+                        }
+
+                        break;
+                }
+            }
+
+            return history > 0.50 ? 0.50 : (history < -0.50 ? -0.50 : history);
+        }
+
+        /// <summary>Where a standing lands. The staging PM §38's "in stages" asks for.</summary>
+        private static DisclosureDepth StandingDepth(double standing)
+        {
+            if (standing >= InConfidenceAt)
+            {
+                return DisclosureDepth.InConfidence;
+            }
+
+            return standing >= DetailAt ? DisclosureDepth.Detail : DisclosureDepth.Gist;
+        }
+
+        /// <summary>
+        /// How hard everything that is not the relationship is pulling the other way: the
+        /// magnitudes of the pressures against saying it, with the tie to the listener left out
+        /// because that is the ceiling this one exists to be independent of.
+        ///
+        /// Magnitudes rather than the balance, so that a warm tie cannot net a fear away. Somebody
+        /// frightened who answers a friend anyway is exactly the case this models: they speak, and
+        /// they do not go on to say how they know it.
+        /// </summary>
+        private static double Restraint(IReadOnlyList<DisclosurePressure> pressures)
+        {
+            double restraint = 0.0;
+            for (int i = 0; i < pressures.Count; i++)
+            {
+                DisclosurePressure pressure = pressures[i];
+                if (!pressure.TowardDisclosure && pressure.Tag != DisclosurePressures.Relationship)
+                {
+                    restraint += pressure.Magnitude;
+                }
+            }
+
+            return restraint;
+        }
+
+        private static DisclosureDepth RestrainedDepth(double restraint)
+        {
+            if (restraint >= HeldBackAt)
+            {
+                return DisclosureDepth.Gist;
+            }
+
+            return restraint >= GuardedAt ? DisclosureDepth.Detail : DisclosureDepth.InConfidence;
+        }
+
+        /// <summary>
+        /// Which ceiling held the answer where it is, for the inspector and for anybody asking why
+        /// a friend was not more forthcoming.
+        ///
+        /// Knowledge first when several bind at once, because "that is all they know" is the
+        /// answer that stops somebody looking for a knob to turn.
+        /// </summary>
+        private static DisclosureLimit Bound(
+            DisclosureStrategy strategy,
+            DisclosureDepth depth,
+            DisclosureDepth known,
+            DisclosureDepth standing,
+            double restraint)
+        {
+            if (strategy < DisclosureStrategy.Hedge)
+            {
+                return DisclosureLimit.Unspoken;
+            }
+
+            if (depth == DisclosureDepth.InConfidence)
+            {
+                // The top of the ladder: nothing was held back, so naming a constraint would be
+                // naming one that did not bind.
+                return DisclosureLimit.None;
+            }
+
+            if (depth == known)
+            {
+                return DisclosureLimit.Knowledge;
+            }
+
+            if (depth == RestrainedDepth(restraint))
+            {
+                return DisclosureLimit.Restraint;
+            }
+
+            return depth == standing ? DisclosureLimit.Standing : DisclosureLimit.None;
+        }
+
         // -- banding and explanation ---------------------------------------------------------------
 
         /// <summary>
@@ -629,7 +940,19 @@ namespace BrilliantQuesting.Dialogue
         private static DisclosureDecision Nothing(EntityId speaker, EntityId asker, EntityId factId, string note)
         {
             return new DisclosureDecision(
-                speaker, asker, factId, DisclosureStrategy.NothingToDisclose, 0.0, null, null, note);
+                speaker,
+                asker,
+                factId,
+                DisclosureStrategy.NothingToDisclose,
+                0.0,
+                null,
+                null,
+                note,
+                DisclosureDepth.Nothing,
+                DisclosureDepth.Nothing,
+                DisclosureDepth.Nothing,
+                0.0,
+                DisclosureLimit.Unspoken);
         }
     }
 }

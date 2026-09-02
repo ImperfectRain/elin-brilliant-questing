@@ -47,13 +47,92 @@ namespace BrilliantQuesting.Dialogue
         /// quoted on.
         ///
         /// Hedging is a weaker <em>commitment</em>, never a smaller <em>part</em> of the fact. How
-        /// much of one claim comes out in stages is BQ-072's, and the two would be easy to
-        /// conflate: this one changes how firmly the same thing is said.
+        /// much of one claim comes out in stages is <see cref="DisclosureDepth"/>'s, and the two
+        /// would be easy to conflate: this one changes how firmly the same thing is said, and a
+        /// hedge may still carry every particular the speaker holds.
         /// </summary>
         Hedge = 3,
 
         /// <summary>Says it, and stands behind it.</summary>
         Disclose = 4
+    }
+
+    /// <summary>
+    /// How far into what they hold somebody has decided to go (BQ-072).
+    ///
+    /// A second axis, not a fifth rung of <see cref="DisclosureStrategy"/>. Willingness answers
+    /// whether the claim is put forward at all; depth answers how much of what the speaker holds
+    /// comes with it, and the two are genuinely independent - a hedge can carry particulars and a
+    /// confident answer can be bare. Collapsing them would make the friend and the stranger differ
+    /// only in whether they speak, which is the flat reading PM §38 exists to rule out: a tie that
+    /// deepens should buy more of the fact, not just a warmer refusal.
+    ///
+    /// Ordered, and relied on: deeper sorts higher, so a test can assert that a mended tie bought
+    /// more without naming a threshold. Each rung is the one below it plus something, so nothing
+    /// is skipped and nothing is lost on the way up.
+    ///
+    /// Every rung is the truth. Depth is how much is said, never how accurately - a shallow answer
+    /// is a smaller true answer and never a misleading one, and none of these is a rung on which
+    /// somebody shades what they hold. That remains BQ-073's.
+    /// </summary>
+    public enum DisclosureDepth
+    {
+        /// <summary>Nothing about the claim is said. What an unwilling speaker reveals.</summary>
+        Nothing = 0,
+
+        /// <summary>
+        /// The claim itself, bare: that this is so, and no more. What a witness gives a stranger
+        /// they have decided to answer - enough to be an answer, with nothing around it.
+        /// </summary>
+        Gist = 1,
+
+        /// <summary>
+        /// The particulars they hold with it: what was taken, who else was there, what the claim
+        /// actually says beyond its shape. The rung that makes a fact usable rather than merely
+        /// heard.
+        /// </summary>
+        Detail = 2,
+
+        /// <summary>
+        /// How they come to know it - their own part in it, who told them, what they can produce
+        /// to back it. The part of a witness's knowledge that does not go into an official
+        /// account: "something I didn't tell the guards".
+        /// </summary>
+        InConfidence = 3
+    }
+
+    /// <summary>
+    /// What holds a disclosure at the depth it reached. Diagnostic in the same sense
+    /// <see cref="DisclosureDecision.Decisive"/> is: it names the binding constraint so that a
+    /// shallow answer can be read as a fact about the world rather than as a missing feature.
+    /// </summary>
+    public enum DisclosureLimit
+    {
+        /// <summary>
+        /// The claim is not put forward at all, so there was no depth to reach. Whether that is
+        /// because they would not or because they hold nothing is <see cref="DisclosureStrategy"/>'s
+        /// answer, and this field does not restate it - the two are different facts about the
+        /// world and neither is improved by being said twice.
+        /// </summary>
+        Unspoken = 0,
+
+        /// <summary>
+        /// They have gone as far as what they actually hold. The cap that is never traded against
+        /// anything: no tie, however deep, produces knowledge its holder does not have.
+        /// </summary>
+        Knowledge = 1,
+
+        /// <summary>
+        /// Something other than the relationship keeps the rest back - fear, loyalty, privacy, the
+        /// law, their own standing. The reason a beloved friend still does not get everything.
+        /// </summary>
+        Restraint = 2,
+
+        /// <summary>The tie does not reach that far yet. The cap a mended relationship lifts.</summary>
+        Standing = 3,
+
+        /// <summary>Nothing held anything back: everything they hold, to somebody they would tell.</summary>
+        None = 4
     }
 
     /// <summary>
@@ -141,11 +220,12 @@ namespace BrilliantQuesting.Dialogue
     /// <summary>
     /// What one character decided to do about one claim when one person asked - and why.
     ///
-    /// CD §17.5's conceptual result, with two of its fields deliberately absent. There is no
-    /// maximum-detail field, because how much of a claim comes out in stages is BQ-072's and a
-    /// half-built ladder here would be the thing BQ-072 then had to argue with. There is no lie
-    /// strategy, because a lie is a stance held against the speaker's own belief rather than a way
-    /// of answering, and BQ-073 owns both deciding one and recording it so it can be caught.
+    /// CD §17.5's conceptual result on two axes: <see cref="Strategy"/> says whether the claim is
+    /// put forward and how firmly, and <see cref="Depth"/> says how much of what the speaker holds
+    /// comes with it (BQ-072). Neither derives from the other. There is still no lie strategy,
+    /// because a lie is a stance held against the speaker's own belief rather than a way of
+    /// answering, and BQ-073 owns both deciding one and recording it so it can be caught - and
+    /// none of the depths is a lie either, because a shallower answer is a smaller true answer.
     ///
     /// The decision is transient, like the act it may become (D030): it is what somebody would do
     /// if asked now, recomputed from authoritative state every time, and it enters no save. The
@@ -165,7 +245,12 @@ namespace BrilliantQuesting.Dialogue
             double balance,
             IReadOnlyList<DisclosurePressure> pressures,
             IReadOnlyList<DisclosurePressure> decisive,
-            string note)
+            string note,
+            DisclosureDepth depth,
+            DisclosureDepth knownDepth,
+            DisclosureDepth standingDepth,
+            double standing,
+            DisclosureLimit limit)
         {
             Speaker = speaker;
             Asker = asker;
@@ -175,6 +260,11 @@ namespace BrilliantQuesting.Dialogue
             Pressures = pressures ?? NoPressures;
             Decisive = decisive ?? NoPressures;
             Note = note ?? string.Empty;
+            Depth = depth;
+            KnownDepth = knownDepth;
+            StandingDepth = standingDepth;
+            Standing = standing;
+            Limit = limit;
         }
 
         public EntityId Speaker { get; }
@@ -215,9 +305,47 @@ namespace BrilliantQuesting.Dialogue
         /// <summary>Why there was nothing to weigh, when there was nothing to weigh.</summary>
         public string Note { get; }
 
+        /// <summary>
+        /// How much of what they hold comes out (BQ-072). The lowest of three ceilings: what they
+        /// actually know, what the relationship reaches, and what everything else about the
+        /// situation leaves them free to say.
+        ///
+        /// <see cref="DisclosureDepth.Nothing"/> exactly when <see cref="WillDisclose"/> is false,
+        /// so the two axes cannot disagree about whether anything was said.
+        /// </summary>
+        public DisclosureDepth Depth { get; }
+
+        /// <summary>
+        /// The deepest rung their belief could support, whatever they wanted to give. Depth is
+        /// never above this, which is the invariant that keeps a warm tie from producing detail
+        /// nobody in the world holds.
+        /// </summary>
+        public DisclosureDepth KnownDepth { get; }
+
+        /// <summary>
+        /// The deepest rung the tie to this listener reaches on its own - before what they know
+        /// and before what holds them back. Exposed because the interesting question about a
+        /// shallow answer is usually which of the three ceilings bound it.
+        /// </summary>
+        public DisclosureDepth StandingDepth { get; }
+
+        /// <summary>
+        /// The relationship reading <see cref="StandingDepth"/> was banded from: warmth, what the
+        /// tie is, what the two of them have actually done for and to each other, and whether the
+        /// listener holds a tie back. Derived on the spot from the graph and the ledger, stored
+        /// nowhere, exactly as <see cref="Balance"/> is.
+        /// </summary>
+        public double Standing { get; }
+
+        /// <summary>Which of the ceilings held the depth where it is.</summary>
+        public DisclosureLimit Limit { get; }
+
+        /// <summary>Whether this disclosure goes at least as deep as some rung a caller needs.</summary>
+        public bool Reaches(DisclosureDepth depth) => Depth >= depth;
+
         public override string ToString()
         {
-            return Speaker.Value + "->" + Asker.Value + " " + FactId.Value + ": " + Strategy;
+            return Speaker.Value + "->" + Asker.Value + " " + FactId.Value + ": " + Strategy + "/" + Depth;
         }
     }
 }
