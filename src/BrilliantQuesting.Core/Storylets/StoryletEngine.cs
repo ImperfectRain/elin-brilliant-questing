@@ -157,7 +157,7 @@ namespace BrilliantQuesting.Storylets
                 }
             }
 
-            return StoryletOpportunity.Available(definition, focusFactId, casting.Bindings, casting.Notes);
+            return StoryletOpportunity.Available(definition, focusFactId, casting);
         }
 
         private static StoryletCastingContext Context(

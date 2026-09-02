@@ -997,7 +997,14 @@ Roles are never identities.
   `request_for_help` and `confession` resolved to the stolen item rather than its owner — which
   `BQ-105`'s save integrity check would have quarantined the thread over. The five storylets now
   name qualified sources, and a corroborator the world may not have is optional rather than
-  required. Selection among the qualified stays unscored; that is BQ-068.
+  required. Selection among the qualified stays unscored here; that is BQ-068.
+  **Retrofitted with BQ-068:** this step's requirements, negative checks and pool order are
+  unchanged and still run first — chemistry only chooses among groups every rule above has
+  already accepted, and the group it falls back to is this step's first-in-a-stable-order
+  answer. The one behavioural addition is backtracking: where taking the obvious person for
+  one role left a later role with nobody, the search now tries the next qualified person
+  instead of reporting the scene uncastable. Nobody enters a role they do not qualify for by
+  that route.
 - **Identity is eligibility only (BQ-144, BQ-145).** A role may *require* an observed facet where it genuinely needs one — an Authority who is actually entitled to act, a Service operator who really runs the shop — checked against the game's answer and failing closed when the facet is unread (`D017`). It is never a preference for a character kind: nobody is a better Accuser for being a Punk. Roles remain temporary and are never identities (`CD §3` principle 1), and the requirement lives on the role, not on the actor.
 - **Sources** CD §13, §3 principle 1; CD §6.1.
 
@@ -1057,6 +1064,44 @@ vocabulary.
 Score groups, not individuals: goal conflict, shared history, knowledge asymmetry, power asymmetry.
 - **Depends** BQ-067, BQ-145.
 - **Done when** a proud debtor and proud former friend outscore an indifferent pairing, and the resulting scene is visibly better.
+- **Current implementation** `StoryletCasting` forms whole groups before anything is scored, and
+  `StoryletChemistry` chooses among them. Eligibility is untouched and runs first: each searched
+  role gets a shortlist of the people who meet its requirement, in BQ-067's own pool order, and a
+  group is a complete assignment of those shortlists with the one-role-per-person rule intact — so
+  no score can put an ineligible actor into a role, and a storylet nobody qualifies for stays uncast
+  however good the chemistry would have been. Group formation adds exactly one thing to BQ-067:
+  backtracking, so that taking the obvious person for the first role no longer leaves a later role
+  with nobody it could have had. The search is depth-first in the unscored engine's order, which
+  makes the first group reached identical to what BQ-067 would have cast — it is always weighed, it
+  wins every tie (within an epsilon, so the last bit of a double decides nothing), and it is the
+  fallback in a town where nothing distinguishes anybody. Both bounds are stated on the constants:
+  a shortlist is at least one longer than the number of searched roles, so the fallback group is
+  provably reachable, and at most 128 complete groups are weighed per pass.
+  The model is four dimensions and no fifth term. **Goal conflict** reads BQ-056 … BQ-060's own
+  goals — one aimed at the other person, or two unsatisfied goals over the same subject, worth more
+  when the aims differ than when they merely coincide. **Shared history** reads the relationship
+  graph — kind plus charge, plus the two terms that make a scene rather than a fact sheet: a tie the
+  two of them read differently (the proud former friend is a `Friend` edge one of them has stopped
+  meaning) and one that is not returned at all. **Knowledge asymmetry** reads the knowledge graph in
+  its own order of sharpness: knowing against not knowing, proving against merely saying, and the
+  confidence gap between two people who both know. **Power asymmetry** reads the personal leverage
+  the graph already carries (a debt, an employment) and the institutional standing BQ-145 derives.
+  No term is one actor's property: `ChemistryReason` names two roles and a dimension, and the type
+  cannot express a per-person bonus — so "this character type makes a better accuser" is not a
+  sentence the model can say. Every identity term is a **difference**, so two guards score exactly
+  what two nobodies score and swapping which of the pair holds the office changes nothing; race and
+  character archetype derive nothing at BQ-145 and so reach no weight at any size. A shared trade
+  only fires on a tie that is already charged — it is what a quarrel is about, never a reason to
+  expect one. The total is the plain sum of the reasons and nothing else, so
+  `NarrativeInspector.DescribeCasting` accounts for the whole number: what qualified each person
+  (BQ-067) and why these people rather than the others who also qualified (BQ-068), with a flat
+  score printed as flat rather than omitted. `StoryletChemistryTests` isolates each dimension
+  against a fixture where nothing else can move the score, pins the done-when pairing, pins tie
+  stability and repeat-run determinism, and pins the two things chemistry may never do: cast
+  somebody who does not qualify, and score an archetype.
+  Deferred: nothing derived is persisted — a firing stores who held a role, and why this group
+  is re-derivable from the same authoritative state — and BQ-069's developments, speech acts and
+  wording are not touched here.
 - **Identity enters as asymmetry between the pair, never as a label on one of them.** Institutional power over somebody who has none, a service one party depends on, a shared trade that gives rivalry something to be about — those are relations, and they belong here. A character archetype, race or job on a single actor is not chemistry and must not be scored as though it were; that is the stereotype failure BQ-145 gates against.
 - **Sources** CD §13.1, §6.1, §48 M3.
 - **This is Milestone 3** once the theft yields five structurally distinct scenes.

@@ -81,16 +81,42 @@ namespace BrilliantQuesting.Storylets
             Dictionary<string, EntityId> bindings,
             List<string> notes,
             string uncastRole)
+            : this(bindings, notes, uncastRole, StoryletChemistryScore.Empty, 0)
+        {
+        }
+
+        internal StoryletCastingResult(
+            Dictionary<string, EntityId> bindings,
+            List<string> notes,
+            string uncastRole,
+            StoryletChemistryScore chemistry,
+            int groupsConsidered)
         {
             Bindings = bindings;
             Notes = notes;
             UncastRequiredRole = uncastRole ?? string.Empty;
+            Chemistry = chemistry ?? StoryletChemistryScore.Empty;
+            GroupsConsidered = groupsConsidered;
         }
 
         public Dictionary<string, EntityId> Bindings { get; }
 
         /// <summary>Inspector-only sentences: one per bound role, naming what qualified them.</summary>
         public List<string> Notes { get; }
+
+        /// <summary>
+        /// Why this group of qualified people was preferred to the other qualified groups (BQ-068).
+        ///
+        /// Flat when there was nothing to choose between - one group, or several with no relation
+        /// between anybody in them - which is a real answer and is reported as one.
+        /// </summary>
+        public StoryletChemistryScore Chemistry { get; }
+
+        /// <summary>
+        /// How many complete qualified groups this pass actually weighed. One means chemistry
+        /// changed nothing, because there was only ever one way to cast the scene.
+        /// </summary>
+        public int GroupsConsidered { get; }
 
         /// <summary>The first required role nobody qualified for, or empty when the scene is cast.</summary>
         public string UncastRequiredRole { get; }
@@ -124,12 +150,45 @@ namespace BrilliantQuesting.Storylets
     /// <see cref="BuildPool"/> to the requirement, and unknown agency still fails closed for every
     /// role that asks for it.
     ///
-    /// Selection among the qualified is deliberately unscored: the first candidate in a stable
-    /// order. Preferring the *best* group - goal conflict, shared history, power asymmetry - is
-    /// BQ-068's role chemistry, and putting a score here would leave two of them to reconcile.
+    /// **Selection among the qualified is chemistry's (BQ-068), and it happens strictly after
+    /// eligibility.** This engine forms whole groups first - every complete cast the rules above
+    /// would have accepted - and only then asks <see cref="StoryletChemistry"/> which of them
+    /// makes the better scene. The two steps cannot be reconciled the wrong way round, because a
+    /// score is never consulted about whether somebody may hold a role: an ineligible actor is
+    /// never in a group to begin with, and a storylet nobody qualifies for stays uncast whatever
+    /// the chemistry would have been.
+    ///
+    /// Groups are formed in the order the unscored engine would have picked them, so the first
+    /// one enumerated is exactly the old first-candidate-in-a-stable-order answer. It is always
+    /// weighed, it wins every tie, and it is what a scene falls back to when nothing in the world
+    /// distinguishes one group from another - which is the common case in a town where nobody has
+    /// any history yet.
     /// </summary>
     public static class StoryletCasting
     {
+        /// <summary>
+        /// How many qualified candidates one searched role offers to the group search.
+        ///
+        /// A bound, not a filter: the shortlist is always at least one longer than the number of
+        /// searched roles, so a role can never run out of candidates the unscored engine would
+        /// have found for it, and the answer with chemistry disabled is provably the answer
+        /// without it. Beyond that the extra candidates only add groups that differ in who the
+        /// fifth-most-familiar bystander is.
+        /// </summary>
+        private const int MaxCandidatesPerRole = 8;
+
+        /// <summary>
+        /// How many complete groups one casting pass will weigh.
+        ///
+        /// Finding scenes must not cost more than playing them, and the product of the shortlists
+        /// is a product: five roles offering eight people each is thousands of casts for a
+        /// preference nobody would notice past the first few dozen. The search is depth-first in
+        /// the unscored engine's own order, so the cap can only remove groups it would never have
+        /// reached first - the fallback group is enumerated before anything else and is always
+        /// weighed.
+        /// </summary>
+        private const int MaxGroupsConsidered = 128;
+
         public static StoryletCastingResult Cast(
             StoryletDefinition definition,
             StoryletCastingContext context,
@@ -145,12 +204,12 @@ namespace BrilliantQuesting.Storylets
                 throw new ArgumentNullException(nameof(context));
             }
 
-            Dictionary<string, EntityId> bindings = new Dictionary<string, EntityId>(StringComparer.Ordinal);
-            List<string> notes = new List<string>();
-            HashSet<EntityId> taken = new HashSet<EntityId>();
             if (focus == null || context.World == null || context.Vanilla == null || context.Thread == null)
             {
-                return new StoryletCastingResult(bindings, notes, FirstRequiredRole(definition));
+                return new StoryletCastingResult(
+                    new Dictionary<string, EntityId>(StringComparer.Ordinal),
+                    new List<string>(),
+                    FirstRequiredRole(definition));
             }
 
             List<EntityId> pool = BuildPool(context);
@@ -158,11 +217,27 @@ namespace BrilliantQuesting.Storylets
             // Named sources first, then searched ones: a role that already knows who it wants
             // must not lose them to a role that would have taken anybody. Required before
             // optional for the same reason - an optional corroborator never steals the accuser.
-            BindPass(definition, context, focus, pool, bindings, notes, taken, named: true, required: true);
-            BindPass(definition, context, focus, pool, bindings, notes, taken, named: true, required: false);
-            BindPass(definition, context, focus, pool, bindings, notes, taken, named: false, required: true);
-            BindPass(definition, context, focus, pool, bindings, notes, taken, named: false, required: false);
+            // Named roles are not a choice at all, so they are settled once and are the same in
+            // every group; only the searched roles have alternatives to weigh.
+            Dictionary<string, EntityId> named = new Dictionary<string, EntityId>(StringComparer.Ordinal);
+            List<StoryletRole> order = new List<StoryletRole>();
+            HashSet<EntityId> taken = new HashSet<EntityId>();
+            BindNamed(definition, context, focus, named, order, taken, required: true);
+            BindNamed(definition, context, focus, named, order, taken, required: false);
 
+            List<SearchedRole> searched = new List<SearchedRole>();
+            CollectSearched(definition, named, searched, required: true);
+            CollectSearched(definition, named, searched, required: false);
+            for (int i = 0; i < searched.Count; i++)
+            {
+                order.Add(searched[i].Role);
+                Shortlist(searched[i], context, focus, pool, taken, searched.Count);
+            }
+
+            GroupSearch search = new GroupSearch(definition, context, focus, named, order);
+            search.Walk(searched, 0, new Dictionary<string, EntityId>(StringComparer.Ordinal), new HashSet<EntityId>(taken));
+
+            Dictionary<string, EntityId> bindings = search.Chosen;
             string uncast = string.Empty;
             for (int i = 0; i < definition.RequiredRoles.Count; i++)
             {
@@ -173,7 +248,291 @@ namespace BrilliantQuesting.Storylets
                 }
             }
 
-            return new StoryletCastingResult(bindings, notes, uncast);
+            return new StoryletCastingResult(
+                bindings,
+                Notes(context, order, bindings),
+                uncast,
+                search.ChosenChemistry,
+                search.Considered);
+        }
+
+        /// <summary>One sentence per bound role, in the order the roles were bound.</summary>
+        private static List<string> Notes(
+            StoryletCastingContext context,
+            List<StoryletRole> order,
+            Dictionary<string, EntityId> bindings)
+        {
+            List<string> notes = new List<string>();
+            for (int i = 0; i < order.Count; i++)
+            {
+                EntityId cast;
+                if (!bindings.TryGetValue(order[i].Id, out cast))
+                {
+                    continue;
+                }
+
+                notes.Add(order[i].Id + ": " + context.World.Registry.NameOf(cast)
+                          + " (" + Because(order[i].Source) + ")");
+            }
+
+            return notes;
+        }
+
+        private static void BindNamed(
+            StoryletDefinition definition,
+            StoryletCastingContext context,
+            Fact focus,
+            Dictionary<string, EntityId> bindings,
+            List<StoryletRole> order,
+            HashSet<EntityId> taken,
+            bool required)
+        {
+            IReadOnlyList<StoryletRole> roles = required ? definition.RequiredRoles : definition.OptionalRoles;
+            for (int i = 0; i < roles.Count; i++)
+            {
+                StoryletRole role = roles[i];
+                if (!IsNamedSource(role.Source) || bindings.ContainsKey(role.Id))
+                {
+                    continue;
+                }
+
+                EntityId cast = Named(role.Source, context, focus);
+                if (cast.IsNone || taken.Contains(cast) || !IsCastableActor(context, cast))
+                {
+                    continue;
+                }
+
+                bindings[role.Id] = cast;
+                taken.Add(cast);
+                order.Add(role);
+            }
+        }
+
+        /// <summary>
+        /// The searched roles still to fill, in binding order and each listed once.
+        ///
+        /// A definition that spells the same role id twice - in both lists, or once named and once
+        /// searched - binds it once, exactly as it did before groups existed. The role is a name
+        /// for one part in the scene, and the first source that fills it is the one that wins.
+        /// </summary>
+        private static void CollectSearched(
+            StoryletDefinition definition,
+            Dictionary<string, EntityId> named,
+            List<SearchedRole> searched,
+            bool required)
+        {
+            IReadOnlyList<StoryletRole> roles = required ? definition.RequiredRoles : definition.OptionalRoles;
+            for (int i = 0; i < roles.Count; i++)
+            {
+                StoryletRole role = roles[i];
+                if (IsNamedSource(role.Source) || named.ContainsKey(role.Id) || Holds(searched, role.Id))
+                {
+                    continue;
+                }
+
+                searched.Add(new SearchedRole(role));
+            }
+        }
+
+        private static bool Holds(List<SearchedRole> searched, string roleId)
+        {
+            for (int i = 0; i < searched.Count; i++)
+            {
+                if (string.Equals(searched[i].Role.Id, roleId, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Everybody in the pool this role's requirement admits, in pool order, bounded.
+        ///
+        /// This is the whole of eligibility for a searched role, and it runs before any group
+        /// exists: chemistry is handed shortlists it did not build and cannot add to.
+        /// </summary>
+        private static void Shortlist(
+            SearchedRole role,
+            StoryletCastingContext context,
+            Fact focus,
+            List<EntityId> pool,
+            HashSet<EntityId> takenByName,
+            int searchedRoleCount)
+        {
+            int limit = Math.Max(MaxCandidatesPerRole, searchedRoleCount + 1);
+            for (int i = 0; i < pool.Count && role.Candidates.Count < limit; i++)
+            {
+                EntityId candidate = pool[i];
+                if (!takenByName.Contains(candidate) && Qualifies(role.Role.Source, context, focus, candidate))
+                {
+                    role.Candidates.Add(candidate);
+                }
+            }
+        }
+
+        /// <summary>A searched role and the people who actually meet its requirement.</summary>
+        private sealed class SearchedRole
+        {
+            public SearchedRole(StoryletRole role)
+            {
+                Role = role;
+                Candidates = new List<EntityId>();
+            }
+
+            public StoryletRole Role { get; }
+
+            public List<EntityId> Candidates { get; }
+        }
+
+        /// <summary>
+        /// Walks every complete group the requirements allow, and keeps the best one.
+        ///
+        /// Depth-first in the unscored engine's own order - roles in binding order, candidates in
+        /// pool order - which is what makes the first group reached identical to what BQ-067 would
+        /// have cast, and therefore what makes it a safe fallback and a stable tie-break.
+        ///
+        /// Backtracking is the one thing group formation adds to eligibility, and it only ever
+        /// finds casts the requirements already permit: where taking the obvious person for one
+        /// role would leave a later role with nobody, the search tries the next person for the
+        /// first role instead of reporting a scene uncastable. Nobody enters a role they do not
+        /// qualify for by this route; a role that genuinely nobody here meets still goes unfilled.
+        /// </summary>
+        private sealed class GroupSearch
+        {
+            private readonly StoryletDefinition _definition;
+            private readonly StoryletCastingContext _context;
+            private readonly Fact _focus;
+            private readonly Dictionary<string, EntityId> _named;
+            private readonly List<StoryletRole> _order;
+            private readonly List<string> _roleIds;
+            private readonly ChemistryIdentityCache _identities = new ChemistryIdentityCache();
+            private Dictionary<string, EntityId> _fallback;
+            private Dictionary<string, EntityId> _best;
+            private StoryletChemistryScore _bestChemistry = StoryletChemistryScore.Empty;
+            private int _bestBound = -1;
+
+            public GroupSearch(
+                StoryletDefinition definition,
+                StoryletCastingContext context,
+                Fact focus,
+                Dictionary<string, EntityId> named,
+                List<StoryletRole> order)
+            {
+                _definition = definition;
+                _context = context;
+                _focus = focus;
+                _named = named;
+                _order = order;
+                _roleIds = new List<string>();
+                for (int i = 0; i < order.Count; i++)
+                {
+                    _roleIds.Add(order[i].Id);
+                }
+            }
+
+            /// <summary>How many complete groups were weighed.</summary>
+            public int Considered { get; private set; }
+
+            /// <summary>
+            /// The group that won, or - when no group filled every required role - the one the
+            /// unscored engine would have produced, so the uncast role it reports is unchanged.
+            /// </summary>
+            public Dictionary<string, EntityId> Chosen
+            {
+                get { return _best ?? _fallback ?? new Dictionary<string, EntityId>(StringComparer.Ordinal); }
+            }
+
+            public StoryletChemistryScore ChosenChemistry
+            {
+                get { return _best == null ? StoryletChemistryScore.Empty : _bestChemistry; }
+            }
+
+            public void Walk(
+                List<SearchedRole> searched,
+                int index,
+                Dictionary<string, EntityId> assignment,
+                HashSet<EntityId> taken)
+            {
+                if (index >= searched.Count)
+                {
+                    Consider(assignment);
+                    return;
+                }
+
+                SearchedRole role = searched[index];
+                bool anyFree = false;
+                for (int i = 0; i < role.Candidates.Count; i++)
+                {
+                    EntityId candidate = role.Candidates[i];
+                    if (taken.Contains(candidate))
+                    {
+                        continue;
+                    }
+
+                    anyFree = true;
+                    assignment[role.Role.Id] = candidate;
+                    taken.Add(candidate);
+                    Walk(searched, index + 1, assignment, taken);
+                    taken.Remove(candidate);
+                    assignment.Remove(role.Role.Id);
+
+                    if (Considered >= MaxGroupsConsidered)
+                    {
+                        return;
+                    }
+                }
+
+                // Nobody left who meets this requirement. The role goes unfilled, exactly as it
+                // did before groups existed - which fails the scene if it was required and simply
+                // costs an optional corroborator if it was not.
+                if (!anyFree)
+                {
+                    Walk(searched, index + 1, assignment, taken);
+                }
+            }
+
+            private void Consider(Dictionary<string, EntityId> assignment)
+            {
+                Considered++;
+                Dictionary<string, EntityId> bindings = new Dictionary<string, EntityId>(_named, StringComparer.Ordinal);
+                foreach (KeyValuePair<string, EntityId> pair in assignment)
+                {
+                    bindings[pair.Key] = pair.Value;
+                }
+
+                if (_fallback == null)
+                {
+                    _fallback = bindings;
+                }
+
+                for (int i = 0; i < _definition.RequiredRoles.Count; i++)
+                {
+                    if (!bindings.ContainsKey(_definition.RequiredRoles[i].Id))
+                    {
+                        return;
+                    }
+                }
+
+                StoryletChemistryScore chemistry = StoryletChemistry.Score(
+                    _context, _focus, _roleIds, bindings, _identities);
+
+                // More of the scene cast beats better chemistry, because an optional role that
+                // could be filled is content the group search must not trade away; and a tie on
+                // both goes to the group enumerated first, which is the unscored answer.
+                if (_best != null
+                    && (bindings.Count < _bestBound
+                        || (bindings.Count == _bestBound
+                            && chemistry.Total <= _bestChemistry.Total + StoryletChemistry.Epsilon)))
+                {
+                    return;
+                }
+
+                _best = bindings;
+                _bestChemistry = chemistry;
+                _bestBound = bindings.Count;
+            }
         }
 
         /// <summary>
@@ -195,41 +554,6 @@ namespace BrilliantQuesting.Storylets
             }
         }
 
-        private static void BindPass(
-            StoryletDefinition definition,
-            StoryletCastingContext context,
-            Fact focus,
-            List<EntityId> pool,
-            Dictionary<string, EntityId> bindings,
-            List<string> notes,
-            HashSet<EntityId> taken,
-            bool named,
-            bool required)
-        {
-            IReadOnlyList<StoryletRole> roles = required ? definition.RequiredRoles : definition.OptionalRoles;
-            for (int i = 0; i < roles.Count; i++)
-            {
-                StoryletRole role = roles[i];
-                if (IsNamedSource(role.Source) != named || bindings.ContainsKey(role.Id))
-                {
-                    continue;
-                }
-
-                EntityId cast = named
-                    ? Named(role.Source, context, focus)
-                    : Searched(role.Source, context, focus, pool, taken);
-
-                if (cast.IsNone || taken.Contains(cast) || !IsCastableActor(context, cast))
-                {
-                    continue;
-                }
-
-                bindings[role.Id] = cast;
-                taken.Add(cast);
-                notes.Add(role.Id + ": " + context.World.Registry.NameOf(cast) + " (" + Because(role.Source) + ")");
-            }
-        }
-
         private static EntityId Named(StoryletRoleSource source, StoryletCastingContext context, Fact focus)
         {
             switch (source)
@@ -247,30 +571,6 @@ namespace BrilliantQuesting.Storylets
                 default:
                     return EntityId.None;
             }
-        }
-
-        private static EntityId Searched(
-            StoryletRoleSource source,
-            StoryletCastingContext context,
-            Fact focus,
-            List<EntityId> pool,
-            HashSet<EntityId> taken)
-        {
-            for (int i = 0; i < pool.Count; i++)
-            {
-                EntityId candidate = pool[i];
-                if (taken.Contains(candidate))
-                {
-                    continue;
-                }
-
-                if (Qualifies(source, context, focus, candidate))
-                {
-                    return candidate;
-                }
-            }
-
-            return EntityId.None;
         }
 
         private static bool Qualifies(

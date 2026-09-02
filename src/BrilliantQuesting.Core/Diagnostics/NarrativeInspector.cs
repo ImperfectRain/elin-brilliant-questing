@@ -8,6 +8,7 @@ using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Memory;
 using BrilliantQuesting.Relationships;
+using BrilliantQuesting.Storylets;
 using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 
@@ -271,6 +272,57 @@ namespace BrilliantQuesting.Diagnostics
             {
                 sb.Append(' ').Append(name).Append(' ').Append(intensity.ToString("0.00"));
             }
+        }
+
+        /// <summary>
+        /// Why this scene is being played by these people, in two parts that must not be confused.
+        ///
+        /// The casting notes answer BQ-067's question - what qualified each of them for the role
+        /// they hold - and the chemistry answers BQ-068's: of the groups that all qualified, why
+        /// this one. A flat score is printed as such rather than omitted, because "there was
+        /// nothing to choose between them" is the answer in most towns most of the time, and a
+        /// report that silently prints nothing looks like a report that failed.
+        /// </summary>
+        public static string DescribeCasting(StoryletOpportunity opportunity)
+        {
+            if (opportunity == null)
+            {
+                return "casting: none\n";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("casting for ").Append(opportunity.Definition.Id).Append('\n');
+            if (!opportunity.IsAvailable)
+            {
+                sb.Append("  uncast: ").Append(opportunity.RefusalReason).Append('\n');
+                return sb.ToString();
+            }
+
+            sb.Append("  roles:\n");
+            for (int i = 0; i < opportunity.CastingNotes.Count; i++)
+            {
+                sb.Append("    - ").Append(opportunity.CastingNotes[i]).Append('\n');
+            }
+
+            sb.Append("  chemistry: ")
+              .Append(opportunity.Chemistry.Total.ToString("0.00"))
+              .Append(" over ").Append(opportunity.GroupsConsidered)
+              .Append(opportunity.GroupsConsidered == 1 ? " qualified group" : " qualified groups")
+              .Append('\n');
+
+            if (opportunity.Chemistry.IsFlat)
+            {
+                sb.Append("    - nothing ties these people to each other; the first qualified group in the stable order was kept\n");
+                return sb.ToString();
+            }
+
+            IReadOnlyList<string> reasons = opportunity.Chemistry.Explain();
+            for (int i = 0; i < reasons.Count; i++)
+            {
+                sb.Append("    - ").Append(reasons[i]).Append('\n');
+            }
+
+            return sb.ToString();
         }
 
         public static string DescribeThread(NarrativeWorldState world, NarrativeThread thread)
