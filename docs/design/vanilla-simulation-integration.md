@@ -149,7 +149,15 @@ actor's location, with Elin as a third writer neither of them knows about.
 
 ------------------------------------------------------------------------
 
-## 4. The integration primitive: an actor activity snapshot
+## 4. The integration primitives
+
+Two read-only projections cross the seam, and they are deliberately separate because they answer
+different questions and have different lifetimes. **Activity** is what an actor is doing right now
+and is worthless a minute later. **Identity** is who the game says that actor *is*, and it changes
+only when the game changes it. §4.1 is the first, §4.2 the second, §4.3 the rule that stops them
+collapsing into each other.
+
+### 4.1 An actor activity snapshot (transient)
 
 BQ needs one read-only projection of transient vanilla activity, crossing the seam the same way
 `HomeState` does, so that the S8 systems do not each grow their own reflective probe into `Chara`.
@@ -190,6 +198,154 @@ Rules, all of which are existing project doctrine rather than new invention:
 - Vanilla class names stay inside the plugin adapter; Core sees the semantic enum (`D001`).
 - A readable member is not a reason to add a write (`D019`).
 
+### 4.2 A character identity observation (stable)
+
+The activity snapshot answers *what is this person doing*. Nothing at the seam yet answers *who
+does the game say this person is* — and BQ has been quietly guessing at it. `NarrativeNpc` carries
+an `Occupation` string and an untyped `Roles` set; the live plugin registers every real townsperson
+with `Occupation = "local"`, and the only thing that ever populates `Roles` is the authority-trait
+read that grants guard and guild standing. So `LocalAffordanceProfile`'s "occupation, job and
+hobby; service role; authority, guild and faction role" (§5.2) is today a sentence in a design
+document with one trait read behind it.
+
+Elin holds the real answer. A `Chara` reaches its `SourceChara` row, and the source rows carry
+race, job, hobbies, works, faction, faith, tags and category; `SourceRace`, `SourceJob`,
+`SourceHobby` and `SourceFaction` are separate sheets with their own ids; trait subclasses mark
+guards, guild personnel and shop staff; `FactionManager`, `Guild.IsMember` and
+`FactionRelation.rank` answer guild membership and standing. That is enough to observe identity
+rather than invent it, and the roadmap owns the read as **BQ-144**.
+
+**Six facets, separately typed.** The one thing this observation must not become is a bag of
+strings. Identity is read as distinct fields because the simulation asks distinct questions of
+them, and a tag list makes every one of those questions unanswerable:
+
+| Facet | Question it answers | Vanilla ground (evidence level in `docs/elin/`) |
+|---|---|---|
+| **Character archetype** | What kind of character is this — Little Sister, Punk, Bunny | the `SourceChara` row itself: its id, `tag`, `category`, `aka` |
+| **Race / species** | What are they, where that is not the same as what kind of character they are | `Chara.idRace`, `source.race`, `SourceRace` |
+| **Work / occupation** | What do they do for a living | `source.job` / `idJob`, `SourceJob`, plus Home branch work assignment where the branch is readable |
+| **Hobby / interest** | What do they do when they are not working | `source.hobbies`, `SourceHobby` |
+| **Service / commercial role** | What can the player or another actor *get* from them | shop and service trait subclasses, stock, and whether a service is actually being offered now |
+| **Institutional role** | What are they entitled to do, and on whose behalf | guard and guild-personnel traits, `Chara.faction`, `SourceFaction`, `Guild.IsMember`, `FactionRelation.rank` |
+
+Evidence level for that right-hand column is `SOURCE-DATA` and `VERIFIED-METADATA` — the sheets and
+the installed assembly, recorded in `docs/elin/bq-integration/world-affordances.md` and
+`docs/elin/api/actors.md`. No live game has been watched answering any of it, which is why §7 gains
+an identity research list and why the character-archetype facet is the weakest of the six.
+
+They stay distinct because they behave differently. Work is what somebody is entitled to know and
+be asked about; hobby is what they care about off duty and is the weakest of the six; the character
+archetype is a presentation and role expectation and is not a job at all; race is embodiment and is
+frequently orthogonal to every other facet; a service role is an affordance the world can lose
+without the person changing; an institutional role is revocable authority that belongs to a body
+rather than to a person. Flatten those into one list and a shopkeeper who is also a guild member
+becomes indistinguishable from someone whose hobby is shopping.
+
+**A terminology warning.** "Archetype" in the roadmap already means a *situation* archetype
+(BQ-041 … BQ-047). The identity facet is always written **character archetype** and never
+shortened.
+
+**Adjacent reads that are not part of this observation, and stay where they are.** Actor class and
+mutation policy (`NarrativeActorClass`, BQ-031), narrative kind and social agency
+(`NarrativeActorKind`, `SocialAgency`), faith (`Chara.idFaith`), player familiarity
+(`PlayerFamiliarity`, BQ-114), and transient activity (§4.1, BQ-135). They answer different
+questions, several of them safety questions, and merging them into identity would let a costume
+decide what the mod is allowed to do to somebody.
+
+**Shape.** Semantic intent, not an API claim — the real members follow whatever the live build
+answers:
+
+```csharp
+CharacterIdentityObservation
+{
+    EntityId Actor;
+
+    IdentityFacet  Archetype;      // character archetype: the SourceChara kind
+    IdentityFacet  Race;
+    IdentityFacet  Work;
+    IdentityFacet  Hobby;          // zero or more
+    ServiceRole    Service;        // kind + whether it is currently on offer
+    InstitutionalRole[] Institutions;  // body, role, rank where readable
+}
+
+IdentityFacet
+{
+    bool     IsKnown;      // false means unread, never "none"
+    string   VanillaId;    // the game's own id, carried verbatim
+    string   DisplayName;  // the game's own text where readable
+}
+```
+
+`VanillaId` is Elin's vocabulary, not BQ's. BQ never mints an identity id, never normalises one it
+does not recognise into a familiar one, and never maps an unknown row onto a default. An
+unrecognised id is carried through *as unrecognised* — readable, usable as a stable discriminator,
+and not pretended to mean anything.
+
+### 4.3 Observation versus interpretation
+
+The seam carries observations. Everything that turns an observation into narrative expectation is
+BQ's, lives in Core, and is derived rather than read:
+
+| Authoritative observation (Elin, through the adapter) | BQ-derived interpretation (Core) |
+|---|---|
+| this actor's `SourceChara` kind, race, job, hobbies | what they plausibly know about, and what they plausibly care about |
+| this actor staffs a guild / holds a rank | which institutional roles they are *eligible* for in a situation or a storylet |
+| this actor runs a shop, and it is open | what pressure a lost service puts on a settlement |
+| the settlement's distribution of the six facets | which situations that settlement can support at all (§5.2) |
+| an identity facet changed since the last read | whether that change is worth recording as an event (§5.3) |
+
+The derivation has exactly one owner (roadmap **BQ-145**) so that "a brewer plausibly knows about
+ale" is written once rather than re-derived inside generation, casting, interpretation and
+vocabulary. Downstream systems consume the derived affordances; they do not consume `Chara`, and
+they do not each grow a private table of what a job means.
+
+Two hard prohibitions, because they are the failure modes this whole seam exists to prevent:
+
+- **Identity never generates personality.** BQ-056 … BQ-060 do not read it. A Punk is not
+  aggressive because they are a Punk; a Little Sister is not timid because she is one. Identity
+  changes what is *plausible*, *available* and *at stake* — never what somebody is like. The
+  interesting characters are the ones where the two disagree.
+- **Identity never feeds mutation policy.** How far the mod may reach into somebody is
+  `NarrativeActorClass`'s answer and only ever will be (`BQ-031`). A costume is not a permission.
+
+### 4.4 Persistence and refresh
+
+Identity is a **live read**, on the same terms as the activity snapshot and for the same reason
+(`D004`, `D005`): the save holds meaning, not a mirror of a `Chara`. Concretely:
+
+- Nothing in §4.2 is persisted into the `brilliantQuesting` chunk. A save that has been away from
+  the game for a patch cycle must not carry a stale claim about who somebody is.
+- A consumer may cache the observation for the duration of one pass — one generation run, one
+  casting decision, one scene — and must not hold it across a zone change, a save or a load.
+- The existing persisted `NarrativeNpc.Occupation` and `Roles` fields are the thing this replaces,
+  not a second copy to keep in sync. Where a migration cannot simply drop them, they degrade to
+  unknown and are re-read; nothing downstream may treat the persisted value as authoritative once
+  the observation is available.
+- What *is* persistent is what BQ itself concluded and what the player learned: an event recording
+  that a guard was dismissed, a fact recording that the player found out who the guild clerk is, an
+  obligation owed to somebody in a role. Those are knowledge and history, they already belong to the
+  ledger and the knowledge graph, and they survive the person's identity changing underneath them —
+  which is exactly the point.
+- Identity changes are observed as **deltas** and obey §5.3: a promotion, a dismissal, a shop
+  closing or a change of trade is worth recording; the same six facets reading the same way on the
+  next tick is not.
+
+### 4.5 How unknown identity degrades
+
+`D017` applies in full and is worth spelling out here because identity is the place where guessing
+feels harmless:
+
+- An unread facet is **unknown**, never "none", never "ordinary citizen", never a default job.
+- Unknown never grants anything: no service, no authority, no guild standing, no eligibility for a
+  role that names the facet.
+- Unknown never *blocks* anything that did not ask for the facet. A situation that needs somebody
+  present and social does not additionally need to know their job.
+- A facet the build stops answering after an update degrades only itself. Race going unreadable must
+  not take work, hobby and institutional standing with it.
+- Where every facet is unknown, the actor is still a full participant on the strength of the reads
+  that do work — presence, class, kind, agency, relationships, history. They are simply somebody the
+  world has not told BQ anything else about, which is a true statement and a usable one.
+
 ------------------------------------------------------------------------
 
 ## 5. What this buys the player
@@ -211,8 +367,8 @@ and a schedule the player has to obey is exactly the nuisance mechanic it warns 
 
 This is the highest-value change in this document and it lands on `BQ-039`.
 
-Generation should not ask only "which archetype may spawn here?". It should derive a **local
-affordance profile** from state the game already holds: occupations, jobs and hobbies; services;
+Generation should not ask only "which character archetype may spawn here?". It should derive a
+**local affordance profile** from state the game already holds: occupations, jobs and hobbies; services;
 authority, guild and faction roles; shops; work infrastructure; current population and who is
 present; readable Home or town state; recent events; existing relationships; physical sites; current
 shortages and pressures; visiting or global actors.
@@ -222,6 +378,13 @@ stories because its world state supports them — not because anybody wrote
 `if (zone == Mysilia) intrigue += 30`. Two structurally different settlements must yield different
 candidate distributions with no town id anywhere in the generator. That is a product requirement,
 not an adapter detail, and it is the difference between a generated situation and a reskinned one.
+
+Most of that profile is the six identity facets of §4.2 aggregated over who is actually here, which
+is why the identity read is a settlement-generation prerequisite and not a character-writing luxury.
+A town whose readable population is guards, a guild clerk and two shopkeepers supports authority,
+membership and service stories; a town of farmers and hunters supports supply, land and absence
+stories. Neither needed its name written anywhere. Generation consumes the facets as observations —
+who could plausibly be involved, what can be lost, who is entitled to act — and never as personality.
 
 ### 5.3 Ordinary vanilla events become narrative seeds
 
@@ -282,6 +445,12 @@ work or hobby execution; no local pathfinding; no idle wandering; no ordinary co
 resident daily production; no exact off-screen coordinates; no BQ global travel for vanilla actors
 Elin is already moving safely; no per-loaf town economy.
 
+And no second identity taxonomy. BQ does not author its own races, jobs, hobbies, character kinds
+or guild structures for characters the game already describes, does not normalise Elin's ids into a
+tidier private vocabulary, and does not keep a hand-maintained table of who is a guard. Where the
+game has no answer, the answer is unknown (§4.5) — not a BQ-invented one. Authored BQ identity data
+is legitimate only for characters BQ itself creates, and even then it uses the game's vocabulary.
+
 Coarse economic *pressure* (`BQ-050`) stays, because it is narrative pressure rather than a second
 physical economy. The distinction is the same one `D014` draws about crafting: reading what the
 game produced is integration, rolling your own number over it is a competing mechanic that will
@@ -305,6 +474,24 @@ Decompiled documentation tracks a nightly build and is not proof of the player's
 8. Do **not** Harmony-patch `Chara.Tick` or any per-actor hot loop unless no lower-frequency
    observation surface exists. `LW §2.2` — native events over patches — applies with extra force
    to something running once per actor per turn.
+
+And before `BQ-144`, on the identity read specifically:
+
+9. Sample `Chara.source` on ordinary townspeople and record which of `race`, `job`/`idJob`,
+   `hobbies`, `works`, `tag`, `category` and `faction` are actually populated, rather than assuming
+   the sheet columns are filled in play.
+10. Establish whether the `SourceChara` row id is the right handle for the character archetype, or
+    whether a tag or `aka` carries it — that is the facet with the least direct evidence today.
+11. Establish whether a service trait implies a service the player can actually use right now, or
+    only that the character is a shopkeeper by kind (this is already an open item in
+    `docs/elin/bq-integration/world-affordances.md`).
+12. Establish whether guild membership and rank are readable for an NPC at all, or only for the
+    player's own factions through `FactionManager`.
+13. Confirm that reading identity is genuinely free of side effects, including the source-row
+    lookups, and cheap enough to do for every loaded actor in a generation pass.
+14. Identity does not answer `ELIN-Q-0027`. Knowing somebody's job does not establish that they
+    belong to the settlement they are standing in; do not let a populated `job` field quietly
+    become the residency read that question is still waiting for.
 
 ------------------------------------------------------------------------
 

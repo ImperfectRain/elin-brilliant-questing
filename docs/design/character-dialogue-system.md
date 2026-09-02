@@ -169,6 +169,8 @@ NarrativeNpc
 
 Use selective depth. Ordinary background actors can remain shallow until they become relevant.
 
+`Occupation` and `SocialRoles[]` in that record are superseded by the vanilla identity read: they are observed live rather than stored, and §6.1 explains why keeping a persisted copy is the wrong shape.
+
 ---
 
 # 5. Personality system
@@ -295,6 +297,86 @@ History anchor: lost first shop in a fire
 ```
 
 Future scenes should reference anchors only when relevant. The goal is: “Of course Mira cares about the missing ledger.”
+
+---
+
+## 6.1 Vanilla identity is an input, not a template
+
+*Added on commit; not part of the original document.*
+
+The anchors above are BQ's. Elin also has an opinion about who a character is, and it is a better
+one than a procedural generator would produce: a `SourceChara` row names a character kind (Little
+Sister, Punk, Bunny), a race, a job, hobbies and a faction, and trait subclasses mark guards, guild
+personnel and shop staff. `VS §4.2` defines the six facets that read across the seam — character
+archetype, race/species, work, hobby, service role, institutional role — and `VS §4.3` fixes the
+rule that matters here: those are **observations**, and everything this document does with them is
+**interpretation**.
+
+Terminology: "archetype" elsewhere in the plan means a *situation* archetype. The identity facet is
+always **character archetype**.
+
+**These facets are not stored on `NarrativeNpc`.** §4's record proposes `Occupation` and
+`SocialRoles[]`; those fields exist today, are persisted, and are the thing the identity read
+replaces rather than feeds (`VS §4.4`). Identity is re-read from the game when it is needed. What
+persists is what BQ concluded and what the player learned — an event, a fact, an obligation — not a
+copy of the character sheet.
+
+### What identity may influence
+
+**Plausible knowledge and interests.** A brewer plausibly knows who buys ale in this town and what
+a bad batch costs. A guild clerk plausibly knows the membership. A hunter plausibly knows the road
+north. This sets what a character can be *asked* and what they can credibly turn out to know — it
+never invents a fact and never bypasses the knowledge graph. Nobody knows something because their
+job made it likely; the knowledge system still has to have given it to them. Identity decides what
+is *worth asking them*, and §7's topic model takes its priors from the same place.
+
+**Goals and concerns.** A shop is a livelihood, a guild rank is something to lose, a dependent
+sibling is a pressure. Identity supplies plausible stakes that a value profile (§10.5) then weighs
+against everything else the character is. It contributes candidates; it does not select.
+
+**Interpretation.** §9's premise — a dead crop is soil trouble to a farmer and contamination to an
+alchemist — is exactly an identity read, and it is where identity does the most work with the least
+risk, because interpretation is already explicitly actor-local and already expected to disagree
+between observers.
+
+**Casting and role chemistry.** Roles may *require* a facet where the role genuinely needs it: an
+Authority role wants somebody actually entitled to act, a Service role wants somebody who really
+runs the shop. That is eligibility. §13.1's chemistry may then score identity *asymmetries* —
+institutional power over somebody with none, a service the other party depends on, a shared trade
+that makes rivalry mean something — because those are relations between two characters, not
+adjectives on one.
+
+**Eventual dialogue.** §17.6's occupational vocabulary draws its metaphor pools from the observed
+work and hobby rather than a hand-assigned label, and §19's voice profiles may lean on identity for
+register. This is the *last* consumer, deliberately: wording is the cheapest place for identity to
+show and the most tempting place to overuse it.
+
+### What identity may never do
+
+**It never generates personality.** §5's dimensions, §5.3's problem-solving style, §5.4's
+sensitivities, §5.5's contradictions and §5.6's quirks do not read identity. A Punk is not
+aggressive because they are a Punk. A Little Sister is not timid because she is one. A guard is not
+lawful because they are a guard. Identity says what someone does, is entitled to, is exposed to and
+plausibly knows; personality says how they meet it, and the two are generated independently.
+
+That independence is not a purity rule, it is where the characters come from. The timid guard, the
+scrupulous thief, the Punk who is the only person in town who will sit with a dying stranger — a
+system that derived temperament from costume could not produce any of them, and §5.5's
+contradictions would collapse into a lookup table.
+
+**It never becomes a permission.** How far the mod may reach into a character is
+`NarrativeActorClass`'s answer, never identity's (`VS §4.3`).
+
+**It never fills a gap with a guess.** An unread facet is unknown, not a default (`VS §4.5`,
+`D017`). A character whose job could not be read has no occupational vocabulary, no occupational
+knowledge prior and no service role — they do not quietly become a peasant.
+
+**It is a weight, not a gate, wherever a gate is not physically required.** The same constraint
+`VS §5.1` puts on timetables. Identity should make scenes plausible and specific; it should not
+lock the player out of talking to somebody because the generator does not think their job fits.
+
+Ownership: the seam read is roadmap `BQ-144`, and the single derivation of these priors is
+`BQ-145`. Nothing in S7 re-derives them privately, and nothing in S7 probes `Chara` directly.
 
 ---
 
@@ -563,6 +645,8 @@ Storylets define temporary roles such as Accuser, Accused, Defender, Witness, Me
 
 Positive requirements should reward relevant knowledge, relationship, loyalty, personality and presence. Negative requirements should reject actors who are dead, absent, ignorant of required facts, already committed to the opposite stance or unsafe to mutate.
 
+A role may additionally require an observed identity facet where the role genuinely needs one — an Authority who is actually entitled to act, a Service operator who actually runs the shop (§6.1, `VS §4.2`). That is an eligibility requirement like knowledge or presence, checked against the game's own answer, and it fails closed when the facet is unread. It is never a preference for a character kind: nobody is a better Accuser for being a Punk.
+
 ## 13.1 Role chemistry
 
 Score groups, not only individuals:
@@ -578,6 +662,8 @@ social stakes
 ```
 
 A proud debtor and proud creditor who used to be friends are usually a better scene than a timid debtor and indifferent creditor.
+
+Identity enters here as *asymmetry between the pair*, never as a label on one of them: institutional power over somebody who has none, a service one party depends on, a shared trade that gives rivalry something to be about, a race or character kind the other treats differently. Score the relation, not the costume (§6.1).
 
 ---
 
@@ -795,6 +881,8 @@ adventurer  → danger, Nefia, monsters, loot
 ```
 
 This should be metadata-driven and subtle. Not every sentence needs occupational flavor.
+
+The pool is chosen from the *observed* work and hobby facets (§6.1, `VS §4.2`), not from a label BQ assigned, and a character whose work could not be read simply gets no occupational pool rather than a default one.
 
 ## 17.7 Negative-space personality
 

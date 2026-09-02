@@ -117,7 +117,7 @@ No system is allowed to disappear from this table.
 | Rumor propagation | Hardened | Hardened | BQ-019, BQ-020 |
 | Memory & consolidation | Playable | Hardened | BQ-021 |
 | Relationships | Playable | Hardened | BQ-022, BQ-055 |
-| Vanilla adapter (`IVanillaState`) | Playable | Complete-until-launch | BQ-003, BQ-011, BQ-030, BQ-135 |
+| Vanilla adapter (`IVanillaState`) | Playable | Complete-until-launch | BQ-003, BQ-011, BQ-030, BQ-135, BQ-144 |
 | Checks (native + portable) | Playable | Complete-until-launch | BQ-004 |
 | Action library | Playable | Complete-until-launch (coverage per §7, not a count) | BQ-023 … BQ-029 |
 | Threads & escalation | Playable | Hardened | BQ-013, BQ-052 |
@@ -129,6 +129,7 @@ No system is allowed to disappear from this table.
 | Ambient delivery (barks, talk, leads) | Absent | Playable | BQ-035, BQ-036 |
 | Crime & witness observation | Absent | Playable | BQ-014, BQ-015, BQ-136 |
 | Personality → decisions | Prototype (weights only) | Playable | BQ-056 … BQ-060 |
+| Character identity & affordances | Absent (placeholder intake) | Playable | BQ-144, BQ-145 |
 | Values, needs, goal formation | Absent | Playable | BQ-061, BQ-062 |
 | Emotion & interpretation | Absent | Playable | BQ-063, BQ-064 |
 | Storylets & casting | Absent | Playable | BQ-065 … BQ-069 |
@@ -452,6 +453,22 @@ Read residents, jobs, capacity, and the Home Skill elements (`fSafety`, `fMoral`
 - **Sources** MD §13.7; PM §2; LW §14 P2; `elin-element-aliases.md`.
 - **Unblocks** BQ-027, BQ-048.
 
+#### BQ-144 — Read vanilla character identity *(stage S4, alongside BQ-030)*
+Expose Elin's own answer to *who is this character* through the seam, as one read-only observation
+with six separately typed facets: **character archetype** (the `SourceChara` kind — Little Sister,
+Punk, Bunny), **race/species**, **work/occupation**, **hobby**, **service/commercial role**, and
+**institutional role** (authority, guild, faction). This is the identity counterpart of what BQ-030
+did for the Home and BQ-135 does for activity. It creates **no** BQ identity vocabulary and decides
+nothing about what any facet means.
+- **Depends** BQ-003.
+- **Done when** `IVanillaState` returns a character identity observation for a live actor; each of the six facets is its own typed field carrying the game's own id verbatim, never a merged tag list and never an id BQ minted; a facet the build did not answer is `Unknown` rather than an empty string, `false`, `"local"` or a default occupation (`D017`); no Elin type name reaches Core (`D001`); the read has no side effects, registers nobody and mutates nothing; the existing guard/guild trait read becomes the institutional facet rather than a second write path into `NarrativeNpc.Roles`; a live diagnostic logs the full facet set for the loaded population of one real town — including at least one shopkeeper and one guard — and names every facet it could not read; and tests prove an unavailable member degrades only its own facet.
+- **Out of scope** what a facet *means* (BQ-145), any write, persisting the observation, personality generation, mutation policy, and settlement residency — a populated `job` field does not answer ELIN-Q-0027 and must not be made to.
+- **Sources** VS §4.2, §4.3, §4.4, §4.5, §7; CD §6.1; `docs/elin/bq-integration/world-affordances.md`; `docs/elin/api/actors.md`; D001, D004, D017, D019, D021.
+- **Unblocks** BQ-145, and the identity reads in BQ-039, BQ-049, BQ-051, BQ-064, BQ-067, BQ-068, BQ-076, BQ-084, BQ-123.
+- **Why its own step** one implementation site at the seam, with a completion test nothing else can run: the adapter answers or it does not. Every step in *Unblocks* is a different system reading the same answer, and folding the read into any one of them is exactly how four private reflective probes into `Chara` get written.
+- **Retrofit, not greenfield.** `NarrativeNpc.Occupation` and `Roles` already exist and are persisted; the plugin registers every real townsperson with `Occupation = "local"`, and only the authority-trait read ever populates `Roles`. This step replaces that intake — it does not add a parallel one — and the persisted fields degrade to unknown and are re-read rather than being kept in sync (`VS §4.4`).
+- **Risk** the evidence is `SOURCE-DATA` and `VERIFIED-METADATA`, not runtime. Which source columns are actually populated on ordinary townspeople is `VS §7` item 9, and the character-archetype handle is the least evidenced of the six.
+
 #### BQ-031 — Mutation policy classification
 Implement `NarrativeMutationPolicy` and classify every actor the mod can touch: story-critical,
 unique service, ordinary citizen, generated.
@@ -628,7 +645,8 @@ and current local pressures. A place earns its situations from what it actually 
 - **Done when** a situation appears in a save the player has never staged anything into, and the inspector can name the world state that caused it; **and** two structurally different settlements yield different candidate distributions, with no town id, zone name or hand-tuned per-place weighting anywhere in the generator.
 - **Sources** MD §8.1; PM §0, §27; LW §1; VS §5.2.
 - **Unblocks** all archetypes.
-- **Not a dependency.** This step must *not* wait on BQ-135. Stable world affordances are enough to generate from; transient timetable and current-goal data is later enrichment. The affordance profile is a product requirement rather than an adapter detail — it is what makes a palace-and-merchant city produce authority and fraud stories because its state supports them, instead of because somebody wrote the city's name into a table.
+- **Identity intake is BQ-144's, not this step's.** The affordance profile's "occupation, job and hobby; service role; authority, guild and faction role" are the six facets of `VS §4.2`, read once at the seam. This step shipped ahead of that read with a placeholder intake — `ActorAffordances.Occupation` is the literal string `"local"` for every registered vanilla actor, and `Roles` carries only the guard/guild traits — so its identity terms are weaker than the design says, not absent. When BQ-144 lands, this generator consumes the typed facets in place of the placeholder and its scoring shape does not change. It must not grow its own read of `Chara`, its own occupation vocabulary, or a second copy of what a job implies (that is BQ-145).
+- **Not a dependency.** This step must *not* wait on BQ-135, and it does not wait on BQ-145 either: generation consumes identity as observation — who could plausibly be involved, what can be lost, who is entitled to act — not as derived character meaning. Stable world affordances are enough to generate from; transient timetable and current-goal data is later enrichment. The affordance profile is a product requirement rather than an adapter detail — it is what makes a palace-and-merchant city produce authority and fraud stories because its state supports them, instead of because somebody wrote the city's name into a table.
 - **Current implementation / BQ-039a hardening.** The first cut met the done-when criteria with a
   structure shaped entirely like theft, which BQ-040 through BQ-047 would have inherited. BQ-039a
   keeps the model — world state → candidate evaluation → vanilla mutation → narrative situation —
@@ -772,6 +790,7 @@ Home residents carry goals, bring problems, and can be the origin of situations.
 - **Depends** BQ-048.
 - **Done when** a resident generates a situation without any external trigger.
 - **Sources** MD §13.7; PM §10; LW §6.4.
+- **Identity comes from BQ-144.** A resident's work, hobby, race, character archetype and any institutional standing are read through the one identity observation, never inferred from the fact that they live here and never stored on the resident. Their *doing* the work stays vanilla's (`VS §2.2`, §2.3); what BQ adds is what that work makes plausible and what its loss would cost. BQ-123 extends this step to pets and companions and shares the same read.
 
 #### BQ-050 — Coarse local demand
 Track Food, Alcohol, Medicine, Lumber, Textiles, Weapons, Luxury, Labor and Safety as pressures, not
@@ -788,6 +807,7 @@ ReplacementOperator, Recovered, Failed, Inherited — projected through real sto
 - **Done when** a shop the player let fail is still failed a month later, with a visible consequence, **and** an operator who is merely asleep, at a hobby or off-shift produces at most ordinary temporary unavailability rather than a business state.
 - **Sources** PM §17; LW §6.3; VS §5.1, §6.
 - **Note** the visible surface is real service presence and the operator's actual state. A sleeping shopkeeper is not a distressed business; the states in this step represent continuity problems, not the working day.
+- **The service/commercial role is BQ-144's facet**, and this step reads it rather than maintaining its own list of who runs what. Being a shopkeeper by kind and having a usable service right now are different answers and the facet keeps them apart; where the build cannot tell them apart the answer is unknown, and unknown is not a business state.
 
 #### BQ-052 — Thread lifecycle hardening
 Threads merge, go dormant, reactivate, and are inherited when a participant dies. A malformed thread
@@ -874,6 +894,7 @@ and flexibility, plus ordinary needs (hungry, bored, jealous, wants promotion).
 - **Depends** BQ-057.
 - **Done when** an actor's goal changes because a value was threatened, traceable in the inspector.
 - **Sources** CD §10.5, §10.6; VS §6.
+- **Identity is a prior, not a value profile (BQ-145).** An observed work, service or institutional role supplies plausible stakes — a livelihood, a rank to lose, a dependant, a shop that could close — which this pipeline then weighs against everything else the actor is. It never sets a value's importance directly, and two actors with the same job must be able to hold opposite values. Retrofit: where this step already reads occupation, it moves onto BQ-145's derivation rather than keeping a private one.
 - **Not this** vanilla bodily and activity needs — hunger, bladder, sleep, routine work and hobby — are Elin's and are already simulated by `GoalNeeds` and the timetable. The needs here are narrative: safety, belonging, debt relief, status, loyalty, justice, secrecy, revenge, protection, material shortage, obligation. Do not build a second hunger or sleep model.
 
 #### BQ-062 — Goal formation pipeline
@@ -898,6 +919,7 @@ A dead crop is soil trouble to a farmer and contamination to an alchemist.
 - **Depends** BQ-063, BQ-024.
 - **Done when** three observers derive three different facts from one piece of evidence.
 - **Sources** CD §9, §39; PM §39; LW §3.4.
+- **Occupational interpretation reads BQ-145.** "A dead crop is soil trouble to a farmer and contamination to an alchemist" is an identity read, and this is the step where identity earns the most for the least risk — interpretation is already actor-local and already expected to disagree. It consumes the derived affordances, not `Chara` and not a private occupation table. Retrofit when BQ-144/BQ-145 land; nothing here re-derives what a job implies.
 
 #### BQ-065 — Storylet engine
 `StoryletDefinition` with preconditions, roles, beats and consequence hooks. Storylets dramatize
@@ -929,13 +951,29 @@ Roles are never identities.
   `BQ-105`'s save integrity check would have quarantined the thread over. The five storylets now
   name qualified sources, and a corroborator the world may not have is optional rather than
   required. Selection among the qualified stays unscored; that is BQ-068.
-- **Sources** CD §13, §3 principle 1.
+- **Identity is eligibility only (BQ-144, BQ-145).** A role may *require* an observed facet where it genuinely needs one — an Authority who is actually entitled to act, a Service operator who really runs the shop — checked against the game's answer and failing closed when the facet is unread (`D017`). It is never a preference for a character kind: nobody is a better Accuser for being a Punk. Roles remain temporary and are never identities (`CD §3` principle 1), and the requirement lives on the role, not on the actor.
+- **Sources** CD §13, §3 principle 1; CD §6.1.
+
+#### BQ-145 — Identity affordances: one derivation of what identity implies *(stage S7, immediately before BQ-068)*
+Turn BQ-144's observed facets into the typed, BQ-owned affordances the rest of the simulation
+consumes — plausible knowledge domains, plausible interests, role eligibility, service capability,
+and the stakes an identity exposes — in **one** place, so that "a brewer plausibly knows who buys
+ale here" is written once rather than re-derived inside generation, interpretation, casting and
+vocabulary.
+- **Depends** BQ-144, BQ-062.
+- **Done when** a single Core component derives identity affordances from a BQ-144 observation and every identity-consuming system reads that component rather than the raw observation or the game; the derivation adds no fact to the knowledge graph and grants nobody knowledge — it says what is plausible to ask and to be at stake, never what is true or known; a headless test proves two actors with identical identity and opposite personalities choose different actions, **and** two actors with identical personality and different identity differ only in what is plausible, eligible and at risk; a test asserts that BQ-056 … BQ-060 and the BQ-031 mutation policy take no identity input; an unknown facet contributes nothing rather than a default; and the inspector names the facet behind every identity-derived weight.
+- **Out of scope** persisting anything derived, dialogue wording (BQ-076 consumes this, it is not this), and any new read of Elin — this step consumes BQ-144's observation and nothing else.
+- **Sources** CD §6.1, §9, §13.1, §17.6; VS §4.3; D017, D021.
+- **Unblocks** the identity slices of BQ-068, BQ-076, BQ-084, and the retrofits named in BQ-061, BQ-064 and BQ-067.
+- **Why its own step** the observation and its meaning fail differently. BQ-144 is wrong when the adapter reports the wrong facet; this is wrong when a facet is allowed to dictate a decision. Its done-when is the anti-stereotype test, which cannot be written against an adapter and must not be scattered across six consumers.
+- **This is the anti-stereotype gate.** Identity affects plausibility, eligibility and pressure; it never dictates personality. A Punk is not aggressive because they are a Punk. Any later step that reads a facet and concludes what somebody is *like* is wrong even if it works.
 
 #### BQ-068 — Role chemistry
 Score groups, not individuals: goal conflict, shared history, knowledge asymmetry, power asymmetry.
-- **Depends** BQ-067.
+- **Depends** BQ-067, BQ-145.
 - **Done when** a proud debtor and proud former friend outscore an indifferent pairing, and the resulting scene is visibly better.
-- **Sources** CD §13.1, §48 M3.
+- **Identity enters as asymmetry between the pair, never as a label on one of them.** Institutional power over somebody who has none, a service one party depends on, a shared trade that gives rivalry something to be about — those are relations, and they belong here. A character archetype, race or job on a single actor is not chemistry and must not be scored as though it were; that is the stereotype failure BQ-145 gates against.
+- **Sources** CD §13.1, §6.1, §48 M3.
 - **This is Milestone 3** once the theft yields five structurally distinct scenes.
 
 #### BQ-069 — Development layer
@@ -994,9 +1032,10 @@ selection without creating meaning.
 #### BQ-076 — Occupational vocabulary
 Metaphors and nouns drawn from lived context — farmers speak of weather, thieves of heat and marks.
 Subtle, metadata-driven, not every line.
-- **Depends** BQ-075.
+- **Depends** BQ-075, BQ-145.
 - **Done when** occupation is guessable from dialogue in a blind test, without it being stated.
-- **Sources** CD §17.6.
+- **Sources** CD §17.6, §6.1.
+- **The pool comes from the observed work and hobby facets** (BQ-144 through BQ-145), not from a label BQ assigned. A character whose work could not be read gets no occupational pool rather than a default one, and wording is the *last* consumer of identity, never the first — a voice that leans on the job harder than the decisions do is the stereotype failure arriving through the back door.
 
 #### BQ-077 — Negative-space personality
 What an actor will *not* do — never begs, never lies directly, never speaks badly of family —
@@ -1053,6 +1092,7 @@ Shop, street, Home, guild, funeral, festival: context changes how an action is i
 - **Done when** theft during a funeral produces a different social response than the same theft from an empty warehouse.
 - **Sources** CD §16; PM §5; VS §5.1.
 - **Note** vanilla activity context — what the people present were doing — is one input to interpretation, and a weak one. Use it to make a response sharper, never to make the player consult a schedule before acting. This step does **not** wait on BQ-135: practice is decided by place, occasion and who is present, and activity is later enrichment on top of it.
+- **Who is present is an identity read (BQ-144 through BQ-145), and it is the stronger input.** A guild meeting is a practice because guild members are here; a funeral changes what theft means partly because of who is standing in the room. Consume the derived affordances for that, not a private list of who counts as clergy, and let an unread facet simply not contribute — a practice is never asserted because BQ guessed somebody's role.
 
 #### BQ-085 — Item provenance
 Notable objects carry structured history: crafted by, owned by, stolen from, recovered at, evidence in.
@@ -1182,6 +1222,7 @@ system.
 - **Out of scope** setting a timetable, setting an AI goal, writing a `GlobalGoal`, any pathfinding,
   persisting the snapshot, and any autonomous decision made from it. No new `VanillaCapability` is
   granted for a member nobody has watched work.
+- **Not this step: stable identity.** Character archetype, race/species, work, hobby, service role and institutional role are BQ-144's single observation (`VS §4.2`). This step reads only what an actor is *doing now*. The two are separate because they have different lifetimes and different consumers — an actor at a work goal is activity, the job they hold is identity, and the second is still true while they sleep. Neither step reads the other's fields, and no third read of `Chara` is created for either.
 - **Sources** VS §2, §4, §7; LW §2.2; D017, D019, D021.
 - **Unblocks** BQ-093, BQ-094, BQ-095, BQ-097, and activity-aware BQ-084.
 - **Risk** the observation surface, not the read. Anything that has to be sampled per actor per turn
@@ -1402,6 +1443,7 @@ Casting prefers actors the player has actually met, traded with, or lives beside
   player buys from — casting went from 25 familiar faces in 100 runs to 100.
   Not in scope here: pets and companions as cast members, and surviving their being sold, married
   off or killed, which is BQ-123's work and still depends on this.
+- **Identity and familiarity are different questions and stay different fields.** How well the player knows somebody is `PlayerFamiliarity`; who that person is, is BQ-144's observation. Do not merge them, and do not let a facet raise familiarity — a guard the player has never met is not a familiar face because guards are recognisable. Both are live reads that stay out of the save, and both feed casting for different reasons: familiarity decides which of the situations a settlement already supports is told first (`D027`); identity decides who is eligible for a role at all.
 - **Sources** engagement §4; CD §13.1.
 - **Why** attachment must precede stakes; a threat to a stranger is an errand.
 
@@ -1536,6 +1578,7 @@ Casting may draw on the player's pets, residents and adventurers-turned-companio
 victim, suspect, the subject of another actor's grudge, or the thing somebody else wants.
 - **Depends** BQ-049, BQ-114.
 - **Done when** a situation casts a named pet or resident of the player's own household, correctly, and survives that character being sold, married off, or killed.
+- **Identity for pets and companions is the same BQ-144 read, not a second one.** A pet has a race and a character archetype and usually no work, service or institutional role, and that is a complete and correct answer rather than a gap to fill — the unread facets stay unknown and simply make it ineligible for the roles that need them. Personhood stays `NarrativeActorKind`/`SocialAgency`'s answer, and mutation safety stays `NarrativeActorClass`'s (BQ-031): a companion is not more or less protected because of what species the game says they are. Ownership boundary: **BQ-049** owns residents as situation origins, **BQ-114** owns how well the player knows them, **BQ-144** owns what the game says they are, and **this step** owns only their admission to casting and their survival of being sold, married off or killed.
 - **Sources** SP §3; LW §6.2; engagement §4.
 - **Why** attachment is the precondition for stakes (BQ-114), and in Elin the attachment already exists — it lives in pets and residents, in every language community. A generated stranger has to earn what the player's own chicken already has.
 
@@ -1667,7 +1710,7 @@ S0 → S1 → S2 ─┬─→ S3 → S5 ─┬─→ S6 ──┬─→ S8 → S
 ```
 
 - **Track A (systems):** S3 → S4 → S5 → S6. Actions, surfaces, archetypes, connections.
-- **Track B (expression):** S7. Depends only on S2 plus BQ-008 and BQ-024; can run alongside Track A.
+- **Track B (expression):** S7. Depends on S2 plus BQ-008, BQ-024 and — from BQ-145 onward — BQ-144, which sits in S4. That is the one place the expression track reaches back into Track A, and it is deliberate: the identity read is a seam change, and S7 consuming identity before the seam answers is how private probes into `Chara` get written.
 - **Track C (places):** S8's site steps depend on BQ-029 and BQ-032, so they start once S3 and S4 land.
 - **Content pipeline:** BQ-129 and BQ-130 depend on nothing in S3–S6 and can be built at any point once S2 is done. They must land *before* BQ-065.
 
@@ -1938,6 +1981,8 @@ the audit artifact: if an idea is not here, it was missed.
 | Contradictions | BQ-059 |
 | Quirks | BQ-060 |
 | Identity anchors | BQ-059, BQ-060 |
+| Vanilla identity is an input, not a template | BQ-144, BQ-145 |
+| Identity as plausible knowledge, stakes, eligibility and vocabulary | BQ-145; BQ-064, BQ-067, BQ-068, BQ-076 |
 | Topic model | BQ-076 |
 | Emotional state | BQ-063 |
 | Actor-local interpretation | BQ-064 |
@@ -2047,6 +2092,12 @@ the audit artifact: if an idea is not here, it was missed.
 | Four vanilla fidelity mechanisms, not two | BQ-107 |
 | Actor activity snapshot as a read-only seam primitive | BQ-135 |
 | Local affordance profile drives generation | BQ-039 |
+| Character identity observation as a seam primitive | BQ-144 |
+| Six identity facets stay separately typed, never a tag bag | BQ-144 |
+| Observation versus BQ-derived interpretation | BQ-144 reads, BQ-145 derives |
+| Identity is a live read, never persisted into the save | BQ-144; D004, D005 |
+| Unknown identity degrades without defaults | BQ-144, BQ-145; D017 |
+| Identity never generates personality or mutation permission | BQ-145; standing rules §10 rule 6a |
 | Routine as plausibility weight, not an appointment gate | BQ-084, BQ-094 |
 | Notable deltas only; routine acts unrecorded | BQ-040, BQ-094; BQ-035 |
 | Opportunity is not eyewitness proof | BQ-094, BQ-095; D011 |
@@ -2101,6 +2152,7 @@ bind every step above; a step that violates one is wrong even if it works.
 **What to build with**
 
 6. Vanilla mechanic before custom mechanic. Actual object before abstract evidence point. Real world interaction before dialogue abstraction.
+6a. Vanilla identity is observed through the seam and kept typed by facet. It constrains plausibility, eligibility, stakes and pressure — never personality, never permission. Where the game did not answer, the answer is unknown.
 7. Existing actor before new actor. Existing location before new location. Existing history before new backstory.
 8. Curated grammar before unconstrained generation. Persistent site before disposable dungeon.
 8a. Spatial meaning before geometry. Generate purpose, history, route constraints and affordances before physical realization.
