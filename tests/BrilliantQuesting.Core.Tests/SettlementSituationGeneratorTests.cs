@@ -457,7 +457,54 @@ namespace BrilliantQuesting.Tests
             Assert.True(domesticTargets >= 75, domesticTargets + " domestic targets out of " + runs);
         }
 
-        // -- K. the world does not tell the same story twice --------------------------------------
+        // -- K. generated premises name Irva rather than a parallel mythology -------------------
+
+        [Fact]
+        public void GeneratedPremisesNameVanillaIrvaInAClearMajority()
+        {
+            int anchored = 0;
+            const int runs = 100;
+
+            for (int i = 0; i < runs; i++)
+            {
+                Lab lab = IrvaAnchoredMarket((ulong)(1260 + i));
+                SettlementSituationGenerator generator = new SettlementSituationGenerator();
+                SettlementSituationPlan plan = generator.Evaluate(lab.World, lab.Vanilla, Market);
+
+                Assert.NotEmpty(plan.Candidates);
+                Assert.NotEmpty(plan.BestCandidate.SettingReferences);
+
+                PettyTheftSituation situation = generator.TryGenerate(
+                    lab.World,
+                    lab.Vanilla,
+                    plan,
+                    Market,
+                    lab.Vanilla.Now);
+
+                Assert.NotNull(situation);
+                if (situation.Thread.GenerationCauses.Any(c => c.StartsWith("setting: ")))
+                {
+                    anchored++;
+                }
+            }
+
+            Assert.True(anchored >= 75, anchored + " Irva-anchored generated premises out of " + runs);
+        }
+
+        [Fact]
+        public void SettingReferencesSurviveIntoTheThreadInspectorCauses()
+        {
+            Lab lab = IrvaAnchoredMarket(126);
+
+            PettyTheftSituation situation = new SettlementSituationGenerator()
+                .TryGenerate(lab.World, lab.Vanilla, Market, lab.Vanilla.Now);
+
+            Assert.NotNull(situation);
+            Assert.Contains(situation.Thread.GenerationCauses, c => c.Contains("Noyel"));
+            Assert.Contains(situation.Thread.GenerationCauses, c => c.Contains("Merchants Guild"));
+        }
+
+        // -- L. the world does not tell the same story twice --------------------------------------
 
         [Fact]
         public void TheSameCausalTheftIsNotGeneratedAgainButADistinctOneRemainsEligible()
@@ -556,7 +603,7 @@ namespace BrilliantQuesting.Tests
             return BestOf(lab).ActorIn(SituationRoles.Witness);
         }
 
-        // -- L. persistence ------------------------------------------------------------------------
+        // -- M. persistence ------------------------------------------------------------------------
 
         [Fact]
         public void GeneratedSituationSurvivesSaveReloadWithoutRedispatch()
@@ -575,7 +622,7 @@ namespace BrilliantQuesting.Tests
             Assert.Single(reloaded.Ledger.Events, e => e.Type == WorldEventType.Theft);
         }
 
-        // -- M. the inspector can account for the whole of it -------------------------------------
+        // -- N. the inspector can account for the whole of it -------------------------------------
 
         [Fact]
         public void InspectorNamesEveryPressureBehindAGeneratedSituation()
@@ -659,6 +706,19 @@ namespace BrilliantQuesting.Tests
             lab.World.Relationships.ConnectMutual(clerk, spouse, RelationKind.Spouse, 80);
             lab.World.Relationships.Connect(merchant, clerk, RelationKind.Employer, 70);
             lab.World.Relationships.Connect(clerk, merchant, RelationKind.Employee, 70);
+            return lab;
+        }
+
+        private static Lab IrvaAnchoredMarket(ulong seed)
+        {
+            Lab lab = new Lab(Market, seed);
+            lab.Victim = lab.Local("merchant", "Merchant", money: 800, greed: 0.3, carriedValue: 900, occupation: "shopkeeper");
+            lab.Thief = lab.Local("cutpurse", "Cutpurse", money: 15, greed: 0.8, pickpocket: 8, stealth: 6);
+            lab.Witness = lab.Local("clerk", "Clerk", money: 140, greed: 0.3, perception: 10);
+            lab.Item = EntityId.Parse("item_merchant_valuable");
+            lab.World.Registry.Add(new NarrativeSite(Market, "Noyel market", "town"));
+            lab.World.Registry.GetNpc(lab.Victim).Roles.Add("Merchants Guild");
+            lab.World.Registry.GetNpc(lab.Thief).Occupation = "Derphy pickpocket";
             return lab;
         }
 

@@ -212,6 +212,7 @@ namespace BrilliantQuesting.Situations
                 builder.Bind(SituationRoles.Witness, witness.ActorId);
             }
 
+            VanillaSettingReferences.Attach(builder, world, profile, thief, victim, stake);
             return builder.Build();
         }
 

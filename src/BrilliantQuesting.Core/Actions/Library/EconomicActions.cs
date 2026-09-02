@@ -329,6 +329,7 @@ namespace BrilliantQuesting.Actions.Library
             ActionOutcome outcome = new ActionOutcome(Id, null,
                 "You spend " + cost + " orens and buy " + spec.Describe() + " for " + context.NameOf(context.Target) + ".");
             ActionSupport.RelieveDemand(context, demand, spec, outcome, 25, 2);
+            CloseTreatedTrouble(context, demand, spec, outcome);
             outcome.Events.Add(context.World.Record(
                 WorldEventType.Helped,
                 context.Actor,
@@ -352,6 +353,37 @@ namespace BrilliantQuesting.Actions.Library
         private static int ProcurementCost(ProductionSpec spec)
         {
             return 80 + spec.MinimumQuality * 5 + spec.MinimumValue / 2;
+        }
+
+        private static void CloseTreatedTrouble(ActionContext context, Fact demand, ProductionSpec spec, ActionOutcome outcome)
+        {
+            if (demand == null || spec == null || demand.Object.IsNone || !IsTreatment(spec.CategoryTag))
+            {
+                return;
+            }
+
+            Fact trouble = context.World.Knowledge.GetFact(demand.Object);
+            if (trouble == null || trouble.Predicate != FactPredicates.Damaged || trouble.Truth != TruthState.True)
+            {
+                return;
+            }
+
+            trouble.Truth = TruthState.Superseded;
+            outcome?.Notes.Add("treated: " + ActionSupport.Describe(context, trouble.Id));
+        }
+
+        private static bool IsTreatment(string category)
+        {
+            return Contains(category, "medicine")
+                   || Contains(category, "remedy")
+                   || Contains(category, "antibody")
+                   || Contains(category, "cure");
+        }
+
+        private static bool Contains(string text, string value)
+        {
+            return !string.IsNullOrEmpty(text)
+                   && text.IndexOf(value, StringComparison.OrdinalIgnoreCase) >= 0;
         }
     }
 

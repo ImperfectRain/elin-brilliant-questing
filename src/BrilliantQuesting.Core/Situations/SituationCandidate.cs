@@ -34,6 +34,22 @@ namespace BrilliantQuesting.Situations
         public const string Place = "place";
     }
 
+    /// <summary>A vanilla-setting term the candidate's premise is explicitly rooted in.</summary>
+    public sealed class SettingReference
+    {
+        public SettingReference(string term, string source)
+        {
+            Term = term ?? string.Empty;
+            Source = source ?? string.Empty;
+        }
+
+        public string Term { get; }
+
+        public string Source { get; }
+
+        public override string ToString() => Term + " (" + Source + ")";
+    }
+
     /// <summary>
     /// One thing the world could produce, described without reference to what kind of thing it is.
     ///
@@ -54,6 +70,7 @@ namespace BrilliantQuesting.Situations
         private readonly Dictionary<string, EntityId> _sites;
         private readonly Dictionary<string, int> _pressures;
         private readonly List<string> _causes;
+        private readonly List<SettingReference> _settingReferences;
 
         internal SituationCandidate(
             string archetypeId,
@@ -61,7 +78,8 @@ namespace BrilliantQuesting.Situations
             Dictionary<string, ItemDescriptor> items,
             Dictionary<string, EntityId> sites,
             Dictionary<string, int> pressures,
-            List<string> causes)
+            List<string> causes,
+            List<SettingReference> settingReferences)
         {
             ArchetypeId = archetypeId;
             _actors = new Dictionary<string, List<EntityId>>();
@@ -74,6 +92,7 @@ namespace BrilliantQuesting.Situations
             _sites = new Dictionary<string, EntityId>(sites);
             _pressures = new Dictionary<string, int>(pressures);
             _causes = new List<string>(causes);
+            _settingReferences = new List<SettingReference>(settingReferences);
 
             foreach (KeyValuePair<string, int> pressure in pressures)
             {
@@ -88,6 +107,9 @@ namespace BrilliantQuesting.Situations
 
         /// <summary>Inspector-only sentences naming the world state behind each pressure.</summary>
         public IReadOnlyList<string> Causes => _causes;
+
+        /// <summary>Vanilla Irva material named by the premise, for setting-fidelity audits.</summary>
+        public IReadOnlyList<SettingReference> SettingReferences => _settingReferences;
 
         public IReadOnlyDictionary<string, int> Pressures => _pressures;
 
@@ -124,6 +146,7 @@ namespace BrilliantQuesting.Situations
         private readonly Dictionary<string, EntityId> _sites = new Dictionary<string, EntityId>();
         private readonly Dictionary<string, int> _pressures = new Dictionary<string, int>();
         private readonly List<string> _causes = new List<string>();
+        private readonly List<SettingReference> _settingReferences = new List<SettingReference>();
         private readonly string _archetypeId;
 
         public SituationCandidateBuilder(string archetypeId)
@@ -194,8 +217,29 @@ namespace BrilliantQuesting.Situations
             return this;
         }
 
+        public SituationCandidateBuilder SettingReference(string term, string source)
+        {
+            if (string.IsNullOrWhiteSpace(term))
+            {
+                return this;
+            }
+
+            string cleanTerm = term.Trim();
+            string cleanSource = string.IsNullOrWhiteSpace(source) ? "premise" : source.Trim();
+            for (int i = 0; i < _settingReferences.Count; i++)
+            {
+                if (_settingReferences[i].Term == cleanTerm && _settingReferences[i].Source == cleanSource)
+                {
+                    return this;
+                }
+            }
+
+            _settingReferences.Add(new SettingReference(cleanTerm, cleanSource));
+            return Cause("setting: " + cleanSource + " names " + cleanTerm + " from vanilla Irva");
+        }
+
         public SituationCandidate Build() =>
-            new SituationCandidate(_archetypeId, _actors, _items, _sites, _pressures, _causes);
+            new SituationCandidate(_archetypeId, _actors, _items, _sites, _pressures, _causes, _settingReferences);
     }
 
     /// <summary>
