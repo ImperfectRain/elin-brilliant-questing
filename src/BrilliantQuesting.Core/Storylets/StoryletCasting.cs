@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Relationships;
 using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 
@@ -314,10 +315,16 @@ namespace BrilliantQuesting.Storylets
         ///
         /// Thread participants first, in the order the situation cast them, because the people a
         /// matter is already about are the people it is most likely to be about again; then
-        /// everybody else the game says is standing here, by id so two runs agree. The player is
-        /// never in the pool: a scene may be *with* the player, and the caller says so through
+        /// everybody else the game says is standing here, the faces the player already knows before
+        /// the strangers (BQ-114), and by id within each so two runs agree. The player is never in
+        /// the pool: a scene may be *with* the player, and the caller says so through
         /// <see cref="StoryletCastingContext.Actor"/>, but the mod does not write the player into
         /// a role they did not choose.
+        ///
+        /// Familiarity orders the search; it does not score the result. A role still takes the
+        /// first candidate that meets its requirement, so `D026` holds unchanged - what a corrobo-
+        /// rating neighbour has over a corroborating stranger is that the player will recognise
+        /// the name, which is not a claim about who is better suited to the role.
         /// </summary>
         private static List<EntityId> BuildPool(StoryletCastingContext context)
         {
@@ -363,10 +370,18 @@ namespace BrilliantQuesting.Storylets
                 }
             }
 
-            others.Sort(delegate(EntityId left, EntityId right)
+            if (others.Count > 1)
             {
-                return string.CompareOrdinal(left.Value, right.Value);
-            });
+                // Read only when there is actually a choice to make. Every definition the engine
+                // offers is cast separately, and walking the player's whole history to order a
+                // pool of one would make finding scenes cost more than playing them.
+                PlayerFamiliarity familiarity = PlayerFamiliarity.Read(context.World, context.Vanilla);
+                others.Sort(delegate(EntityId left, EntityId right)
+                {
+                    int known = familiarity.ScoreOf(right).CompareTo(familiarity.ScoreOf(left));
+                    return known != 0 ? known : string.CompareOrdinal(left.Value, right.Value);
+                });
+            }
 
             pool.AddRange(others);
             return pool;

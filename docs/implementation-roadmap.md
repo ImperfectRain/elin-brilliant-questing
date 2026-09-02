@@ -1384,6 +1384,24 @@ otherwise refuse.
 Casting prefers actors the player has actually met, traded with, or lives beside, over strangers.
 - **Depends** BQ-039, BQ-067.
 - **Done when** the first situation in a fresh save casts an NPC the player has already interacted with, in the majority of test runs.
+- **Current implementation** `PlayerFamiliarity` is the one answer to "how well does the player
+  know this person", read from four grounds the world already holds: residency on the player's own
+  land, **vanilla affinity**, the event ledger's record of what the two of them have done to each
+  other, and a relationship edge either way. Affinity carries the step in practice, because ordinary
+  talking, trading and gift-giving happen entirely in vanilla and leave no BQ event behind — in a
+  save the mod has only just attached to, Elin's own number is the only history there is (`D010`),
+  and reading it rather than keeping a private acquaintance table is also what keeps this step out
+  of the save file. Every ground only raises the reading, an unreadable one contributes nothing
+  rather than zero (`D017`), and none of it is affection: somebody the player wronged is not a
+  stranger. Two casting surfaces consume it. The settlement generator adds it as the generic
+  `player_familiarity` pressure **after** eligibility has been decided on the world's own pressure,
+  so a familiar face can decide which of the situations a settlement already supports is told first
+  and can never be the reason one exists (`D027`); the storylet caster orders its searched pool by
+  it, which changes who is found first without scoring anybody's fitness for a role, so `D026`
+  holds. Measured on the done-when fixture — four equally pressured marks, one of them a face the
+  player buys from — casting went from 25 familiar faces in 100 runs to 100.
+  Not in scope here: pets and companions as cast members, and surviving their being sold, married
+  off or killed, which is BQ-123's work and still depends on this.
 - **Sources** engagement §4; CD §13.1.
 - **Why** attachment must precede stakes; a threat to a stranger is an errand.
 

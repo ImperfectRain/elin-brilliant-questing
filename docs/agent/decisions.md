@@ -298,10 +298,35 @@ held a role rather than who somebody became.
 
 Choosing among the qualified stays deliberately unscored - first in a stable order - because
 preferring the better group is `BQ-068`'s role chemistry, and a score here would be a second one to
-keep in step with it.
+keep in step with it. `BQ-114` changed what that stable order *is* - the faces the player already
+knows come before the strangers - and nothing else: a role still takes the first candidate that
+meets its requirement, and being known is never part of meeting it.
 
 Reason: a role that is a position makes every storylet a template for the situation it was written
 against, which is the failure the whole storylet layer exists to avoid; and a role holder who is not
 a person is state a later save load throws the thread away over.
+
+## D027 — Familiarity chooses between situations the world already supports, and never creates one
+
+`PlayerFamiliarity` reads how well the player knows somebody from residency on their land, vanilla
+affinity, the event ledger and a recorded relationship edge. It is a reading, never stored, and
+every ground only raises it; a ground the build cannot read contributes nothing rather than zero
+(`D017`).
+
+**Eligibility first, preference second.** The settlement generator decides whether a proposal is
+eligible on the world's own pressure alone, and only then adds the generic `player_familiarity`
+term. A settlement that would have stayed quiet stays quiet however many friends the player has in
+it, and the score is still the sum of terms that were each named with the world state behind them.
+
+**A preference, not a gate.** Familiarity orders casts. It never opens or closes a route, never
+changes a check, and is never read as affection - somebody the player robbed is exactly the person
+a situation about them should be cast from. The affinity thresholds the action library already
+holds (`impersonate` refusing somebody who knows your face, an underworld contact who will vouch)
+answer a different question and stay where they are.
+
+Reason: attachment before stakes is an engagement requirement, and the failure it invites is a
+world that manufactures pressure around whoever the player likes. Separating the two means the
+simulation still decides what happens and the player's history only decides which of the things
+that could happen is worth telling first.
 
 Add a new entry only when the decision is both load-bearing and durable.

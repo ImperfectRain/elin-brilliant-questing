@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
+using BrilliantQuesting.Relationships;
 using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 
@@ -108,10 +109,16 @@ namespace BrilliantQuesting.Situations
 
                     ActorAffordances witness = PickWitness(byAttention, thief, victim);
                     SituationCandidate candidate = _theft.Evaluate(world, profile, thief, victim, witness);
+
+                    // Eligibility is decided on the world's own pressure, before anybody asks who
+                    // the player knows. BQ-114 chooses between the situations a settlement already
+                    // supports; it is never the reason one of them exists.
                     if (candidate == null || candidate.Score < PettyTheftPressure.MinimumScore)
                     {
                         continue;
                     }
+
+                    candidate = PreferFamiliarFaces(profile, candidate);
 
                     string refusal = RepetitionReason(world, candidate, vanilla.Now);
                     if (refusal != null)
@@ -177,6 +184,60 @@ namespace BrilliantQuesting.Situations
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// BQ-114. Adds what the player's own history says about the people a proposal is about.
+        ///
+        /// Applied here rather than inside an archetype because it means the same thing for every
+        /// archetype - a shortage that starves the shopkeeper the player buys from is the same kind
+        /// of better story as a theft from the neighbour they know - and because an archetype that
+        /// held its own opinion about the player would end up with as many opinions as there are
+        /// archetypes.
+        ///
+        /// Only the principals count, and only the best-known of them: a familiar face among the
+        /// people a situation is *about* is what makes it land, and knowing the witness as well
+        /// does not make it land twice as hard. A cast of strangers records no term at all rather
+        /// than a zero, because a stranger is an absence of history, not a measurement of it.
+        /// </summary>
+        private static SituationCandidate PreferFamiliarFaces(
+            LocalAffordanceProfile profile,
+            SituationCandidate candidate)
+        {
+            FamiliarityReading best = null;
+            AppraiseRole(profile, candidate, SituationRoles.Actor, ref best);
+            AppraiseRole(profile, candidate, SituationRoles.Target, ref best);
+
+            return best == null || !best.IsKnown
+                ? candidate
+                : candidate.WithPressure(SituationPressures.PlayerFamiliarity, best.Score, best.Because);
+        }
+
+        private static void AppraiseRole(
+            LocalAffordanceProfile profile,
+            SituationCandidate candidate,
+            string role,
+            ref FamiliarityReading best)
+        {
+            IReadOnlyList<EntityId> bound = candidate.ActorsIn(role);
+            for (int i = 0; i < bound.Count; i++)
+            {
+                ActorAffordances local = profile.Of(bound[i]);
+                if (local == null)
+                {
+                    continue;
+                }
+
+                FamiliarityReading reading = local.Familiarity;
+                if (best == null
+                    || reading.Score > best.Score
+                    || (reading.Score == best.Score
+                        && reading.IsKnown
+                        && string.CompareOrdinal(reading.Actor.Value, best.Actor.Value) < 0))
+                {
+                    best = reading;
+                }
+            }
         }
 
         /// <summary>

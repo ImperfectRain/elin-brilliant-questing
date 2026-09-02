@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
+using BrilliantQuesting.Relationships;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Situations
@@ -63,7 +64,8 @@ namespace BrilliantQuesting.Situations
             int money,
             List<ItemDescriptor> carried,
             Dictionary<VanillaSkill, int> skills,
-            Dictionary<VanillaAttribute, int> attributes)
+            Dictionary<VanillaAttribute, int> attributes,
+            FamiliarityReading familiarity)
         {
             ActorId = actorId;
             Name = name;
@@ -77,6 +79,7 @@ namespace BrilliantQuesting.Situations
             _carried = carried;
             _skills = skills;
             _attributes = attributes;
+            Familiarity = familiarity;
 
             for (int i = 0; i < carried.Count; i++)
             {
@@ -109,6 +112,15 @@ namespace BrilliantQuesting.Situations
 
         /// <summary>Where the game has them standing, which is the whole of "present" today.</summary>
         public EntityId ZoneId { get; }
+
+        /// <summary>
+        /// How well the player already knows them, and why (BQ-114). A stranger reads zero, which
+        /// is what most of a town reads and is not a defect in them.
+        /// </summary>
+        public FamiliarityReading Familiarity { get; }
+
+        /// <summary>Shorthand for the common question: has the player any history with them at all.</summary>
+        public bool KnownToPlayer => Familiarity.IsKnown;
 
         public string Occupation { get; }
 
@@ -217,6 +229,10 @@ namespace BrilliantQuesting.Situations
                 return profile;
             }
 
+            // Read once for the settlement: the generator asks about every ordered pair here, and
+            // the player's history does not change between two of them.
+            PlayerFamiliarity familiarity = PlayerFamiliarity.Read(world, vanilla);
+
             IReadOnlyList<EntityId> present = vanilla.GetCharactersInZone(zoneId);
             for (int i = 0; i < present.Count; i++)
             {
@@ -271,7 +287,8 @@ namespace BrilliantQuesting.Situations
                     vanilla.GetMoney(actor),
                     carried,
                     skills,
-                    attributes);
+                    attributes,
+                    familiarity.Of(actor));
 
                 profile._actors.Add(affordances);
                 profile._byId.Add(actor, affordances);
@@ -286,6 +303,7 @@ namespace BrilliantQuesting.Situations
             int[] purses = new int[_actors.Count];
             int commercial = 0;
             int carrying = 0;
+            int known = 0;
             for (int i = 0; i < _actors.Count; i++)
             {
                 ActorAffordances actor = _actors[i];
@@ -309,6 +327,11 @@ namespace BrilliantQuesting.Situations
                 {
                     carrying++;
                 }
+
+                if (actor.KnownToPlayer)
+                {
+                    known++;
+                }
             }
 
             Array.Sort(purses);
@@ -325,6 +348,7 @@ namespace BrilliantQuesting.Situations
             _features.Add("carried value here: " + TotalCarriedValue);
             _features.Add("median local purse: " + MedianMoney);
             _features.Add("commercial locals: " + commercial);
+            _features.Add("locals the player knows: " + known);
         }
     }
 }

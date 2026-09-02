@@ -34,6 +34,26 @@ namespace BrilliantQuesting.Situations
         public const string Place = "place";
     }
 
+    /// <summary>
+    /// Pressure names the generic layer contributes, rather than any one archetype.
+    ///
+    /// An archetype names its own terms beside itself - theft's motive and means live in
+    /// <see cref="PettyTheftPressure"/> - and these are the ones that mean the same thing whatever
+    /// the situation turns out to be.
+    /// </summary>
+    public static class SituationPressures
+    {
+        /// <summary>
+        /// BQ-114. How well the player already knows the people this proposal is about.
+        ///
+        /// Added after eligibility has been decided, never before: the world's own pressure says
+        /// whether there is a situation here, and this only says which of the situations the world
+        /// already supports is worth telling first. A settlement that would have stayed quiet stays
+        /// quiet however many friends the player has in it.
+        /// </summary>
+        public const string PlayerFamiliarity = "player_familiarity";
+    }
+
     /// <summary>A vanilla-setting term the candidate's premise is explicitly rooted in.</summary>
     public sealed class SettingReference
     {
@@ -129,6 +149,33 @@ namespace BrilliantQuesting.Situations
         }
 
         public ItemDescriptor ItemIn(string role) => _items.TryGetValue(role, out ItemDescriptor item) ? item : null;
+
+        /// <summary>
+        /// The same proposal with one more named pressure on it.
+        ///
+        /// A new candidate rather than an edit, so a scored, ranked or suppressed one still cannot
+        /// change underneath its holder, and internal so only the generic layer can use it: an
+        /// archetype adding terms to its own candidate after building it would be the one way the
+        /// score could stop being the sum of what was named while it was assembled.
+        /// </summary>
+        internal SituationCandidate WithPressure(string name, int value, string because)
+        {
+            if (string.IsNullOrEmpty(name) || value == 0)
+            {
+                return this;
+            }
+
+            Dictionary<string, int> pressures = new Dictionary<string, int>(_pressures);
+            pressures[name] = value;
+
+            List<string> causes = new List<string>(_causes);
+            if (!string.IsNullOrEmpty(because))
+            {
+                causes.Add(because);
+            }
+
+            return new SituationCandidate(ArchetypeId, _actors, _items, _sites, pressures, causes, _settingReferences);
+        }
 
         public EntityId SiteIn(string role) => _sites.TryGetValue(role, out EntityId site) ? site : EntityId.None;
 
