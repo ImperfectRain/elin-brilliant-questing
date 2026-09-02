@@ -420,6 +420,9 @@ namespace BrilliantQuesting.Diagnostics
             sb.Append("\n-- what the player has finished --\n");
             sb.Append(Chronicle.Describe(world, vanilla.PlayerId));
 
+            sb.Append("\n-- what the player holds that is not money or an item --\n");
+            sb.Append(StandingSheet.Describe(world, vanilla));
+
             sb.Append("\n-- what somebody standing here would say out loud --\n");
             sb.Append(DescribeAmbientTalk(world, vanilla));
 

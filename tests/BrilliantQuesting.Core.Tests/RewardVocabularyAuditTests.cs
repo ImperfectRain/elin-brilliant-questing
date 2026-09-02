@@ -7,6 +7,7 @@ using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Obligations;
 using BrilliantQuesting.Rewards;
 using BrilliantQuesting.Situations;
 using BrilliantQuesting.Threads;
@@ -75,6 +76,57 @@ namespace BrilliantQuesting.Tests
             ResolutionRewardReport report = new ResolutionRewardAudit(lab.World, lab.Player).AuditResolvedThreads();
             Assert.Empty(report.ForbiddenItemPayouts);
             Assert.Contains(ResolutionRewardKind.Property, report.Kinds);
+        }
+
+        /// <summary>
+        /// Regression for the BQ-113/BQ-118 seam. `FavorOwed` reached this report only through a
+        /// `FavorOwed` event, and nothing in the mod records one - BQ-113 writes the debt straight
+        /// into the obligation ledger. So a save in which the player had genuinely earned the
+        /// reward the engagement track calls the strongest reported a vocabulary that did not
+        /// contain it.
+        /// </summary>
+        [Fact]
+        public void AFavorEarnedInPlayCountsInTheRewardVocabulary()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+
+            ResolutionRewardReport before = new ResolutionRewardAudit(lab.World, lab.Player).AuditResolvedThreads();
+            Assert.DoesNotContain(ResolutionRewardKind.FavorOwed, before.Kinds);
+
+            // A real good turn, recorded the way every helping verb in the library records one.
+            lab.World.Record(
+                WorldEventType.Helped,
+                lab.Player,
+                lab.Situation.VictimId,
+                lab.Vanilla.Now,
+                0.7,
+                lab.Zone,
+                threadId: lab.Situation.Thread.Id);
+            Assert.Single(lab.World.Obligations.Records);
+
+            ResolutionRewardReport after = new ResolutionRewardAudit(lab.World, lab.Player).AuditResolvedThreads();
+            Assert.Contains(ResolutionRewardKind.FavorOwed, after.Kinds);
+            Assert.Empty(after.ForbiddenItemPayouts);
+        }
+
+        /// <summary>A debt between two other people is not a reward the player was granted.</summary>
+        [Fact]
+        public void AFavorBetweenOtherPeopleIsNotThePlayersReward()
+        {
+            TheftLaboratory lab = TheftLaboratory.Create();
+
+            lab.World.Obligations.Add(new SocialObligation(
+                lab.World.NewId("obl"),
+                SocialObligationKind.Favor,
+                lab.Situation.ThiefId,
+                lab.Situation.VictimId,
+                EntityId.None,
+                string.Empty,
+                lab.Vanilla.Now,
+                EntityId.None));
+
+            ResolutionRewardReport report = new ResolutionRewardAudit(lab.World, lab.Player).AuditResolvedThreads();
+            Assert.DoesNotContain(ResolutionRewardKind.FavorOwed, report.Kinds);
         }
 
         [Fact]

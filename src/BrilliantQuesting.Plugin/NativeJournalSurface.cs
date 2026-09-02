@@ -483,6 +483,7 @@ namespace BrilliantQuesting.Plugin
 
                 EntityId player = vanilla.PlayerId;
                 AddActiveMatters(world, player);
+                AddStanding(world, vanilla);
                 AddKnownPeople(world, player);
                 AddKnownClaims(world, player);
                 AddResolvedMatters(world, player);
@@ -595,6 +596,55 @@ namespace BrilliantQuesting.Plugin
                 {
                     JournalEntry entry = entries[i];
                     AddText(EntryLine(entry), entry.CanProve ? FontColor.Good : FontColor.Default);
+                }
+            }
+
+            /// <summary>
+            /// BQ-118: what the player holds that is neither money nor an item.
+            ///
+            /// Placed directly under the open matters and above what is known, because it is the
+            /// half of the journal the player consults to decide what to do next rather than to
+            /// remember what happened. Everything below it is recollection.
+            /// </summary>
+            private void AddStanding(NarrativeWorldState world, ElinVanillaState vanilla)
+            {
+                AddHeader("Standing", null);
+                IReadOnlyList<StandingEntry> entries = StandingSheet.Entries(world, vanilla);
+                if (entries.Count == 0)
+                {
+                    AddText("You have earned nothing yet that is not money or an item.", FontColor.Default);
+                    return;
+                }
+
+                AddStandingGroup(entries, StandingKind.OwedToYou, "Owed to you");
+                AddStandingGroup(entries, StandingKind.YouOwe, "You owe");
+                AddStandingGroup(entries, StandingKind.Access, "Doors open to you");
+                AddStandingGroup(entries, StandingKind.Membership, "You belong to");
+                AddStandingGroup(entries, StandingKind.VanillaStanding, "Standing");
+            }
+
+            private void AddStandingGroup(IReadOnlyList<StandingEntry> entries, StandingKind kind, string heading)
+            {
+                bool any = false;
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    StandingEntry entry = entries[i];
+                    if (entry.Kind != kind)
+                    {
+                        continue;
+                    }
+
+                    if (!any)
+                    {
+                        AddHeader(heading, null);
+                        any = true;
+                    }
+
+                    // Good marks what can still be spent, so a favour the world can no longer
+                    // honour never reads as an offer.
+                    AddText(
+                        entry.Title + (string.IsNullOrEmpty(entry.Detail) ? string.Empty : "  " + entry.Detail),
+                        entry.Callable ? FontColor.Good : FontColor.Default);
                 }
             }
 

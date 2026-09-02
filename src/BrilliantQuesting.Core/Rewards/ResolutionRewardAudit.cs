@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Obligations;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Rewards
@@ -85,6 +86,7 @@ namespace BrilliantQuesting.Rewards
             }
 
             AddKnowledgeKinds(kinds);
+            AddStandingKinds(kinds);
             return new ResolutionRewardReport(kinds, forbidden);
         }
 
@@ -189,6 +191,35 @@ namespace BrilliantQuesting.Rewards
                 else if (fact.Predicate == FactPredicates.Possesses && fact.Subject == _player)
                 {
                     kinds.Add(ResolutionRewardKind.Property);
+                }
+            }
+        }
+
+        /// <summary>
+        /// The rewards that are records rather than events.
+        ///
+        /// `FavorOwed` was reachable here only through a `FavorOwed` event, and nothing in the
+        /// mod has ever recorded one - BQ-113 mints the debt straight into the obligation ledger,
+        /// which is the authoritative record and the thing `call_favor` and the standing sheet
+        /// both read. So this audit reported the vocabulary as narrower than play actually
+        /// delivers, and it under-reported precisely the reward `engagement §3` calls the
+        /// strongest in it. Read from the ledger for the same reason
+        /// <see cref="AddKnowledgeKinds"/> reads the knowledge graph: what was granted is a state
+        /// the save carries, not only an event that went past.
+        ///
+        /// Status is deliberately not filtered. A favour that has been called in was still a
+        /// favour the world granted, and this audit answers what the reward vocabulary contains -
+        /// what the player is still holding is the standing sheet's question, not this one's.
+        /// </summary>
+        private void AddStandingKinds(HashSet<ResolutionRewardKind> kinds)
+        {
+            IReadOnlyList<SocialObligation> obligations = _world.Obligations.Records;
+            for (int i = 0; i < obligations.Count; i++)
+            {
+                if (obligations[i].Kind == SocialObligationKind.Favor && obligations[i].Creditor == _player)
+                {
+                    kinds.Add(ResolutionRewardKind.FavorOwed);
+                    return;
                 }
             }
         }

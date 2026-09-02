@@ -1404,6 +1404,22 @@ A single readable view of earned access: contacts, safehouses, discounts, introd
 owed and owing, standing with organizations.
 - **Depends** BQ-055, BQ-113.
 - **Done when** the player can see everything they have earned that is not money or an item.
+- **Current implementation** `StandingSheet` is a derived projection in the same class as the
+  journal and the Chronicle (`D022`): every line is read from state the save already carries — the
+  obligation ledger in both directions, a site's admitted list, an organization's membership, and
+  the game's own standing numbers read live through `IVanillaState` — so nothing is stored beside
+  the truth and nothing can drift from it. It reports what is *held*, never a replay of what
+  happened: open records only, and finished business stays the Chronicle's. It obeys `D008` like
+  every other player surface, listing a record only where the player was a party to the event that
+  created it, so a grudge formed off-screen cannot be handed to them as though they had been told.
+  It reaches the player through the native journal tab and the `why?` inspector.
+  Two things the engagement material names are deliberately absent because nothing records them
+  yet: a **discount**, and per-town **Influence**, which Core has no way to enumerate.
+  Because BQ-118 was skipped, one defect had to be repaired with it: BQ-112's reward audit could
+  reach `FavorOwed` only through a `FavorOwed` event, and nothing in the mod records one — BQ-113
+  mints the debt straight into the obligation ledger — so a save in which the player had genuinely
+  earned the strongest reward in the vocabulary reported a vocabulary that did not contain it. The
+  audit now reads the ledger, in the same idiom it already reads the knowledge graph.
 - **Sources** engagement §3 Tier 2; Fallen London qualities.
 - **Why** access-as-reward only motivates if the player can see it accumulating.
 
