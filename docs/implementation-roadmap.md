@@ -1111,7 +1111,38 @@ Keep `Event`, `Development`, `NarrativeThread`, `Storylet` and `NarrativeScene` 
 storylet system cannot quietly become a quest generator.
 - **Depends** BQ-065.
 - **Done when** a Development exists that never becomes a scene and never becomes a quest, and the world is still coherent.
-- **Sources** CD §36.5.
+- **Current implementation** `Development` is a derived reading of the present, not a record. It
+  has no public constructor, no setter and no lifecycle: the only way to obtain one is
+  `DevelopmentDetector.Detect`, and it stops existing when the state behind it changes rather than
+  being resolved. Nothing is persisted and nothing needs to be — `WorldStateSerializer` has no
+  development node and `NarrativeWorldState` has no property to hang one off — because the save
+  already holds every input, so the same world derives the same pressures, in the same order, with
+  the same urgency, before and after a round trip. A development carries ids and no contents: the
+  events it originates in, the fact it is about, the thread that carries it, who is implicated,
+  where — so it cannot disagree with the history it reads. Detection is two rules over two
+  different stores, and its shape is the argument rather than its size. `UnprovenKnowledge` is
+  keyed by the **fact**: two people who saw the same theft are one pressure with two names on it,
+  a public fact is no pressure at all, and a fact only its own subject believes is nobody's matter
+  — which is what stops this from wrapping the ledger. `UnmetObligation` is keyed by an open
+  `SocialObligation` and reads its thread and place back off its source event rather than storing
+  them twice. The two do not stand one-to-one with threads: one thread holds one pressure though it
+  holds two facts, a resolved thread still holds an unproven secret, and an obligation is a
+  pressure whether or not a thread ever carried it — which is what stops it from being a second
+  thread system. `DevelopmentExpression.Opportunities` is the one seam to the dramatic layer (CD
+  §37, step 7 to step 8): it hands `StoryletEngine` the thread and focus the pressure already
+  names and adds no selection of its own, so what comes back is exactly what the engine finds when
+  asked directly. `NarrativeInspector.DescribeDevelopments` prints each pressure, its urgency, what
+  it was derived from, and whether a storylet could be looked for at all. `DevelopmentLayerTests`
+  pins the done-when with a real pressure rather than a hidden one — an open favour that names a
+  live thread, is handed straight to the engine, and still produces nothing because a storylet
+  builds roles around a claim and this is not about one — and pins the four boundaries: no event
+  is appended, no fact authored, no thread opened, no firing recorded. The distinguishability test
+  kills the thief and the witness: the scene becomes unplayable and the event, the thread, the
+  storylet definition and the pressure are all exactly as they were.
+  Deferred: nothing decides *which* pressure to surface (that is director work), a development is
+  not a speech act and carries no wording, and no further detection rule arrives without a
+  consumer — later steps add rules to the detector, not fields to `Development`.
+- **Sources** CD §36.5, §37.
 
 #### BQ-134 — Project verbs through contextual affordances *(moved forward)*
 Moved forward to the playtest consolidation section before BQ-039 because live S4 testing showed

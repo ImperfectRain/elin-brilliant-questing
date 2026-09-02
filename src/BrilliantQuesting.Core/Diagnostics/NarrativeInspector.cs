@@ -3,6 +3,7 @@ using System.Text;
 using BrilliantQuesting.Actions;
 using BrilliantQuesting.Actions.Library;
 using BrilliantQuesting.Checks;
+using BrilliantQuesting.Developments;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
@@ -320,6 +321,57 @@ namespace BrilliantQuesting.Diagnostics
             for (int i = 0; i < reasons.Count; i++)
             {
                 sb.Append("    - ").Append(reasons[i]).Append('\n');
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// What the world is currently pressing on, and what each pressure could turn into.
+        ///
+        /// Deliberately printed beside nothing else: a development is not a thread, a fact or an
+        /// event, and the question this answers - "what is unresolved right now, and would any of
+        /// it reach a player?" - is not answerable from any of their dumps. A pressure that can
+        /// reach nobody is printed exactly like one that can, because it is not a defect.
+        /// </summary>
+        public static string DescribeDevelopments(NarrativeWorldState world)
+        {
+            IReadOnlyList<Development> developments = DevelopmentDetector.Detect(world);
+            StringBuilder sb = new StringBuilder();
+            sb.Append("developments: ").Append(developments.Count).Append('\n');
+
+            for (int i = 0; i < developments.Count; i++)
+            {
+                Development development = developments[i];
+                sb.Append("  ").Append(development.Id).Append('\n');
+                sb.Append("    pressure:");
+                for (int t = 0; t < development.PressureTags.Count; t++)
+                {
+                    sb.Append(' ').Append(development.PressureTags[t]);
+                }
+
+                sb.Append(" (urgency ").Append(development.Urgency).Append(")\n");
+
+                sb.Append("    subjects:");
+                for (int s = 0; s < development.SubjectIds.Count; s++)
+                {
+                    sb.Append(' ').Append(world.Registry.NameOf(development.SubjectIds[s]));
+                }
+
+                sb.Append('\n');
+
+                sb.Append("    derived from: ")
+                  .Append(development.OriginEventIds.Count)
+                  .Append(development.OriginEventIds.Count == 1 ? " event" : " events")
+                  .Append(development.ThreadId.IsNone ? ", no thread" : ", thread " + development.ThreadId)
+                  .Append(development.FocusFactId.IsNone ? ", no focus fact" : ", focus " + development.FocusFactId)
+                  .Append('\n');
+
+                sb.Append("    ")
+                  .Append(development.CanBeExpressedAsStorylet
+                      ? "a storylet could be looked for"
+                      : "no storylet can be looked for; it stays a pressure the world holds")
+                  .Append('\n');
             }
 
             return sb.ToString();
