@@ -86,6 +86,26 @@ namespace BrilliantQuesting.Diagnostics
 
             sb.Append('\n');
 
+            // BQ-145. Not the identity observation - that is BQ-144's and is a live read of the
+            // game - but what BQ derives from it, with the facet behind every weight named. An
+            // identity-derived number nobody can attribute to a facet is a number nobody can argue
+            // with, and this is where the argument is made available.
+            IdentityAffordances identity = IdentityAffordances.Of(npc, vanilla);
+            sb.Append("  identity affordances:");
+            IReadOnlyList<string> derived = identity.Explain();
+            if (derived.Count == 0)
+            {
+                sb.Append(" none derived (no identity facet contributes)\n");
+            }
+            else
+            {
+                sb.Append('\n');
+                for (int i = 0; i < derived.Count; i++)
+                {
+                    sb.Append("    - ").Append(derived[i]).Append('\n');
+                }
+            }
+
             sb.Append("  values:");
             AppendValue(sb, "family", npc.Values.Family);
             AppendValue(sb, "wealth", npc.Values.Wealth);

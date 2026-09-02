@@ -61,6 +61,7 @@ namespace BrilliantQuesting.Situations
             EntityId zoneId,
             string occupation,
             IReadOnlyCollection<string> roles,
+            IdentityAffordances identity,
             int money,
             List<ItemDescriptor> carried,
             Dictionary<VanillaSkill, int> skills,
@@ -76,6 +77,7 @@ namespace BrilliantQuesting.Situations
             ZoneId = zoneId;
             Occupation = occupation ?? string.Empty;
             Roles = roles;
+            Identity = identity ?? IdentityAffordances.Nothing;
             Money = money;
             _carried = carried;
             _skills = skills;
@@ -96,7 +98,7 @@ namespace BrilliantQuesting.Situations
                 }
             }
 
-            IsCommercial = ReadsAsCommercial(Occupation, roles);
+            IsCommercial = Identity.Service.IsProvider;
         }
 
         public EntityId ActorId { get; }
@@ -142,8 +144,21 @@ namespace BrilliantQuesting.Situations
         public IReadOnlyCollection<string> Roles { get; }
 
         /// <summary>
-        /// Whether this person handles goods and money with strangers for a living. Read from
-        /// occupation and roles rather than from a list of names, so a modded shopkeeper is one too.
+        /// What this actor's identity makes plausible, who it makes them eligible to be, and what it
+        /// puts at risk (BQ-145).
+        ///
+        /// The generator's one route to what a job means. It does not read the identity observation
+        /// itself and holds no occupation vocabulary of its own: two ideas of what a shopkeeper is
+        /// would mean a face the generator treats as commercial and the early-contact pass does not.
+        /// Empty for somebody the game and this simulation both declined to describe, which is an
+        /// answer and not a gap.
+        /// </summary>
+        public IdentityAffordances Identity { get; }
+
+        /// <summary>
+        /// Whether this person handles goods and money with strangers for a living. BQ-145's
+        /// derived service capability, so a modded shopkeeper is one too and nothing here has to
+        /// keep a list of names.
         /// </summary>
         public bool IsCommercial { get; }
 
@@ -165,37 +180,6 @@ namespace BrilliantQuesting.Situations
         public int Attribute(VanillaAttribute attribute) =>
             _attributes.TryGetValue(attribute, out int value) ? value : 0;
 
-        /// <summary>
-        /// Whether an occupation and a set of roles describe somebody who handles goods and money
-        /// with strangers for a living.
-        ///
-        /// Public because BQ-115 elects the settlement's shopkeeper before any affordance profile
-        /// is read, and two ideas of what a shopkeeper is would mean a face the generator treats as
-        /// commercial and the early-contact pass does not.
-        /// </summary>
-        public static bool ReadsAsCommercial(string occupation, IReadOnlyCollection<string> roles)
-        {
-            occupation = occupation ?? string.Empty;
-            roles = roles ?? new string[0];
-
-            if (occupation.IndexOf("shop", StringComparison.OrdinalIgnoreCase) >= 0
-                || occupation.IndexOf("merchant", StringComparison.OrdinalIgnoreCase) >= 0
-                || occupation.IndexOf("trader", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                return true;
-            }
-
-            foreach (string role in roles)
-            {
-                if (string.Equals(role, "merchant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(role, "shopkeeper", StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
     }
 
     /// <summary>
@@ -314,6 +298,7 @@ namespace BrilliantQuesting.Situations
                     zoneId,
                     npc.Occupation,
                     npc.Roles,
+                    IdentityAffordances.Of(npc, vanilla),
                     vanilla.GetMoney(actor),
                     carried,
                     skills,

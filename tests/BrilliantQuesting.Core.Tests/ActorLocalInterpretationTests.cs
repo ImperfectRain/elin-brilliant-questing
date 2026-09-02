@@ -76,7 +76,10 @@ namespace BrilliantQuesting.Tests
             Assert.Contains("lens: alchemical", report);
             Assert.Contains("derived fact: is contaminated", report);
             Assert.Contains("via inference", report);
-            Assert.Contains("occupation alchemy", report);
+            // BQ-145: the identity-derived weight names the facet it came from, and says whose
+            // answer that facet is. "Alchemy came up because somebody wrote apothecary on this
+            // character" is a claim a reader can check; "occupation alchemy" was not.
+            Assert.Contains("plausible knowledge alchemy (authored work 'apothecary')", report);
             Assert.Contains("value knowledge", report);
         }
 

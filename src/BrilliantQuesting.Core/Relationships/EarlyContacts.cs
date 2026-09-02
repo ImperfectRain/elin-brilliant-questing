@@ -252,7 +252,7 @@ namespace BrilliantQuesting.Relationships
                     continue;
                 }
 
-                if (Situations.ActorAffordances.ReadsAsCommercial(npc.Occupation, npc.Roles))
+                if (World.IdentityAffordances.Of(npc, vanilla).Service.IsProvider)
                 {
                     candidates.Add(Build(
                         world,

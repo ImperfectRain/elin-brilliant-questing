@@ -679,7 +679,7 @@ and current local pressures. A place earns its situations from what it actually 
 - **Done when** a situation appears in a save the player has never staged anything into, and the inspector can name the world state that caused it; **and** two structurally different settlements yield different candidate distributions, with no town id, zone name or hand-tuned per-place weighting anywhere in the generator.
 - **Sources** MD §8.1; PM §0, §27; LW §1; VS §5.2.
 - **Unblocks** all archetypes.
-- **Identity intake is BQ-144's, not this step's.** The affordance profile's "occupation, job and hobby; service role; authority, guild and faction role" are the six facets of `VS §4.2`, read once at the seam. This step shipped ahead of that read with a placeholder intake — `ActorAffordances.Occupation` is the literal string `"local"` for every registered vanilla actor, and `Roles` carries only the guard/guild traits — so its identity terms are weaker than the design says, not absent. When BQ-144 lands, this generator consumes the typed facets in place of the placeholder and its scoring shape does not change. It must not grow its own read of `Chara`, its own occupation vocabulary, or a second copy of what a job implies (that is BQ-145).
+- **Identity intake is BQ-144's, not this step's.** The affordance profile's "occupation, job and hobby; service role; authority, guild and faction role" are the six facets of `VS §4.2`, read once at the seam. This step shipped ahead of that read with a placeholder intake — `ActorAffordances.Occupation` is the literal string `"local"` for every registered vanilla actor, and `Roles` carries only the guard/guild traits — so its identity terms are weaker than the design says, not absent. When BQ-144 lands, this generator consumes the typed facets in place of the placeholder and its scoring shape does not change. It must not grow its own read of `Chara`, its own occupation vocabulary, or a second copy of what a job implies (that is BQ-145). **Retrofitted with BQ-145:** `ActorAffordances` carries the derived `IdentityAffordances` and reads `IsCommercial` off its service capability; `ReadsAsCommercial` and its list of trade words are gone, and BQ-115's early-contact pass reads the same derivation, so the two cannot disagree about who a shopkeeper is.
 - **Not a dependency.** This step must *not* wait on BQ-135, and it does not wait on BQ-145 either: generation consumes identity as observation — who could plausibly be involved, what can be lost, who is entitled to act — not as derived character meaning. Stable world affordances are enough to generate from; transient timetable and current-goal data is later enrichment. The affordance profile is a product requirement rather than an adapter detail — it is what makes a palace-and-merchant city produce authority and fraud stories because its state supports them, instead of because somebody wrote the city's name into a table.
 - **Current implementation / BQ-039a hardening.** The first cut met the done-when criteria with a
   structure shaped entirely like theft, which BQ-040 through BQ-047 would have inherited. BQ-039a
@@ -928,7 +928,7 @@ and flexibility, plus ordinary needs (hungry, bored, jealous, wants promotion).
 - **Depends** BQ-057.
 - **Done when** an actor's goal changes because a value was threatened, traceable in the inspector.
 - **Sources** CD §10.5, §10.6; VS §6.
-- **Identity is a prior, not a value profile (BQ-145).** An observed work, service or institutional role supplies plausible stakes — a livelihood, a rank to lose, a dependant, a shop that could close — which this pipeline then weighs against everything else the actor is. It never sets a value's importance directly, and two actors with the same job must be able to hold opposite values. Retrofit: where this step already reads occupation, it moves onto BQ-145's derivation rather than keeping a private one.
+- **Identity is a prior, not a value profile (BQ-145).** An observed work, service or institutional role supplies plausible stakes — a livelihood, a rank to lose, a dependant, a shop that could close — which this pipeline then weighs against everything else the actor is. It never sets a value's importance directly, and two actors with the same job must be able to hold opposite values. **Checked with BQ-145:** this step reads no occupation at all — `ValueProfile`, the sensitivities and the goal pipeline take no identity input, and `IdentityAffordanceTests` pins that structurally rather than leaving it to inspection.
 - **Not this** vanilla bodily and activity needs — hunger, bladder, sleep, routine work and hobby — are Elin's and are already simulated by `GoalNeeds` and the timetable. The needs here are narrative: safety, belonging, debt relief, status, loyalty, justice, secrecy, revenge, protection, material shortage, obligation. Do not build a second hunger or sleep model.
 
 #### BQ-062 — Goal formation pipeline
@@ -953,7 +953,7 @@ A dead crop is soil trouble to a farmer and contamination to an alchemist.
 - **Depends** BQ-063, BQ-024.
 - **Done when** three observers derive three different facts from one piece of evidence.
 - **Sources** CD §9, §39; PM §39; LW §3.4.
-- **Occupational interpretation reads BQ-145.** "A dead crop is soil trouble to a farmer and contamination to an alchemist" is an identity read, and this is the step where identity earns the most for the least risk — interpretation is already actor-local and already expected to disagree. It consumes the derived affordances, not `Chara` and not a private occupation table. Retrofit when BQ-144/BQ-145 land; nothing here re-derives what a job implies.
+- **Occupational interpretation reads BQ-145.** "A dead crop is soil trouble to a farmer and contamination to an alchemist" is an identity read, and this is the step where identity earns the most for the least risk — interpretation is already actor-local and already expected to disagree. It consumes the derived affordances, not `Chara` and not a private occupation table. **Retrofitted with BQ-145:** `ActorLocalInterpreter` weighs `IdentityAffordances.PlausibleKnowledgeOf` and `IsEligibleFor`, its occupation-substring table and role list are gone, and each identity-derived score term names the facet behind it.
 
 #### BQ-065 — Storylet engine
 `StoryletDefinition` with preconditions, roles, beats and consequence hooks. Storylets dramatize
@@ -1009,6 +1009,44 @@ ale here" is written once rather than re-derived inside generation, interpretati
 vocabulary.
 - **Depends** BQ-144, BQ-062.
 - **Done when** a single Core component derives identity affordances from a BQ-144 observation and every identity-consuming system reads that component rather than the raw observation or the game; the derivation adds no fact to the knowledge graph and grants nobody knowledge — it says what is plausible to ask and to be at stake, never what is true or known; a headless test proves two actors with identical identity and opposite personalities choose different actions, **and** two actors with identical personality and different identity differ only in what is plausible, eligible and at risk; a test asserts that BQ-056 … BQ-060 and the BQ-031 mutation policy take no identity input; an unknown facet contributes nothing rather than a default; and the inspector names the facet behind every identity-derived weight.
+- **Current implementation** `IdentityAffordances` (Core, `World/`) is the one derivation.
+  `Derive(CharacterIdentity)` answers from a BQ-144 observation alone;
+  `Of(NarrativeNpc, IVanillaState)` is the canonical read for a live pass and adds only what BQ
+  itself authored about somebody *where the game said nothing*, marked
+  `IdentityOrigin.Authored` everywhere it appears so a report never passes BQ's own authorship off
+  as Elin's answer. The output is five typed things and nothing else: plausible knowledge and
+  plausible interests over a closed `IdentityDomain` (cultivation, alchemy, craft, trade, public
+  order — one member per consumer that exists, not a taxonomy), `IdentityRole` eligibility
+  (authority, guild standing, service operator), `IdentityStake` exposure (livelihood, business,
+  standing), and a derived `IdentityServiceCapability` that keeps *is a provider* and *can serve
+  right now* apart on the same terms the seam does. Every one of them carries the
+  `IdentityFacetReference` — facet kind, origin, the id verbatim — that produced it, and
+  `ExplainKnowledge`/`ExplainEligibility` name the facet even for a weight of zero, so a term that
+  did not fire is as attributable as one that did.
+  **Race and character archetype derive nothing at all.** They are the two facets a stereotype
+  arrives through, and neither answers what somebody can do, is entitled to, or would lose; a
+  character described only as a Punk and a fairy derives `IdentityAffordances.Nothing`, which is a
+  complete answer. An unread facet likewise contributes nothing and costs only its own affordances.
+  **Consumers moved onto it rather than keeping private copies.** `ActorLocalInterpreter` (BQ-064)
+  lost its occupation-substring table and its role list and now weighs
+  `PlausibleKnowledgeOf`/`IsEligibleFor`, naming the facet in every score term.
+  `ActorAffordances.IsCommercial` (BQ-039) and `EarlyContacts` (BQ-115) lost `ReadsAsCommercial`
+  and read the derived service capability, so the generator and the early-contact pass cannot
+  disagree about who a shopkeeper is. `AuthorityPolicy.RoleWordsFor` translates derived eligibility
+  into the role words the policy already speaks, and `ElinAuthorityRoles` is plumbing now — the
+  adapter holds no identity vocabulary at all, and which office counts as which standing is decided
+  once, in Core, where it can be exercised with no game attached. `NarrativeInspector`
+  `DescribeCharacter` prints the derived affordances with their facets, or says none were derived.
+  Nothing derived is persisted, nothing here touches the knowledge graph, and
+  `IdentityAffordanceTests` pins the gate in both directions: identical identity with opposite
+  personalities chooses different actions, identical personality with different identity differs in
+  plausibility, eligibility and stakes and in nothing else, and a structural test walks BQ-056 …
+  BQ-060 and the BQ-031 mutation policy for any member that takes, holds or exposes an identity
+  type.
+  Deferred: no domain arrives without a consumer, so the vocabulary is deliberately five domains
+  matched by substring over Elin's own ids — an unrecognised trade derives nothing rather than
+  being mapped onto the nearest familiar thing — and institutional rank, settlement-level facet
+  distribution (`VS §5.2`) and identity deltas as events (`VS §5.3`) are not derived here.
 - **Out of scope** persisting anything derived, dialogue wording (BQ-076 consumes this, it is not this), and any new read of Elin — this step consumes BQ-144's observation and nothing else.
 - **Sources** CD §6.1, §9, §13.1, §17.6; VS §4.3; D017, D021.
 - **Unblocks** the identity slices of BQ-068, BQ-076, BQ-084, and the retrofits named in BQ-061, BQ-064 and BQ-067.

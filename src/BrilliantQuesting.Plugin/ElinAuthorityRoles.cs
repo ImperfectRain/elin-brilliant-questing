@@ -1,74 +1,38 @@
-using System;
 using System.Collections.Generic;
 using BepInEx.Logging;
 using BrilliantQuesting.Actions.Library;
-using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Plugin
 {
     /// <summary>
-    /// Turns the institutional facet of the identity observation into standing the simulation can
-    /// act on.
+    /// Brings the standing this simulation records into line with the identity affordances BQ
+    /// derives from the seam's observation.
     ///
     /// `AuthorityPolicy` decides what a guard or a guild will act on, and it reads
     /// `NarrativeNpc.Roles` to know who is which. Nothing populated that for anyone the mod did
     /// not stage itself, so every real townsperson resolved to `AuthorityRole.None` and the report
     /// verb could never be offered to anybody in an actual game.
     ///
-    /// This file used to read `Chara.trait` itself. It no longer does: the trait is read once, at
-    /// the seam, as the institutional facet of <see cref="CharacterIdentity"/>, and what is left
-    /// here is the interpretation - which observed office counts as which BQ authority word. One
-    /// read of the game, one place it is interpreted, and the identity vocabulary that crosses the
-    /// seam stays Elin's own.
+    /// This file used to read `Chara.trait` itself, and then briefly decided for itself which
+    /// observed office counted as which BQ authority word. It does neither now: the trait is read
+    /// once at the seam as the institutional facet of <see cref="CharacterIdentity"/>, what that
+    /// office implies is derived once in <see cref="IdentityAffordances"/> (BQ-145), and what is
+    /// left here is plumbing. One read of the game, one interpretation of it, and no identity
+    /// vocabulary in the adapter at all.
     ///
-    /// There is no court in vanilla Elin; `AuthorityRole.Court` stays reachable only through a
-    /// staged or modded character, which is why nothing here produces it.
+    /// The derivation is taken from the observation alone rather than through
+    /// <see cref="IdentityAffordances.Of(NarrativeNpc, IVanillaState)"/>: reconciling standing
+    /// must be about what the game currently says, and folding in the standing BQ wrote down
+    /// earlier would make a dismissal unable to reach the simulation.
     /// </summary>
     internal static class ElinAuthorityRoles
     {
-        internal const string Guard = AuthorityPolicy.GuardRole;
-        internal const string Guild = AuthorityPolicy.GuildRole;
-
-        /// <summary>
-        /// Which BQ authority words the observed offices amount to.
-        ///
-        /// Matched on the office id - the game's own trait type name - rather than on a trait
-        /// object, so an office this build spells differently is simply not recognised and grants
-        /// nothing, instead of throwing away the rest of the observation.
-        /// </summary>
+        /// <summary>What the observed offices amount to, in the role words the policy speaks.</summary>
         internal static IReadOnlyList<string> RolesFrom(CharacterIdentity identity)
         {
-            List<string> roles = new List<string>();
-            if (identity == null)
-            {
-                return roles;
-            }
-
-            for (int i = 0; i < identity.Institutions.Count; i++)
-            {
-                string office = identity.Institutions[i].Role.VanillaId;
-                if (office.IndexOf("Guard", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    Add(roles, Guard);
-                }
-                else if (office.IndexOf("Guild", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    Add(roles, Guild);
-                }
-            }
-
-            return roles;
-        }
-
-        /// <summary>One word each: two guild offices on one person is still one guild standing.</summary>
-        private static void Add(List<string> roles, string role)
-        {
-            if (!roles.Contains(role))
-            {
-                roles.Add(role);
-            }
+            return AuthorityPolicy.RoleWordsFor(IdentityAffordances.Derive(identity));
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
+using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
 
 namespace BrilliantQuesting.World
@@ -52,11 +53,22 @@ namespace BrilliantQuesting.World
 
     public static class ActorLocalInterpreter
     {
+        /// <summary>
+        /// What this observer makes of one piece of evidence.
+        ///
+        /// <paramref name="vanilla"/> is optional and is only ever used to ask BQ-145 what this
+        /// actor's identity makes plausible. Nothing here reads a facet itself, and nothing here
+        /// keeps a private idea of what a job implies: "a dead crop is soil trouble to a farmer and
+        /// contamination to an alchemist" is an identity read, and the identity read has exactly
+        /// one owner. With no game attached the derivation falls back to what BQ authored about
+        /// this actor, which is what a headless situation staged them with.
+        /// </summary>
         public static ActorInterpretationTrace Interpret(
             NarrativeWorldState world,
             EntityId actorId,
             EntityId sourceFactId,
-            GameTime now)
+            GameTime now,
+            IVanillaState vanilla = null)
         {
             if (world == null)
             {
@@ -75,7 +87,7 @@ namespace BrilliantQuesting.World
                 throw new InvalidOperationException("Cannot interpret unknown fact " + sourceFactId);
             }
 
-            InterpretationChoice choice = Choose(actor, source);
+            InterpretationChoice choice = Choose(actor, IdentityAffordances.Of(actor, vanilla), source);
             Fact derived = FindExisting(world, source, choice)
                            ?? CreateDerivedFact(world, source, choice);
 
@@ -93,13 +105,16 @@ namespace BrilliantQuesting.World
                 choice.Terms);
         }
 
-        private static InterpretationChoice Choose(NarrativeNpc actor, Fact source)
+        private static InterpretationChoice Choose(
+            NarrativeNpc actor,
+            IdentityAffordances identity,
+            Fact source)
         {
             List<InterpretationChoice> choices = new List<InterpretationChoice>
             {
-                SoilTrouble(actor, source),
-                Contamination(actor, source),
-                Sabotage(actor, source)
+                SoilTrouble(actor, identity, source),
+                Contamination(actor, identity, source),
+                Sabotage(actor, identity, source)
             };
 
             InterpretationChoice best = choices[0];
@@ -114,11 +129,16 @@ namespace BrilliantQuesting.World
             return best;
         }
 
-        private static InterpretationChoice SoilTrouble(NarrativeNpc actor, Fact source)
+        private static InterpretationChoice SoilTrouble(
+            NarrativeNpc actor,
+            IdentityAffordances identity,
+            Fact source)
         {
             ScoreBreakdown score = new ScoreBreakdown();
             score.Add("source damaged crop", IsDamagedCrop(source) ? 0.35 : 0.0);
-            score.Add("occupation cultivation", OccupationContains(actor, "farmer", "gardener", "rancher") ? 0.4 : 0.0);
+            score.Add(
+                identity.ExplainKnowledge(IdentityDomain.Cultivation),
+                identity.PlausibleKnowledgeOf(IdentityDomain.Cultivation) * 0.4);
             score.Add("value wealth", actor.Values.Wealth.Importance * 0.12);
             score.Add("value animals", actor.Values.Animals.Importance * 0.08);
             score.Add("sensitivity animals", actor.Sensitivities.Animals * 0.05);
@@ -131,11 +151,16 @@ namespace BrilliantQuesting.World
                 score.Terms);
         }
 
-        private static InterpretationChoice Contamination(NarrativeNpc actor, Fact source)
+        private static InterpretationChoice Contamination(
+            NarrativeNpc actor,
+            IdentityAffordances identity,
+            Fact source)
         {
             ScoreBreakdown score = new ScoreBreakdown();
             score.Add("source damaged crop", IsDamagedCrop(source) ? 0.3 : 0.0);
-            score.Add("occupation alchemy", OccupationContains(actor, "alchemist", "apothecary", "healer") ? 0.48 : 0.0);
+            score.Add(
+                identity.ExplainKnowledge(IdentityDomain.Alchemy),
+                identity.PlausibleKnowledgeOf(IdentityDomain.Alchemy) * 0.48);
             score.Add("value knowledge", actor.Values.Knowledge.Importance * 0.15);
             score.Add("sensitivity dishonesty", actor.Sensitivities.Dishonesty * 0.03);
             return new InterpretationChoice(
@@ -147,12 +172,19 @@ namespace BrilliantQuesting.World
                 score.Terms);
         }
 
-        private static InterpretationChoice Sabotage(NarrativeNpc actor, Fact source)
+        private static InterpretationChoice Sabotage(
+            NarrativeNpc actor,
+            IdentityAffordances identity,
+            Fact source)
         {
             ScoreBreakdown score = new ScoreBreakdown();
             score.Add("source damaged crop", IsDamagedCrop(source) ? 0.25 : 0.0);
-            score.Add("occupation security", OccupationContains(actor, "guard", "reeve", "sheriff", "watch") ? 0.42 : 0.0);
-            score.Add("role authority", HasRole(actor, "guard", "reeve", "authority") ? 0.22 : 0.0);
+            score.Add(
+                identity.ExplainKnowledge(IdentityDomain.PublicOrder),
+                identity.PlausibleKnowledgeOf(IdentityDomain.PublicOrder) * 0.42);
+            score.Add(
+                identity.ExplainEligibility(IdentityRole.Authority),
+                identity.IsEligibleFor(IdentityRole.Authority) ? 0.22 : 0.0);
             score.Add("value law", actor.Values.Law.Importance * 0.18);
             score.Add("sensitivity theft", actor.Sensitivities.Theft * 0.08);
             score.Add("sensitivity dishonesty", actor.Sensitivities.Dishonesty * 0.08);
@@ -211,35 +243,6 @@ namespace BrilliantQuesting.World
         {
             return string.Equals(source.Predicate, FactPredicates.Damaged, StringComparison.Ordinal)
                    && Contains(source.Value, "crop", "field", "plant", "harvest", "blight");
-        }
-
-        private static bool OccupationContains(NarrativeNpc actor, params string[] needles)
-        {
-            for (int i = 0; i < needles.Length; i++)
-            {
-                if (Contains(actor.Occupation, needles[i]))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool HasRole(NarrativeNpc actor, params string[] roles)
-        {
-            foreach (string role in actor.Roles)
-            {
-                for (int i = 0; i < roles.Length; i++)
-                {
-                    if (string.Equals(role, roles[i], StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         private static bool Contains(string text, params string[] needles)

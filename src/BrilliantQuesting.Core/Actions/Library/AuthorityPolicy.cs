@@ -110,6 +110,40 @@ namespace BrilliantQuesting.Actions.Library
             new List<string> { GuardRole, GuildRole, CourtRole };
 
         /// <summary>
+        /// The standing words a derived identity amounts to (BQ-145).
+        ///
+        /// The translation from BQ's one identity derivation into the role vocabulary this policy
+        /// already speaks, and the only route from an observed office to
+        /// <see cref="NarrativeNpc.Roles"/>. It deliberately interprets nothing: which offices
+        /// count as authority and which as guild standing is decided once, in
+        /// <see cref="IdentityAffordances"/>, so the adapter holds no identity vocabulary of its
+        /// own and the mapping can be exercised with no game attached.
+        ///
+        /// <see cref="CourtRole"/> is not produced. There is no court in vanilla Elin, and a
+        /// standing nothing observes is one a staged or modded character grants explicitly.
+        /// </summary>
+        public static IReadOnlyList<string> RoleWordsFor(IdentityAffordances affordances)
+        {
+            List<string> roles = new List<string>();
+            if (affordances == null)
+            {
+                return roles;
+            }
+
+            if (affordances.IsEligibleFor(IdentityRole.Authority))
+            {
+                roles.Add(GuardRole);
+            }
+
+            if (affordances.IsEligibleFor(IdentityRole.GuildStanding))
+            {
+                roles.Add(GuildRole);
+            }
+
+            return roles;
+        }
+
+        /// <summary>
         /// Brings the standing this simulation has recorded into line with what the adapter
         /// observed at the seam, and says whether anything moved.
         ///
