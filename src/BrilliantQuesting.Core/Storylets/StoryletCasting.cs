@@ -56,6 +56,22 @@ namespace BrilliantQuesting.Storylets
 
         /// <summary>The other person the caller has already cast, or none.</summary>
         public EntityId Target { get; set; }
+
+        /// <summary>
+        /// Who the game says is of the player's household right now, read once for this pass.
+        ///
+        /// A live read held for exactly as long as the seam allows one to be held - one casting
+        /// pass - because <see cref="StoryletEngine.Find"/> casts every registered definition
+        /// against one context and re-reading the settlement and the party per definition would
+        /// make finding scenes cost more than playing them. A new context is a new read, so a pet
+        /// sold between two passes is household in neither of them for longer than that pass.
+        /// </summary>
+        internal PlayerHousehold Household
+        {
+            get { return _household ?? (_household = PlayerHousehold.Read(World, Vanilla)); }
+        }
+
+        private PlayerHousehold _household;
     }
 
     /// <summary>Who ended up in each role, and the sentences explaining why.</summary>
@@ -96,9 +112,17 @@ namespace BrilliantQuesting.Storylets
     /// where the caller happened to put somebody - the first participant who knew the fact, the
     /// object slot of the focus - which meant the corroborating knower of a theft was usually the
     /// thief, and the injured party of a stolen ring was the ring. Positive requirements now ask
-    /// for knowledge, proof, ownership or standing; negative requirements reject the dead, the
-    /// absent, the socially incapable, whatever is not a person at all, and anybody already
-    /// holding another role in the same scene.
+    /// for knowledge, proof, ownership, standing or belonging to the player's household; negative
+    /// requirements reject the dead, the absent, whatever the registry does not know as an actor
+    /// at all, and anybody already holding another role in the same scene.
+    ///
+    /// **Speaking is a requirement of the role, not of the pool.** Social agency used to be a
+    /// negative requirement applied to every candidate before any role saw them, which is why the
+    /// player's own chicken could not be the victim of anything: a role that needs testimony,
+    /// commerce or deception does need <see cref="SocialAgency"/>, and one that needs somebody for
+    /// the scene to be *about* does not (BQ-123). So the check moved from
+    /// <see cref="BuildPool"/> to the requirement, and unknown agency still fails closed for every
+    /// role that asks for it.
     ///
     /// Selection among the qualified is deliberately unscored: the first candidate in a stable
     /// order. Preferring the *best* group - goal conflict, shared history, power asymmetry - is
@@ -195,7 +219,7 @@ namespace BrilliantQuesting.Storylets
                     ? Named(role.Source, context, focus)
                     : Searched(role.Source, context, focus, pool, taken);
 
-                if (cast.IsNone || taken.Contains(cast) || !IsCastablePerson(context, cast))
+                if (cast.IsNone || taken.Contains(cast) || !IsCastableActor(context, cast))
                 {
                     continue;
                 }
@@ -255,6 +279,15 @@ namespace BrilliantQuesting.Storylets
             Fact focus,
             EntityId candidate)
         {
+            // Every role below this line but the last needs somebody who can carry an ordinary
+            // social role, and unknown agency fails closed as the seam says it must. The
+            // household role does not ask, because being the subject of a scene is not something
+            // an actor does.
+            if (RequiresSocialAgency(source) && !CanSpeak(context, candidate))
+            {
+                return false;
+            }
+
             switch (source)
             {
                 // The legacy spelling of the same requirement. Old bundles and old saves keep
@@ -267,9 +300,40 @@ namespace BrilliantQuesting.Storylets
                 case StoryletRoleSource.AnyoneWithStandingHere:
                     NarrativeNpc npc = context.World.Registry.GetNpc(candidate);
                     return npc != null && npc.Roles.Count > 0;
+                case StoryletRoleSource.HouseholdMemberHere:
+                    return context.Household.Includes(candidate);
                 default:
                     return false;
             }
+        }
+
+        /// <summary>
+        /// Whether this requirement is one only somebody socially capable can meet.
+        ///
+        /// Testimony, proof and standing are things an actor *does*, and BQ-031's
+        /// <see cref="SocialAgency"/> is the game's answer to whether they can. Being of the
+        /// player's household is something an actor *is*, so the household requirement is the one
+        /// that does not ask - which is what lets a scene be about somebody's pet without the
+        /// pet's having to be able to give evidence about it.
+        ///
+        /// Named sources never come through here: a caller or a focus fact that named somebody has
+        /// already decided, and a storylet that is deliberately about the dead or the speechless
+        /// says so with its own preconditions.
+        /// </summary>
+        private static bool RequiresSocialAgency(StoryletRoleSource source)
+        {
+            return source != StoryletRoleSource.HouseholdMemberHere;
+        }
+
+        /// <summary>
+        /// Whether this actor can carry an ordinary social role. Unknown agency fails closed, as
+        /// the seam says it must - a build that cannot classify somebody does not get to put words
+        /// in their mouth.
+        /// </summary>
+        private static bool CanSpeak(StoryletCastingContext context, EntityId candidate)
+        {
+            SocialAgency agency = context.Vanilla.GetSocialAgency(candidate);
+            return agency == SocialAgency.Full || agency == SocialAgency.Limited;
         }
 
         /// <summary>
@@ -326,7 +390,15 @@ namespace BrilliantQuesting.Storylets
         /// Familiarity orders the search; it does not score the result. A role still takes the
         /// first candidate that meets its requirement, so `D026` holds unchanged - what a corrobo-
         /// rating neighbour has over a corroborating stranger is that the player will recognise
-        /// the name, which is not a claim about who is better suited to the role.
+        /// the name, which is not a claim about who is better suited to the role. The player's own
+        /// household sorts to the front of that order for free, because living on their land or
+        /// walking beside them is the strongest ground `BQ-114` reads.
+        ///
+        /// The pool is not filtered by social agency (`BQ-123`). It was, and the effect was that
+        /// the player's own animals were gone before any role could ask for one - which is the
+        /// wrong place for the question, because a scene needs a speaker for some of its roles and
+        /// a subject for others. The pool is now everybody here the registry knows as an actor and
+        /// the game says is alive; who may speak is <see cref="Qualifies"/>'s answer, per role.
         /// </summary>
         private static List<EntityId> BuildPool(StoryletCastingContext context)
         {
@@ -356,7 +428,7 @@ namespace BrilliantQuesting.Storylets
                     continue;
                 }
 
-                if (seen.Add(participant) && IsCastablePerson(context, participant) && IsAvailable(context, participant))
+                if (seen.Add(participant) && IsCastableActor(context, participant) && IsAvailable(context, participant))
                 {
                     pool.Add(participant);
                 }
@@ -366,7 +438,7 @@ namespace BrilliantQuesting.Storylets
             for (int i = 0; i < here.Count; i++)
             {
                 EntityId candidate = here[i];
-                if (seen.Add(candidate) && IsCastablePerson(context, candidate) && IsAvailable(context, candidate))
+                if (seen.Add(candidate) && IsCastableActor(context, candidate) && IsAvailable(context, candidate))
                 {
                     others.Add(candidate);
                 }
@@ -377,7 +449,10 @@ namespace BrilliantQuesting.Storylets
                 // Read only when there is actually a choice to make. Every definition the engine
                 // offers is cast separately, and walking the player's whole history to order a
                 // pool of one would make finding scenes cost more than playing them.
-                PlayerFamiliarity familiarity = PlayerFamiliarity.Read(context.World, context.Vanilla);
+                PlayerFamiliarity familiarity = PlayerFamiliarity.Read(
+                    context.World,
+                    context.Vanilla,
+                    context.Household);
                 EarlyContactCast elected = EarlyContacts.Elect(context.World, context.Vanilla, context.Place);
                 others.Sort(delegate(EntityId left, EntityId right)
                 {
@@ -407,30 +482,37 @@ namespace BrilliantQuesting.Storylets
         }
 
         /// <summary>
-        /// Somebody the narrative knows as a person. An item, a zone or an id the registry has
-        /// never heard of is not a candidate for a speaking role, whatever slot of a fact it
-        /// happens to sit in.
+        /// Somebody the narrative knows as an actor. An item, a zone or an id the registry has
+        /// never heard of is not a candidate for any role, whatever slot of a fact it happens to
+        /// sit in - and it is also what makes a binding survive the save, because the registry
+        /// keeps its entries after the game has stopped answering for the character.
+        ///
+        /// Deliberately not a test of personhood. A named pet the player keeps is an actor the
+        /// world model knows, and whether the scene may ask it to speak is the role's question
+        /// (<see cref="RequiresSocialAgency"/>), not this one's.
         /// </summary>
-        private static bool IsCastablePerson(StoryletCastingContext context, EntityId candidate)
+        private static bool IsCastableActor(StoryletCastingContext context, EntityId candidate)
         {
             return !candidate.IsNone && context.World.Registry.GetNpc(candidate) != null;
         }
 
         /// <summary>
-        /// The negative requirements: dead, or unable to carry an ordinary social role. Unknown
-        /// social agency fails closed, as the seam says it must. Applied when searching for
-        /// somebody, not to an actor the caller or the fact named - a storylet may deliberately
-        /// be about the dead, and says so with its own <c>RoleAlive</c> precondition.
+        /// The negative requirements every searched role shares: the player, and anybody the game
+        /// does not currently say is alive.
+        ///
+        /// That second one is also the whole of the household lifecycle. A pet that has been sold,
+        /// a resident married out of the settlement, a companion the adapter can no longer resolve
+        /// - the game stops answering <see cref="VanillaLifeState.Alive"/> for them or stops
+        /// listing them here, and they leave the pool on the next pass without anything having to
+        /// be cleaned up. What they were cast as before stays true, because it lives on the firing.
+        ///
+        /// Applied when searching for somebody, not to an actor the caller or the fact named - a
+        /// storylet may deliberately be about the dead, and says so with its own <c>RoleAlive</c>
+        /// precondition.
         /// </summary>
         private static bool IsAvailable(StoryletCastingContext context, EntityId candidate)
         {
-            if (candidate == context.Vanilla.PlayerId || !context.Vanilla.IsAlive(candidate))
-            {
-                return false;
-            }
-
-            SocialAgency agency = context.Vanilla.GetSocialAgency(candidate);
-            return agency == SocialAgency.Full || agency == SocialAgency.Limited;
+            return candidate != context.Vanilla.PlayerId && context.Vanilla.IsAlive(candidate);
         }
 
         private static string Because(StoryletRoleSource source)
@@ -454,6 +536,8 @@ namespace BrilliantQuesting.Storylets
                     return "can prove what happened";
                 case StoryletRoleSource.AnyoneWithStandingHere:
                     return "holds standing here";
+                case StoryletRoleSource.HouseholdMemberHere:
+                    return "belongs to the player's household";
                 default:
                     return "qualified";
             }

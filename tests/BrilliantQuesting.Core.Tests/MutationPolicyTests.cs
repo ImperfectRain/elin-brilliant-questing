@@ -39,7 +39,7 @@ namespace BrilliantQuesting.Tests
             "Karma", "Fame", "GetInfluence", "IsGuildMember", "GetGuildRank", "GetGuildContribution",
             "GetWorshippedDeity", "GetPiety",
             "GetMoney", "GetInventory",
-            "GetHomeState",
+            "GetHomeState", "GetPlayerCompanions",
             "GetZoneOf", "GetCharactersInZone"
         };
 

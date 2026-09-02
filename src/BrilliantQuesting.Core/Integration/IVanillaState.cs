@@ -180,6 +180,30 @@ namespace BrilliantQuesting.Integration
         [VanillaMutation(MutationKind.Relocate, "chara")]
         bool TryAdmitResident(EntityId chara);
 
+        /// <summary>
+        /// Who keeps the player company, as the game currently has it: the party they travel
+        /// with, pets and adventurers-turned-companions alike.
+        ///
+        /// The other half of the player's household, and read separately from
+        /// <see cref="GetHomeState"/> because the two come from different places in the game and
+        /// mean different things - somebody on the Home roll lives on the player's land whether or
+        /// not they are with them, and somebody in the party is with them whether or not they live
+        /// anywhere. An actor may be both, and is then listed by both.
+        ///
+        /// A live read on the same terms as the Home snapshot and the identity observation, and
+        /// for the same reason: a party changes between one zone and the next, and a save that
+        /// carried this would keep claiming a pet the player has since sold. Nothing here says
+        /// what any of them *is* - species, work and character archetype are
+        /// <see cref="GetCharacterIdentity"/>'s answer, personhood is <see cref="GetActorKind"/>'s
+        /// and <see cref="GetSocialAgency"/>'s, and how far the mod may reach into them stays
+        /// <see cref="GetActorClass"/>'s.
+        ///
+        /// Empty on a build that cannot read a party, which is why it is paired with
+        /// <see cref="VanillaCapability.ReadPlayerCompanions"/>: an empty list read as a fact
+        /// would be the mod asserting the player travels alone (decision D017).
+        /// </summary>
+        IReadOnlyList<EntityId> GetPlayerCompanions();
+
         // -- whereabouts --------------------------------------------------------------------
 
         /// <summary>

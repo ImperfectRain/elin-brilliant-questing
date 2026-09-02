@@ -138,6 +138,20 @@ namespace BrilliantQuesting.Integration
         /// that reports it unsupported, and Grade B is then impossible rather than unreliable.
         /// </summary>
         MoveCharaBetweenZones,
-        ObserveCrimeWitnesses
+        ObserveCrimeWitnesses,
+
+        /// <summary>
+        /// The game will list who keeps the player company: the party they travel with, and the
+        /// pets in it.
+        ///
+        /// Separate from <see cref="ReadHomeState"/> because the two answer different halves of
+        /// the same question and a build can lose either on its own - the Home roll is read off
+        /// the settlement branch, the party off the player. Unsupported means the household is
+        /// whatever the Home roll says and nothing else, which is a narrower answer rather than a
+        /// wrong one: it never claims somebody has no companions, and
+        /// <see cref="BrilliantQuesting.Relationships.PlayerHousehold.CompanionsRead"/> is what
+        /// says which of the two it is.
+        /// </summary>
+        ReadPlayerCompanions
     }
 }

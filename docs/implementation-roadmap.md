@@ -1613,6 +1613,38 @@ victim, suspect, the subject of another actor's grudge, or the thing somebody el
 - **Depends** BQ-049, BQ-114.
 - **Done when** a situation casts a named pet or resident of the player's own household, correctly, and survives that character being sold, married off, or killed.
 - **Identity for pets and companions is the same BQ-144 read, not a second one.** A pet has a race and a character archetype and usually no work, service or institutional role, and that is a complete and correct answer rather than a gap to fill — the unread facets stay unknown and simply make it ineligible for the roles that need them. Personhood stays `NarrativeActorKind`/`SocialAgency`'s answer, and mutation safety stays `NarrativeActorClass`'s (BQ-031): a companion is not more or less protected because of what species the game says they are. Ownership boundary: **BQ-049** owns residents as situation origins, **BQ-114** owns how well the player knows them, **BQ-144** owns what the game says they are, and **this step** owns only their admission to casting and their survival of being sold, married off or killed.
+- **Current implementation** `PlayerHousehold.Read(world, vanilla)` is the one place that says
+  whose household this is. Two grounds, both the game's: the Home roll
+  (`IVanillaState.GetHomeState`) and the party, read through a new seam member
+  `GetPlayerCompanions()` paired with `VanillaCapability.ReadPlayerCompanions`. An actor may hold
+  both ties and is then one member with the stronger of them — residency outranks the party,
+  because only one of the two survives the player leaving somebody at home for a season.
+  `HouseholdBond` says *how* somebody belongs and deliberately never what they are: species, work
+  and character archetype stay BQ-144's `CharacterIdentity`, personhood stays
+  `NarrativeActorKind`/`SocialAgency`, and reach stays `NarrativeActorClass`. There is no second
+  pet model, and nothing about the household is stored — it is a live read on the same terms as the
+  Home snapshot and the identity observation (`D004`, `D005`).
+  **Admission was one wrong gate.** Social agency used to be a filter on the whole casting pool, so
+  the player's own chicken was gone before any role could ask for one. It is now a requirement of
+  the roles that need somebody to *speak* — testimony, proof, standing — and unknown agency still
+  fails closed for every one of them. The pool is everybody present the registry knows as an actor
+  and the game says is alive. One searched source is added, `HouseholdMemberHere`, and it is the
+  only one that does not ask for agency, because being the subject of a scene is not something an
+  actor does: a role written against it is who was hurt, whose loss is at issue, what somebody else
+  wants or bears a grudge against. A household member who is to *say* something asks for the thing
+  that says it (`AnyoneWhoKnowsFocus`); belonging to the household is what puts them first in that
+  search, via BQ-114, and never what qualifies them.
+  **Lifecycle is the absence of stored membership.** Sold, married off, dismissed, removed, dead —
+  the game stops listing them or stops answering `Alive`, the next read simply does not include
+  them, and nothing has to be cleaned up. `PlayerHousehold` treats `Dead` and `Unknown` alike, so
+  an actor the adapter can no longer resolve is not described as living in the player's home. What
+  a scene already recorded stays true: bindings live on the firing, the registry keeps its entries
+  after the game has stopped answering, and a save reloaded after the whole household has turned
+  over still finds every role holder (the quarantine rule that would otherwise throw the thread
+  away is what the regression test asserts against).
+  Unproven until a live run: which member of the player actually lists the party on the shipped
+  build, and therefore whether companions are readable at all in game (`ELIN-Q-0029`). The Home
+  roll half needs nothing new and is as proven as BQ-049 left it.
 - **Sources** SP §3; LW §6.2; engagement §4.
 - **Why** attachment is the precondition for stakes (BQ-114), and in Elin the attachment already exists — it lives in pets and residents, in every language community. A generated stranger has to earn what the player's own chicken already has.
 

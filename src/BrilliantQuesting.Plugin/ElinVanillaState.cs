@@ -209,6 +209,15 @@ namespace BrilliantQuesting.Plugin
                 },
                 "no Home on this save, or its branch exposes no member that takes a Chara");
 
+            // Resolved rather than counted, and deliberately so: a player who happens to be
+            // travelling alone at attach must not make the mod decide it cannot read a party at
+            // all. What is checked is that this build names the member; who is in it is asked
+            // again on every read.
+            Probe(
+                VanillaCapability.ReadPlayerCompanions,
+                () => ElinPlayerCompanions.ResolvedMembers(_log),
+                "no character loaded, or this build exposes no party member list on the player");
+
             // Off unless the player has said otherwise, whatever this build can do. BQ-032 is the
             // one step in the plan that can corrupt a save, and the roadmap's condition for
             // shipping it enabled is an adversarial run on a disposable save - which is a thing a
@@ -895,6 +904,24 @@ namespace BrilliantQuesting.Plugin
             }
 
             return ElinHomeState.TryAdmit(_bindings, PlayerId, chara, _log);
+        }
+
+        /// <summary>
+        /// Who is with the player, re-read on every call because a party changes between one zone
+        /// and the next.
+        ///
+        /// Gated on the capability, unlike <see cref="GetHomeState"/>: a Home can be bought in
+        /// hour nine and a capability line written at attach must not be what refuses to see it,
+        /// but a build that could not resolve a party member name at attach will not resolve one
+        /// later either, and an empty list from such a build would read as "this player travels
+        /// alone". <see cref="BrilliantQuesting.Relationships.PlayerHousehold"/> keeps the two
+        /// apart on exactly this flag.
+        /// </summary>
+        public IReadOnlyList<EntityId> GetPlayerCompanions()
+        {
+            return Supports(VanillaCapability.ReadPlayerCompanions)
+                ? ElinPlayerCompanions.Read(_bindings, PlayerId, _log)
+                : new List<EntityId>();
         }
 
         // -- whereabouts ------------------------------------------------------------------------

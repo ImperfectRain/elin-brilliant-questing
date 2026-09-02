@@ -43,8 +43,10 @@ namespace BrilliantQuesting.Relationships
     /// every casting surface inventing its own idea of an acquaintance from a different half of the
     /// evidence. Four grounds, all of them history that already exists somewhere:
     ///
-    /// - **Household.** Somebody living on the player's own land is the strongest tie the game has,
-    ///   and it is the one Elin players already form (`SP §3`).
+    /// - **Household.** Somebody of the player's own household is the strongest tie the game has,
+    ///   and it is the one Elin players already form (`SP §3`). Who that is comes from
+    ///   <see cref="PlayerHousehold"/> - the Home roll and the party both, since BQ-123 - rather
+    ///   than from a second reading of the settlement taken here.
     /// - **Vanilla affinity.** Elin's own record of the player's dealings with a character, which
     ///   is the only ground that exists in a save the mod has just attached to: ordinary talking,
     ///   trading and gift-giving happen entirely in vanilla and leave no BQ event behind. Reading
@@ -64,7 +66,7 @@ namespace BrilliantQuesting.Relationships
     /// </summary>
     public sealed class PlayerFamiliarity
     {
-        /// <summary>Living on the player's own land.</summary>
+        /// <summary>Of the player's own household: on their Home roll, or in their party.</summary>
         public const int HouseholdWeight = 18;
 
         /// <summary>A relationship the world model records between the player and them.</summary>
@@ -107,6 +109,22 @@ namespace BrilliantQuesting.Relationships
         /// </summary>
         public static PlayerFamiliarity Read(World.NarrativeWorldState world, IVanillaState vanilla)
         {
+            return Read(world, vanilla, null);
+        }
+
+        /// <summary>
+        /// The same reading, told who the household is rather than asking again.
+        ///
+        /// For a caller that has already read <see cref="PlayerHousehold"/> this pass - casting
+        /// does, to answer its own household requirement - because the settlement and the party
+        /// are a live read at the seam and reading them twice for one decision is the cost this
+        /// overload exists to avoid. Passing null asks for them.
+        /// </summary>
+        public static PlayerFamiliarity Read(
+            World.NarrativeWorldState world,
+            IVanillaState vanilla,
+            PlayerHousehold household)
+        {
             PlayerFamiliarity familiarity = new PlayerFamiliarity();
             if (world == null || vanilla == null || vanilla.PlayerId.IsNone)
             {
@@ -129,17 +147,13 @@ namespace BrilliantQuesting.Relationships
                 bucket[other] = seen + 1;
             }
 
-            HashSet<EntityId> household = new HashSet<EntityId>();
-            HomeState home = vanilla.GetHomeState();
-            if (home != null)
-            {
-                for (int i = 0; i < home.Residents.Count; i++)
-                {
-                    household.Add(home.Residents[i].Id);
-                }
-            }
-
-            familiarity.Fill(world, vanilla, player, household, dealings, encounters);
+            familiarity.Fill(
+                world,
+                vanilla,
+                player,
+                household ?? PlayerHousehold.Read(world, vanilla),
+                dealings,
+                encounters);
             return familiarity;
         }
 
@@ -170,11 +184,16 @@ namespace BrilliantQuesting.Relationships
             World.NarrativeWorldState world,
             IVanillaState vanilla,
             EntityId player,
-            HashSet<EntityId> household,
+            PlayerHousehold household,
             Dictionary<EntityId, int> dealings,
             Dictionary<EntityId, int> encounters)
         {
-            HashSet<EntityId> people = new HashSet<EntityId>(household);
+            HashSet<EntityId> people = new HashSet<EntityId>();
+            for (int i = 0; i < household.Members.Count; i++)
+            {
+                people.Add(household.Members[i].Actor);
+            }
+
             foreach (EntityId dealt in dealings.Keys)
             {
                 people.Add(dealt);
@@ -215,7 +234,7 @@ namespace BrilliantQuesting.Relationships
                     world,
                     vanilla,
                     person,
-                    household.Contains(person),
+                    household.Find(person),
                     dealings.TryGetValue(person, out int dealt) ? dealt : 0,
                     encounters.TryGetValue(person, out int met) ? met : 0);
 
@@ -230,17 +249,17 @@ namespace BrilliantQuesting.Relationships
             World.NarrativeWorldState world,
             IVanillaState vanilla,
             EntityId person,
-            bool resident,
+            HouseholdMember household,
             int dealings,
             int encounters)
         {
             int score = 0;
             List<string> grounds = new List<string>();
 
-            if (resident)
+            if (household != null)
             {
                 score += HouseholdWeight;
-                grounds.Add("lives on the player's own land");
+                grounds.Add(household.Because);
             }
 
             if (dealings > 0)

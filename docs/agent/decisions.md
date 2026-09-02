@@ -306,6 +306,10 @@ Reason: a role that is a position makes every storylet a template for the situat
 against, which is the failure the whole storylet layer exists to avoid; and a role holder who is not
 a person is state a later save load throws the thread away over.
 
+`BQ-123` moved one of those negative requirements without weakening it: social agency is asked of
+the roles that need somebody to speak rather than of the pool, and the pool rejects whatever the
+registry does not know as an *actor* rather than as a person. See `D029`.
+
 ## D027 — Familiarity chooses between situations the world already supports, and never creates one
 
 `PlayerFamiliarity` reads how well the player knows somebody from residency on their land, vanilla
@@ -366,5 +370,41 @@ than designated.
 Reason: a threat to a stranger is an errand, and the first situation a save produces is the one
 that decides whether the player thinks the system is for them. The honest way to make that first
 cast land is to choose who it is about, not to invent a history for them.
+
+## D029 — Speaking is a requirement of the role; belonging to the household is read, never kept
+
+BQ-123 admits the player's own pets, residents and companions to casting. Three rules bind it.
+
+**Social agency gates roles, not the pool.** It used to be a negative requirement applied to every
+candidate before any role saw them, which is why the player's own chicken could not be the victim
+of anything. Testimony, proof and standing are things an actor *does* and still require
+`SocialAgency` - unknown fails closed, as the seam says it must - but being the subject of a scene
+is not, so the household requirement does not ask. The casting pool is now everybody present the
+registry knows as an actor and the game says is alive; who may speak is decided per role. `D026`
+is otherwise unchanged: a role is still a requirement, still takes the first candidate in a stable
+order, and casting still writes nothing.
+
+**One household reading, and it is the game's.** `PlayerHousehold` reads the Home roll and the
+party and nothing else. `HouseholdBond` says how somebody belongs; it never says what they are.
+What species a companion is, what work a resident does and what standing either holds stay
+`CharacterIdentity`'s answer (`D017`, BQ-144); whether they can carry a social role stays
+`SocialAgency`'s; how far the mod may reach into them stays `NarrativeActorClass`'s (`D019`). A
+companion is not more or less protected for being a chicken, and there is no second pet or
+companion model anywhere in the mod.
+
+**Membership is never stored, which is the whole of the lifecycle.** A pet sold, a resident married
+out of the settlement, a companion dismissed or killed, a character the adapter can no longer
+resolve - each of them stops being household because the next read says so, not because anything
+was told. `Dead` and `Unknown` are treated alike, so the mod never goes on describing somebody it
+cannot resolve as living in the player's home. What a scene already recorded stays true: the
+binding lives on the firing, the registry keeps entries after the game stops answering for the
+character (`D004`), and a save reloaded after the household has turned over completely still finds
+every role holder.
+
+Reason: attachment is the precondition for stakes, and in Elin the attachment already exists in the
+player's own animals - a generated stranger has to earn what their chicken already has. The two
+ways to get that wrong are both worse than not doing it: gating admission on personhood keeps the
+attachment out, and recording who is household turns every sale, marriage and death into a stale
+claim that outlives the thing it described.
 
 Add a new entry only when the decision is both load-bearing and durable.

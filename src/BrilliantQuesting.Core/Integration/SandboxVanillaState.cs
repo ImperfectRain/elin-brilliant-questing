@@ -54,6 +54,14 @@ namespace BrilliantQuesting.Integration
         private readonly Dictionary<GuildId, int> _guildContribution = new Dictionary<GuildId, int>();
         private readonly HashSet<VanillaCapability> _capabilities = new HashSet<VanillaCapability>();
         private readonly List<string> _refusals = new List<string>();
+
+        /// <summary>
+        /// Who travels with the player. A list rather than a flag on <see cref="CharaState"/> so
+        /// the order the laboratory authored is the order the seam reports, the way a party is an
+        /// ordered thing in the game.
+        /// </summary>
+        private readonly List<EntityId> _companions = new List<EntityId>();
+
         private HomeState _home;
 
         public SandboxVanillaState(EntityId playerId)
@@ -202,6 +210,37 @@ namespace BrilliantQuesting.Integration
         public SandboxVanillaState SetHome(HomeState home)
         {
             _home = home;
+            return this;
+        }
+
+        /// <summary>
+        /// Puts somebody in the player's party, or takes them out of it - a pet bought, a
+        /// companion hired, a chicken sold on.
+        ///
+        /// The authoring form of the one lifecycle the seam cannot express as a write: nothing in
+        /// this contract sells or dismisses anybody, because that is the player's business and the
+        /// game's. What a test needs is a world where the party used to hold somebody and now does
+        /// not, which is what this makes.
+        /// </summary>
+        public SandboxVanillaState SetCompanion(EntityId chara, bool companion = true)
+        {
+            if (chara.IsNone || chara == PlayerId)
+            {
+                return this;
+            }
+
+            if (!companion)
+            {
+                _companions.Remove(chara);
+                return this;
+            }
+
+            Ensure(chara);
+            if (!_companions.Contains(chara))
+            {
+                _companions.Add(chara);
+            }
+
             return this;
         }
 
@@ -446,6 +485,21 @@ namespace BrilliantQuesting.Integration
             // does, and inventing one here would be the same lie an invented job would be.
             _home = home.WithResident(new HomeResident(chara, chara.ToString()));
             return true;
+        }
+
+        /// <summary>
+        /// The party as the laboratory authored it, and empty on a build that cannot read one.
+        ///
+        /// Handed back exactly as authored, dead members included: whether somebody who has died
+        /// still counts as household is a question with one answer, and it is answered once in
+        /// <see cref="BrilliantQuesting.Relationships.PlayerHousehold"/> rather than twice here and
+        /// again in the live adapter.
+        /// </summary>
+        public IReadOnlyList<EntityId> GetPlayerCompanions()
+        {
+            return Supports(VanillaCapability.ReadPlayerCompanions)
+                ? new List<EntityId>(_companions)
+                : new List<EntityId>();
         }
 
         /// <summary>

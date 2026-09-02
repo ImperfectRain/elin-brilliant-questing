@@ -100,7 +100,21 @@ namespace BrilliantQuesting.Storylets
         AnyoneWhoCanProveFocus,
 
         /// <summary>Somebody here who holds standing of any kind - a guard, guild personnel, a mediator.</summary>
-        AnyoneWithStandingHere
+        AnyoneWithStandingHere,
+
+        /// <summary>
+        /// Somebody of the player's own household who is here: a resident of their Home, or one of
+        /// the companions and pets that travel with them (BQ-123).
+        ///
+        /// The one searched source that asks for a *subject* rather than a speaker, so it is the
+        /// one that does not require social agency. A role written against it is a role the scene
+        /// is about - who was hurt, whose loss is at issue, what somebody else wants or bears a
+        /// grudge against - and a chicken can be all four. A household member who is to say
+        /// something asks for the thing that says it: <see cref="AnyoneWhoKnowsFocus"/> finds a
+        /// witness, and being of the household is what puts them first in the order it searches,
+        /// not what qualifies them.
+        /// </summary>
+        HouseholdMemberHere
     }
 
     public sealed class StoryletBeat
