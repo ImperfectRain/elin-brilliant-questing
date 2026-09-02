@@ -503,6 +503,22 @@ namespace BrilliantQuesting.Persistence
 
         // -- read ----------------------------------------------------------------------------
 
+        /// <summary>
+        /// The retired placeholder occupation, dropped on load.
+        ///
+        /// Every vanilla townsperson BQ registered before BQ-144 was written into the save as
+        /// doing this for a living. It was never something the game said - it was the mod having
+        /// nowhere to put "we did not ask" - and identity is a live read now, so the saved claim
+        /// degrades to unknown and is re-read rather than kept in sync (VS 4.4). Anybody whose
+        /// occupation a situation actually authored keeps it.
+        /// </summary>
+        private const string RetiredPlaceholderOccupation = "local";
+
+        private static string Occupation(string saved)
+        {
+            return saved == RetiredPlaceholderOccupation ? string.Empty : saved;
+        }
+
         private static void ReadNpcs(NarrativeWorldState world, JsonValue root)
         {
             foreach (JsonValue json in root.GetArray("npcs"))
@@ -510,7 +526,7 @@ namespace BrilliantQuesting.Persistence
                 NarrativeNpc npc = new NarrativeNpc(EntityId.Parse(json.GetString("id")), json.GetString("name"))
                 {
                     VanillaCharaRef = json.GetString("charaRef"),
-                    Occupation = json.GetString("occupation"),
+                    Occupation = Occupation(json.GetString("occupation")),
                     HomeSiteId = EntityId.Parse(json.GetString("homeSite")),
                     Importance = (NarrativeImportance)json.GetInt("importance"),
                     Alive = json.GetBool("alive", true),

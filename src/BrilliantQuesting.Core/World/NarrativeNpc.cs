@@ -53,7 +53,19 @@ namespace BrilliantQuesting.World
         /// </summary>
         public string VanillaCharaRef { get; set; }
 
-        /// <summary>What they do for a living. Description, not permission.</summary>
+        /// <summary>
+        /// What they do for a living, where BQ itself authored it. Description, not permission.
+        ///
+        /// Not the intake for a live character any more. What the *game* says somebody does is
+        /// read at the seam as <see cref="Integration.CharacterIdentity"/>, is never persisted,
+        /// and is asked for again rather than mirrored here: this field once held the literal
+        /// string "local" for every townsperson in the save, which was a claim BQ invented because
+        /// it had nowhere to put "we did not ask". A saved "local" is dropped on load.
+        ///
+        /// What remains is what a situation or an organization authored - a staged miller is a
+        /// miller because this simulation made her one - and that is BQ's own state, so it stays
+        /// here and stays saved.
+        /// </summary>
         public string Occupation { get; set; }
 
         /// <summary>
@@ -67,6 +79,11 @@ namespace BrilliantQuesting.World
         ///
         /// Strings rather than an enum because the adapter, situations and eventually
         /// organizations all name roles, and Core should not have to enumerate every source.
+        ///
+        /// For a live character this is derived, once, from the institutional facet of the
+        /// identity observation and re-read on every attach
+        /// (<see cref="Actions.Library.AuthorityPolicy.Reconcile"/>); the saved value is not
+        /// authoritative and an unread facet withdraws nothing.
         /// </summary>
         public HashSet<string> Roles { get; } = new HashSet<string>();
 

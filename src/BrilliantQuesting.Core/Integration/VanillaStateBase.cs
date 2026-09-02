@@ -48,6 +48,21 @@ namespace BrilliantQuesting.Integration
             return chara.IsNone ? SocialAgency.Unknown : GetSocialAgencyCore(chara);
         }
 
+        /// <summary>
+        /// Who the game says this character is. Nobody named, an implementation that answered
+        /// nothing, and a build that cannot read identity at all give the same reply: an
+        /// observation with every facet unknown, which grants nothing and blocks nothing.
+        /// </summary>
+        public CharacterIdentity GetCharacterIdentity(EntityId chara)
+        {
+            if (chara.IsNone)
+            {
+                return CharacterIdentity.UnknownFor(chara);
+            }
+
+            return GetCharacterIdentityCore(chara) ?? CharacterIdentity.UnknownFor(chara);
+        }
+
         // -- the gated writes ---------------------------------------------------------------
         //
         // One shape throughout: refuse and change nothing, or delegate. A void write that is
@@ -140,6 +155,14 @@ namespace BrilliantQuesting.Integration
         protected abstract NarrativeActorKind GetActorKindCore(EntityId chara);
 
         protected abstract SocialAgency GetSocialAgencyCore(EntityId chara);
+
+        /// <summary>
+        /// The identity observation for a character this implementation has been given a name for.
+        /// A read with no side effects: it registers nobody, mutates nothing, and an
+        /// implementation that cannot answer a facet leaves that facet unknown rather than
+        /// failing the whole observation.
+        /// </summary>
+        protected abstract CharacterIdentity GetCharacterIdentityCore(EntityId chara);
 
         /// <summary>
         /// Says that a write was refused and why. A write that quietly does nothing is

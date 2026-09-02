@@ -462,6 +462,40 @@ did for the Home and BQ-135 does for activity. It creates **no** BQ identity voc
 nothing about what any facet means.
 - **Depends** BQ-003.
 - **Done when** `IVanillaState` returns a character identity observation for a live actor; each of the six facets is its own typed field carrying the game's own id verbatim, never a merged tag list and never an id BQ minted; a facet the build did not answer is `Unknown` rather than an empty string, `false`, `"local"` or a default occupation (`D017`); no Elin type name reaches Core (`D001`); the read has no side effects, registers nobody and mutates nothing; the existing guard/guild trait read becomes the institutional facet rather than a second write path into `NarrativeNpc.Roles`; a live diagnostic logs the full facet set for the loaded population of one real town — including at least one shopkeeper and one guard — and names every facet it could not read; and tests prove an unavailable member degrades only its own facet.
+- **Current implementation** `IVanillaState.GetCharacterIdentity(EntityId)` returns a
+  `CharacterIdentity`: `CharacterArchetype`, `Race`, `Work`, `Hobbies`, `Service` and
+  `Institutions`, each its own typed field built through `CharacterIdentityBuilder` so that "not
+  read" means the same thing in the live adapter and in `SandboxVanillaState`. A facet carries
+  Elin's own id verbatim in `IdentityFacet.VanillaId` and nothing normalises, maps or mints one; an
+  id the sheet did not give cannot become a known facet at all, because `IdentityFacet.FromVanilla`
+  answers `Unknown` for an empty id. Hobbies and institutions distinguish *read and empty* from
+  *never read*, since the sheet listing no hobbies is a fact and the adapter failing to look is not,
+  and a service that is known carries `ServiceAvailability` — `Unknown` on a build with no
+  open-state member, never a claim that the shop is shut.
+  `ElinCharacterIdentity` does the reading: the `SourceChara` row id and `aka` for the character
+  archetype, `Chara.idRace` and the race row, source `job`/`idJob`, source `hobbies`, the service
+  trait subclasses (the trait type name carried through verbatim, so an unrecognised shop trait is
+  still a service) and `TraitGuard`/`TraitGuildPersonnel`/`TraitGuildDoorman` plus `Chara.faction`
+  for the institutional facet. Every facet is read inside its own guard, so a member this build
+  renamed costs that facet and leaves the other five standing. No Elin type name reaches Core, the
+  whole file is reads, and it registers, mints and materialises nobody.
+  **The placeholder is gone rather than duplicated.** Registration no longer writes
+  `Occupation = "local"` for every townsperson, a saved `"local"` is dropped on load, and
+  `NarrativeNpc.Occupation` now means only what BQ itself authored. The guard/guild trait read that
+  used to write `NarrativeNpc.Roles` directly is the institutional facet now:
+  `ElinAuthorityRoles` interprets the observed office into an authority word once, and
+  `AuthorityPolicy.Reconcile` is the single intake — it grants and withdraws on a facet that was
+  read, and changes nothing at all on one that was not, so an off-map actor is never mistaken for a
+  dismissed guard. Nothing about the observation is persisted.
+  Identity is not an input to `NarrativeActorClass` or the mutation policy, and the seam test that
+  pins every member as a read or a classified write lists it as a read.
+  A live diagnostic logs the full facet set per loaded character on attach, then tallies the facets
+  no character answered — "no shopkeeper in this town" and "this build cannot see shops" are
+  different problems and look identical without it.
+  Unproven until a live run: which source columns ordinary townspeople actually carry, whether a
+  service trait exposes an open state, and per-character institutional rank, which stays unknown
+  rather than zero because `FactionRelation.rank` is the player's own standing (`ELIN-Q-0025`,
+  `ELIN-Q-0028`).
 - **Out of scope** what a facet *means* (BQ-145), any write, persisting the observation, personality generation, mutation policy, and settlement residency — a populated `job` field does not answer ELIN-Q-0027 and must not be made to.
 - **Sources** VS §4.2, §4.3, §4.4, §4.5, §7; CD §6.1; `docs/elin/bq-integration/world-affordances.md`; `docs/elin/api/actors.md`; D001, D004, D017, D019, D021.
 - **Unblocks** BQ-145, and the identity reads in BQ-039, BQ-049, BQ-051, BQ-064, BQ-067, BQ-068, BQ-076, BQ-084, BQ-123.

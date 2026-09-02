@@ -101,6 +101,18 @@ namespace BrilliantQuesting.Integration
         ReadHomeState,
 
         /// <summary>
+        /// The game will say who a character is: the `SourceChara` kind, race, job, hobbies, the
+        /// service traits and the institutional markers.
+        ///
+        /// Separate from every other read because it is answered by a different part of the game
+        /// - the source sheets and trait subclasses rather than a live Chara member - and a build
+        /// that stops exposing them loses identity and nothing else. Unsupported means every facet
+        /// is unknown for everybody, which closes nothing: identity grants affordances and never
+        /// gates presence, testimony or safety.
+        /// </summary>
+        ReadCharacterIdentity,
+
+        /// <summary>
         /// Somebody can be moved into the player's Home as a resident.
         ///
         /// Separate from <see cref="ReadHomeState"/> for the same reason destruction is separate

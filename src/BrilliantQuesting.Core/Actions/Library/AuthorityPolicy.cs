@@ -109,6 +109,63 @@ namespace BrilliantQuesting.Actions.Library
         public static IReadOnlyList<string> AuthorityRoles { get; } =
             new List<string> { GuardRole, GuildRole, CourtRole };
 
+        /// <summary>
+        /// Brings the standing this simulation has recorded into line with what the adapter
+        /// observed at the seam, and says whether anything moved.
+        ///
+        /// The intake for live characters, and the reason it takes an observation rather than
+        /// reading the game itself: the identity facets are read once, at the seam, and this is
+        /// where the institutional one becomes standing the authority policy can act on. There is
+        /// no second path into <see cref="NarrativeNpc.Roles"/> for a vanilla character.
+        ///
+        /// <paramref name="observed"/> is what keeps unknown honest. An actor this build could not
+        /// resolve, or a build that stopped answering the institutional facet, reports false and
+        /// nothing changes: an unread facet is not the game saying somebody stopped being a guard.
+        /// A read that came back empty, on the other hand, withdraws - that is how a dismissal
+        /// reaches the simulation at all.
+        ///
+        /// Only roles this policy owns are touched. Anything a situation or an organization
+        /// granted is left alone; it is not the adapter's to take away.
+        /// </summary>
+        public static bool Reconcile(NarrativeNpc npc, IReadOnlyList<string> observedRoles, bool observed)
+        {
+            if (npc == null || !observed)
+            {
+                return false;
+            }
+
+            bool changed = false;
+            for (int i = 0; i < AuthorityRoles.Count; i++)
+            {
+                string owned = AuthorityRoles[i];
+                bool holds = Holds(observedRoles, owned);
+                if (holds ? npc.Roles.Add(owned) : npc.Roles.Remove(owned))
+                {
+                    changed = true;
+                }
+            }
+
+            return changed;
+        }
+
+        private static bool Holds(IReadOnlyList<string> observedRoles, string role)
+        {
+            if (observedRoles == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < observedRoles.Count; i++)
+            {
+                if (observedRoles[i] == role)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static AuthorityDecision Evaluate(ActionContext context)
         {
             AuthorityRole role = RoleOf(context, context.Target);
