@@ -581,4 +581,46 @@ was held — and all three survive exactly as long as the sentence that finally 
 choice among authored ways of saying what was already decided, rather than a place where something
 new can be said.
 
+## D034 — Voice is a source for tone, never a second personality or a rewrite of meaning
+
+BQ-075 gives BQ-074's `RealizationRequest.Tone` its first producer. `VoiceProfile` carries four
+0..1 axes — `Formality`, `Directness`, `Sarcasm`, `Warmth` — and one pure function, `RequestedTone`,
+that maps them onto `DialogueTones` tags: `formal`/`plain` from `Formality`, `curt`/`wary` from
+`Directness`, `warm`/`cold` from `Warmth`, `wry` from high `Sarcasm`, and nothing from low `Sarcasm`
+because sincerity has no tag of its own and does not need one. Between the four axes, every tag in
+BQ-074's seven-tag vocabulary has exactly one axis that can ask for it, so voice is a stance on the
+vocabulary BQ-074 already shipped rather than a second one layered beside it.
+
+**Voice narrows through the tone check BQ-074 already had, so it inherits that check's guarantee for
+free.** `RequestedTone` only ever reaches `DialogueFragment.FitsTone`, the mechanism that already
+could only shrink or hold a fragment's eligibility, never touch `Requires`, `Forbids` or any
+`DialogueReadings` key. A voice therefore cannot move `RealizedLine.Meaning` for the same reason a
+raw `Tone` list already could not — this step needed no new guarantee, only a caller for the one
+that existed.
+
+**Voice does not read personality, and personality does not read voice.** `VoiceProfile` has no
+field, constructor or method that touches `PersonalityWeights`, `DisclosureDecision` or `SpeechAct`.
+Two speakers who want the identical thing can sound nothing alike, and two who want opposite things
+can sound the same, because nothing wires the two together. This is the literal reading of "voice
+and personality are related consumers, not interchangeable concepts": both narrow choices made
+elsewhere, and neither is allowed to narrow the other.
+
+**No profile is ever derived from who a character is.** There is no factory from race, archetype,
+occupation or hobby to a `VoiceProfile` — that lookup table is the stereotype BQ-076 is written to
+avoid by reading only work actually observed, and voice sits a layer below where any of those labels
+live. A profile is simply given to whoever is speaking; what assigns one is a later, authoring-side
+concern this step does not reach.
+
+**Two axes named in the roadmap line are not fields.** Sentence length and metaphor use appear in
+CD §19's struct and in this step's own summary, but no shipped fragment carries a length or
+figuration marker for either to select between. A field that could never narrow anything is a
+seam pretending to be a mechanism; leaving them undeclared until content exists to read them is the
+same call BQ-074 made keeping `DialogueTones` to seven tags in the first place.
+
+Reason: BQ-074 built the guarantee that expression cannot become meaning once and put the seam for a
+speaker-level source of tone in plain sight (`RealizationRequest.Tone`'s own doc comment names
+BQ-075 as the filler). Reusing that seam rather than adding a parallel one keeps "voice narrows,
+never creates" a single mechanism instead of two that could disagree, and keeps personality and
+voice from collapsing into each other the moment someone reaches for a stereotype as a shortcut.
+
 Add a new entry only when the decision is both load-bearing and durable.

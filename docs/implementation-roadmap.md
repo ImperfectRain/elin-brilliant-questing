@@ -1349,6 +1349,23 @@ Sentence length, formality, directness, hedging, sarcasm, metaphor use — const
 selection without creating meaning.
 - **Depends** BQ-074.
 - **Done when** two NPCs with identical personalities but different voices sound different saying the same thing.
+- **Current implementation** `VoiceProfile`, a per-speaker value type in `Dialogue` with four 0..1
+  axes — `Formality`, `Directness`, `Sarcasm`, `Warmth` — and `RequestedTone()`, a pure function
+  from those axes to the `DialogueTones` tags for `RealizationRequest.Tone`: the exact seam BQ-074
+  left open, narrowing which already-eligible fragment says the point and never which point is
+  said. Between the four axes, every tag in BQ-074's seven-tag vocabulary has exactly one axis that
+  can request it, so a voice is nothing more or less than a stance on that existing vocabulary.
+  `VoiceProfile` has no reference to `PersonalityWeights`, `DisclosureDecision` or `SpeechAct` and
+  no constructor from race, archetype, occupation or hobby — a profile is simply given to whoever
+  is speaking, and nothing here reads identity to build one.
+- **Deferred by design** sentence length and metaphor use are named in this step's own line and in
+  CD §19's struct, but no shipped fragment carries a length or figuration marker to select on;
+  adding tags nothing uses would be authoring a vocabulary for a system that does not exist, which
+  is exactly what BQ-074 declined to do with tone itself. `TopicFixations`, `AvoidedTopics` and
+  `WeirdnessTolerance` are BQ-076's, BQ-077's and BQ-079's respectively. Attaching a profile to a
+  persisted `NarrativeNpc` — the way `PersonalityWeights` is — is left to whichever later step
+  first needs a voice to outlive a single request; this step proves the mechanism with profiles
+  built at the call site.
 - **Sources** CD §19, §5.2.
 
 #### BQ-076 — Occupational vocabulary

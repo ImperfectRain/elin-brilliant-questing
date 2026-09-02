@@ -524,7 +524,11 @@ namespace BrilliantQuesting.Tests
         /// The BQ-073 interrogation, said out loud. The same theft, the same four people and the
         /// same disclosure machinery; the only thing this file adds is that somebody hears it.
         /// </summary>
-        private sealed class Scene
+        /// <summary>
+        /// Internal rather than private so BQ-075's voice tests can render the identical acts and
+        /// decisions this step already proved out, instead of re-deriving a second scene.
+        /// </summary>
+        internal sealed class Scene
         {
             internal const string ThiefName = "Kip";
             internal const string Matter = "silver ring";
