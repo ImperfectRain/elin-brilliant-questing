@@ -100,6 +100,31 @@ namespace BrilliantQuesting.Dialogue
         public const double HeldBackAt = 0.80;
 
         /// <summary>
+        /// Below this, keeping quiet has itself become too expensive and the speaker puts
+        /// something untrue in its place (BQ-073).
+        ///
+        /// Deliberately past <see cref="DeflectAt"/> rather than a band of its own beside it, and
+        /// that is the whole argument for the number: while an open refusal or a changed subject
+        /// still costs less than the claim, somebody takes one of those, and they are not lies.
+        /// A falsehood is what is left when silence would itself be an answer - when the pressure
+        /// is such that "I would rather not say" gives away exactly what the speaker is trying to
+        /// keep. Anything shallower stays a refusal, which is why no amount of ordinary reluctance
+        /// ever promotes itself into a lie.
+        /// </summary>
+        public const double FalsifyAt = -0.85;
+
+        /// <summary>
+        /// Honesty above which nobody lies however hard they are pressed - they refuse, and
+        /// wear the consequences.
+        ///
+        /// A second condition rather than another term in the balance, for the same reason depth
+        /// is capped rather than summed: a large enough pressure must not be able to buy its way
+        /// past a person's character. An honest witness under unbearable pressure is a witness who
+        /// will not say, and that is a different character from one who would.
+        /// </summary>
+        public const double CandourThatWillNotLie = 0.35;
+
+        /// <summary>
         /// What this speaker would do if this person asked them about this claim now.
         ///
         /// Never null. A speaker with no belief gets a decision that says so, because "they did
@@ -167,6 +192,12 @@ namespace BrilliantQuesting.Dialogue
             DisclosureDepth reached = StandingDepth(standing);
             DisclosureDepth depth = Depth(strategy, known, reached, restraint);
 
+            // The third axis (BQ-073). Read from the same weighing again rather than from a
+            // second one: what somebody does instead of answering is decided by how badly they
+            // want the claim kept and by what kind of person they are, and both were already
+            // established above.
+            DisclosureTactic tactic = Tactic(world, npc, speaker, fact, belief, strategy, balance);
+
             return new DisclosureDecision(
                 speaker,
                 asker,
@@ -180,7 +211,9 @@ namespace BrilliantQuesting.Dialogue
                 known,
                 reached,
                 standing,
-                Bound(strategy, depth, known, reached, restraint));
+                Bound(strategy, depth, known, reached, restraint),
+                tactic,
+                fact.Subject);
         }
 
         /// <summary>
@@ -203,12 +236,16 @@ namespace BrilliantQuesting.Dialogue
         /// <summary>
         /// The act a decision amounts to, or null when the vocabulary has no act for it.
         ///
-        /// Two of the four map cleanly onto BQ-070's ten: saying the claim is an
-        /// <see cref="SpeechActType.Answer"/>, declining is a <see cref="SpeechActType.Refuse"/>.
-        /// A deflection maps to nothing and returns null on purpose - the vocabulary has no
-        /// <c>Evade</c>, adding one is BQ-073's call, and composing a <c>Refuse</c> instead would
-        /// quietly delete the difference between letting a question go and turning it down.
-        /// Nothing to disclose is likewise no act: silence is not something somebody said.
+        /// Three of the four map onto BQ-070's vocabulary: saying the claim is an
+        /// <see cref="SpeechActType.Answer"/>, declining is a <see cref="SpeechActType.Refuse"/>,
+        /// and a deflection is an <see cref="SpeechActType.Evade"/> - the act BQ-073 added for it,
+        /// rather than a <c>Refuse</c>, which would quietly delete the difference between letting
+        /// a question go and turning it down. Nothing to disclose is no act at all: silence is not
+        /// something somebody said.
+        ///
+        /// A speaker who has decided to falsify (BQ-073) composes a <see cref="SpeechActType.Deny"/>
+        /// whichever rung they are on, because what they are doing is asserting rather than
+        /// withholding. That case is read before the ladder for exactly that reason.
         ///
         /// A hedge and a disclosure are the same act, because they are. What separates them is how
         /// far the speaker will be held to it, which lives on the decision where a later realizer
@@ -224,6 +261,26 @@ namespace BrilliantQuesting.Dialogue
             if (decision == null)
             {
                 return null;
+            }
+
+            // The tactic is read before the ladder, because it is the tactic that decides what
+            // was said: a speaker who has decided to falsify is not performing a quieter refusal,
+            // they are asserting something, and reading the rung first would compose the act they
+            // did not make.
+            if (decision.Tactic == DisclosureTactic.Falsify)
+            {
+                // A denial rather than a substitute claim. Putting a rival claim forward - "it
+                // was somebody else" - needs a claim to exist for them to name, and minting one
+                // is a write; deciding writes nothing (BQ-071), so that route belongs to whoever
+                // holds the pen. `RumorDistortion.Blame` already makes such a claim and
+                // `RumorSystem.Lie` already tells it, and `Deception` scores both the same way.
+                return SpeechAct.Compose(
+                    SpeechActType.Deny,
+                    decision.Speaker,
+                    decision.Asker,
+                    new ActionBinding { PropositionFact = decision.FactId },
+                    decision.ClaimSubject,
+                    inReplyTo);
             }
 
             switch (decision.Strategy)
@@ -247,9 +304,115 @@ namespace BrilliantQuesting.Dialogue
                         EntityId.None,
                         inReplyTo);
 
+                case DisclosureStrategy.Deflect:
+                    // The gap BQ-071 left open. The act carries no proposition at all - not the
+                    // claim and not a substitute - so nothing downstream can read an evasion as
+                    // having asserted anything, which is exactly what separates it from the
+                    // falsehood above. Which flavour of evasion it was stays on the decision:
+                    // the act says the question was slid past, and `Tactic` says whether
+                    // something adjacent was offered or the subject was simply changed.
+                    return SpeechAct.Compose(
+                        SpeechActType.Evade,
+                        decision.Speaker,
+                        decision.Asker,
+                        ActionBinding.Empty,
+                        EntityId.None,
+                        inReplyTo);
+
                 default:
                     return null;
             }
+        }
+
+        // -- what is done instead (BQ-073) ---------------------------------------------------------
+
+        /// <summary>
+        /// What the speaker does about the question, given that they have decided how forthcoming
+        /// to be.
+        ///
+        /// Three rules, in the order they are applied.
+        ///
+        /// <b>Nobody who is answering is doing anything instead.</b> Both forthcoming rungs and
+        /// the no-belief case come back as <see cref="DisclosureTactic.None"/>, so the tactic
+        /// axis can never disagree with the ladder about whether the claim came out.
+        ///
+        /// <b>A lie needs a belief to contradict.</b> Somebody who does not hold the claim firmly
+        /// cannot knowingly deny it; whatever they say is a mistake or a guess, and the world
+        /// would be recording a deception that nobody committed. This is the same conviction
+        /// figure that decides whether a claim is stood behind, for the same reason.
+        ///
+        /// <b>And it needs someone who would.</b> Severe pressure alone is not enough. An honest
+        /// person under it refuses, which costs them; keeping character as a hard condition rather
+        /// than a weight is what stops a big enough number from making anybody a liar.
+        /// </summary>
+        private static DisclosureTactic Tactic(
+            NarrativeWorldState world,
+            NarrativeNpc npc,
+            EntityId speaker,
+            Fact fact,
+            KnowledgeRecord belief,
+            DisclosureStrategy strategy,
+            double balance)
+        {
+            if (strategy != DisclosureStrategy.Refuse && strategy != DisclosureStrategy.Deflect)
+            {
+                return DisclosureTactic.None;
+            }
+
+            if (balance <= FalsifyAt
+                && belief.Confidence >= ConvictionToStandBehind
+                && npc.Personality.Honesty < CandourThatWillNotLie)
+            {
+                return DisclosureTactic.Falsify;
+            }
+
+            if (strategy == DisclosureStrategy.Refuse)
+            {
+                return DisclosureTactic.Decline;
+            }
+
+            return HasSomethingElseToSay(world, speaker, fact)
+                ? DisclosureTactic.AnswerElsewhere
+                : DisclosureTactic.ChangeSubject;
+        }
+
+        /// <summary>
+        /// Whether the speaker holds something true about the same matter that they could offer
+        /// in place of what was asked.
+        ///
+        /// Answering a different question is only available to somebody who has a different
+        /// answer; without this the distinction would be decoration, and the two evasions would
+        /// differ by nothing a player could ever have influenced. What counts is a second belief
+        /// about the same person that is not itself kept - a substitute that is being volunteered
+        /// has to be one the speaker is happy to volunteer.
+        ///
+        /// Rival versions of the claim itself are excluded. "It was somebody else" is not a
+        /// neighbouring question truthfully answered, it is the falsehood above, and letting it in
+        /// here would let a speaker lie under the name of evading.
+        /// </summary>
+        private static bool HasSomethingElseToSay(NarrativeWorldState world, EntityId speaker, Fact fact)
+        {
+            foreach (KnowledgeRecord held in world.Knowledge.BeliefsOf(speaker))
+            {
+                if (held.FactId == fact.Id)
+                {
+                    continue;
+                }
+
+                Fact other = world.Knowledge.GetFact(held.FactId);
+                if (other == null
+                    || other.Secrecy != 0
+                    || other.Subject != fact.Subject
+                    || other.IsVersionOf(fact.Id)
+                    || fact.IsVersionOf(other.Id))
+                {
+                    continue;
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         // -- the pressures -------------------------------------------------------------------------
@@ -952,7 +1115,9 @@ namespace BrilliantQuesting.Dialogue
                 DisclosureDepth.Nothing,
                 DisclosureDepth.Nothing,
                 0.0,
-                DisclosureLimit.Unspoken);
+                DisclosureLimit.Unspoken,
+                DisclosureTactic.None,
+                EntityId.None);
         }
     }
 }

@@ -25,6 +25,13 @@ namespace BrilliantQuesting.Dialogue
         GivesInformation,
         SeeksAction,
         WithholdsAction,
+
+        /// <summary>
+        /// Keeps information back without declining to give it. Distinct from
+        /// <see cref="WithholdsAction"/>, which is what an open refusal does: a refusal is an
+        /// answer of a kind and lands as one, and an evasion leaves the asker without even that.
+        /// </summary>
+        WithholdsInformation,
         Repairs
     }
 
@@ -163,7 +170,8 @@ namespace BrilliantQuesting.Dialogue
             SpeechActType.Refuse,
             SpeechActType.Threaten,
             SpeechActType.Apologize,
-            SpeechActType.Gossip
+            SpeechActType.Gossip,
+            SpeechActType.Evade
         };
 
         private static Dictionary<SpeechActType, SpeechActProfile> Build()
@@ -217,6 +225,21 @@ namespace BrilliantQuesting.Dialogue
 
             Add(table, SpeechActType.Gossip, SpeechActStance.Affirms, SpeechActDirection.GivesInformation,
                 SpeechActContentRule.PropositionRequired, SpeechActReferentRule.MustBeAbsentThirdParty, false, false, null);
+
+            // Sliding away from what was put to you (BQ-073). Stance is None, and that is the
+            // load-bearing entry in the row: an evasion puts no proposition forward either way, so
+            // nothing that reads stance can ever score one as an assertion, and a speaker who
+            // evades cannot thereby have lied. Content is optional for the same reason a
+            // refusal's is - the matter is whatever is being slid away from - and the antecedent
+            // is the one part it cannot do without, because an evasion of nothing is just talk.
+            //
+            // What may be evaded is what presses for something a speaker can decline to give: a
+            // question, a charge, a request. A threat is complied with or refused, and treating a
+            // shrug at one as the same move would flatten the difference the coercion verbs turn
+            // on.
+            Add(table, SpeechActType.Evade, SpeechActStance.None, SpeechActDirection.WithholdsInformation,
+                SpeechActContentRule.Optional, SpeechActReferentRule.Optional, false, true,
+                new[] { SpeechActType.Ask, SpeechActType.Accuse, SpeechActType.Request });
 
             return table;
         }

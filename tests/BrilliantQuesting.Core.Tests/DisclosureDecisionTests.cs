@@ -342,15 +342,20 @@ namespace BrilliantQuesting.Tests
         }
 
         /// <summary>
-        /// And behaviourally: an unwilling speaker produces either a refusal that asserts nothing
-        /// or no act at all, and never a claim.
+        /// And behaviourally: an unwilling speaker asserts nothing, whichever way they decline.
         ///
-        /// A deflection composing to nothing is the honest answer while the vocabulary has no act
-        /// for it. Reaching for <c>Refuse</c> instead would delete the difference between letting a
-        /// question go and turning it down, and inventing an act to carry it is BQ-073's call.
+        /// BQ-071 left the deflection composing to no act at all, because the vocabulary had
+        /// nothing for it and reaching for <c>Refuse</c> would have deleted the difference between
+        /// letting a question go and turning it down. BQ-073 makes the call it was left: the
+        /// deflection is an <see cref="SpeechActType.Evade"/>, which is a different act from a
+        /// refusal and still carries no claim either way.
+        ///
+        /// The property this test actually guards is unchanged and is the one that matters here -
+        /// neither act puts a proposition forward, so neither can be read as having said anything
+        /// about the theft.
         /// </summary>
         [Fact]
-        public void RefusingSaysNothingAndDeflectingSaysNothingAtAll()
+        public void RefusingAndDeflectingBothAssertNothingAndAreNotTheSameAct()
         {
             Town town = Town.Create();
             SpeechAct question = town.Question(town.Witness);
@@ -365,7 +370,16 @@ namespace BrilliantQuesting.Tests
             Assert.False(refusal.Content.HasProposition);
 
             DisclosureDecision deflected = town.AskAs(RelationKind.Rival, -20);
-            Assert.Null(Disclosure.Compose(deflected, question));
+            SpeechAct evasion = Disclosure.Compose(deflected, question);
+
+            Assert.NotNull(evasion);
+            Assert.Equal(SpeechActType.Evade, evasion.Type);
+            Assert.Equal(SpeechActStance.None, evasion.Stance);
+            Assert.True(evasion.About.IsNone);
+            Assert.False(evasion.Content.HasProposition);
+
+            Assert.NotEqual(refusal.Type, evasion.Type);
+            Assert.NotEqual(refusal.Signature, evasion.Signature);
         }
 
         /// <summary>

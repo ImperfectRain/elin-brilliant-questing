@@ -118,8 +118,8 @@ namespace BrilliantQuesting.Tests
                 Assert.Equal(type, acts[type].Type);
             }
 
-            Assert.Equal(10, acts.Count);
-            Assert.Equal(10, acts.Values.Select(a => a.Signature).Distinct().Count());
+            Assert.Equal(11, acts.Count);
+            Assert.Equal(11, acts.Values.Select(a => a.Signature).Distinct().Count());
         }
 
         /// <summary>
@@ -358,9 +358,9 @@ namespace BrilliantQuesting.Tests
             Assert.Null(SpeechActMeaning.Of("lie", context));
             Assert.False(SpeechActMeaning.IsCommunicative("lie"));
 
-            // Six of the ten have no player verb at all, because answering, denying, owning up,
-            // refusing, apologizing and passing something on are moves inside a conversation
-            // rather than options on a menu.
+            // Seven of the eleven have no player verb at all, because answering, denying, owning
+            // up, refusing, evading, apologizing and passing something on are moves inside a
+            // conversation rather than options on a menu.
             IEnumerable<SpeechActType> projectable = lab.Actions
                 .Discover(context, includeUnavailable: true)
                 .Select(offer => SpeechActMeaning.Of(offer.Action.Id, context))
@@ -518,7 +518,8 @@ namespace BrilliantQuesting.Tests
                 { SpeechActType.Refuse, SpeechAct.Compose(SpeechActType.Refuse, player, victim, ActionBinding.Empty, EntityId.None, request) },
                 { SpeechActType.Threaten, SpeechAct.Compose(SpeechActType.Threaten, victim, thief, theft) },
                 { SpeechActType.Apologize, SpeechAct.Compose(SpeechActType.Apologize, thief, victim, theft) },
-                { SpeechActType.Gossip, SpeechAct.Compose(SpeechActType.Gossip, witness, player, theft, thief) }
+                { SpeechActType.Gossip, SpeechAct.Compose(SpeechActType.Gossip, witness, player, theft, thief) },
+                { SpeechActType.Evade, SpeechAct.Compose(SpeechActType.Evade, witness, player, ActionBinding.Empty, EntityId.None, ask) }
             };
 
             foreach (KeyValuePair<SpeechActType, SpeechAct> pair in acts)

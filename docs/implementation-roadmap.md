@@ -1201,8 +1201,10 @@ fear, loyalty, leverage, legal risk and social practice.
   decision into BQ-070's vocabulary where the vocabulary has an act for it — `Answer` for both
   forthcoming rungs, `Refuse` for the refusal.
   Deferred by design: a deflection composes to *no act*, because there is no `Evade` in the
-  vocabulary and adding one is BQ-073's call; there is no lie strategy and no way to express one,
-  so a refusal cannot silently become a falsehood; a hedge is a weaker commitment to the whole
+  vocabulary and adding one is BQ-073's call — which BQ-073 made, so a deflection now composes to
+  one and the ladder here is unchanged; there is no lie strategy and no way to express one, so a
+  refusal cannot silently become a falsehood, and BQ-073 adds falsification as a separate axis
+  rather than a fifth rung; a hedge is a weaker commitment to the whole
   claim rather than a smaller part of it, and graduated depth — added by BQ-072 as a second axis on
   the same decision, leaving the ladder and every pressure here untouched — is what says how much
   of the claim comes with it. Social practice is the one pressure on CD §17.5's list that is absent, because
@@ -1237,7 +1239,9 @@ Affinity changes not just willingness but how much is revealed, from "nothing to
   and the reading is arithmetic over the graph and the ledger performed on the spot.
   Deferred by design: `Compose` is untouched — depth changes what a realizer has to say, never
   which act it is or which claim it names, and rendering the rungs as words is BQ-074's. Every rung
-  is the truth, less of it; there is still no way to express a falsehood, which stays BQ-073's.
+  is the truth, less of it; there is still no way to express a falsehood, which stays BQ-073's —
+  and BQ-073 leaves these rungs alone, so an incomplete answer remains an honest one rather than
+  becoming a fifth way of misleading somebody.
 - **Sources** PM §38; LW §3.4; CD §17.5.
 
 #### BQ-073 — Lying and evasion as outcomes
@@ -1245,6 +1249,50 @@ Affinity changes not just willingness but how much is revealed, from "nothing to
 records that the speaker's statement differs from their belief.
 - **Depends** BQ-071, BQ-020.
 - **Done when** an NPC lies, the world records the lie, and the player can later catch the contradiction.
+- **Current implementation** a third axis on `DisclosureDecision` and a classifier that reads
+  assertions against the belief graph. `DisclosureTactic` — `Decline`, `ChangeSubject`,
+  `AnswerElsewhere`, `Falsify` — says what is done *instead* of answering, and is unordered
+  because these are kinds rather than degrees: a lie is not more than a refusal. BQ-071's ladder
+  and BQ-072's depth are untouched, so "no" is still one rung and what somebody did with it is a
+  separate reading. The five outcomes the step owes stay five: declining, letting the question go,
+  answering a neighbouring question, answering incompletely (`HeldBack` — BQ-072's depth below
+  what the speaker holds, every word of it true) and asserting a falsehood.
+  `AnswerElsewhere` requires actually holding something else about the same person that is not
+  itself kept, so the distinction is a fact about the speaker rather than decoration.
+  Falsifying needs three things at once and refusal is never promoted into it: severe pressure
+  (`FalsifyAt`, deliberately past `DeflectAt`, because while an open refusal still costs less than
+  the claim somebody takes that), a belief held at conviction (you cannot knowingly deny what you
+  do not hold) and low honesty as a hard condition rather than a weight, so no amount of pressure
+  makes an honest character a liar.
+  BQ-070's vocabulary gains the one act it named in advance, `Evade`: stance `None`, no
+  proposition, so nothing downstream can read an evasion as having asserted anything. There is
+  still no `Lie` act. `Disclosure.Compose` maps a falsification onto `Deny` — the ordinary
+  vocabulary, because a lie is a stance against belief rather than a way of speaking.
+  `Deception.Assess` returns a `Veracity`: `Sincerity` (`NotAsserted`, `Sincere`, `Unfounded`,
+  `Insincere`) decided from the belief graph alone, and the world's own `Accuracy` reported
+  beside it and never consulted. So an honest mistake and a lie can assert the identical false
+  claim and stay distinguishable, asserting something true against your own belief is still a
+  lie, and no omniscient truth is invented to classify anybody. Insincerity has exactly two
+  shapes: denying a claim you hold, and putting a rival version forward — rival being structural
+  (`Fact.DistortionOf`, which BQ-020 already maintains) rather than a similarity judgement.
+  Asserting with no belief either way is `Unfounded` and is not a lie.
+  `Deception.Record` writes two things and nothing else: the shared `lied_about` fact
+  (`DeceptionRecord`, now used by `RumorSystem.Lie` too, so a seeded rumour and a lie told to
+  somebody's face leave one trace per speaker and claim) and a `Deceived` event carrying the claim,
+  the audience and the stance as `EventTags.Affirmed`/`Denied`. `StatementOf` reads that back as a
+  `RecordedStatement` so no consumer depends on the layout, and an entry without a stance is
+  unrecognized rather than guessed at. Deciding, assessing and reading contradictions write
+  nothing; `Record` is the one call that does. `Contradictions` is a reading of one character's
+  knowledge — they must have been there and must now hold something firm against what they were
+  told — so catching a liar is never a hint from an omniscient narrator, and no save entry was
+  added because a statement is an event and a lie is a fact.
+  Deferred by design: no conversation state, no commitments, no who-owes-whom-an-answer — BQ-083's,
+  and the only bookkeeping here is what was said. A falsification composes a denial rather than
+  minting a rival claim to name, because minting is a write and deciding writes nothing;
+  `RumorDistortion.Blame` already makes such a claim and `RumorSystem.Lie` already tells it, and
+  the classifier scores both routes identically. `Deceived` events written by the action library
+  carry no stance and so are not read as testimony. No wording anywhere: which of a hundred ways a
+  denial is said is BQ-074's, and none of them may change what it did.
 - **Sources** CD §17.5, §14.5.
 
 #### BQ-074 — Fragment schema and realizer

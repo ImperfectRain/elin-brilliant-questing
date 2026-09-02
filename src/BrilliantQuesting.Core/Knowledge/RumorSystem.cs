@@ -133,7 +133,7 @@ namespace BrilliantQuesting.Knowledge
             }
 
             _knowledge.Teach(listener, claimFactId, KnowledgeSource.Hearsay, Clamp01(conviction), now, false, speaker);
-            RecordTheLie(speaker, aboutFactId, now);
+            DeceptionRecord.Of(_knowledge, _ids, speaker, aboutFactId, now);
 
             _ledger.Append(new WorldEvent(
                 _ids.Next("evt"),
@@ -142,33 +142,10 @@ namespace BrilliantQuesting.Knowledge
                 listener,
                 now,
                 magnitude: Clamp01(conviction),
-                related: new[] { claimFactId, aboutFactId }));
+                related: new[] { claimFactId, aboutFactId },
+                tags: new[] { EventTags.Affirmed }));
 
             return true;
-        }
-
-        /// <summary>
-        /// Writes down that the lie happened, once per speaker and subject. Reused rather than
-        /// minted per telling: a person who repeats the same lie to six people has lied about one
-        /// thing, and six identical facts would make the graph a transcript.
-        /// </summary>
-        private void RecordTheLie(EntityId speaker, EntityId aboutFactId, GameTime now)
-        {
-            foreach (Fact existing in _knowledge.Facts.Values)
-            {
-                if (existing.Subject == speaker
-                    && existing.Predicate == FactPredicates.LiedAbout
-                    && existing.Object == aboutFactId)
-                {
-                    return;
-                }
-            }
-
-            Fact lie = new Fact(_ids.Next("fact"), speaker, FactPredicates.LiedAbout, aboutFactId, secrecy: 90);
-            _knowledge.AddFact(lie);
-
-            // The liar knows what they did. Nobody else does, and that is the point.
-            _knowledge.Teach(speaker, lie.Id, KnowledgeSource.Participant, 1.0, now, false);
         }
 
         /// <summary>

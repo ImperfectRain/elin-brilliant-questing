@@ -194,6 +194,12 @@ namespace BrilliantQuesting.Diagnostics
             sb.Append('\n');
             sb.Append("  discloses:   ").Append(decision.WillDisclose ? "yes" : "no");
             sb.Append(decision.WillDisclose && !decision.Committed ? " (will not stand behind it)" : string.Empty).Append('\n');
+
+            // BQ-073. What is done instead, which the ladder deliberately does not say: "no" is
+            // the same rung for somebody who declines, somebody who changes the subject and
+            // somebody who says it was another man, and those are not the same event to have
+            // witnessed.
+            sb.Append("  instead:     ").Append(Instead(decision)).Append('\n');
             sb.Append("  balance:     ").Append(decision.Balance.ToString("+0.00;-0.00;0.00")).Append('\n');
 
             // BQ-072. How far in they went, and which of the three ceilings stopped them - the
@@ -250,6 +256,108 @@ namespace BrilliantQuesting.Diagnostics
                 sb.Append('\n');
             }
 
+            sb.Append("  wording:     none - this layer decides meaning only\n");
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// What the speaker does with the question rather than answer it, in the words it would be
+        /// said in - including the case where they answer it, which is stated rather than left
+        /// blank so a reader can tell a forthcoming decision from an unfinished dump.
+        /// </summary>
+        private static string Instead(DisclosureDecision decision)
+        {
+            switch (decision.Tactic)
+            {
+                case DisclosureTactic.Decline:
+                    return "declines, and lets it be seen that they are declining";
+                case DisclosureTactic.ChangeSubject:
+                    return "lets the question go and puts something else in its place";
+                case DisclosureTactic.AnswerElsewhere:
+                    return "answers a neighbouring question truthfully instead";
+                case DisclosureTactic.Falsify:
+                    return "says something they do not believe - this is a lie and is recorded as one";
+                default:
+                    return decision.WillDisclose
+                        ? (decision.HeldBack
+                            ? "nothing - the claim is put forward, though not all of what they hold"
+                            : "nothing - the claim is put forward")
+                        : "nothing - they hold no belief to withhold";
+            }
+        }
+
+        /// <summary>
+        /// What an assertion amounts to against its speaker's own belief (BQ-073).
+        ///
+        /// The two readings are printed on separate lines and never merged, because the whole
+        /// point of the layer is that they can disagree: a sincere assertion of something false is
+        /// an honest mistake, and an insincere one is a lie whatever the world thinks of the
+        /// claim. Anybody debugging a deception is asking which of those they are looking at.
+        /// </summary>
+        public static string DescribeVeracity(NarrativeWorldState world, SpeechAct act)
+        {
+            if (act == null)
+            {
+                return "no speech act.\n";
+            }
+
+            Veracity veracity = Deception.Assess(world, act);
+            StringBuilder sb = new StringBuilder();
+            sb.Append("veracity: ").Append(veracity.Sincerity).Append('\n');
+            sb.Append("  speaker:     ").Append(Who(world, act.Speaker)).Append('\n');
+            sb.Append("  put forward: ");
+            if (veracity.AssertedClaim.IsNone)
+            {
+                sb.Append("no claim - ").Append(act.Type).Append(" asserts nothing");
+            }
+            else
+            {
+                sb.Append(veracity.Stance == SpeechActStance.Denies ? "as not so: " : "as so: ");
+                sb.Append(veracity.AssertedClaim.Value);
+                Fact claim = world == null ? null : world.Knowledge.GetFact(veracity.AssertedClaim);
+                if (claim != null)
+                {
+                    sb.Append("  (").Append(claim).Append(')');
+                }
+            }
+
+            sb.Append('\n');
+            sb.Append("  against:     ");
+            sb.Append(veracity.Contradicts.IsNone
+                ? "nothing they hold"
+                : veracity.Contradicts.Value + " held at " + veracity.Conviction.ToString("0.00"));
+            sb.Append('\n');
+
+            // Reported, never consulted. Stated as such on the line itself so that nobody reading
+            // the dump concludes the verdict above was derived from it.
+            sb.Append("  world says:  ");
+            sb.Append(veracity.ClaimIsModelled ? veracity.Accuracy.ToString() : "no such claim");
+            sb.Append("   (reported, not used to decide sincerity)").Append('\n');
+
+            sb.Append("  reading:     ").Append(veracity.Because).Append('\n');
+            sb.Append("  verdict:     ");
+            if (veracity.IsLie)
+            {
+                sb.Append("a deliberate falsehood");
+            }
+            else if (veracity.IsHonestMistake)
+            {
+                sb.Append("an honest mistake - said in good faith and untrue");
+            }
+            else if (veracity.Sincerity == Sincerity.Unfounded)
+            {
+                sb.Append("asserted with nothing behind it - reckless, not dishonest");
+            }
+            else if (veracity.Sincerity == Sincerity.NotAsserted)
+            {
+                sb.Append("nothing was claimed, so nothing can be false");
+            }
+            else
+            {
+                sb.Append("said in good faith");
+            }
+
+            sb.Append('\n');
             sb.Append("  wording:     none - this layer decides meaning only\n");
             return sb.ToString();
         }

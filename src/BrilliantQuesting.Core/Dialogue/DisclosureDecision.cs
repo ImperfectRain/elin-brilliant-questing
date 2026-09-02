@@ -102,6 +102,65 @@ namespace BrilliantQuesting.Dialogue
     }
 
     /// <summary>
+    /// What the speaker does about the question instead of answering it (BQ-073).
+    ///
+    /// A third axis, and it exists because "did not answer" turned out to be four different
+    /// things. CD §17.5 lists them as separate outcomes for a reason: being turned down, being
+    /// slid past, being answered about something adjacent and being told a falsehood teach the
+    /// asker four different lessons about the person in front of them, and a model that
+    /// collapsed them would make an interrogation a coin with two faces.
+    ///
+    /// Not ordered, unlike <see cref="DisclosureStrategy"/> and <see cref="DisclosureDepth"/>.
+    /// These are kinds, not degrees: a lie is not "more" than a refusal, it is a different move
+    /// with a different cost, and sorting them would invite a caller to read one as a stronger
+    /// version of another.
+    ///
+    /// <see cref="Falsify"/> is the only member that puts an untruth into the world, and it is
+    /// reached only by a speaker who holds the claim firmly enough to be knowingly contradicting
+    /// themself. Refusal and omission are never promoted to it: keeping quiet is not lying, and
+    /// a model that let a strong enough pressure silently turn one into the other would put
+    /// untrue claims into the world with nothing recording that they were untrue.
+    /// </summary>
+    public enum DisclosureTactic
+    {
+        /// <summary>
+        /// Nothing was done instead: either the claim came out, or there was nothing to say.
+        /// Which of those it was is <see cref="DisclosureStrategy"/>'s answer and this does not
+        /// restate it.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// The refusal is made as one. The asker learns that there is something and that they
+        /// will not get it, which is information and often the most useful kind.
+        /// </summary>
+        Decline = 1,
+
+        /// <summary>
+        /// The question is let go of and something else is put in its place. The asker learns
+        /// nothing about the claim, and not even that there was anything to learn.
+        /// </summary>
+        ChangeSubject = 2,
+
+        /// <summary>
+        /// A neighbouring question is answered instead - a true thing about the same matter,
+        /// offered in place of the one that was asked. Distinct from <see cref="ChangeSubject"/>
+        /// because something true was actually given, and distinct from a shallow answer because
+        /// what was given is not the claim.
+        ///
+        /// Requires having something else to say, so it is not available to a speaker who holds
+        /// nothing else about the matter.
+        /// </summary>
+        AnswerElsewhere = 3,
+
+        /// <summary>
+        /// A claim the speaker does not hold is put forward. The only member that asserts
+        /// anything, and the only one the world records as a deception.
+        /// </summary>
+        Falsify = 4
+    }
+
+    /// <summary>
     /// What holds a disclosure at the depth it reached. Diagnostic in the same sense
     /// <see cref="DisclosureDecision.Decisive"/> is: it names the binding constraint so that a
     /// shallow answer can be read as a fact about the world rather than as a missing feature.
@@ -221,11 +280,12 @@ namespace BrilliantQuesting.Dialogue
     /// What one character decided to do about one claim when one person asked - and why.
     ///
     /// CD §17.5's conceptual result on two axes: <see cref="Strategy"/> says whether the claim is
-    /// put forward and how firmly, and <see cref="Depth"/> says how much of what the speaker holds
-    /// comes with it (BQ-072). Neither derives from the other. There is still no lie strategy,
-    /// because a lie is a stance held against the speaker's own belief rather than a way of
-    /// answering, and BQ-073 owns both deciding one and recording it so it can be caught - and
-    /// none of the depths is a lie either, because a shallower answer is a smaller true answer.
+    /// put forward and how firmly, <see cref="Depth"/> says how much of what the speaker holds
+    /// comes with it (BQ-072), and <see cref="Tactic"/> says what is done instead when the claim
+    /// stays unsaid (BQ-073). None of the three derives from another. There is no lie *rung* on
+    /// any of them: a lie is a stance held against the speaker's own belief rather than a degree
+    /// of forthcomingness, which is why it is a kind on the third axis and why none of the depths
+    /// is one either - a shallower answer is a smaller true answer.
     ///
     /// The decision is transient, like the act it may become (D030): it is what somebody would do
     /// if asked now, recomputed from authoritative state every time, and it enters no save. The
@@ -250,7 +310,9 @@ namespace BrilliantQuesting.Dialogue
             DisclosureDepth knownDepth,
             DisclosureDepth standingDepth,
             double standing,
-            DisclosureLimit limit)
+            DisclosureLimit limit,
+            DisclosureTactic tactic,
+            EntityId claimSubject)
         {
             Speaker = speaker;
             Asker = asker;
@@ -265,6 +327,8 @@ namespace BrilliantQuesting.Dialogue
             StandingDepth = standingDepth;
             Standing = standing;
             Limit = limit;
+            Tactic = tactic;
+            ClaimSubject = claimSubject;
         }
 
         public EntityId Speaker { get; }
@@ -273,6 +337,14 @@ namespace BrilliantQuesting.Dialogue
         public EntityId Asker { get; }
 
         public EntityId FactId { get; }
+
+        /// <summary>
+        /// Who the claim is about, or <see cref="EntityId.None"/> when there was no claim to
+        /// weigh. Carried because an act composed from this decision has to name somebody - a
+        /// denial is about whoever is being cleared - and a composer holding only the decision
+        /// has no other way to know whether that is the speaker or a third party.
+        /// </summary>
+        public EntityId ClaimSubject { get; }
 
         public DisclosureStrategy Strategy { get; }
 
@@ -340,12 +412,38 @@ namespace BrilliantQuesting.Dialogue
         /// <summary>Which of the ceilings held the depth where it is.</summary>
         public DisclosureLimit Limit { get; }
 
+        /// <summary>
+        /// What is done about the question instead of answering it (BQ-073), or
+        /// <see cref="DisclosureTactic.None"/> when the claim comes out.
+        /// </summary>
+        public DisclosureTactic Tactic { get; }
+
+        /// <summary>
+        /// Whether the speaker will assert something they do not believe. The one property in
+        /// this model that puts an untruth into the world, kept as a question about the tactic
+        /// rather than as a fifth rung of the ladder, because a lie is not a degree of
+        /// forthcomingness - a liar is talking freely.
+        /// </summary>
+        public bool WillLie => Tactic == DisclosureTactic.Falsify;
+
+        /// <summary>
+        /// Whether an answer is being given that is knowingly less than what the speaker holds:
+        /// the incomplete answer, as distinct from a refusal, an evasion and a falsehood.
+        ///
+        /// Every word of it is still true - depth never shades a claim - so this is the honest
+        /// partial answer rather than a fifth way of misleading somebody. <see cref="Limit"/>
+        /// says which ceiling did it, and a caller that cares whether the shortfall was chosen
+        /// or merely reached should read that rather than this.
+        /// </summary>
+        public bool HeldBack => WillDisclose && Depth < KnownDepth;
+
         /// <summary>Whether this disclosure goes at least as deep as some rung a caller needs.</summary>
         public bool Reaches(DisclosureDepth depth) => Depth >= depth;
 
         public override string ToString()
         {
-            return Speaker.Value + "->" + Asker.Value + " " + FactId.Value + ": " + Strategy + "/" + Depth;
+            return Speaker.Value + "->" + Asker.Value + " " + FactId.Value + ": " + Strategy + "/" + Depth
+                + (Tactic == DisclosureTactic.None ? string.Empty : "/" + Tactic);
         }
     }
 }
