@@ -1,0 +1,38 @@
+id: fragments.core.denial
+kind: dialogueFragments
+payload:
+  fragments:
+    - id: core.deny.flat
+      position: core
+      text: "No. That is not what happened."
+      requires:
+        act: deny
+      repetitionGroup: deny
+    - id: core.deny.wrong
+      position: core
+      text: "Whoever told you that has it wrong."
+      requires:
+        act: deny
+      repetitionGroup: deny
+    - id: core.deny.not.me
+      position: core
+      text: "It was not me."
+      requires:
+        act: deny
+        referent: speaker
+      repetitionGroup: deny
+    - id: core.deny.took.nothing
+      position: core
+      text: "I never took anything."
+      requires:
+        act: deny
+        referent: speaker
+        claim_predicate: stole
+      repetitionGroup: deny
+    - id: core.deny.other
+      position: core
+      text: "{referent} did no such thing."
+      requires:
+        act: deny
+        referent: other
+      repetitionGroup: deny

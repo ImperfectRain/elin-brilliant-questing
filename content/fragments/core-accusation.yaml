@@ -1,0 +1,25 @@
+id: fragments.core.accusation
+kind: dialogueFragments
+payload:
+  fragments:
+    - id: core.accuse.named
+      position: core
+      text: "{referent} did it."
+      requires:
+        act: accuse
+      repetitionGroup: accuse
+    - id: core.accuse.direct
+      position: core
+      text: "You took it."
+      requires:
+        act: accuse
+        referent: listener
+        claim_predicate: stole
+      repetitionGroup: accuse
+    - id: core.accuse.theft
+      position: core
+      text: "{referent} took the {matter}."
+      requires:
+        act: accuse
+        claim_predicate: stole
+      repetitionGroup: accuse

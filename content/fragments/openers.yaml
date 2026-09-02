@@ -1,0 +1,40 @@
+id: fragments.openers
+kind: dialogueFragments
+payload:
+  fragments:
+    - id: open.address
+      position: opener
+      text: "{listener}."
+      tone:
+        - plain
+      repetitionGroup: address
+    - id: open.right
+      position: opener
+      text: "Right."
+      tone:
+        - plain
+      repetitionGroup: filler
+    - id: open.look
+      position: opener
+      text: "Look."
+      tone:
+        - curt
+      repetitionGroup: filler
+    - id: open.reluctant
+      position: opener
+      text: "Ah."
+      requires:
+        act:
+          - refuse
+          - evade
+      tone:
+        - wary
+      repetitionGroup: filler
+    - id: open.tell.me
+      position: opener
+      text: "Tell me this."
+      requires:
+        act: ask
+      tone:
+        - plain
+      repetitionGroup: prompt

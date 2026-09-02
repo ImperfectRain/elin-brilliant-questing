@@ -1,0 +1,30 @@
+id: fragments.core.question
+kind: dialogueFragments
+payload:
+  fragments:
+    - id: core.ask.plain
+      position: core
+      text: "What do you know about it?"
+      requires:
+        act: ask
+      repetitionGroup: ask
+    - id: core.ask.about.subject
+      position: core
+      text: "What do you know about {subject}?"
+      requires:
+        act: ask
+      repetitionGroup: ask
+    - id: core.ask.theft
+      position: core
+      text: "Who took the {matter}?"
+      requires:
+        act: ask
+        claim_predicate: stole
+      repetitionGroup: ask
+    - id: core.ask.theft.subject
+      position: core
+      text: "Was it {subject} who took the {matter}?"
+      requires:
+        act: ask
+        claim_predicate: stole
+      repetitionGroup: ask

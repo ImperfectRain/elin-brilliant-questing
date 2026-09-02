@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using BrilliantQuesting.Content;
+using BrilliantQuesting.Dialogue;
 using BrilliantQuesting.Persistence;
 using BrilliantQuesting.Storylets;
 
@@ -31,6 +32,20 @@ namespace BrilliantQuesting.ContentCompiler
                 if (loaded.Diagnostics.Count > 0)
                 {
                     foreach (ContentDiagnostic diagnostic in loaded.Diagnostics)
+                    {
+                        Console.Error.WriteLine(diagnostic);
+                    }
+
+                    return 1;
+                }
+
+                // Fragment ids are unique across the whole library rather than within a file, so
+                // the collision is only visible once every file is in one bundle.
+                IReadOnlyList<ContentDiagnostic> fragmentDiagnostics;
+                DialogueFragmentContent.LoadFragments(loaded.Bundle, out fragmentDiagnostics);
+                if (fragmentDiagnostics.Count > 0)
+                {
+                    foreach (ContentDiagnostic diagnostic in fragmentDiagnostics)
                     {
                         Console.Error.WriteLine(diagnostic);
                     }
@@ -111,18 +126,29 @@ namespace BrilliantQuesting.ContentCompiler
             return new CompileResult(bundle, files.Length);
         }
 
+        /// <summary>
+        /// A record whose kind has a reader is compiled through that reader, so a bad file fails
+        /// here with a path rather than at load with a diagnostic nobody is watching.
+        /// </summary>
         private static void ValidateSource(SourceRecord source)
         {
-            if (!string.Equals(source.Kind, "storylet", StringComparison.Ordinal))
-            {
-                return;
-            }
-
             ContentBundle bundle = new ContentBundle(
                 ContentBundle.CurrentVersion,
                 new[] { new ContentRecord(source.Id, source.Kind, source.Payload) });
             IReadOnlyList<ContentDiagnostic> diagnostics;
-            StoryletContent.LoadDefinitions(bundle, out diagnostics);
+            if (string.Equals(source.Kind, "storylet", StringComparison.Ordinal))
+            {
+                StoryletContent.LoadDefinitions(bundle, out diagnostics);
+            }
+            else if (string.Equals(source.Kind, DialogueFragmentContent.Kind, StringComparison.Ordinal))
+            {
+                DialogueFragmentContent.LoadFragments(bundle, out diagnostics);
+            }
+            else
+            {
+                return;
+            }
+
             if (diagnostics.Count > 0)
             {
                 throw new CompilerException(source.Location(diagnostics[0].Code + ": " + diagnostics[0].Message));

@@ -1,0 +1,22 @@
+id: fragments.callbacks
+kind: dialogueFragments
+payload:
+  fragments:
+    - id: call.reply.ask
+      position: callback
+      text: "Since you are the one asking."
+      requires:
+        reply: ask
+      repetitionGroup: callback.reply
+    - id: call.reply.accuse
+      position: callback
+      text: "And you bring that to me."
+      requires:
+        reply: accuse
+      repetitionGroup: callback.reply
+    - id: call.reply.request
+      position: callback
+      text: "You are asking a good deal."
+      requires:
+        reply: request
+      repetitionGroup: callback.reply

@@ -1,0 +1,39 @@
+id: fragments.closers
+kind: dialogueFragments
+payload:
+  fragments:
+    - id: close.that.is.all
+      position: closer
+      text: "That is all."
+      requires:
+        act:
+          - answer
+          - refuse
+          - evade
+      repetitionGroup: closer.done
+    - id: close.let.me.be
+      position: closer
+      text: "Now let me be."
+      requires:
+        act:
+          - refuse
+          - evade
+      tone:
+        - curt
+      repetitionGroup: closer.done
+    - id: close.if.any.use
+      position: closer
+      text: "If that is any use to you."
+      requires:
+        act: answer
+      tone:
+        - warm
+      repetitionGroup: closer.done
+    - id: close.well
+      position: closer
+      text: "Well?"
+      requires:
+        act:
+          - ask
+          - accuse
+      repetitionGroup: closer.prompt

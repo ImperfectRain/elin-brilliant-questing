@@ -1,0 +1,56 @@
+id: fragments.core.withholding
+kind: dialogueFragments
+payload:
+  fragments:
+    - id: core.refuse.flat
+      position: core
+      text: "No."
+      requires:
+        act: refuse
+      tone:
+        - curt
+      repetitionGroup: refuse
+    - id: core.refuse.not.mine
+      position: core
+      text: "That is not mine to tell."
+      requires:
+        act: refuse
+      repetitionGroup: refuse
+    - id: core.refuse.rather.not
+      position: core
+      text: "I would rather not say."
+      requires:
+        act: refuse
+      repetitionGroup: refuse
+    - id: core.evade.a.question
+      position: core
+      text: "That is a question, is it not."
+      requires:
+        act: evade
+      repetitionGroup: evade
+    - id: core.evade.all.day
+      position: core
+      text: "We could stand here about that all day."
+      requires:
+        act: evade
+      repetitionGroup: evade
+    - id: core.evade.easier
+      position: core
+      text: "Ask me an easier one."
+      requires:
+        act: evade
+      repetitionGroup: evade
+    - id: core.evade.something.else
+      position: core
+      text: "There are things I could tell you. That is not one of them."
+      requires:
+        act: evade
+        tactic: answer_elsewhere
+      repetitionGroup: evade
+    - id: core.evade.moved.on
+      position: core
+      text: "Was there anything else?"
+      requires:
+        act: evade
+        tactic: change_subject
+      repetitionGroup: evade

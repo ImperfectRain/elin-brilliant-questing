@@ -1,0 +1,400 @@
+using System;
+using System.Collections.Generic;
+using BrilliantQuesting.Content;
+using BrilliantQuesting.Persistence;
+
+namespace BrilliantQuesting.Dialogue
+{
+    /// <summary>
+    /// Fragments come out of the content bundle, like storylets do.
+    ///
+    /// The alternative - a table of English in Core - was the thing to avoid. There is already one
+    /// authored-content pipeline with a compiler, a bundle format, freshness checking and
+    /// diagnostics that point at a file and a line; a second one living in C# string literals
+    /// would mean two ways to add a line, two ways to break one, and a headless simulation
+    /// assembly that has to be recompiled to change a comma.
+    ///
+    /// Loading is strict for the same reason composing an act is. A fragment with a misspelt
+    /// condition is not a fragment that says a bit less - it is one that says the wrong thing in
+    /// the wrong situation forever, and nobody would find it. So every condition key, every
+    /// condition value, every tone tag and every placeholder is checked against the closed
+    /// vocabularies here, and a record that fails is reported rather than partially loaded.
+    /// </summary>
+    public static class DialogueFragmentContent
+    {
+        /// <summary>The record kind. One record carries a set of fragments, not a single phrase.</summary>
+        public const string Kind = "dialogueFragments";
+
+        public static IReadOnlyList<DialogueFragment> LoadFragments(ContentBundle bundle, out IReadOnlyList<ContentDiagnostic> diagnostics)
+        {
+            List<DialogueFragment> fragments = new List<DialogueFragment>();
+            List<ContentDiagnostic> problems = new List<ContentDiagnostic>();
+            HashSet<string> ids = new HashSet<string>(StringComparer.Ordinal);
+            if (bundle == null)
+            {
+                diagnostics = problems.AsReadOnly();
+                return fragments.AsReadOnly();
+            }
+
+            for (int i = 0; i < bundle.Records.Count; i++)
+            {
+                ContentRecord record = bundle.Records[i];
+                if (!string.Equals(record.Kind, Kind, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                Read(record, ids, fragments, problems);
+            }
+
+            diagnostics = problems.AsReadOnly();
+            return fragments.AsReadOnly();
+        }
+
+        /// <summary>Every fragment in the bundle, indexed. Diagnostics are the caller's to look at.</summary>
+        public static DialogueFragmentLibrary CreateLibrary(ContentBundle bundle, out IReadOnlyList<ContentDiagnostic> diagnostics)
+        {
+            DialogueFragmentLibrary library = new DialogueFragmentLibrary();
+            IReadOnlyList<DialogueFragment> fragments = LoadFragments(bundle, out diagnostics);
+            for (int i = 0; i < fragments.Count; i++)
+            {
+                library.Register(fragments[i]);
+            }
+
+            return library;
+        }
+
+        private static void Read(
+            ContentRecord record,
+            HashSet<string> ids,
+            List<DialogueFragment> fragments,
+            List<ContentDiagnostic> problems)
+        {
+            JsonValue entries = record.Payload["fragments"];
+            if (entries == null || entries.Kind != JsonKind.Array || entries.Items.Count == 0)
+            {
+                problems.Add(Invalid(record, "fragments", "A fragment record must carry a non-empty fragments array."));
+                return;
+            }
+
+            for (int i = 0; i < entries.Items.Count; i++)
+            {
+                DialogueFragment fragment;
+                ContentDiagnostic diagnostic;
+                if (TryRead(record, entries.Items[i], i, ids, out fragment, out diagnostic))
+                {
+                    fragments.Add(fragment);
+                }
+                else
+                {
+                    problems.Add(diagnostic);
+                }
+            }
+        }
+
+        private static bool TryRead(
+            ContentRecord record,
+            JsonValue json,
+            int index,
+            HashSet<string> ids,
+            out DialogueFragment fragment,
+            out ContentDiagnostic diagnostic)
+        {
+            fragment = null;
+            string where = "fragments[" + index + "]";
+            if (json == null || json.Kind != JsonKind.Object)
+            {
+                diagnostic = Invalid(record, where, "A fragment must be a map.");
+                return false;
+            }
+
+            string id = json.GetString("id", null);
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                diagnostic = Invalid(record, where, "A fragment must have an id.");
+                return false;
+            }
+
+            where = id;
+            if (!ids.Add(id))
+            {
+                diagnostic = Invalid(record, where, "Fragment id is duplicated: " + id + ".");
+                return false;
+            }
+
+            FragmentPosition position;
+            if (!TryPosition(json.GetString("position", null), out position))
+            {
+                diagnostic = Invalid(record, where, "Fragment position must be one of opener, core, modifier, callback, context, closer.");
+                return false;
+            }
+
+            string text = json.GetString("text", null);
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                diagnostic = Invalid(record, where, "A fragment must have text.");
+                return false;
+            }
+
+            string problem;
+            IReadOnlyList<string> slots = DialogueSlots.Read(text, out problem);
+            if (slots == null)
+            {
+                diagnostic = Invalid(record, where, "Fragment text has an " + problem + ".");
+                return false;
+            }
+
+            List<FragmentRequirement> requires = new List<FragmentRequirement>();
+            List<FragmentRequirement> forbids = new List<FragmentRequirement>();
+            if (!TryConditions(record, where, json["requires"], "requires", requires, out diagnostic)
+                || !TryConditions(record, where, json["forbids"], "forbids", forbids, out diagnostic))
+            {
+                return false;
+            }
+
+            // A core fragment is the sentence that carries the point, so it has to know which
+            // point. Without this, one wording could be chosen for an act it was never written
+            // for - a refusal said as an answer - which is the single worst thing this layer
+            // could do, because the meaning would be right and the words would be a lie about it.
+            if (position == FragmentPosition.Core && !Declares(requires, DialogueReadings.Act))
+            {
+                diagnostic = Invalid(record, where, "A core fragment must declare which act it says.");
+                return false;
+            }
+
+            List<string> tones = new List<string>();
+            if (!TryTones(record, where, json["tone"], tones, out diagnostic))
+            {
+                return false;
+            }
+
+            List<string> tags = new List<string>();
+            if (!TryTags(record, where, json["tags"], tags, out diagnostic))
+            {
+                return false;
+            }
+
+            fragment = new DialogueFragment(
+                id,
+                position,
+                text.Trim(),
+                requires.ToArray(),
+                forbids.ToArray(),
+                tones.ToArray(),
+                tags.ToArray(),
+                json.GetString("repetitionGroup", string.Empty),
+                slots);
+            diagnostic = null;
+            return true;
+        }
+
+        private static bool TryConditions(
+            ContentRecord record,
+            string where,
+            JsonValue json,
+            string field,
+            List<FragmentRequirement> into,
+            out ContentDiagnostic diagnostic)
+        {
+            diagnostic = null;
+            if (json == null)
+            {
+                return true;
+            }
+
+            if (json.Kind != JsonKind.Object)
+            {
+                diagnostic = Invalid(record, where, field + " must be a map of reading to value.");
+                return false;
+            }
+
+            for (int i = 0; i < json.Members.Count; i++)
+            {
+                string key = json.Members[i].Key;
+                if (!DialogueReadings.IsKey(key))
+                {
+                    diagnostic = Invalid(record, where, "Unknown fragment condition: " + key + ".");
+                    return false;
+                }
+
+                List<string> values = new List<string>();
+                if (!TryValues(record, where, key, json.Members[i].Value, values, out diagnostic))
+                {
+                    return false;
+                }
+
+                into.Add(new FragmentRequirement(key, values.ToArray()));
+            }
+
+            return true;
+        }
+
+        private static bool TryValues(
+            ContentRecord record,
+            string where,
+            string key,
+            JsonValue json,
+            List<string> values,
+            out ContentDiagnostic diagnostic)
+        {
+            diagnostic = null;
+            if (json != null && json.Kind == JsonKind.String)
+            {
+                return TryValue(record, where, key, json.StringValue, values, out diagnostic);
+            }
+
+            if (json == null || json.Kind != JsonKind.Array || json.Items.Count == 0)
+            {
+                diagnostic = Invalid(record, where, "Condition " + key + " needs a value or a non-empty list of values.");
+                return false;
+            }
+
+            for (int i = 0; i < json.Items.Count; i++)
+            {
+                JsonValue item = json.Items[i];
+                if (item.Kind != JsonKind.String || !TryValue(record, where, key, item.StringValue, values, out diagnostic))
+                {
+                    diagnostic = diagnostic ?? Invalid(record, where, "Condition " + key + " must list strings.");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool TryValue(
+            ContentRecord record,
+            string where,
+            string key,
+            string value,
+            List<string> values,
+            out ContentDiagnostic diagnostic)
+        {
+            diagnostic = null;
+
+            // The one refusal in this file that is about the architecture rather than about a
+            // typo. Wording is never selected on whether the speaker is lying: a fragment pool
+            // that shifted when somebody falsified would put the tell in the words, and BQ-073
+            // holds that a lie is catchable from what the listener knows and from nothing else.
+            if (string.Equals(key, DialogueReadings.Tactic, StringComparison.Ordinal)
+                && string.Equals(value, "falsify", StringComparison.Ordinal))
+            {
+                diagnostic = Invalid(record, where, "Wording may not be chosen on whether the speaker is lying.");
+                return false;
+            }
+
+            if (!DialogueReadings.IsValue(key, value))
+            {
+                diagnostic = Invalid(record, where, "Condition " + key + " cannot read as " + value + ".");
+                return false;
+            }
+
+            values.Add(value);
+            return true;
+        }
+
+        private static bool TryTones(ContentRecord record, string where, JsonValue json, List<string> into, out ContentDiagnostic diagnostic)
+        {
+            diagnostic = null;
+            if (json == null)
+            {
+                return true;
+            }
+
+            if (json.Kind != JsonKind.Array)
+            {
+                diagnostic = Invalid(record, where, "tone must be an array.");
+                return false;
+            }
+
+            for (int i = 0; i < json.Items.Count; i++)
+            {
+                JsonValue item = json.Items[i];
+                if (item.Kind != JsonKind.String || !DialogueTones.IsTone(item.StringValue))
+                {
+                    diagnostic = Invalid(record, where, "Unknown tone tag.");
+                    return false;
+                }
+
+                into.Add(item.StringValue);
+            }
+
+            return true;
+        }
+
+        private static bool TryTags(ContentRecord record, string where, JsonValue json, List<string> into, out ContentDiagnostic diagnostic)
+        {
+            diagnostic = null;
+            if (json == null)
+            {
+                return true;
+            }
+
+            if (json.Kind != JsonKind.Array)
+            {
+                diagnostic = Invalid(record, where, "tags must be an array.");
+                return false;
+            }
+
+            for (int i = 0; i < json.Items.Count; i++)
+            {
+                JsonValue item = json.Items[i];
+                if (item.Kind != JsonKind.String || string.IsNullOrWhiteSpace(item.StringValue))
+                {
+                    diagnostic = Invalid(record, where, "tags must be non-empty strings.");
+                    return false;
+                }
+
+                into.Add(item.StringValue);
+            }
+
+            return true;
+        }
+
+        private static bool Declares(List<FragmentRequirement> requires, string key)
+        {
+            for (int i = 0; i < requires.Count; i++)
+            {
+                if (string.Equals(requires[i].Key, key, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool TryPosition(string name, out FragmentPosition position)
+        {
+            switch (name)
+            {
+                case "opener":
+                    position = FragmentPosition.Opener;
+                    return true;
+                case "core":
+                    position = FragmentPosition.Core;
+                    return true;
+                case "modifier":
+                    position = FragmentPosition.Modifier;
+                    return true;
+                case "callback":
+                    position = FragmentPosition.Callback;
+                    return true;
+                case "context":
+                    position = FragmentPosition.Context;
+                    return true;
+                case "closer":
+                    position = FragmentPosition.Closer;
+                    return true;
+                default:
+                    position = FragmentPosition.Core;
+                    return false;
+            }
+        }
+
+        private static ContentDiagnostic Invalid(ContentRecord record, string path, string message)
+        {
+            return new ContentDiagnostic("content.fragment.invalid", record.Id + "." + path, message);
+        }
+    }
+}

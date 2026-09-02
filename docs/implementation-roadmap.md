@@ -1300,6 +1300,48 @@ records that the speaker's statement differs from their belief.
 callback, context and closer.
 - **Depends** BQ-070.
 - **Done when** one semantic act renders three recognizably different ways from the same data.
+- **Current implementation** a compositional fragment model, not a grammar. `DialogueFragment`
+  carries a position, a phrase, conditions, tone tags, free tags and a repetition group;
+  `DialogueRealizer` fills the six slots in the order CD §18 lists them, drawing exactly one core
+  and at most one of each other slot, each optional slot drawn against an implicit "say nothing"
+  so not every line has every part. Fragments are content rather than code — a `dialogueFragments`
+  record kind compiled out of `content/fragments/` into the same bundle as storylets, validated by
+  the same compiler — so there is no second authored-text system in Core and adding a way of
+  saying something is a content change.
+  Three things hold "wording may express meaning and may never create it" as structure rather than
+  as a promise. The realizer takes no world: a fragment library and a request, neither of which
+  can be written to, so *realization writes no world state* is a fact about the signature. What a
+  fragment may be chosen on is a closed vocabulary of *readings* of the act and the decision behind
+  it — `DialogueReadings`, all of them derived, none of them new — and what it may name is a closed
+  set of placeholders resolving to people the caller put on stage and the label the claim already
+  carries. There is no placeholder for the claim itself, because phrasing a proposition needs a
+  predicate lexicon and a lexicon would be a second place where what a fact says gets decided; a
+  fragment that wants to word a kind of claim conditions on `claim_predicate` and writes the
+  sentence. A placeholder nothing fills makes its fragment ineligible, so nobody is ever "someone".
+  Refusal is the failure mode throughout. An act nothing in the library says comes back unrealized
+  with a reason and no text — never a vaguer line assembled from the trimmings — and a request
+  whose parts describe a situation the semantic layer never produced (a decision by another
+  speaker, a claim that is not the act's) is refused rather than reconciled. Every core fragment
+  must declare which act it says, enforced at load, so a refusal can never be worded as an answer.
+  Selection is deterministic in the semantic state and the seed: choices come from streams forked
+  off the caller's rather than from its running state, so a line does not change because a
+  different conversation happened earlier in the tick.
+  The one architectural refusal: **wording is never told that the speaker is lying.** A decision
+  whose tactic is `Falsify` reaches realization as though no decision had been given, so a liar's
+  denial draws from the fragments an honest denial draws from and at the same seed says the
+  identical words; `tactic: falsify` is not a value content may name, and the loader rejects it.
+  The decision itself is untouched — `WillLie` still reads true, `Deception.Assess` still
+  classifies from the belief graph — which is the point: a lie stays a lie by its relation to
+  belief, and a fragment pool that shifted when somebody lied would put the tell in the words and
+  make lies catchable by ear rather than by what the listener knows.
+- **Deferred by design** voice profiles (BQ-075), occupational vocabulary (BQ-076), negative space
+  (BQ-077), repetition control (BQ-078) and the weirdness budget (BQ-079) are not implemented here;
+  what they get is a seam each — a tone request that narrows choice and cannot change meaning, free
+  tags carried and unread, and a declared repetition group with no consumer. The callback slot is
+  filled only from the act's own antecedent, because the relationship and history callbacks CD §18
+  sketches need conversation state (BQ-083) that does not exist and must not be invented here. The
+  vocabulary is deliberately small: enough to prove the contract and to make the later extensions
+  additions rather than rewrites.
 - **Sources** CD §18, §38 Phase C.
 
 #### BQ-075 — Voice profiles

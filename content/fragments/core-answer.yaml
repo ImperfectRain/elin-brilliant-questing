@@ -1,0 +1,41 @@
+id: fragments.core.answer
+kind: dialogueFragments
+payload:
+  fragments:
+    - id: core.answer.confirm
+      position: core
+      text: "That is how it happened."
+      requires:
+        act: answer
+      repetitionGroup: answer
+    - id: core.answer.remember
+      position: core
+      text: "That is how I remember it."
+      requires:
+        act: answer
+        commitment: hedged
+      repetitionGroup: answer
+    - id: core.answer.theft.plain
+      position: core
+      text: "It was {subject}."
+      requires:
+        act: answer
+        claim_predicate: stole
+      repetitionGroup: answer.theft
+    - id: core.answer.theft.named
+      position: core
+      text: "{subject} took it."
+      requires:
+        act: answer
+        claim_predicate: stole
+      repetitionGroup: answer.theft
+    - id: core.answer.theft.matter
+      position: core
+      text: "{subject} took the {matter}."
+      requires:
+        act: answer
+        claim_predicate: stole
+        depth:
+          - detail
+          - in_confidence
+      repetitionGroup: answer.theft

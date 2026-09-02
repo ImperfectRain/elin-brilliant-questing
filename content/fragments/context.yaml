@@ -1,0 +1,20 @@
+id: fragments.context
+kind: dialogueFragments
+payload:
+  fragments:
+    - id: ctx.many.ears
+      position: context
+      text: "Not with this many ears about."
+      requires:
+        audience: several
+      repetitionGroup: context.setting
+    - id: ctx.between.us
+      position: context
+      text: "Between the two of us."
+      requires:
+        act: answer
+        audience: one
+        depth:
+          - detail
+          - in_confidence
+      repetitionGroup: context.setting

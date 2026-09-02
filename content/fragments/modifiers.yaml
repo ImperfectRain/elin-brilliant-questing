@@ -1,0 +1,49 @@
+id: fragments.modifiers
+kind: dialogueFragments
+payload:
+  fragments:
+    - id: mod.answer.stand.behind
+      position: modifier
+      text: "I will stand behind that."
+      requires:
+        act: answer
+        commitment: committed
+      repetitionGroup: commitment
+    - id: mod.answer.could.be.wrong
+      position: modifier
+      text: "Though I could have it wrong."
+      requires:
+        act: answer
+        commitment: hedged
+      repetitionGroup: commitment
+    - id: mod.answer.held.back
+      position: modifier
+      text: "That is as much as I will say."
+      requires:
+        act: answer
+        held_back: "yes"
+      repetitionGroup: reserve
+    - id: mod.refuse.cost
+      position: modifier
+      text: "It is not worth what it would cost me."
+      requires:
+        act: refuse
+      repetitionGroup: reserve
+    - id: mod.deny.believe
+      position: modifier
+      text: "You can believe that or not."
+      requires:
+        act: deny
+      repetitionGroup: stubborn
+    - id: mod.evade.said.enough
+      position: modifier
+      text: "I have said all I mean to."
+      requires:
+        act: evade
+      repetitionGroup: reserve
+    - id: mod.accuse.no.pretending
+      position: modifier
+      text: "I am not going to pretend otherwise."
+      requires:
+        act: accuse
+      repetitionGroup: stubborn

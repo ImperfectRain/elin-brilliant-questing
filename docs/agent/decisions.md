@@ -534,4 +534,51 @@ from somebody who already answers. Making depth a capped reading of knowledge, t
 what turns a mended relationship into more of a fact while keeping fear, loyalty and privacy as
 things that hold, and keeping the world's knowledge as the thing nobody can talk their way past.
 
+## D033 — Wording is a reading of meaning, and the words never learn that somebody is lying
+
+BQ-074 adds the first layer in the mod that produces English, and everything about its shape is
+chosen so that producing English cannot produce meaning. The realizer takes a fragment library and a
+request and no world at all — not a read-only one, not a scoped one — so "realization writes no
+world state" is a fact about its signature rather than a discipline about its body. What a fragment
+may be selected on is a closed vocabulary of *readings* of the act and the disclosure decision
+behind it, every one of them derived from state that existed before any of this ran. What a fragment
+may name is a closed set of placeholders resolving to people the caller put on stage and the label
+the claim already carries; a placeholder nothing fills makes its fragment ineligible, because
+referring to somebody the caller did not name is the smallest possible version of inventing a fact
+about them.
+
+**There is no placeholder for the claim.** Putting a proposition into words needs a predicate
+lexicon, and a lexicon that phrased predicates would be a second place where what a fact says gets
+decided — one that could disagree with `FactPredicates` and with the ledger. A fragment that wants
+to word a particular kind of claim conditions on `claim_predicate` and writes the sentence itself,
+which keeps the English in content and the ontology in Core.
+
+**Fragments are content, not code.** There is already one authored-content pipeline with a compiler,
+a bundle, freshness checking and diagnostics that point at a file; a table of English in a headless
+simulation assembly would be a second way to add a line and a second way to break one. Loading is
+strict for the same reason composing an act is: a fragment with a misspelt condition is not a
+fragment that says slightly less, it is one that says the wrong thing in the wrong situation forever
+and nobody finds it.
+
+**Refusal, never repair.** An act nothing has words for comes back unrealized with a reason and no
+text, and a request whose parts describe a situation the semantic layer never produced is refused
+rather than reconciled. A line that says less than it should is a content bug and recoverable; a
+line that says something nobody decided is a world bug and is not.
+
+**The words never learn that the speaker is lying.** A decision whose tactic is `Falsify` reaches
+realization as though no decision had been given, and `tactic: falsify` is not a value content may
+name. So a liar's denial draws from exactly the fragments an honest denial of the same claim draws
+from and, at the same seed, says the identical words. This narrows what wording may read; it does
+not rewrite what was decided — the `DisclosureDecision` is untouched, `WillLie` still reads true on
+it, and `Deception` still classifies from the belief graph. `D031` holds that withholding is never
+lying and BQ-073 holds that a lie is a stance against the speaker's own belief rather than a way of
+speaking; a fragment pool that shifted when somebody falsified would contradict both, by putting the
+tell in the words and making a lie catchable by ear instead of from what the listener knows.
+
+Reason: the expression layer is where every earlier guarantee is cheapest to lose. Meaning is
+authoritative, proof is separate from belief, and a lie is a relation between what was said and what
+was held — and all three survive exactly as long as the sentence that finally gets spoken is a
+choice among authored ways of saying what was already decided, rather than a place where something
+new can be said.
+
 Add a new entry only when the decision is both load-bearing and durable.
