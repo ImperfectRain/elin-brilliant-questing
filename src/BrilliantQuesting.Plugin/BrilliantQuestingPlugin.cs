@@ -401,7 +401,7 @@ namespace BrilliantQuesting.Plugin
             // will volunteer in the street and what they will say when asked cannot drift apart.
             _drama.News = new TownNews(rumors);
             _actionObserver = new ElinActionObserver(_world, _vanilla, _bindings, _log);
-            ElinAuthorityRoles.RefreshAll(_world, _bindings, _log);
+            ElinAuthorityRoles.RefreshAll(_world, _vanilla, _log);
 
             _consequences = new ConsequenceEngine(_world, _vanilla);
             _consequences.Attach();
@@ -425,6 +425,7 @@ namespace BrilliantQuesting.Plugin
             ReconcileAbsences();
             _lastReconciledZone = _vanilla.GetZoneOf(_vanilla.PlayerId);
             RegisterLocalVanillaActors(_lastReconciledZone);
+            ReportCharacterIdentity();
             EstablishEarlyContacts(_lastReconciledZone);
             MaybeGenerateLocalSituation(_lastReconciledZone);
             MaybeGenerateHomeResidentSituation();
@@ -620,7 +621,6 @@ namespace BrilliantQuesting.Plugin
                 {
                     npc = _world.Registry.Add(new NarrativeNpc(id, chara.Name)
                     {
-                        Occupation = "local",
                         HomeSiteId = zoneId
                     });
                     registered++;
@@ -635,11 +635,95 @@ namespace BrilliantQuesting.Plugin
                 }
 
                 npc.VanillaCharaRef = chara.uid.ToString();
+
+                // Who they are is read here and nowhere else. Registration used to assert an
+                // occupation of "local" for every townsperson in the game, which was a claim BQ
+                // invented and then persisted; identity is now a live read at the seam, and the
+                // only part of it that lands in the world model is the standing the authority
+                // policy acts on - re-read every attach rather than kept in sync.
+                ElinAuthorityRoles.Apply(npc, _vanilla.GetCharacterIdentity(id));
             }
 
             if (registered > 0)
             {
                 _log.LogInfo("Registered " + registered + " local vanilla actor(s) for situation generation.");
+            }
+        }
+
+        /// <summary>
+        /// BQ-144's live diagnostic: what the game says about everybody standing in this town.
+        ///
+        /// One line per loaded character with all six facets, then a tally of the facets this
+        /// build could not answer for anybody. The tally is the part worth having - "no shopkeeper
+        /// in this town" and "this build cannot see shops" look identical in a per-character list
+        /// and are entirely different problems.
+        ///
+        /// Reads only: it resolves bindings that already exist, registers nobody and mutates
+        /// nothing.
+        /// </summary>
+        private void ReportCharacterIdentity()
+        {
+            if (EClass._map?.charas == null)
+            {
+                return;
+            }
+
+            try
+            {
+                System.Collections.Generic.Dictionary<IdentityFacetKind, int> unread =
+                    new System.Collections.Generic.Dictionary<IdentityFacetKind, int>();
+                int read = 0;
+
+                foreach (Chara chara in EClass._map.charas)
+                {
+                    if (chara == null || chara.isDead || chara.IsPC)
+                    {
+                        continue;
+                    }
+
+                    EntityId id = ElinBindings.MintCharaId(chara, _vanilla.PlayerId);
+                    if (id.IsNone)
+                    {
+                        continue;
+                    }
+
+                    CharacterIdentity identity = _vanilla.GetCharacterIdentity(id);
+                    read++;
+                    _log.LogInfo("  identity " + chara.Name + " [" + id + "]: " + identity.Describe());
+
+                    System.Collections.Generic.IReadOnlyList<IdentityFacetKind> missing = identity.UnreadFacets;
+                    for (int i = 0; i < missing.Count; i++)
+                    {
+                        unread.TryGetValue(missing[i], out int count);
+                        unread[missing[i]] = count + 1;
+                    }
+                }
+
+                if (read == 0)
+                {
+                    _log.LogInfo("Character identity: nobody loaded here to read.");
+                    return;
+                }
+
+                System.Collections.Generic.List<string> gaps = new System.Collections.Generic.List<string>();
+                foreach (IdentityFacetKind facet in (IdentityFacetKind[])Enum.GetValues(typeof(IdentityFacetKind)))
+                {
+                    if (unread.TryGetValue(facet, out int count))
+                    {
+                        gaps.Add(facet + " unread for " + count + " of " + read);
+                    }
+                }
+
+                _log.LogInfo("Character identity read for " + read + " loaded character(s)."
+                             + (gaps.Count == 0
+                                 ? " Every facet answered."
+                                 : " Unanswered facets: " + string.Join(", ", gaps.ToArray()) + "."));
+            }
+            catch (Exception ex)
+            {
+                // A population that cannot be described is a diagnostic that says so. It must
+                // never be a reason the save fails to attach.
+                _log.LogError("Character identity diagnostic failed: " + ex);
             }
         }
 

@@ -394,8 +394,10 @@ namespace BrilliantQuesting.Plugin
             }
 
             // Guards and guild staff have to be recognisable as such the moment they enter the
-            // world model, or AuthorityPolicy has nobody to hand an accusation to.
-            ElinAuthorityRoles.Apply(npc, chara);
+            // world model, or AuthorityPolicy has nobody to hand an accusation to. Read through
+            // the seam now the binding exists, so this is the same observation every other
+            // consumer of identity gets rather than a private trait read.
+            ElinAuthorityRoles.Apply(npc, _vanilla.GetCharacterIdentity(id));
 
             return id;
         }

@@ -1,22 +1,27 @@
+using System;
+using System.Collections.Generic;
 using BepInEx.Logging;
 using BrilliantQuesting.Actions.Library;
 using BrilliantQuesting.Foundation;
+using BrilliantQuesting.Integration;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Plugin
 {
     /// <summary>
-    /// Tells the simulation which live characters carry authority.
+    /// Turns the institutional facet of the identity observation into standing the simulation can
+    /// act on.
     ///
     /// `AuthorityPolicy` decides what a guard or a guild will act on, and it reads
-    /// `NarrativeNpc.Roles` to know who is which. Nothing populated that for anyone the
-    /// mod did not stage itself: characters registered from observed vanilla play were created
-    /// with a name and nothing else, so every real townsperson resolved to `AuthorityRole.None`
-    /// and the report verb could never be offered to anybody in an actual game.
+    /// `NarrativeNpc.Roles` to know who is which. Nothing populated that for anyone the mod did
+    /// not stage itself, so every real townsperson resolved to `AuthorityRole.None` and the report
+    /// verb could never be offered to anybody in an actual game.
     ///
-    /// Elin marks these people with trait subclasses - `TraitGuard`, and `TraitGuildPersonnel`
-    /// for the clerks and doormen who staff a guild - so the adapter reads the trait and grants
-    /// the role the policy is expecting, withdrawing it again if the trait ever stops saying so.
+    /// This file used to read `Chara.trait` itself. It no longer does: the trait is read once, at
+    /// the seam, as the institutional facet of <see cref="CharacterIdentity"/>, and what is left
+    /// here is the interpretation - which observed office counts as which BQ authority word. One
+    /// read of the game, one place it is interpreted, and the identity vocabulary that crosses the
+    /// seam stays Elin's own.
     ///
     /// There is no court in vanilla Elin; `AuthorityRole.Court` stays reachable only through a
     /// staged or modded character, which is why nothing here produces it.
@@ -26,73 +31,75 @@ namespace BrilliantQuesting.Plugin
         internal const string Guard = AuthorityPolicy.GuardRole;
         internal const string Guild = AuthorityPolicy.GuildRole;
 
-        /// <summary>The occupation word for this character, or null when they hold no authority.</summary>
-        internal static string For(Chara chara)
-        {
-            Trait trait = chara?.trait;
-            if (trait == null)
-            {
-                return null;
-            }
-
-            if (trait is TraitGuard)
-            {
-                return Guard;
-            }
-
-            if (trait is TraitGuildPersonnel || trait is TraitGuildDoorman)
-            {
-                return Guild;
-            }
-
-            return null;
-        }
-
         /// <summary>
-        /// Brings an NPC's standing into line with what the game says about them now.
+        /// Which BQ authority words the observed offices amount to.
         ///
-        /// Grants the role the trait implies and withdraws any this policy owns that the trait no
-        /// longer supports, so a character who stops being a guard stops being able to take a
-        /// crime report. That withdrawal is only safe because roles are their own field: while
-        /// authority was kept in the occupation string there was no way to say "not any more"
-        /// without erasing what the person does for a living.
-        ///
-        /// Only roles the authority policy owns are touched. Anything a situation or an
-        /// organization granted is left alone - it is not this adapter's to take away.
+        /// Matched on the office id - the game's own trait type name - rather than on a trait
+        /// object, so an office this build spells differently is simply not recognised and grants
+        /// nothing, instead of throwing away the rest of the observation.
         /// </summary>
-        internal static bool Apply(NarrativeNpc npc, Chara chara)
+        internal static IReadOnlyList<string> RolesFrom(CharacterIdentity identity)
         {
-            if (npc == null)
+            List<string> roles = new List<string>();
+            if (identity == null)
             {
-                return false;
+                return roles;
             }
 
-            string role = For(chara);
-            bool changed = false;
-
-            foreach (string owned in AuthorityPolicy.AuthorityRoles)
+            for (int i = 0; i < identity.Institutions.Count; i++)
             {
-                if (owned != role && npc.Roles.Remove(owned))
+                string office = identity.Institutions[i].Role.VanillaId;
+                if (office.IndexOf("Guard", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    changed = true;
+                    Add(roles, Guard);
+                }
+                else if (office.IndexOf("Guild", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    Add(roles, Guild);
                 }
             }
 
-            if (role != null && npc.Roles.Add(role))
-            {
-                changed = true;
-            }
+            return roles;
+        }
 
-            return changed;
+        /// <summary>One word each: two guild offices on one person is still one guild standing.</summary>
+        private static void Add(List<string> roles, string role)
+        {
+            if (!roles.Contains(role))
+            {
+                roles.Add(role);
+            }
         }
 
         /// <summary>
-        /// Brings every bound character's authority up to date on load, so a save made before this
-        /// existed - or one where somebody has since become a guard - reports correctly.
+        /// Brings an NPC's standing into line with what the game says about them now, and reports
+        /// whether anything moved.
+        ///
+        /// Grants the role the observed office implies and withdraws any this policy owns that the
+        /// observation no longer supports, so a character who stops being a guard stops being able
+        /// to take a crime report. An observation whose institutional facet went unread changes
+        /// nothing at all: not being able to look is not the game saying somebody was dismissed.
         /// </summary>
-        internal static void RefreshAll(NarrativeWorldState world, ElinBindings bindings, ManualLogSource log)
+        internal static bool Apply(NarrativeNpc npc, CharacterIdentity identity)
         {
-            if (world == null || bindings == null)
+            return AuthorityPolicy.Reconcile(
+                npc,
+                RolesFrom(identity),
+                identity != null && identity.InstitutionsRead);
+        }
+
+        /// <summary>
+        /// Brings every character the game can currently answer for up to date, so a save made
+        /// before this existed - or one where somebody has since become a guard - reports
+        /// correctly.
+        ///
+        /// Goes through the seam rather than through the bindings: an actor the adapter cannot
+        /// resolve comes back with every facet unknown, which is the same "the game was not asked"
+        /// that a null Chara used to mean, and <see cref="Apply"/> leaves them alone.
+        /// </summary>
+        internal static void RefreshAll(NarrativeWorldState world, IVanillaState vanilla, ManualLogSource log)
+        {
+            if (world == null || vanilla == null)
             {
                 return;
             }
@@ -100,11 +107,7 @@ namespace BrilliantQuesting.Plugin
             int updated = 0;
             foreach (NarrativeNpc npc in world.Registry.Npcs.Values)
             {
-                // Only characters the game can currently show us. An NPC who is off-map or
-                // unloaded resolves to null, and null is not the game saying they stopped being
-                // a guard - it is the game not being asked.
-                Chara chara = bindings.ResolveChara(npc.Id);
-                if (chara != null && Apply(npc, chara))
+                if (Apply(npc, vanilla.GetCharacterIdentity(npc.Id)))
                 {
                     updated++;
                 }

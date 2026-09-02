@@ -46,6 +46,24 @@ namespace BrilliantQuesting.Integration
         /// <summary>How much ordinary testimony/commerce/deception agency this actor presents.</summary>
         SocialAgency GetSocialAgency(EntityId chara);
 
+        /// <summary>
+        /// Who the game says this character is: character archetype, race, work, hobby, service
+        /// role and institutional standing, each carrying Elin's own id and each unknown on its
+        /// own terms.
+        ///
+        /// Always an observation, never null - an actor this build cannot resolve is somebody
+        /// every facet is unknown about, which is a true statement and a usable one. It says
+        /// nothing about what any facet means, grants nothing, and is emphatically not an input to
+        /// the mutation policy: how far the mod may reach into somebody is
+        /// <see cref="GetActorClass"/>'s answer and only ever will be. A costume is not a
+        /// permission.
+        ///
+        /// A live read, like <see cref="GetHomeState"/> and for the same reason: nothing here is
+        /// persisted, so a save cannot carry a stale claim about who somebody is. Hold it for one
+        /// pass and ask again after a zone change, a save or a load.
+        /// </summary>
+        CharacterIdentity GetCharacterIdentity(EntityId chara);
+
         // -- characters -------------------------------------------------------------------
 
         /// <summary>

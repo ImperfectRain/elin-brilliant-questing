@@ -6,8 +6,9 @@
 |---|---|---|---|
 | `Now` | `EClass.world.date.GetRaw()` | `VERIFIED-RUNTIME` | Zero fallback if unreadable |
 | `PlayerId` | bound from `EClass.pc.uid` | `VERIFIED-RUNTIME` | Stable BQ id for player |
-| `Supports` | BQ capability probes | `VERIFIED-RUNTIME` | 13/14 current log |
+| `Supports` | BQ capability probes | `VERIFIED-RUNTIME` | 13/14 in the last live log, before `ReadCharacterIdentity` was added |
 | `GetActorClass` | `IsPC`, `IsPCParty`, `Card.IsUnique`, `IsImportant`, `c_uniqueData`, `c_isImportant`, trait/quest/Home/branch flags | `VERIFIED-METADATA`, `SOURCE-OBSERVED`, `STUB-VERIFIED`, `UNRESOLVED` live thresholds | Safe fallback `Unknown` |
+| `GetCharacterIdentity` | `Chara.source` (`id`/`aka`, `job`/`idJob`, `hobbies`), `Chara.idRace` and the race row, service trait subclasses, `TraitGuard`/`TraitGuildPersonnel`/`TraitGuildDoorman`, `Chara.faction` | `VERIFIED-METADATA` traits, `SOURCE-DATA` source columns, `UNRESOLVED` runtime | BQ-144. Six separately typed facets carrying Elin's own ids; each facet fails on its own and an unread one is `Unknown`, never `""`/`"local"`/a default job. Never persisted; not an input to mutation policy |
 | `GetLifeState` / `IsAlive` | `Chara.isDead` after `ResolveChara` succeeds | `VERIFIED-METADATA` | `Unknown` if unresolved; lifecycle only treats `Dead` as death evidence |
 | `GetAttribute/GetSkill` | `Chara.elements.Value(int)` | `VERIFIED-RUNTIME` | Alias table resolved |
 | `GetLevel` | `Chara.LV` | `VERIFIED-METADATA` | Default 1 |

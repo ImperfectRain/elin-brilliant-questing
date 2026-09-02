@@ -181,6 +181,23 @@ namespace BrilliantQuesting.Plugin
             // Home is not a no-op the way ModCurrency(0) is. What is checked is that the branch
             // exposes a member this build can call, and the call itself is verified where it
             // happens, by asking the settlement who lives there afterwards.
+            // The player is the one character certain to exist while the probe runs, and their own
+            // source row is read the same way everybody else's is. A probe that answered on
+            // nobody would report identity available on a build that cannot read a single facet.
+            Probe(
+                VanillaCapability.ReadCharacterIdentity,
+                () =>
+                {
+                    if (EClass.pc == null)
+                    {
+                        return null;
+                    }
+
+                    CharacterIdentity identity = ElinCharacterIdentity.Read(EClass.pc, PlayerId, _log);
+                    return identity.IsFullyUnknown ? null : "pc identity => " + identity.Describe();
+                },
+                "no character loaded, or this build answered none of the six identity facets");
+
             Probe(
                 VanillaCapability.WriteHomeResidents,
                 () =>
@@ -307,6 +324,25 @@ namespace BrilliantQuesting.Plugin
             }
 
             return ElinActorClasses.ClassifySocialAgency(resolved, _log);
+        }
+
+        /// <summary>
+        /// Who the game says this character is. A character this build cannot resolve, and a
+        /// build that cannot read the source rows at all, are both somebody every facet is
+        /// unknown about - which grants nothing and blocks nobody from being present, talked to
+        /// or cast.
+        ///
+        /// Reads only. It resolves an existing binding, never mints one, and materialises nobody.
+        /// </summary>
+        protected override CharacterIdentity GetCharacterIdentityCore(EntityId chara)
+        {
+            if (!Supports(VanillaCapability.ReadCharacterIdentity))
+            {
+                return CharacterIdentity.UnknownFor(chara);
+            }
+
+            Chara resolved = chara == PlayerId ? EClass.pc : _bindings.ResolveChara(chara);
+            return ElinCharacterIdentity.Read(resolved, chara, _log);
         }
 
         /// <param name="absentReason">

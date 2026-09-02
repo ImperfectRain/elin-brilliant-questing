@@ -38,6 +38,14 @@ namespace BrilliantQuesting.Integration
             public NarrativeActorClass ActorClass = NarrativeActorClass.OrdinaryCitizen;
             public NarrativeActorKind ActorKind = NarrativeActorKind.Person;
             public SocialAgency SocialAgency = SocialAgency.Full;
+
+            /// <summary>
+            /// Who the game says this is. Null - every facet unknown - unless a test said
+            /// otherwise, and deliberately not defaulted the way the class is: a headless world
+            /// authors what somebody may be reached into, and it does not author a job for
+            /// everybody who happens to exist.
+            /// </summary>
+            public CharacterIdentity Identity;
         }
 
         private readonly Dictionary<EntityId, CharaState> _charas = new Dictionary<EntityId, CharaState>();
@@ -167,6 +175,17 @@ namespace BrilliantQuesting.Integration
         public SandboxVanillaState SetSocialAgency(EntityId chara, SocialAgency agency)
         {
             Ensure(chara).SocialAgency = agency;
+            return this;
+        }
+
+        /// <summary>
+        /// Says who the game thinks this character is. Built through
+        /// <see cref="CharacterIdentityBuilder"/> so a headless laboratory expresses "this facet
+        /// was never read" exactly the way the live adapter does.
+        /// </summary>
+        public SandboxVanillaState SetCharacterIdentity(EntityId chara, CharacterIdentity identity)
+        {
+            Ensure(chara).Identity = identity;
             return this;
         }
 
@@ -499,6 +518,25 @@ namespace BrilliantQuesting.Integration
         protected override SocialAgency GetSocialAgencyCore(EntityId chara)
         {
             return chara == PlayerId ? SocialAgency.Full : Ensure(chara).SocialAgency;
+        }
+
+        /// <summary>
+        /// The identity nobody authored is the identity nobody knows. Reads through
+        /// <see cref="Dictionary{TKey,TValue}.TryGetValue"/> rather than through
+        /// <c>Ensure</c> on purpose: the contract says the observation registers nobody, and a
+        /// read that quietly created a character would break that in the one implementation the
+        /// tests can see it in.
+        /// </summary>
+        protected override CharacterIdentity GetCharacterIdentityCore(EntityId chara)
+        {
+            if (!Supports(VanillaCapability.ReadCharacterIdentity))
+            {
+                return CharacterIdentity.UnknownFor(chara);
+            }
+
+            return _charas.TryGetValue(chara, out CharaState state) && state.Identity != null
+                ? state.Identity
+                : CharacterIdentity.UnknownFor(chara);
         }
 
         protected override void OnMutationRefused(string message) => _refusals.Add(message);

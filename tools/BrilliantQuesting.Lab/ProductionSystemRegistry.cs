@@ -105,7 +105,8 @@ namespace BrilliantQuesting.Lab
                 new HarnessCoverageEntry("live_witness_los", HarnessCoverageState.PluginOnly, "Elin runtime", "Map LOS, stealth, and observer discovery are sampled in plugin code."),
                 new HarnessCoverageEntry("unity_object_lifecycle", HarnessCoverageState.PluginOnly, "Elin runtime", "Chara, Thing, Zone creation/destruction and pathing are Unity/game side effects."),
                 new HarnessCoverageEntry("native_dialogue_journal", HarnessCoverageState.PluginOnly, "Elin runtime", "Drama projection and native journal UI cannot be validated offline."),
-                new HarnessCoverageEntry("actor_activity_snapshot", HarnessCoverageState.Future, "BQ-135", "Transient actor activity remains intentionally unavailable until the production seam exists.")
+                new HarnessCoverageEntry("actor_activity_snapshot", HarnessCoverageState.Future, "BQ-135", "Transient actor activity remains intentionally unavailable until the production seam exists."),
+                new HarnessCoverageEntry("character_identity", HarnessCoverageState.PluginOnly, "Elin runtime", "The six identity facets come off SourceChara rows, the race row and trait subclasses; headless runs can only prove how an unread facet degrades.")
             };
         }
 
