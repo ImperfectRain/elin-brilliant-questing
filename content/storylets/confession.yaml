@@ -9,11 +9,11 @@ payload:
     - pressured
   requiredRoles:
     - id: listener
-      source: Actor
+      source: AnyoneWhoKnowsFocus
     - id: confessor
       source: FactSubject
     - id: injured_party
-      source: FactObject
+      source: OwnerOfFocusObject
   preconditions:
     - kind: FactBelongsToThread
     - kind: FocusPredicate

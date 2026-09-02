@@ -9,11 +9,12 @@ payload:
     - social
   requiredRoles:
     - id: speaker
-      source: Actor
+      source: AnyoneWhoKnowsFocus
     - id: subject
-      source: Target
+      source: FactSubject
+  optionalRoles:
     - id: knower
-      source: AnyParticipantWhoKnowsFocus
+      source: AnyoneWhoKnowsFocus
   preconditions:
     - kind: FactBelongsToThread
     - kind: FocusPredicate

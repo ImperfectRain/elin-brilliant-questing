@@ -274,4 +274,34 @@ the second a guild becomes a way to edit the past. Without the third it is eithe
 repeatable, and worth nothing to have earned - or a second progression system quietly disagreeing
 with the one the player can see on the guild board.
 
+## D026 — A storylet role is a requirement, not a position, and nobody is their role
+
+A storylet names temporary roles - Accuser, Accused, Witness, Mediator, Confidant - and
+`StoryletCasting` fills each from whoever qualifies in the place the scene happens in. Three rules
+bind it.
+
+**A role holder is found, not handed over.** Positive requirements ask for knowledge, proof,
+ownership or standing; negative requirements reject the dead, the absent, anybody without social
+agency, anything the registry does not know as a person, and the player, who is written into a role
+only when the caller names them. Resolving a role by the slot somebody happened to occupy - the
+first participant who knew the fact, the object half of the focus - is what produced an accusation
+whose corroborating witness was the accused and a theft whose injured party was the ring.
+
+**One person, one role per scene.** Named sources bind before searched ones and required roles
+before optional ones, so a role that already knows who it wants cannot lose them, and an optional
+corroborator never takes the accuser. A role nobody is left for is uncast: required means the
+storylet refuses, optional means the scene plays without it.
+
+**Casting writes nothing.** Bindings live on the firing the thread keeps, never on a
+`NarrativeNpc`, so the next scene re-casts against the world as it is then, and a save carries who
+held a role rather than who somebody became.
+
+Choosing among the qualified stays deliberately unscored - first in a stable order - because
+preferring the better group is `BQ-068`'s role chemistry, and a score here would be a second one to
+keep in step with it.
+
+Reason: a role that is a position makes every storylet a template for the situation it was written
+against, which is the failure the whole storylet layer exists to avoid; and a role holder who is not
+a person is state a later save load throws the thread away over.
+
 Add a new entry only when the decision is both load-bearing and durable.

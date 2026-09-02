@@ -25,7 +25,7 @@
         "requiredRoles": [
           {
             "id": "listener",
-            "source": "Actor"
+            "source": "AnyoneWhoKnowsFocus"
           },
           {
             "id": "confessor",
@@ -33,7 +33,7 @@
           },
           {
             "id": "injured_party",
-            "source": "FactObject"
+            "source": "OwnerOfFocusObject"
           }
         ],
         "preconditions": [
@@ -83,15 +83,17 @@
         "requiredRoles": [
           {
             "id": "speaker",
-            "source": "Actor"
+            "source": "AnyoneWhoKnowsFocus"
           },
           {
             "id": "subject",
-            "source": "Target"
-          },
+            "source": "FactSubject"
+          }
+        ],
+        "optionalRoles": [
           {
             "id": "knower",
-            "source": "AnyParticipantWhoKnowsFocus"
+            "source": "AnyoneWhoKnowsFocus"
           }
         ],
         "preconditions": [
@@ -145,17 +147,17 @@
         "requiredRoles": [
           {
             "id": "challenger",
-            "source": "Actor"
+            "source": "AnyoneWhoKnowsFocus"
           },
           {
             "id": "accused",
-            "source": "Target"
+            "source": "FactSubject"
           }
         ],
         "optionalRoles": [
           {
             "id": "witness",
-            "source": "AnyParticipantWhoKnowsFocus"
+            "source": "AnyoneWhoKnowsFocus"
           }
         ],
         "preconditions": [
@@ -209,15 +211,17 @@
         "requiredRoles": [
           {
             "id": "accuser",
-            "source": "Actor"
+            "source": "AnyoneWhoKnowsFocus"
           },
           {
             "id": "accused",
-            "source": "Target"
-          },
+            "source": "FactSubject"
+          }
+        ],
+        "optionalRoles": [
           {
             "id": "knower",
-            "source": "AnyParticipantWhoKnowsFocus"
+            "source": "AnyoneWhoKnowsFocus"
           }
         ],
         "preconditions": [
@@ -272,15 +276,15 @@
         "requiredRoles": [
           {
             "id": "requester",
-            "source": "Actor"
+            "source": "AnyoneWhoKnowsFocus"
           },
           {
             "id": "suspect",
-            "source": "Target"
+            "source": "FactSubject"
           },
           {
             "id": "victim",
-            "source": "FactObject"
+            "source": "OwnerOfFocusObject"
           }
         ],
         "preconditions": [

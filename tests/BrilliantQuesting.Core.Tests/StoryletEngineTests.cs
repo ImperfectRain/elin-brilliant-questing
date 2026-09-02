@@ -33,6 +33,10 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(lab.Situation.TheftFactId, firing.FocusFactId);
             Assert.Equal(lab.Situation.WitnessId, firing.RoleBindings["accuser"]);
             Assert.Equal(lab.Situation.ThiefId, firing.RoleBindings["accused"]);
+
+            // Nobody holds two roles: the accused is not also produced as the knower who would
+            // be invited to corroborate the accusation against them.
+            Assert.DoesNotContain("knower", firing.RoleBindings.Keys);
             Assert.Equal(new[] { "name_charge", "invite_answer" }, firing.BeatIds);
             Assert.Equal(new[] { "record_social_pressure" }, firing.ConsequenceHookIds);
             Assert.Equal(factsBefore, lab.World.Knowledge.Facts.Count);
@@ -118,7 +122,12 @@ namespace BrilliantQuesting.Tests
             definition.ToneTags.Add("tense");
             definition.RequiredRoles.Add(new StoryletRole("accuser", StoryletRoleSource.Actor));
             definition.RequiredRoles.Add(new StoryletRole("accused", StoryletRoleSource.Target));
-            definition.RequiredRoles.Add(new StoryletRole("knower", StoryletRoleSource.AnyParticipantWhoKnowsFocus));
+
+            // Optional, because a corroborating knower is somebody the world may simply not have.
+            // It was required until BQ-067, and the only reason that ever fired is that role
+            // binding would hand the same person two roles: the knower of this theft was the
+            // thief being accused of it.
+            definition.OptionalRoles.Add(new StoryletRole("knower", StoryletRoleSource.AnyParticipantWhoKnowsFocus));
             definition.Preconditions.Add(StoryletPrecondition.FactBelongsToThread());
             definition.Preconditions.Add(StoryletPrecondition.FocusPredicate(FactPredicates.Stole));
             definition.Preconditions.Add(StoryletPrecondition.FocusTruth(TruthState.True));

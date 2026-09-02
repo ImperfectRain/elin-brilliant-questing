@@ -9,12 +9,12 @@ payload:
     - tense
   requiredRoles:
     - id: challenger
-      source: Actor
+      source: AnyoneWhoKnowsFocus
     - id: accused
-      source: Target
+      source: FactSubject
   optionalRoles:
     - id: witness
-      source: AnyParticipantWhoKnowsFocus
+      source: AnyoneWhoKnowsFocus
   preconditions:
     - kind: FactBelongsToThread
     - kind: FocusPredicate

@@ -9,11 +9,11 @@ payload:
     - practical
   requiredRoles:
     - id: requester
-      source: Actor
+      source: AnyoneWhoKnowsFocus
     - id: suspect
-      source: Target
+      source: FactSubject
     - id: victim
-      source: FactObject
+      source: OwnerOfFocusObject
   preconditions:
     - kind: FactBelongsToThread
     - kind: FocusPredicate

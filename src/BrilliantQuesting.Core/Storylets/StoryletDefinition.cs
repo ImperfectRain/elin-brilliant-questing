@@ -59,13 +59,48 @@ namespace BrilliantQuesting.Storylets
         public StoryletRoleSource Source { get; }
     }
 
+    /// <summary>
+    /// What a role requires of whoever fills it.
+    ///
+    /// Two families. The first four are *named*: the scene or the focus fact already says who
+    /// this is. The rest are *searched*: they describe a requirement, and
+    /// <see cref="StoryletCasting"/> finds somebody here who meets it - which is what lets one
+    /// definition play in two towns with nobody named in it.
+    /// </summary>
     public enum StoryletRoleSource
     {
+        /// <summary>Whoever the caller is staging the scene around. Usually who the player is with.</summary>
         Actor,
+
+        /// <summary>The other person the caller already named.</summary>
         Target,
+
+        /// <summary>The person the focus fact is about - the thief of "X stole Y".</summary>
         FactSubject,
+
+        /// <summary>
+        /// Whatever sits in the fact's object slot, bound only when that is a person the registry
+        /// knows. For "X stole Y" the object is the ring, and a ring is nobody's accuser.
+        /// </summary>
         FactObject,
-        AnyParticipantWhoKnowsFocus
+
+        /// <summary>
+        /// The legacy spelling of <see cref="AnyoneWhoKnowsFocus"/>, kept so bundles and saves
+        /// written before casting existed keep loading. It searches like the new one.
+        /// </summary>
+        AnyParticipantWhoKnowsFocus,
+
+        /// <summary>The person the world records as holding what the focus fact is about.</summary>
+        OwnerOfFocusObject,
+
+        /// <summary>Somebody here who knows the focus fact - a witness, an accuser, a gossip.</summary>
+        AnyoneWhoKnowsFocus,
+
+        /// <summary>Somebody here who can actually prove it, not merely believe it.</summary>
+        AnyoneWhoCanProveFocus,
+
+        /// <summary>Somebody here who holds standing of any kind - a guard, guild personnel, a mediator.</summary>
+        AnyoneWithStandingHere
     }
 
     public sealed class StoryletBeat

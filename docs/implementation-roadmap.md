@@ -917,6 +917,18 @@ Temporary roles — Accuser, Accused, Witness, Mediator, Confidant — cast from
 Roles are never identities.
 - **Depends** BQ-065.
 - **Done when** the same storylet casts different actors in two different towns and both read correctly.
+- **Current implementation** `StoryletCasting` fills each declared role from the people the thread
+  and the place actually hold, against the requirement the role names — knowledge, proof, ownership
+  of what is at issue, standing — and rejects the dead, the absent, the socially incapable, anything
+  the registry does not know as a person, and anybody already holding another role in the same
+  scene (`D026`). Bindings live on the firing, never on an actor.
+  Because this step was skipped past, the storylet content authored at BQ-131 had been written
+  against positional binding and carried two defects it could not have caught: the corroborating
+  knower of `public_accusation` and `gossip` resolved to the accused, and the injured party of
+  `request_for_help` and `confession` resolved to the stolen item rather than its owner — which
+  `BQ-105`'s save integrity check would have quarantined the thread over. The five storylets now
+  name qualified sources, and a corroborator the world may not have is optional rather than
+  required. Selection among the qualified stays unscored; that is BQ-068.
 - **Sources** CD §13, §3 principle 1.
 
 #### BQ-068 — Role chemistry

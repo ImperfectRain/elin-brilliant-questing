@@ -30,10 +30,22 @@ namespace BrilliantQuesting.Storylets
             EntityId target,
             EntityId focusFactId)
         {
+            return Find(Context(world, vanilla, thread, actor, target, focusFactId));
+        }
+
+        /// <summary>
+        /// Every storylet that can play here, cast from whoever qualifies in the context's place.
+        ///
+        /// The route that does not require the caller to have decided who anybody is: a thread, a
+        /// fact and a town are enough, and the same definitions produce a different cast in the
+        /// next town without a word of content changing.
+        /// </summary>
+        public IReadOnlyList<StoryletOpportunity> Find(StoryletCastingContext context)
+        {
             List<StoryletOpportunity> opportunities = new List<StoryletOpportunity>();
             for (int i = 0; i < _definitions.Count; i++)
             {
-                StoryletOpportunity opportunity = Evaluate(_definitions[i], world, vanilla, thread, actor, target, focusFactId);
+                StoryletOpportunity opportunity = Evaluate(_definitions[i], context);
                 if (opportunity.IsAvailable)
                 {
                     opportunities.Add(opportunity);
@@ -92,17 +104,34 @@ namespace BrilliantQuesting.Storylets
             EntityId target,
             EntityId focusFactId)
         {
+            return Evaluate(definition, Context(world, vanilla, thread, actor, target, focusFactId));
+        }
+
+        public static StoryletOpportunity Evaluate(StoryletDefinition definition, StoryletCastingContext context)
+        {
             if (definition == null)
             {
                 throw new ArgumentNullException(nameof(definition));
             }
+
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            NarrativeWorldState world = context.World;
+            IVanillaState vanilla = context.Vanilla;
+            NarrativeThread thread = context.Thread;
+            EntityId focusFactId = context.FocusFactId;
 
             if (world == null || vanilla == null || thread == null)
             {
                 return StoryletOpportunity.Refused(definition, focusFactId, "there is no live world context");
             }
 
-            if (!SceneStatus.Check(world, vanilla, thread, target).IsPlayable)
+            // The subject the caller named is the one checked hardest, exactly as before; a scene
+            // cast entirely from the place names nobody, and the thread itself is what is checked.
+            if (!SceneStatus.Check(world, vanilla, thread, context.Target).IsPlayable)
             {
                 return StoryletOpportunity.Refused(definition, focusFactId, "scene preconditions no longer hold");
             }
@@ -113,92 +142,36 @@ namespace BrilliantQuesting.Storylets
                 return StoryletOpportunity.Refused(definition, focusFactId, "focus fact no longer exists");
             }
 
-            Dictionary<string, EntityId> roles = BindRoles(definition, world, thread, actor, target, focus);
-            for (int i = 0; i < definition.RequiredRoles.Count; i++)
+            StoryletCastingResult casting = StoryletCasting.Cast(definition, context, focus);
+            if (!casting.IsCast)
             {
-                if (!roles.ContainsKey(definition.RequiredRoles[i].Id))
-                {
-                    return StoryletOpportunity.Refused(definition, focusFactId, "required role " + definition.RequiredRoles[i].Id + " cannot be cast");
-                }
+                return StoryletOpportunity.Refused(definition, focusFactId, "required role " + casting.UncastRequiredRole + " cannot be cast");
             }
 
             for (int i = 0; i < definition.Preconditions.Count; i++)
             {
-                string reason = CheckPrecondition(definition.Preconditions[i], world, vanilla, thread, focus, roles);
+                string reason = CheckPrecondition(definition.Preconditions[i], world, vanilla, thread, focus, casting.Bindings);
                 if (reason != null)
                 {
                     return StoryletOpportunity.Refused(definition, focusFactId, reason);
                 }
             }
 
-            return StoryletOpportunity.Available(definition, focusFactId, roles);
+            return StoryletOpportunity.Available(definition, focusFactId, casting.Bindings, casting.Notes);
         }
 
-        private static Dictionary<string, EntityId> BindRoles(
-            StoryletDefinition definition,
+        private static StoryletCastingContext Context(
             NarrativeWorldState world,
+            IVanillaState vanilla,
             NarrativeThread thread,
             EntityId actor,
             EntityId target,
-            Fact focus)
+            EntityId focusFactId)
         {
-            Dictionary<string, EntityId> roles = new Dictionary<string, EntityId>();
-            BindRoles(definition.RequiredRoles, world, thread, actor, target, focus, roles);
-            BindRoles(definition.OptionalRoles, world, thread, actor, target, focus, roles);
-            return roles;
-        }
-
-        private static void BindRoles(
-            IReadOnlyList<StoryletRole> definitions,
-            NarrativeWorldState world,
-            NarrativeThread thread,
-            EntityId actor,
-            EntityId target,
-            Fact focus,
-            Dictionary<string, EntityId> roles)
-        {
-            for (int i = 0; i < definitions.Count; i++)
-            {
-                EntityId binding = ResolveRole(definitions[i].Source, world, thread, actor, target, focus);
-                if (!binding.IsNone)
-                {
-                    roles[definitions[i].Id] = binding;
-                }
-            }
-        }
-
-        private static EntityId ResolveRole(
-            StoryletRoleSource source,
-            NarrativeWorldState world,
-            NarrativeThread thread,
-            EntityId actor,
-            EntityId target,
-            Fact focus)
-        {
-            switch (source)
-            {
-                case StoryletRoleSource.Actor:
-                    return actor;
-                case StoryletRoleSource.Target:
-                    return target;
-                case StoryletRoleSource.FactSubject:
-                    return focus.Subject;
-                case StoryletRoleSource.FactObject:
-                    return focus.Object;
-                case StoryletRoleSource.AnyParticipantWhoKnowsFocus:
-                    for (int i = 0; i < thread.ParticipantIds.Count; i++)
-                    {
-                        EntityId participant = thread.ParticipantIds[i];
-                        if (world.Knowledge.Knows(participant, focus.Id))
-                        {
-                            return participant;
-                        }
-                    }
-
-                    return EntityId.None;
-                default:
-                    return EntityId.None;
-            }
+            StoryletCastingContext context = new StoryletCastingContext(world, vanilla, thread, focusFactId);
+            context.Actor = actor;
+            context.Target = target;
+            return context;
         }
 
         private static string CheckPrecondition(
