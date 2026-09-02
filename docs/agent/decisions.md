@@ -444,4 +444,52 @@ and a speech vocabulary that starts from authority becomes the verb registry wea
 name. Keeping meaning downstream of the action system and upstream of every word is what lets
 disclosure, lying, conversation state and realization all consume the same small contract.
 
+## D031 — Disclosure is a decision over authoritative state, and withholding is never lying
+
+BQ-071 decides whether somebody who holds a belief will say it to the person in front of them. Four
+rules keep it from becoming either a second character sheet or a second dice layer.
+
+**Belief is the gate, and identity is not belief.** Nothing unbelieved is ever disclosed: the
+knowledge graph is asked first, and no belief ends the decision as `NothingToDisclose` before any
+pressure is weighed. That state is deliberately distinct from `Refuse` — "I will not tell you" and
+"I do not know" are different facts about the world. `IdentityAffordances.PlausibleKnowledgeOf` says
+what a character would plausibly know and remains a casting and interpretation input (BQ-145,
+BQ-064); a watchman who ought to know about a theft in his town does not thereby know about it, and
+a disclosure layer that filled that gap would be inventing a fact at the exact moment the player was
+told they were learning one — `D008` wearing a different hat.
+
+**Every pressure is a reading of state that already exists.** Belief confidence and source,
+`PersonalityWeights`, `RelationshipGraph` ties to the listener *and* to whoever the claim is about,
+`Fact.Secrecy`, the obligation ledger, `ValueProfile`, `SensitivityProfile` and the decaying
+`EmotionalStateProfile`. There is no disclosure profile on a character, no per-topic willingness
+table and no accumulated standing: the balance is arithmetic performed on the spot and discarded, so
+there is no second social score that can disagree with the relationships and beliefs it was read
+from, and deciding writes nothing. A pressure whose state is absent contributes nothing rather than
+a default, so an unmodelled character is neutral instead of quietly secretive (`D017`).
+
+**It is a character decision, not a difficulty check.** No resolver, no `ActionContext`, no rng —
+enforced structurally, not by convention. The same speaker asked the same thing in the same state
+answers the same way every time, and what changes the answer is the world changing: a tie mended, a
+fear decayed, a leverage spent. Persuasion stays the action layer's (`D016`) and may change the
+state this reads, never this reading of it. A decision nobody can interrogate is indistinguishable
+from a roll, so the inspector prints every pressure with its sign, its size and the state behind it,
+and names the decisive ones by the only definition that needs no theory: those whose removal would
+have produced a different strategy.
+
+**Withholding is never lying.** The ladder has four rungs — `Disclose`, `Hedge`, `Deflect`,
+`Refuse` — and none of them asserts anything false; there is no rung that could. A refusal composes
+to BQ-070's `Refuse`, which carries no proposition, and a deflection composes to *no act at all*,
+because the vocabulary has no `Evade` and reaching for `Refuse` instead would delete the difference
+between letting a question go and turning it down. Which act carries an untruth, and how the world
+records one so it can be caught, is BQ-073's. Hedging is a weaker commitment to the *whole* claim
+rather than a smaller *part* of it, and the decision has nowhere to put a depth, because how much of
+one fact comes out in stages is BQ-072's.
+
+Reason: a dialogue layer that asks only "does this character know?" spends every secret in the world
+on one conversation, and information stops being something the player earns from a person. Making
+willingness a separate, explainable reading of state the simulation already holds is what lets
+interrogation, blackmail, friendship and secrets all be the same mechanism seen from different
+sides — and keeping falsehood out of it is what leaves BQ-073 a lie that is catchable rather than a
+refusal that quietly became one.
+
 Add a new entry only when the decision is both load-bearing and durable.

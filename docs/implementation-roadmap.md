@@ -1182,6 +1182,31 @@ Knowing a fact does not imply telling it. Compute disclosure pressure from priva
 fear, loyalty, leverage, legal risk and social practice.
 - **Depends** BQ-070, BQ-063.
 - **Done when** the same NPC answers directly, hedges, deflects and refuses across four relationship levels.
+- **Current implementation** `Disclosure.Decide` returns a `DisclosureDecision` for one speaker,
+  one listener and one claim: a four-rung ladder — `Disclose`, `Hedge`, `Deflect`, `Refuse` — plus
+  `NothingToDisclose`, which is not a willingness answer at all. The first thing it does is ask the
+  knowledge graph for a belief, and no belief ends it before a single pressure is weighed; identity
+  says what somebody would *plausibly* know and that never becomes one. Ten signed pressures are
+  read from state that already exists — belief confidence and source, personality honesty, trust,
+  loyalty and vengefulness, the tie to whoever is asking and the tie to whoever the claim is about,
+  the fact's own secrecy, the obligation ledger, `ValueConcern.Law`/`Family`/`Status`,
+  `SensitivityProfile` and the decaying `EmotionalStateProfile`. Nothing is stored: the balance is
+  arithmetic performed on the spot and thrown away, so no second social score can drift out of
+  agreement with the state it describes, and deciding writes nothing at all. It is a character
+  decision and not a difficulty check — no resolver, no `ActionContext`, no rng, enforced
+  structurally — so the same state always answers the same way and what changes an answer is the
+  world changing. `NarrativeInspector.DescribeDisclosure` prints every pressure with its sign, size
+  and the state behind it, and names the decisive ones by the only definition that needs no theory:
+  those whose removal would have produced a different strategy. `Disclosure.Compose` turns a
+  decision into BQ-070's vocabulary where the vocabulary has an act for it — `Answer` for both
+  forthcoming rungs, `Refuse` for the refusal.
+  Deferred by design: a deflection composes to *no act*, because there is no `Evade` in the
+  vocabulary and adding one is BQ-073's call; there is no lie strategy and no way to express one,
+  so a refusal cannot silently become a falsehood; there is no maximum-detail field, because a
+  hedge is a weaker commitment to the whole claim rather than a smaller part of it and graduated
+  depth is BQ-072's. Social practice is the one pressure on CD §17.5's list that is absent, because
+  §16's norms are not state yet and a pressure derived from nothing would be a number pretending to
+  be a reason.
 - **Sources** CD §17.5; PM §38.
 
 #### BQ-072 — Relationship-dependent depth

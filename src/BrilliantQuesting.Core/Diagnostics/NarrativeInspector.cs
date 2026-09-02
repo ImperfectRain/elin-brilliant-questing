@@ -133,6 +133,114 @@ namespace BrilliantQuesting.Diagnostics
             return sb.ToString();
         }
 
+        /// <summary>
+        /// BQ-071. Why somebody said it, or why they did not.
+        ///
+        /// The step's condition is that disclosure is a character decision rather than a
+        /// difficulty check, and a decision nobody can interrogate is indistinguishable from a
+        /// roll. So this prints the whole reasoning: which claim was asked about, what the speaker
+        /// actually believes about it, every pressure that applied with its sign, its size and the
+        /// state it was read from, the balance they add to, and which of them settled it.
+        ///
+        /// Two things are stated rather than left to be inferred. A speaker who holds no belief is
+        /// reported as having nothing to disclose and no pressures at all, because "would not" and
+        /// "could not" are different answers. And the dump says it produced no wording, for
+        /// BQ-070's reason: what is missing here is missing by design.
+        /// </summary>
+        public static string DescribeDisclosure(NarrativeWorldState world, DisclosureDecision decision)
+        {
+            if (decision == null)
+            {
+                return "no disclosure decision.\n";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("disclosure: ").Append(decision.Strategy).Append('\n');
+            sb.Append("  speaker:     ").Append(Who(world, decision.Speaker)).Append('\n');
+            sb.Append("  asked by:    ").Append(Who(world, decision.Asker)).Append('\n');
+
+            sb.Append("  about:       ");
+            if (decision.FactId.IsNone)
+            {
+                sb.Append("no claim");
+            }
+            else
+            {
+                Fact fact = world == null ? null : world.Knowledge.GetFact(decision.FactId);
+                sb.Append(decision.FactId.Value);
+                if (fact != null)
+                {
+                    sb.Append("  (").Append(fact).Append(')');
+                }
+            }
+
+            sb.Append('\n');
+
+            sb.Append("  belief:      ");
+            if (world != null && world.Knowledge.TryGetBelief(decision.Speaker, decision.FactId, out KnowledgeRecord belief))
+            {
+                sb.Append(belief.Source).Append(" at ").Append(belief.Confidence.ToString("0.00"));
+                sb.Append(belief.CanProve ? ", can prove it" : ", cannot prove it");
+            }
+            else
+            {
+                sb.Append("none - they do not hold this claim");
+            }
+
+            sb.Append('\n');
+            sb.Append("  discloses:   ").Append(decision.WillDisclose ? "yes" : "no");
+            sb.Append(decision.WillDisclose && !decision.Committed ? " (will not stand behind it)" : string.Empty).Append('\n');
+            sb.Append("  balance:     ").Append(decision.Balance.ToString("+0.00;-0.00;0.00")).Append('\n');
+
+            if (decision.Pressures.Count == 0)
+            {
+                sb.Append("  pressures:   none weighed");
+                if (decision.Note.Length != 0)
+                {
+                    sb.Append(" - ").Append(decision.Note);
+                }
+
+                sb.Append('\n');
+            }
+            else
+            {
+                sb.Append("  pressures:\n");
+                for (int i = 0; i < decision.Pressures.Count; i++)
+                {
+                    DisclosurePressure pressure = decision.Pressures[i];
+                    sb.Append("    ").Append(pressure.Tag.PadRight(14));
+                    sb.Append(pressure.Weight.ToString("+0.00;-0.00").PadRight(8));
+                    sb.Append(pressure.TowardDisclosure ? "toward  " : "against ");
+                    sb.Append(pressure.Because).Append('\n');
+                }
+
+                sb.Append("  decisive:    ");
+                if (decision.Decisive.Count == 0)
+                {
+                    // Worth saying rather than leaving blank: no single pressure carried it, so
+                    // whoever is tuning this should be looking at the balance and not at one knob.
+                    sb.Append("no single pressure - the balance settled it");
+                }
+                else
+                {
+                    for (int i = 0; i < decision.Decisive.Count; i++)
+                    {
+                        if (i > 0)
+                        {
+                            sb.Append(", ");
+                        }
+
+                        sb.Append(decision.Decisive[i].Tag).Append(' ').Append(decision.Decisive[i].Weight.ToString("+0.00;-0.00"));
+                    }
+                }
+
+                sb.Append('\n');
+            }
+
+            sb.Append("  wording:     none - this layer decides meaning only\n");
+            return sb.ToString();
+        }
+
         private static string DescribeContent(SpeechAct act)
         {
             StringBuilder sb = new StringBuilder();
