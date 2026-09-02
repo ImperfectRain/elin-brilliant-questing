@@ -966,6 +966,19 @@ facts; they never author truth.
 `PublicAccusation`, `PrivateConfrontation`, `RequestForHelp`, `Confession`, `Gossip`.
 - **Depends** BQ-065.
 - **Done when** all five can fire on the theft scenario and produce structurally different scenes.
+- **Current implementation** the five live only as content (BQ-131) and are cast semantically
+  (BQ-067); this step is the proof that they are five scenes rather than one scene with five
+  vocabularies. `FirstFiveStoryletTests` plays all five against the laboratory theft from a cast
+  taken from the place alone — no `Actor`, no `Target`, so nothing is proved about a caller's own
+  arithmetic — and holds the difference where Core can see it: no two ask for the same set of
+  roles, no two share a beat, no two share a consequence hook, and each is filed under its own
+  situation and tone. The difference is load-bearing rather than decorative because the engine
+  refuses on it: with the ownership record lapsed, the two scenes built around somebody's loss
+  cannot cast an injured party and stop, while the three that are not about the loss still play.
+  The other half is the rule the storylets exist under — they dramatize what the world already
+  holds and never author it. A theft no longer true, a focus no longer in the thread and the only
+  witness two towns away each stop every one of the five, and playing all five adds no fact, no
+  event and no new knower of the theft.
 - **Sources** CD §12, §38 Phase D.
 
 #### BQ-067 — Casting engine
