@@ -1357,6 +1357,14 @@ A recorded favour becomes a player-usable action: call it in, and the NPC does s
 otherwise refuse.
 - **Depends** BQ-055.
 - **Done when** the player can spend a favour from dialogue and the world honours it.
+- **Current implementation** `call_favor` is a verb like any other, so it reaches the Drama node
+  through the ordinary contextual projection and is offered only to somebody with an open favour
+  recorded against them. It does not roll: a stored option is worth having because the player knows
+  what it buys. Because BQ-113 was skipped when BQ-055 landed, two defects had to be repaired with
+  it — persuasion used to spend an open favour by itself the moment its roll failed, which is now
+  removed, and nothing in play ever recorded a favour, so the consequence engine now derives one
+  from any `Helped` event of magnitude 0.5 or more that the player is the actor of, capped at one
+  open favour per person and deliberately left unbound to any matter.
 - **Sources** engagement §3 Tier 2; PM §22.
 - **Why** a stored option the player chooses when to spend is the most autonomy-supporting reward available.
 

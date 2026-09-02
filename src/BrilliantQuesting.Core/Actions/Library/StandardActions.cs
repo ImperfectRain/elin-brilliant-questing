@@ -15,6 +15,7 @@ namespace BrilliantQuesting.Actions.Library
                 .Register(new BuildRapportAction())
                 .Register(new QuestionAction())
                 .Register(new PerformForCrowdAction())
+                .Register(new CallInFavorAction())
                 .Register(new PersuadeAction())
                 .Register(new LieAction())
                 .Register(new IntimidateAction())

@@ -243,17 +243,12 @@ namespace BrilliantQuesting.Actions.Library
             string who = context.NameOf(context.Target);
             ActionBinding binding = ActionBinding.Infer(context);
             string purpose = binding.Describe(context);
-            SocialObligation favor = context.World.Obligations.FindOpenFavor(context.Target, context.Actor, binding);
-            if (!check.Succeeded && favor != null)
-            {
-                favor.Fulfill(context.Now);
-                ActionOutcome repaid = new ActionOutcome(Id, null, who + " would have refused, but honours the favor they owe you and agrees to help with " + purpose + ".");
-                repaid.Events.Add(context.World.Record(WorldEventType.FavorRedeemed, context.Actor, context.Target, context.Now, 0.5, context.Zone, related: Related(binding, favor), threadId: ThreadId(context)));
-                repaid.Events.Add(context.World.Record(WorldEventType.PromiseMade, context.Target, context.Actor, context.Now, 0.5, context.Zone, related: Related(binding), threadId: ThreadId(context)));
-                repaid.Notes.Add("recorded favor " + favor.Id + " overcame failed persuasion: " + check.Outcome);
-                AdmitRestrictedSite(context, repaid);
-                return repaid;
-            }
+
+            // BQ-113: asking is the gamble, and a refusal is allowed to stand. This used to reach
+            // into the obligation ledger and spend an open favour the moment the roll failed,
+            // which quietly took the strongest reward in the vocabulary out of the player's hands
+            // - a stored option is only a reward while the player still owns the decision to
+            // spend it. Calling one in is now its own verb, `call_favor`, chosen deliberately.
 
             switch (check.Outcome)
             {
@@ -302,17 +297,7 @@ namespace BrilliantQuesting.Actions.Library
             return null;
         }
 
-        private static EntityId[] Related(ActionBinding binding, SocialObligation obligation)
-        {
-            if (binding != null && !binding.PropositionFact.IsNone)
-            {
-                return new[] { binding.PropositionFact, obligation.Id };
-            }
-
-            return new[] { obligation.Id };
-        }
-
-        private static void AdmitRestrictedSite(ActionContext context, ActionOutcome outcome)
+        internal static void AdmitRestrictedSite(ActionContext context, ActionOutcome outcome)
         {
             NarrativeSite site = RestrictedSiteInReach(context);
             if (site == null || site.Admits(context.Actor))
@@ -347,6 +332,124 @@ namespace BrilliantQuesting.Actions.Library
             }
 
             return null;
+        }
+    }
+
+    /// <summary>
+    /// BQ-113: spend a favour somebody owes you.
+    ///
+    /// BQ-055 made the debt a first-class record; this is what turns that record into a reward
+    /// rather than bookkeeping. Deliberately unrolled: the whole value of a stored option is that
+    /// the player knows exactly what it buys and picks the moment. Persuasion is the gamble, and
+    /// this is the certainty that was earned earlier - once, and then it is gone.
+    ///
+    /// It does not compete with persuasion so much as sit above it: the same ask, without the
+    /// roll, offered only to somebody who actually owes you one.
+    /// </summary>
+    public sealed class CallInFavorAction : NarrativeAction
+    {
+        public CallInFavorAction() : base("call_favor", ActionFamily.Social, "Call in a favour")
+        {
+        }
+
+        public override Availability GetAvailability(ActionContext context)
+        {
+            if (!ActionSupport.Present(context, context.Target))
+            {
+                return Availability.NotRelevant("nobody to call on");
+            }
+
+            if (!ActionBinding.HasRequiredSemanticSlots(Id, context))
+            {
+                return Availability.NotRelevant("nothing specific to ask them for");
+            }
+
+            if (FindFavor(context) == null)
+            {
+                return Availability.NotRelevant("they owe you nothing you can call on here");
+            }
+
+            return Availability.Available("spends the favour they owe you");
+        }
+
+        public override ActionOutcome Perform(ActionContext context)
+        {
+            ActionBinding binding = ActionBinding.Infer(context);
+            string who = context.NameOf(context.Target);
+
+            // Re-read the ledger rather than trusting the availability pass: a favour can be spent
+            // on somebody else between the choice being drawn and the choice being clicked.
+            SocialObligation favor = FindFavor(context);
+            if (favor == null)
+            {
+                ActionOutcome nothing = new ActionOutcome(Id, null, who + " owes you nothing you can call on here.");
+                nothing.Notes.Add("no open favor from " + who + " covering this ask");
+                return nothing;
+            }
+
+            favor.Fulfill(context.Now);
+            string purpose = binding.Describe(context);
+            ActionOutcome outcome = new ActionOutcome(
+                Id,
+                null,
+                "You call in what you are owed. " + who + " would have refused anyone else, and agrees to help with " + purpose + ".");
+            outcome.Events.Add(context.World.Record(
+                WorldEventType.FavorRedeemed,
+                context.Actor,
+                context.Target,
+                context.Now,
+                0.5,
+                context.Zone,
+                related: Related(binding, favor),
+                threadId: ThreadId(context)));
+            outcome.Events.Add(context.World.Record(
+                WorldEventType.PromiseMade,
+                context.Target,
+                context.Actor,
+                context.Now,
+                0.5,
+                context.Zone,
+                related: Related(binding),
+                threadId: ThreadId(context)));
+            outcome.Notes.Add("spent recorded favor " + favor.Id + ", owed since day " + favor.CreatedAt.TotalDays);
+
+            // A favour is worth at least what talking somebody round is worth, so it buys the same
+            // concession persuasion does where one is on the table.
+            PersuadeAction.AdmitRestrictedSite(context, outcome);
+            return outcome;
+        }
+
+        private static SocialObligation FindFavor(ActionContext context)
+        {
+            return context.World.Obligations.FindOpenFavor(
+                context.Target,
+                context.Actor,
+                ActionBinding.Infer(context));
+        }
+
+        private static EntityId ThreadId(ActionContext context)
+        {
+            return context.Thread?.Id ?? EntityId.None;
+        }
+
+        private static EntityId[] Related(ActionBinding binding)
+        {
+            if (binding != null && !binding.PropositionFact.IsNone)
+            {
+                return new[] { binding.PropositionFact };
+            }
+
+            return null;
+        }
+
+        private static EntityId[] Related(ActionBinding binding, SocialObligation obligation)
+        {
+            if (binding != null && !binding.PropositionFact.IsNone)
+            {
+                return new[] { binding.PropositionFact, obligation.Id };
+            }
+
+            return new[] { obligation.Id };
         }
     }
 

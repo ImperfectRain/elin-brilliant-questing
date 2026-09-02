@@ -105,6 +105,10 @@ namespace BrilliantQuesting.Actions
                     return 1;
 
                 // Moves someone who is not yet willing.
+                // A called-in favour heads this tier: it is the only verb here the player has
+                // already paid for, and BQ-113's stored option is worth nothing if the surface
+                // that shows it can quietly drop it in favour of the gamble it replaces.
+                case "call_favor":
                 case "persuade":
                 case "perform":
                 case "intimidate":

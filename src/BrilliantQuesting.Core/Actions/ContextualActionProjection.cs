@@ -65,6 +65,9 @@ namespace BrilliantQuesting.Actions
                 case "question":
                     return QuestionLabel(context, subject, target, matter);
 
+                case "call_favor":
+                    return "Call in the favour " + target + " owes you, for " + matter;
+
                 case "persuade":
                     return actorKnowsSubject && targetIsSubject
                         ? "Ask " + target + " to put " + matter + " right"

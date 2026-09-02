@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using BrilliantQuesting.Actions;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Memory;
+using BrilliantQuesting.Obligations;
 using BrilliantQuesting.Relationships;
 using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
@@ -24,6 +26,13 @@ namespace BrilliantQuesting.Consequences
     {
         private readonly NarrativeWorldState _world;
         private readonly IVanillaState _vanilla;
+
+        /// <summary>
+        /// How much help has to be worth before it is a debt. Every substantive helping verb in
+        /// the library records 0.5 or more; small talk and a merely gracious agreement record
+        /// less, and must not mint a favour.
+        /// </summary>
+        private const double FavorThreshold = 0.5;
 
         private static readonly ConsequenceProfile MurderJudgment =
             new ConsequenceProfile("judged_murder", MemoryWeight.Important, 0, 0, karma: -12, fame: 2);
@@ -73,6 +82,7 @@ namespace BrilliantQuesting.Consequences
             ApplyToTarget(worldEvent, profile, magnitude, actorIsPlayer);
             ApplyToWitnesses(worldEvent, profile, magnitude, actorIsPlayer);
             ApplyToTies(worldEvent, profile, magnitude, actorIsPlayer);
+            AccrueFavor(worldEvent, magnitude, actorIsPlayer);
 
             // Karma and fame are the world's verdict on what somebody did. An observed act has
             // not been judged yet - the observer can see that the player killed something, not
@@ -116,6 +126,61 @@ namespace BrilliantQuesting.Consequences
                 default:
                     return false;
             }
+        }
+
+        /// <summary>
+        /// BQ-113: a real good turn leaves the person owing one.
+        ///
+        /// BQ-055 made the debt a first-class record and BQ-113 makes it spendable, but until now
+        /// nothing in play ever wrote one: the only `Favor` in the codebase was minted by a test,
+        /// so in a real save the ledger was permanently empty and the reward the engagement track
+        /// calls the strongest in the vocabulary could never be earned. Deriving it here rather
+        /// than at fifteen verbs is the same principle the rest of this engine runs on - the verb
+        /// records what happened, and the consequence is read off it - and it is what `PM §22`
+        /// means by favors arising from events.
+        ///
+        /// Two deliberate limits. The magnitude floor separates help that cost the player
+        /// something (0.5 and up across the library: shelter, supplies, escort, a debt paid, a
+        /// repair) from warmth that did not - small talk records 0.2 and a well-received ask 0.4,
+        /// and neither of those is a debt. And one open favour per person at a time: somebody owes
+        /// you one, which is a thing a player can hold in their head, rather than a stack that
+        /// rewards repeating the cheapest helpful verb.
+        /// </summary>
+        private void AccrueFavor(WorldEvent worldEvent, double magnitude, bool actorIsPlayer)
+        {
+            // Only debts owed to the player are minted. NPC-to-NPC obligations have no consumer
+            // until the autonomy layer exists, and recording them now would grow every save with
+            // records nothing can read.
+            if (!actorIsPlayer
+                || worldEvent.Type != WorldEventType.Helped
+                || magnitude < FavorThreshold
+                || worldEvent.Target.IsNone
+                || worldEvent.Target == worldEvent.Actor
+                || _world.Registry.GetNpc(worldEvent.Target) == null)
+            {
+                return;
+            }
+
+            if (_world.Obligations.FindOpenFavor(worldEvent.Target, worldEvent.Actor, ActionBinding.Empty) != null)
+            {
+                return;
+            }
+
+            // Left unbound on purpose. A favour whose subject was the matter that earned it could
+            // only ever be called in on that same matter, which is a receipt, not a stored option;
+            // the point of the reward is that the player decides later what to spend it on. The
+            // source event is what says how it was earned.
+            _world.Obligations.Add(new SocialObligation(
+                _world.NewId("obl"),
+                SocialObligationKind.Favor,
+                worldEvent.Target,
+                worldEvent.Actor,
+                EntityId.None,
+                string.Empty,
+                worldEvent.Time,
+                worldEvent.Id));
+
+            Trace.Add(_world.Registry.NameOf(worldEvent.Target) + " owes you a favor");
         }
 
         private void ApplyToTarget(WorldEvent worldEvent, ConsequenceProfile profile, double magnitude, bool actorIsPlayer)

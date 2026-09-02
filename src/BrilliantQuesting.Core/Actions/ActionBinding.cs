@@ -73,6 +73,7 @@ namespace BrilliantQuesting.Actions
             ActionBinding binding = Infer(context);
             switch (actionId)
             {
+                case "call_favor":
                 case "persuade":
                 case "intimidate":
                 case "bribe":
