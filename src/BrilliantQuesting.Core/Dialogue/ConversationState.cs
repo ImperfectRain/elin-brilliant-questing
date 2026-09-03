@@ -67,7 +67,9 @@ namespace BrilliantQuesting.Dialogue
     /// <see cref="SpeechActType.Promise"/> is noted like any other act, and only the ones a caller
     /// hands to <see cref="Commit"/> become a durable <see cref="SocialObligation"/> - the ledger
     /// BQ-071's disclosure pressure, BQ-077's negative-space lines and the standing sheet already
-    /// read. There is no second obligation system here, only a doorway into the one that exists.
+    /// read. There is no second obligation system here, only a doorway into the one that exists,
+    /// and the doorway opens onto this conversation only: a promise this exchange never heard is
+    /// not one it can vouch for, whoever asks it to.
     /// </summary>
     public sealed class ConversationState
     {
@@ -107,14 +109,32 @@ namespace BrilliantQuesting.Dialogue
         /// <see cref="Deception.Record"/> wrote and reads it back with <see cref="Deception.StatementOf"/>;
         /// never assesses, never records, so calling this can never mint a second trace of the
         /// same lie.
+        ///
+        /// Filing one twice is filing, not lying twice. A caller that notes a deception where it
+        /// happens and again on a sweep of the ledger is describing one event both times, and
+        /// <see cref="RecordedStatement.EventId"/> is what says so - the ledger entry's own
+        /// identity, which is the only identity a statement has that survives being read back.
+        /// Comparing on it rather than on the struct keeps "filed once, not twice" true of the
+        /// transient list as well as of the durable record, which is what the sentence was always
+        /// meant to promise.
         /// </summary>
         public void NoteDeception(WorldEvent recorded)
         {
             RecordedStatement statement = Deception.StatementOf(recorded);
-            if (statement.Recognized)
+            if (!statement.Recognized)
             {
-                _deceptions.Add(statement);
+                return;
             }
+
+            for (int i = 0; i < _deceptions.Count; i++)
+            {
+                if (_deceptions[i].EventId == statement.EventId)
+                {
+                    return;
+                }
+            }
+
+            _deceptions.Add(statement);
         }
 
         /// <summary>Every question asked so far.</summary>
@@ -309,20 +329,49 @@ namespace BrilliantQuesting.Dialogue
         /// deciding that is left entirely to the caller. Returns null and writes nothing for
         /// anything that is not a well-formed promise, and for a promise already committed once -
         /// the same act handed here twice mints one obligation, not two.
+        ///
+        /// <b>It promotes this conversation's promises and no others.</b> An act that was never
+        /// <see cref="Note"/>d here is refused, because the whole of what this type is entitled to
+        /// say about a promise is that it was said in the exchange it holds. Promoting one from
+        /// somewhere else would be conversation state vouching for words it never heard - the
+        /// durable ledger would carry an obligation whose only witness is a caller's say-so, and
+        /// "a promise made in this conversation becomes durable only when explicitly promoted"
+        /// would be a rule about the second half of the sentence alone.
+        ///
+        /// <b>Who is owed is named, never inferred from position.</b> <see cref="SpeechAct"/>
+        /// sorts its audience by id and says in as many words that the order is staging rather
+        /// than meaning, so "the first addressee" is not a fact about the promise - it is a fact
+        /// about how two ids happen to sort. A promise made to one person needs no help: that
+        /// person is the creditor. A promise made in front of several has to say which of them it
+        /// is <em>to</em>, and <paramref name="creditor"/> is where the caller says it; anybody
+        /// else addressed is a witness to the event, which is what they were. Refusing the
+        /// ambiguous case is deliberate - one debtor and one creditor is the shape
+        /// <see cref="SocialObligation"/> has, and inventing a promise owed to a group would be
+        /// inventing an obligation kind the ledger does not model.
         /// </summary>
-        public WorldEvent Commit(NarrativeWorldState world, SpeechAct promise, GameTime now, EntityId zone = default)
+        public WorldEvent Commit(
+            NarrativeWorldState world,
+            SpeechAct promise,
+            GameTime now,
+            EntityId zone = default,
+            EntityId creditor = default)
         {
             if (world == null
                 || promise == null
                 || promise.Type != SpeechActType.Promise
-                || promise.Addressees.Count == 0
+                || !WasNoted(promise)
                 || _committed.Contains(promise))
             {
                 return null;
             }
 
+            EntityId owed = Creditor(promise, creditor);
+            if (owed.IsNone)
+            {
+                return null;
+            }
+
             EntityId debtor = promise.Speaker;
-            EntityId creditor = promise.Addressees[0];
 
             List<EntityId> related = null;
             if (!promise.Content.PropositionFact.IsNone)
@@ -331,23 +380,25 @@ namespace BrilliantQuesting.Dialogue
             }
 
             List<EntityId> witnesses = null;
-            if (promise.Addressees.Count > 1)
+            for (int i = 0; i < promise.Addressees.Count; i++)
             {
-                witnesses = new List<EntityId>();
-                for (int i = 1; i < promise.Addressees.Count; i++)
+                if (promise.Addressees[i] == owed)
                 {
-                    witnesses.Add(promise.Addressees[i]);
+                    continue;
                 }
+
+                witnesses = witnesses ?? new List<EntityId>();
+                witnesses.Add(promise.Addressees[i]);
             }
 
             WorldEvent recorded = world.Record(
-                WorldEventType.PromiseMade, debtor, creditor, now, 0.5, zone, related, witnesses);
+                WorldEventType.PromiseMade, debtor, owed, now, 0.5, zone, related, witnesses);
 
             world.Obligations.Add(new SocialObligation(
                 world.NewId("obl"),
                 SocialObligationKind.Promise,
                 debtor,
-                creditor,
+                owed,
                 promise.Content.PropositionFact,
                 promise.Content.Purpose ?? string.Empty,
                 now,
@@ -355,6 +406,42 @@ namespace BrilliantQuesting.Dialogue
 
             _committed.Add(promise);
             return recorded;
+        }
+
+        /// <summary>
+        /// Who the promise is owed to, or nobody when that cannot be said without guessing.
+        ///
+        /// Unnamed and one addressee is the ordinary case and needs nothing from the caller.
+        /// Unnamed and several is the case with no answer in the act, and there is no default
+        /// that is not a guess. A name that was not spoken to is not a creditor of anything said
+        /// here.
+        /// </summary>
+        private static EntityId Creditor(SpeechAct promise, EntityId named)
+        {
+            if (named.IsNone)
+            {
+                return promise.Addressees.Count == 1 ? promise.Addressees[0] : EntityId.None;
+            }
+
+            return promise.IsAddressedTo(named) ? named : EntityId.None;
+        }
+
+        /// <summary>
+        /// Whether this exact act is in the transcript. Identity, not equivalence: two promises of
+        /// the same thing said by the same person are two promises, and only the one this
+        /// conversation actually heard is this conversation's to promote.
+        /// </summary>
+        private bool WasNoted(SpeechAct act)
+        {
+            for (int i = 0; i < _acts.Count; i++)
+            {
+                if (ReferenceEquals(_acts[i], act))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool IsAssertion(SpeechActStance stance)

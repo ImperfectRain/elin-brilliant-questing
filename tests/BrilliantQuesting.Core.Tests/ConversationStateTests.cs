@@ -247,6 +247,61 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(eventsAfterRecording, scene.World.Ledger.Count);
         }
 
+        /// <summary>
+        /// The same recorded lie handed over twice is one lie.
+        ///
+        /// A caller that files a deception where it happens and again while sweeping the ledger is
+        /// describing one event both times, and the transcript said so twice - which would have
+        /// made "lies told: 2" a report about how often somebody called a method. Identity is the
+        /// ledger entry's own id, the only identity a statement read back out of history has.
+        /// </summary>
+        [Fact]
+        public void NoteDeceptionFilesOneRecordOnceHoweverOftenItIsHanded()
+        {
+            Exchange scene = Exchange.Create();
+            scene.World.Knowledge.Teach(
+                scene.Speaker, scene.TheftFact, KnowledgeSource.Participant, 1.0, scene.Now, false);
+
+            SpeechAct denial = SpeechAct.Compose(
+                SpeechActType.Deny, scene.Speaker, scene.Listener, scene.TheftBinding());
+            WorldEvent recorded = Deception.Record(scene.World, denial, scene.Now);
+            Assert.NotNull(recorded);
+
+            ConversationState conversation = new ConversationState();
+            conversation.NoteDeception(recorded);
+            conversation.NoteDeception(recorded);
+
+            RecordedStatement statement = Assert.Single(conversation.LiesTold);
+            Assert.Equal(recorded.Id, statement.EventId);
+        }
+
+        /// <summary>
+        /// Two lies are still two. Deduplication is on the event, not on what was said, so a
+        /// speaker who tells the same untruth twice is filed twice - because they did it twice.
+        /// </summary>
+        [Fact]
+        public void NoteDeceptionStillFilesTwoSeparateLies()
+        {
+            Exchange scene = Exchange.Create();
+            scene.World.Knowledge.Teach(
+                scene.Speaker, scene.TheftFact, KnowledgeSource.Participant, 1.0, scene.Now, false);
+
+            SpeechAct denial = SpeechAct.Compose(
+                SpeechActType.Deny, scene.Speaker, scene.Listener, scene.TheftBinding());
+
+            WorldEvent first = Deception.Record(scene.World, denial, scene.Now);
+            WorldEvent second = Deception.Record(scene.World, denial, scene.Now);
+            Assert.NotNull(first);
+            Assert.NotNull(second);
+            Assert.NotEqual(first.Id, second.Id);
+
+            ConversationState conversation = new ConversationState();
+            conversation.NoteDeception(first);
+            conversation.NoteDeception(second);
+
+            Assert.Equal(2, conversation.LiesTold.Count);
+        }
+
         // -- commitments: durable only when the caller says so ------------------------------------
 
         [Fact]
@@ -308,6 +363,155 @@ namespace BrilliantQuesting.Tests
                 inReplyTo: scene.AskAboutTheft());
 
             Assert.Null(conversation.Commit(scene.World, answer, scene.Now));
+            Assert.Empty(scene.World.Obligations.Records);
+        }
+
+        /// <summary>
+        /// The other half of "only when explicitly promoted": the promise has to be one this
+        /// conversation actually heard.
+        ///
+        /// Commit used to promote whatever it was handed, so a caller could mint a durable
+        /// obligation out of an act that was composed and never said - the ledger would carry a
+        /// promise whose only witness was the call itself. Noting is what makes an act this
+        /// conversation's; without it there is nothing here that could vouch for it.
+        /// </summary>
+        [Fact]
+        public void CommitRefusesAPromiseThisConversationNeverHeard()
+        {
+            Exchange scene = Exchange.Create();
+            ConversationState conversation = new ConversationState();
+
+            SpeechAct promise = scene.PromiseTo(scene.Listener);
+
+            Assert.Null(conversation.Commit(scene.World, promise, scene.Now));
+            Assert.Empty(scene.World.Obligations.Records);
+            Assert.Equal(0, scene.World.Ledger.Count);
+        }
+
+        /// <summary>
+        /// And it has to be <em>this</em> conversation's. A promise made in an exchange that has
+        /// ended is that exchange's to have promoted; a second conversation holding no record of
+        /// it cannot speak for it afterwards.
+        /// </summary>
+        [Fact]
+        public void CommitRefusesAPromiseAnotherConversationHeard()
+        {
+            Exchange scene = Exchange.Create();
+            ConversationState heardIt = new ConversationState();
+            ConversationState didNot = new ConversationState();
+
+            SpeechAct promise = scene.PromiseTo(scene.Listener);
+            heardIt.Note(promise);
+
+            Assert.Null(didNot.Commit(scene.World, promise, scene.Now));
+            Assert.Empty(scene.World.Obligations.Records);
+
+            // And the conversation that did hear it is unaffected by the refusal.
+            Assert.NotNull(heardIt.Commit(scene.World, promise, scene.Now));
+            Assert.Single(scene.World.Obligations.Records);
+        }
+
+        // -- who a promise is owed to -------------------------------------------------------------
+
+        /// <summary>
+        /// One addressee needs no help: the person spoken to is the person owed, and the event
+        /// records nobody as a witness because nobody else was there.
+        /// </summary>
+        [Fact]
+        public void ThePersonASoloPromiseIsMadeToIsItsCreditor()
+        {
+            Exchange scene = Exchange.Create();
+            ConversationState conversation = new ConversationState();
+
+            SpeechAct promise = scene.PromiseTo(scene.Listener);
+            conversation.Note(promise);
+
+            WorldEvent recorded = conversation.Commit(scene.World, promise, scene.Now);
+
+            Assert.NotNull(recorded);
+            Assert.Equal(scene.Listener, recorded.Target);
+            Assert.Empty(recorded.Witnesses);
+            Assert.Equal(scene.Listener, Assert.Single(scene.World.Obligations.Records).Creditor);
+        }
+
+        /// <summary>
+        /// A promise made in front of several people, with nobody named, is refused.
+        ///
+        /// <see cref="SpeechAct"/> sorts its audience by id and says outright that the order is
+        /// staging rather than meaning, so the previous behaviour - creditor is
+        /// <c>Addressees[0]</c> - decided who was owed a durable obligation by how two ids happen
+        /// to sort. That is not a convention, it is an accident, and the honest answer to "which
+        /// of them is this promise to" when the act does not say is to refuse rather than pick.
+        /// </summary>
+        [Fact]
+        public void CommitRefusesAPromiseToSeveralWithNobodyNamedAsCreditor()
+        {
+            Exchange scene = Exchange.Create();
+            ConversationState conversation = new ConversationState();
+
+            SpeechAct promise = scene.PromiseTo(scene.Listener, scene.Bystander, scene.Gossiper);
+            conversation.Note(promise);
+
+            Assert.Null(conversation.Commit(scene.World, promise, scene.Now));
+            Assert.Empty(scene.World.Obligations.Records);
+            Assert.Equal(0, scene.World.Ledger.Count);
+        }
+
+        /// <summary>
+        /// Named, it is promoted, and everybody else addressed is a witness to the event rather
+        /// than a party to the obligation.
+        ///
+        /// The creditor asserted here is deliberately not the first of the sorted audience: that
+        /// is what makes this a test of the named contract rather than a test that happens to
+        /// agree with first-element-wins.
+        /// </summary>
+        [Fact]
+        public void APromiseMadeBeforeSeveralIsOwedToWhicheverOfThemIsNamed()
+        {
+            Exchange scene = Exchange.Create();
+            ConversationState conversation = new ConversationState();
+
+            SpeechAct promise = scene.PromiseTo(scene.Listener, scene.Bystander, scene.Gossiper);
+            conversation.Note(promise);
+
+            EntityId creditor = promise.Addressees[promise.Addressees.Count - 1];
+            Assert.NotEqual(promise.Addressees[0], creditor);
+
+            WorldEvent recorded = conversation.Commit(scene.World, promise, scene.Now, default, creditor);
+
+            Assert.NotNull(recorded);
+            Assert.Equal(scene.Speaker, recorded.Actor);
+            Assert.Equal(creditor, recorded.Target);
+            Assert.Equal(2, recorded.Witnesses.Count);
+            Assert.DoesNotContain(creditor, recorded.Witnesses);
+            foreach (EntityId addressee in promise.Addressees)
+            {
+                if (addressee != creditor)
+                {
+                    Assert.Contains(addressee, recorded.Witnesses);
+                }
+            }
+
+            SocialObligation obligation = Assert.Single(scene.World.Obligations.Records);
+            Assert.Equal(scene.Speaker, obligation.Debtor);
+            Assert.Equal(creditor, obligation.Creditor);
+        }
+
+        /// <summary>
+        /// Somebody the promise was not made to is not owed it. Naming a creditor says which of
+        /// the people spoken to is the one; it is not a way to address a fourth party after the
+        /// fact.
+        /// </summary>
+        [Fact]
+        public void CommitRefusesACreditorTheSpeakerNeverAddressed()
+        {
+            Exchange scene = Exchange.Create();
+            ConversationState conversation = new ConversationState();
+
+            SpeechAct promise = scene.PromiseTo(scene.Listener, scene.Bystander);
+            conversation.Note(promise);
+
+            Assert.Null(conversation.Commit(scene.World, promise, scene.Now, default, scene.Gossiper));
             Assert.Empty(scene.World.Obligations.Records);
         }
 
@@ -432,6 +636,18 @@ namespace BrilliantQuesting.Tests
             }
 
             internal ActionBinding TheftBinding() => new ActionBinding { PropositionFact = TheftFact };
+
+            /// <summary>An undertaking, said to whoever is listed.</summary>
+            internal SpeechAct PromiseTo(params EntityId[] addressees)
+            {
+                SpeechAct promise = SpeechAct.Compose(
+                    SpeechActType.Promise,
+                    Speaker,
+                    addressees,
+                    new ActionBinding { Purpose = "bring back the ring" });
+                Assert.NotNull(promise);
+                return promise;
+            }
 
             internal SpeechAct AskAboutTheft()
             {

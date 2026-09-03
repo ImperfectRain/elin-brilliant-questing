@@ -1312,7 +1312,10 @@ callback, context and closer.
   as a promise. The realizer takes no world: a fragment library and a request, neither of which
   can be written to, so *realization writes no world state* is a fact about the signature. What a
   fragment may be chosen on is a closed vocabulary of *readings* of the act and the decision behind
-  it — `DialogueReadings`, all of them derived, none of them new — and what it may name is a closed
+  it — `DialogueReadings`, all of them derived, none of them new, and derived twice over: the values
+  a reading can take are enumerated off the semantic enums themselves rather than copied beside them
+  (D041), so an act, direction, tactic or callback kind added upstream is authorable the moment it is
+  declared and the two vocabularies cannot drift apart — and what it may name is a closed
   set of placeholders resolving to people the caller put on stage and the label the claim already
   carries. There is no placeholder for the claim itself, because phrasing a proposition needs a
   predicate lexicon and a lexicon would be a second place where what a fact says gets decided; a
@@ -1640,17 +1643,24 @@ made. Commitments that matter become durable world events.
   and no event ledger consulted, because both statements are already in hand. `AllContradictions`
   runs the same check over the whole transcript for a post-hoc dump. `NoteDeception` files the
   `RecordedStatement` a caller already pulled from `Deception.StatementOf`, so a lie told in this
-  conversation is filed once, never twice. `Commit` is the one write: given a well-formed
-  `SpeechActType.Promise`, it records a `WorldEventType.PromiseMade` event and a
-  `SocialObligation(Kind.Promise)` naming it as source - the same event-then-obligation shape
-  `ConsequenceEngine.AccrueFavor` already uses for a favour - into the same ledger BQ-071's
-  disclosure pressure, BQ-077's negative-space lines and the standing sheet already read. It is never
-  automatic and never fires twice for the same act: every promise is noted like any other act, and
-  only the ones a caller hands to `Commit` outlive the conversation.
+  conversation is filed once, never twice - deduplicated on the ledger entry's own id, so handing
+  the same recorded event over twice is one lie and two separate deceptions are still two (D042).
+  `Commit` is the one write: given a well-formed `SpeechActType.Promise` this conversation actually
+  noted, it records a `WorldEventType.PromiseMade` event and a `SocialObligation(Kind.Promise)`
+  naming it as source - the same event-then-obligation shape `ConsequenceEngine.AccrueFavor` already
+  uses for a favour - into the same ledger BQ-071's disclosure pressure, BQ-077's negative-space
+  lines and the standing sheet already read. It is never automatic and never fires twice for the
+  same act: every promise is noted like any other act, and only the ones a caller hands to `Commit`
+  outlive the conversation. A promise the conversation never heard is refused, and so is one made to
+  several people with no creditor named - `SpeechAct` sorts its audience by id and treats the order
+  as staging, so who is owed is named by the caller rather than taken from position, and anybody
+  else addressed is recorded as a witness (D042).
   `SpeechActType.Promise` is BQ-083's one addition to BQ-070's vocabulary, the same way `Evade` was
   BQ-073's: stance `None` and a new direction, `CommitsToAction`, so a promise is not true or false
   the moment it is spoken and `Deception` correctly reads it as asserting nothing - whether it was
-  kept is `PromiseBroken` and later behaviour, not this step. `NarrativeInspector.DescribeConversation`
+  kept is `PromiseBroken` and later behaviour, not this step. Both reach BQ-074's wording vocabulary
+  because `DialogueReadings` derives its values from the semantic enums rather than keeping a copy
+  of them (D041), so a promise can be authored a fragment and said like any other act. `NarrativeInspector.DescribeConversation`
   dumps the transcript, the unanswered count, the lies filed and every contradiction found.
   Deferred by design: nothing here is saved. `ConversationState` has no schema, is never attached to
   `NarrativeNpc`, and is built and discarded per conversation exactly as `DialogueExpressionHistory`

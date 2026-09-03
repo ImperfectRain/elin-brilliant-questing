@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using BrilliantQuesting.Continuity;
 
 namespace BrilliantQuesting.Dialogue
 {
@@ -42,6 +43,58 @@ namespace BrilliantQuesting.Dialogue
 
         /// <summary>What is said after the point.</summary>
         Closer = 5
+    }
+
+    /// <summary>
+    /// The one translation between a name the semantic layer holds and the slug wording reads it
+    /// by, and the reason "closed vocabulary" and "derived vocabulary" are the same thing here.
+    ///
+    /// <c>InConfidence</c> becomes <c>in_confidence</c>. There is nothing clever in that; what
+    /// matters is that <see cref="RealizationReading"/> and <see cref="DialogueReadings"/> both
+    /// call it, so the value a reading produces and the value content is allowed to name cannot
+    /// be produced by two rules that disagree. Anything that would drift is a value one of them
+    /// invented, and neither of them invents any.
+    /// </summary>
+    internal static class DialogueSlug
+    {
+        public static string Of(string name)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            for (int i = 0; i < name.Length; i++)
+            {
+                if (i > 0 && char.IsUpper(name[i]))
+                {
+                    sb.Append('_');
+                }
+
+                sb.Append(char.ToLowerInvariant(name[i]));
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Every value of a semantic enum, as slugs, plus whatever the reading adds that is not a
+        /// member of it - <c>absent</c> for a key nothing was given for, <c>none</c> for an act
+        /// that answers nothing.
+        /// </summary>
+        public static HashSet<string> Every<TEnum>(params string[] alsoReads)
+            where TEnum : struct
+        {
+            HashSet<string> slugs = new HashSet<string>(StringComparer.Ordinal);
+            for (int i = 0; i < alsoReads.Length; i++)
+            {
+                slugs.Add(alsoReads[i]);
+            }
+
+            Array values = Enum.GetValues(typeof(TEnum));
+            for (int i = 0; i < values.Length; i++)
+            {
+                slugs.Add(Of(values.GetValue(i).ToString()));
+            }
+
+            return slugs;
+        }
     }
 
     /// <summary>
@@ -147,12 +200,11 @@ namespace BrilliantQuesting.Dialogue
 
         private static readonly Dictionary<string, HashSet<string>> Allowed = BuildAllowed();
 
-        /// <summary>Every key, so content validation and the reading itself cannot come apart.</summary>
-        public static IReadOnlyList<string> Vocabulary { get; } = new[]
-        {
-            Act, Stance, Direction, Strategy, Depth, Tactic, Commitment, HeldBack,
-            Referent, Claim, ClaimPredicate, Reply, Audience, Callback, CallbackParty, CallbackRoute
-        };
+        /// <summary>
+        /// Every key, so content validation and the reading itself cannot come apart. Read off
+        /// <see cref="BuildAllowed"/> rather than listed again, for the same reason the values are.
+        /// </summary>
+        public static IReadOnlyList<string> Vocabulary { get; } = new List<string>(Allowed.Keys);
 
         public static bool IsKey(string key) => key != null && Allowed.ContainsKey(key);
 
@@ -170,31 +222,59 @@ namespace BrilliantQuesting.Dialogue
             return values == null || values.Contains(value);
         }
 
+        /// <summary>
+        /// What each key may read as, derived from the semantic layer wherever the semantic layer
+        /// has a say.
+        ///
+        /// The keys whose values are a semantic enum take them from that enum rather than from a
+        /// second list written out here. That is not tidiness: a hand-kept copy is a copy somebody
+        /// has to remember to update, and BQ-083 proved it - <see cref="SpeechActType.Promise"/>
+        /// and <see cref="SpeechActDirection.CommitsToAction"/> entered the vocabulary of meaning
+        /// and never reached this table, so a well-formed promise could not be authored a wording
+        /// and the layer refused a line for an act the simulation was perfectly happy to produce.
+        /// Derivation makes that particular failure unrepresentable.
+        ///
+        /// Deriving is not collapsing. Nothing here decides what an act means or adds a value the
+        /// semantic layer does not already hold: this is wording being told what meanings exist,
+        /// in exactly the vocabulary they exist in, and the arrow only ever points this way.
+        ///
+        /// The keys whose values are not an enum stay written out, because there is nothing to
+        /// derive them from - they are readings <see cref="RealizationReading"/> computes about
+        /// the shape of an act (who the referent is relative to the room, whether one person is
+        /// being spoken to or several) rather than a name the semantic layer already has.
+        /// </summary>
         private static Dictionary<string, HashSet<string>> BuildAllowed()
         {
             Dictionary<string, HashSet<string>> allowed = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
-            allowed[Act] = Set("ask", "answer", "accuse", "deny", "admit", "request", "refuse", "threaten", "apologize", "gossip", "evade");
-            allowed[Stance] = Set("affirms", "denies", "questions", "none");
-            allowed[Direction] = Set("seeks_information", "gives_information", "seeks_action", "withholds_action", "withholds_information", "repairs");
-            allowed[Strategy] = Set(Absent, "nothing_to_disclose", "refuse", "deflect", "hedge", "disclose");
-            allowed[Depth] = Set(Absent, "nothing", "gist", "detail", "in_confidence");
+            allowed[Act] = DialogueSlug.Every<SpeechActType>();
+            allowed[Stance] = DialogueSlug.Every<SpeechActStance>();
+            allowed[Direction] = DialogueSlug.Every<SpeechActDirection>();
+            allowed[Strategy] = DialogueSlug.Every<DisclosureStrategy>(Absent);
+            allowed[Depth] = DialogueSlug.Every<DisclosureDepth>(Absent);
 
             // No `falsify`. The tactic axis reaches wording only for the ways of not answering
-            // that a listener is meant to be able to hear.
-            allowed[Tactic] = Set(Absent, "none", "decline", "change_subject", "answer_elsewhere");
+            // that a listener is meant to be able to hear, so this one value is subtracted from
+            // the derived set - deliberately, by name, and not by the table having quietly never
+            // heard of it. Every other tactic the semantic layer grows arrives here on its own.
+            HashSet<string> tactics = DialogueSlug.Every<DisclosureTactic>(Absent);
+            tactics.Remove(DialogueSlug.Of(DisclosureTactic.Falsify.ToString()));
+            allowed[Tactic] = tactics;
+
             allowed[Commitment] = Set(Absent, "unspoken", "hedged", "committed");
             allowed[HeldBack] = Set(Absent, "yes", "no");
             allowed[Referent] = Set("none", "speaker", "listener", "other");
             allowed[Claim] = Set("present", "absent");
             allowed[ClaimPredicate] = null;
-            allowed[Reply] = Set("none", "ask", "answer", "accuse", "deny", "admit", "request", "refuse", "threaten", "apologize", "gossip", "evade");
+
+            // `none` on top of the act vocabulary: an act that responds to nothing still reads.
+            allowed[Reply] = DialogueSlug.Every<SpeechActType>("none");
             allowed[Audience] = Set("one", "several");
 
             // The kind slugs are `CallbackKind`'s own names, so the enum stays the authority and
             // content cannot condition on a kind the simulation does not derive.
-            allowed[Callback] = Set(Absent, "promise", "kindness", "injury", "embarrassment", "scandal", "lost_object");
+            allowed[Callback] = DialogueSlug.Every<CallbackKind>(Absent);
             allowed[CallbackParty] = Set(Absent, "none", "speaker", "listener", "other");
-            allowed[CallbackRoute] = Set(Absent, "first_hand", "involved", "witnessed", "heard");
+            allowed[CallbackRoute] = DialogueSlug.Every<CallbackRoute>(Absent);
             return allowed;
         }
 

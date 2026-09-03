@@ -132,13 +132,13 @@ namespace BrilliantQuesting.Dialogue
                 return reading;
             }
 
-            reading._readings[DialogueReadings.Act] = Lower(act.Type.ToString());
-            reading._readings[DialogueReadings.Stance] = Lower(act.Stance.ToString());
+            reading._readings[DialogueReadings.Act] = Snake(act.Type.ToString());
+            reading._readings[DialogueReadings.Stance] = Snake(act.Stance.ToString());
             reading._readings[DialogueReadings.Direction] = Snake(act.Direction.ToString());
             reading._readings[DialogueReadings.Referent] = ReadReferent(act);
             reading._readings[DialogueReadings.Claim] = act.Content.HasProposition ? "present" : "absent";
             reading._readings[DialogueReadings.ClaimPredicate] = claim == null ? DialogueReadings.Absent : claim.Predicate;
-            reading._readings[DialogueReadings.Reply] = act.InReplyTo == null ? "none" : Lower(act.InReplyTo.Type.ToString());
+            reading._readings[DialogueReadings.Reply] = act.InReplyTo == null ? "none" : Snake(act.InReplyTo.Type.ToString());
             reading._readings[DialogueReadings.Audience] = act.Addressees.Count > 1 ? "several" : "one";
             ReadDecision(reading, decision);
             ReadCallback(reading, act, callback);
@@ -248,27 +248,13 @@ namespace BrilliantQuesting.Dialogue
             return act.IsAddressedTo(act.Referent) ? "listener" : "other";
         }
 
-        private static string Lower(string name) => name.ToLowerInvariant();
-
         /// <summary>
-        /// <c>InConfidence</c> becomes <c>in_confidence</c>. The enum names are the authority; this
-        /// only makes them writable in content without a second table to keep in step.
+        /// <c>InConfidence</c> becomes <c>in_confidence</c>. The enum names are the authority, and
+        /// <see cref="DialogueSlug"/> is the single rule that turns one into the other -
+        /// <see cref="DialogueReadings"/> builds the values content may name with the identical
+        /// call, so what a reading says and what content may match on come from one place.
         /// </summary>
-        private static string Snake(string name)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            for (int i = 0; i < name.Length; i++)
-            {
-                if (i > 0 && char.IsUpper(name[i]))
-                {
-                    sb.Append('_');
-                }
-
-                sb.Append(char.ToLowerInvariant(name[i]));
-            }
-
-            return sb.ToString();
-        }
+        private static string Snake(string name) => DialogueSlug.Of(name);
     }
 
     /// <summary>

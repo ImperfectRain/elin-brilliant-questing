@@ -874,4 +874,76 @@ opinion about belief, history or obligation that could drift from the one the re
 already trusts; deriving from statements already in hand and writing through the one obligation
 ledger that exists keeps there being exactly one authority for each of the three.
 
+## D041 — The realization vocabulary is derived from the semantic one, never kept alongside it
+
+BQ-083 added `SpeechActType.Promise` and `SpeechActDirection.CommitsToAction` to the vocabulary of
+meaning and did not add them to `DialogueReadings`, which held a hand-written copy of the same
+vocabulary for content validation to check against. Nothing failed loudly. A promise composed
+correctly, read correctly as `act: promise`, and could not be authored a wording at all — content
+validation rejected the only condition a core fragment for it could declare — so the realizer
+refused the line, naming a fragment that was missing rather than the vocabulary entry that made it
+unwritable. Two vocabularies of the same thing had drifted, and the layer whose whole purpose is to
+express meaning without defining it could no longer express one of the meanings.
+
+**The values come off the enums.** `act`, `stance`, `direction`, `reply`, `strategy`, `depth`,
+`tactic`, `callback` and `callback_route` are built by enumerating the semantic type each of them
+reads, through the one slug rule `RealizationReading` itself uses (`DialogueSlug`). The keys whose
+values are not a semantic enum — `referent`, `claim`, `audience`, `commitment`, `held_back`,
+`callback_party` — stay written out, because they are readings computed about the shape of an act
+rather than names the semantic layer already holds, and there is nothing to derive them from.
+
+**Deriving is not collapsing.** The arrow points one way and gains no second head: the semantic
+layer still decides what acts exist and what they mean, and wording is told what those are in
+exactly the words they already have. Nothing in `DialogueReadings` can add a value, remove a
+meaning, or repair an act — a value outside the semantic layer is rejected at load exactly as
+before, and the realizer still refuses an act nobody has authored words for rather than
+approximating one.
+
+**The one deliberate gap stays deliberate.** `DisclosureTactic.Falsify` is subtracted from the
+derived set by name, because wording is never selected on whether the speaker is lying (D-pipeline
+and BQ-073). Subtracting it is different in kind from never having listed it: every other tactic
+the semantic layer grows arrives in content's vocabulary the moment it is declared, and the only
+value that does not is the one an explicit line of code removes.
+
+Reason: a hand-kept copy of a vocabulary is a copy somebody has to remember to update, and the
+failure when they do not is silent, distant from its cause, and looks like missing content. A
+derived vocabulary cannot drift, so "expression may express meaning and may never create it" stops
+depending on two lists agreeing.
+
+## D042 — A conversation promotes its own promises, and a promise to several names who is owed
+
+Two holes on the same call, both of which let `ConversationState.Commit` write a durable
+`SocialObligation` on a caller's say-so rather than on what the conversation heard.
+
+**Only a noted act may be promoted.** `Commit` accepted any well-formed promise, including one that
+was composed and never said, or one belonging to an exchange that had already ended. The durable
+ledger would then carry an obligation whose only witness was the call itself. Being `Note`d is what
+makes an act this conversation's, and it is now what `Commit` requires — identity, not equivalence,
+because two promises of the same thing by the same person are two promises and only the one this
+conversation actually heard is its to vouch for. This does not add a second commitment system: it
+is the existing transcript being consulted before the existing doorway opens.
+
+**A creditor is named, never taken from the audience order.** `SpeechAct` sorts its addressees by id
+and says outright that the order is staging rather than meaning, so `Addressees[0]` is not a fact
+about a promise — it is a fact about how two ids happen to sort. Taking the creditor from it made
+"who is owed this" depend on an accident, silently. A promise to one person still needs nothing from
+the caller: that person is the creditor. A promise made in front of several must say which of them
+it is to, and anybody else addressed is recorded as a witness to the event, which is what they were.
+Naming somebody who was not spoken to is refused.
+
+Refusing the unnamed multi-addressee case rather than picking is the point. `SocialObligation` has
+one debtor and one creditor; a promise owed to a group is an obligation kind the ledger does not
+model, and inventing one here to avoid returning null would be conversation state growing the
+obligation system rather than using it.
+
+**Filing a lie twice files one lie.** `NoteDeception` appended whatever it was handed, so a caller
+that noted a deception where it happened and again while sweeping the ledger recorded one event as
+two — `LiesTold` would have counted method calls rather than lies. Identity is the ledger entry's
+own id, the only identity a statement read back out of history has. Two separate deceptions remain
+two, because they are.
+
+Reason: everything durable this type can cause comes out of one call, so that call is where the
+conversation's authority has to end. What it heard, it can promote; what it did not hear, and who
+it cannot say was owed, are not its to decide.
+
 Add a new entry only when the decision is both load-bearing and durable.
