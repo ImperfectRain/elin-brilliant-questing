@@ -1194,6 +1194,44 @@ namespace BrilliantQuesting.Diagnostics
             return sb.ToString();
         }
 
+        /// <summary>
+        /// BQ-082. Whether this recaller has continuity humour to bring to a given thread and
+        /// site - old, memorable material that did not happen there - or an honest "nothing
+        /// earns it" when the ledger offers nothing of the kind.
+        /// </summary>
+        public static string DescribeContinuityHumour(
+            NarrativeWorldState world,
+            IVanillaState vanilla,
+            EntityId recaller,
+            ContinuityContext context,
+            GameTime now,
+            CallbackSelection selection = null)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("continuity humour available to ").Append(Who(world, recaller)).Append('\n');
+            if (world == null || recaller.IsNone)
+            {
+                sb.Append("  nobody to recall anything\n");
+                return sb.ToString();
+            }
+
+            CallbackHook hook = CallbackRecurrence.Best(world, vanilla, recaller, context, now, selection);
+            if (hook == null)
+            {
+                sb.Append("  nothing earns it: no available hook is both memorable and out of its own context\n");
+                return sb.ToString();
+            }
+
+            sb.Append("  ").Append(hook.EventType.ToString().PadRight(20));
+            sb.Append(hook.PrimaryKind.ToString().PadRight(14));
+            sb.Append(hook.Route.ToString().PadRight(10));
+            sb.Append("with ").Append(hook.Counterpart.IsNone ? "nobody" : world.Registry.NameOf(hook.Counterpart));
+            sb.Append(" [").Append(hook.Party).Append(']');
+            sb.Append("  weight ").Append(hook.Weight.ToString("0.00"));
+            sb.Append('\n');
+            return sb.ToString();
+        }
+
         /// <summary>One line for the event a thread grew out of, or an honest blank.</summary>
         private static string DescribeEvent(NarrativeWorldState world, EntityId eventId)
         {
