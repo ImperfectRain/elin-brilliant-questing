@@ -184,6 +184,7 @@ namespace BrilliantQuesting.Dialogue
                 text.Append(phrase);
                 used.Add(fragment.Id);
                 history?.Note(fragment);
+                request.WeirdnessBudget?.Note(fragment);
                 if (required)
                 {
                     core = fragment.Id;
@@ -223,6 +224,7 @@ namespace BrilliantQuesting.Dialogue
                 DialogueFragment fragment = all[i];
                 if (fragment.Fits(reading) && fragment.FitsTone(request.Tone)
                     && fragment.FitsVocabulary(request.Vocabulary) && fragment.FitsManner(request.Forbidden)
+                    && fragment.FitsWeirdness(request.WeirdnessBudget)
                     && Resolves(fragment, reading))
                 {
                     eligible.Add(fragment);

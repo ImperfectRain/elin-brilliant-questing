@@ -282,6 +282,16 @@ namespace BrilliantQuesting.Dialogue
         public DialogueExpressionHistory History { get; set; }
 
         /// <summary>
+        /// This scene's weirdness allowance, when the caller is tracking one (BQ-079). Null asks
+        /// for no weirdness constraint at all - the seam BQ-074 left with no consumer, the same way
+        /// <see cref="History"/> did until BQ-078. When given, it narrows the same eligible pool
+        /// <see cref="DialogueFragment.Fits"/> already built rather than adding a second one:
+        /// <see cref="DialogueFragment.FitsWeirdness"/> can only remove a candidate that was already
+        /// semantically valid, never add one that was not.
+        /// </summary>
+        public WeirdnessBudget WeirdnessBudget { get; set; }
+
+        /// <summary>
         /// The stream the choices are drawn from. Only forked, never advanced, so the same
         /// semantic state and the same seed produce the same line however many other lines were
         /// realized in between.

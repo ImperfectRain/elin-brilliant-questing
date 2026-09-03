@@ -1497,6 +1497,28 @@ Levels 0–4 with most content at 0–2; the tone formula of ordinary problem pl
 plus real mechanical consequence plus understated response.
 - **Depends** BQ-074.
 - **Done when** a generated set measurably matches the target distribution and no scene stacks two absurd premises.
+- **Current implementation** `WeirdnessBudget` and its tag vocabulary `DialogueWeirdness`, the third
+  reader of `DialogueFragment.Tags` after BQ-076's vocabulary and BQ-077's manners. Two disjoint tag
+  families live there: eight category tags spelling CD §22.1's taxonomy (bureaucratic, biological,
+  religious, domestic, criminal, economic, adventurer, cosmic) and four level tags for
+  `WeirdnessLevel`'s OddDetail through FeverDream - a fragment carrying neither reads as Mundane,
+  the ordinary case nearly every fragment already is. A budget is a ceiling drawn once per scene
+  (`WeirdnessBudget.Roll`/`SelectLevel`) from a distribution weighted 42/28/20/8/2 across
+  Mundane..FeverDream - ninety percent at Mundane through DistinctlyElin, matching "most content
+  should remain 0-2", and FeverDream the rarest tier by a wide margin - plus the one absurd premise
+  category the scene has committed to, if any. `IsAdmissible` is this step's whole contribution to
+  selection: Mundane content is never gated by a budget, tagged content needs its level within the
+  ceiling, and content at AbsurdPremiseCentral or above needs a category that either matches the one
+  already noted (`Note`) or has not been committed to yet - CD §22's "one absurd premise", not the
+  first the fragment pool happens to offer. `DialogueFragment.FitsWeirdness` and
+  `RealizationRequest.WeirdnessBudget` are the same opt-in seam BQ-078's `History` already is: null
+  asks for no constraint at all, and `DialogueRealizer.Candidates` narrows only what `Fits`,
+  `FitsTone`, `FitsVocabulary` and `FitsManner` already admitted, never adding a candidate those
+  checks refused.
+- **Deferred by design** no comedy content: nothing in `content/` carries a weirdness tag yet, and
+  authoring one is a later content-pipeline concern this step does not reach - `WeirdnessBudget`
+  gates weirdness, it does not invent it. Per-character reactions to an admitted premise are
+  BQ-080's; nothing here reads or produces one.
 - **Sources** CD §22, §22.2, §23; MD §20.
 
 #### BQ-080 — Reactions reveal personality

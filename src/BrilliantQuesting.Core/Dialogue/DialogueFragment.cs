@@ -532,6 +532,16 @@ namespace BrilliantQuesting.Dialogue
             return true;
         }
 
+        /// <summary>
+        /// Whether a scene's weirdness budget still admits it (BQ-079). A null budget asks for no
+        /// constraint at all, the same neutral default every other Fits* narrowing offers a caller
+        /// who does not track one.
+        /// </summary>
+        public bool FitsWeirdness(WeirdnessBudget budget)
+        {
+            return budget == null || budget.IsAdmissible(this);
+        }
+
         public override string ToString() => Id + " [" + Position + "]";
     }
 }
