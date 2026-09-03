@@ -708,4 +708,43 @@ Reason: what somebody will not do is more recognizable than another positive tra
 only if it costs them — a prohibition enforced after selection, or only in wording, is a character
 who does the thing and describes it differently, which is worse than not modelling it at all.
 
+## D037 — Repetition avoidance only removes candidates, and a required slot reuses where an optional one falls silent
+
+BQ-078 gives `DialogueRealizer` a consumer for the `RepetitionGroup` BQ-074 declared and left
+unread: `DialogueExpressionHistory`, tallying recent fragment ids, repetition groups, BQ-076
+vocabulary tags and tone tags against a small cap, and `RealizationRequest.History` as the seam a
+caller opts into or leaves null.
+
+**Narrowing only ever shrinks a pool `Candidates` already built.** `IsFresh` is asked only of
+fragments `Fits`, `FitsTone`, `FitsVocabulary` and `FitsManner` already admitted, and the narrowed
+set is always a subset of that pool, never a superset. Repetition avoidance cannot be the reason a
+line says something it should not, because it is never in a position to add a candidate — the
+existing eligibility checks are the only place a fragment enters consideration at all.
+
+**A required slot degrades by reuse; an optional one degrades by silence.** The core slot cannot be
+skipped, so when every fresh core candidate is spent it falls back to the full eligible pool and
+says a valid line again rather than inventing an ineligible one — the same "refuse rather than
+repair" instinct BQ-074 already held, aimed at variety instead of meaning. Every other slot could
+already say nothing (D033's "not every line has every part"), so an exhausted optional slot needs
+no fallback of its own: it is simply skipped, the same way a slot with zero eligible candidates has
+always been. This split, not a uniform cap, is what makes "no opener more than twice" a guarantee
+rather than a likelihood — an opener can never be reused past the cap, because reuse was never its
+degrade path.
+
+**Semantic-act tallies are kept but never chosen on.** CD §21 names the act as a repetition axis, so
+`NoteAct` records it, but nothing narrows a slot on it: every core candidate left at a slot already
+answers the one act the request carries, so the axis cannot distinguish between them without
+tracking a sequence of acts across a conversation — a form of state this step does not add, because
+it borders BQ-083's ground rather than BQ-074's.
+
+**The history is not conversation state.** It holds counts of wording already spoken, nothing a
+character believes, is owed, or remembers; it is not attached to `NarrativeNpc`, not saved, and
+built and discarded per conversation by whichever caller owns one. BQ-083's conversation state,
+when it exists, is a different structure answering a different question, and nothing here should be
+mistaken for an early draft of it.
+
+Reason: a repetition fix that could occasionally choose a fragment nothing licensed, or that could
+leave a required slot silent when the simulation needs a line, would trade a correctness guarantee
+for smoother-sounding dialogue — exactly backward for a layer whose whole job is to never invent.
+
 Add a new entry only when the decision is both load-bearing and durable.

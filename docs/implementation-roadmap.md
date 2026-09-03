@@ -1462,6 +1462,34 @@ constraining both action selection and wording, breakable only under documented 
 Track recent use by fragment, repetition group, opener, semantic act, metaphor family and cadence.
 - **Depends** BQ-074.
 - **Done when** a 100-line synthetic conversation set contains no opener more than twice.
+- **Current implementation** `DialogueExpressionHistory`, the consumer BQ-074's `RepetitionGroup`
+  was declared for and left unread. It tallies five axes off exactly the data a fragment already
+  carries - its id, its `RepetitionGroup`, its BQ-076 vocabulary tags (metaphor family) and its
+  tone tags (cadence) - plus the semantic act a rendered line carried, and `IsFresh` answers
+  whether a candidate has said any of them as often as a small cap (two, CD §21's own bound)
+  allows. `RealizationRequest.History` is the seam: null asks for no repetition control at all, and
+  a caller who sets it gets a pool `DialogueRealizer` narrows to the still-fresh subset of exactly
+  what `Candidates` already found eligible - repetition avoidance removes candidates, it never adds
+  one `Fits`, `FitsTone`, `FitsVocabulary` and `FitsManner` did not already admit, which is what
+  keeps semantic correctness senior to variety. Degrade is graceful and slot-shaped: the core slot
+  is required and reuses its full eligible pool once every fresh option is spent, because a line
+  always needs a point and reusing a valid one beats inventing an ineligible one; every other slot
+  was already allowed to say nothing, so an exhausted optional slot is simply skipped the way a
+  slot with zero eligible candidates always has been, which is what makes "no opener more than
+  twice" hold by construction rather than by chance, in a 100-line set or any other length.
+  Semantic-act tallies are kept for CD §21's own sake but drive no selection: every core candidate
+  left at a slot already answers the one act the request carries, so the axis cannot differentiate
+  among them without conversation-level act sequencing, which is BQ-083's ground, not this seam's.
+  `RepetitionControlTests` proves the done-when directly over a 100-line mixed conversation, that
+  exhausting every valid core still renders correctly rather than refusing, that nothing said is
+  ever outside what semantic-only eligibility would have allowed, that a whole conversation replays
+  identically from the same seeds, that tracking it writes nothing to the world, and that a request
+  which never sets `History` behaves exactly as BQ-074 left it.
+- **Deferred by design** the history is per-conversation, in-memory bookkeeping a caller builds and
+  discards; it is not attached to `NarrativeNpc`, not saved (schema unchanged) and not BQ-083's
+  conversation state, which will hold belief and commitments rather than a count of recent wording.
+  Weirdness-motif tracking (CD §21's sixth axis) waits on BQ-079's own vocabulary; nothing here
+  invents one early.
 - **Sources** CD §21, §35.
 
 #### BQ-079 — Weirdness budget

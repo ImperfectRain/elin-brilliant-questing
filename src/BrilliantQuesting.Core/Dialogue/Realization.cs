@@ -273,6 +273,15 @@ namespace BrilliantQuesting.Dialogue
         public IReadOnlyList<string> Forbidden { get; set; } = NoManners;
 
         /// <summary>
+        /// What this conversation has already said, when the caller is tracking one (BQ-078). Null
+        /// asks for no repetition control at all - the seam BQ-074 left with no consumer. When
+        /// given, it narrows the same eligible pool <see cref="DialogueFragment.Fits"/> already
+        /// built rather than adding a second one: repetition avoidance can only remove a candidate
+        /// that was already semantically valid, never add one that was not.
+        /// </summary>
+        public DialogueExpressionHistory History { get; set; }
+
+        /// <summary>
         /// The stream the choices are drawn from. Only forked, never advanced, so the same
         /// semantic state and the same seed produce the same line however many other lines were
         /// realized in between.

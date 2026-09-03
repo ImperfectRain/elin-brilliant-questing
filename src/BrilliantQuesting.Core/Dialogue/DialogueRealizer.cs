@@ -144,6 +144,9 @@ namespace BrilliantQuesting.Dialogue
                     + " under these conditions");
             }
 
+            DialogueExpressionHistory history = request.History;
+            history?.NoteAct(reading.Value(DialogueReadings.Act));
+
             StringBuilder text = new StringBuilder();
             List<string> used = new List<string>();
             string core = string.Empty;
@@ -153,6 +156,7 @@ namespace BrilliantQuesting.Dialogue
                 FragmentPosition position = Line[i];
                 bool required = position == FragmentPosition.Core;
                 List<DialogueFragment> candidates = required ? cores : Candidates(position, request, reading);
+                candidates = AvoidRepetition(candidates, required, history);
                 if (candidates.Count == 0)
                 {
                     continue;
@@ -179,6 +183,7 @@ namespace BrilliantQuesting.Dialogue
 
                 text.Append(phrase);
                 used.Add(fragment.Id);
+                history?.Note(fragment);
                 if (required)
                 {
                     core = fragment.Id;
@@ -245,6 +250,40 @@ namespace BrilliantQuesting.Dialogue
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Narrows an already-eligible pool away from what this conversation has said too often
+        /// (BQ-078). Never adds a candidate <see cref="Candidates"/> did not already admit, and
+        /// never removes the last one a required slot has to speak from: a core with nothing fresh
+        /// left reuses the pool it already had rather than falling through to a refusal, which is
+        /// exactly the degrade CD §21 asks for and BQ-074's "wording is never told to invent"
+        /// forbids working around any other way. An optional slot has always been allowed to say
+        /// nothing, so narrowing it to empty needs no separate fallback - the position is simply
+        /// skipped, the same way a slot with zero eligible candidates always has been.
+        /// </summary>
+        private static List<DialogueFragment> AvoidRepetition(List<DialogueFragment> candidates, bool required, DialogueExpressionHistory history)
+        {
+            if (history == null || candidates.Count == 0)
+            {
+                return candidates;
+            }
+
+            List<DialogueFragment> fresh = new List<DialogueFragment>();
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                if (history.IsFresh(candidates[i]))
+                {
+                    fresh.Add(candidates[i]);
+                }
+            }
+
+            if (fresh.Count > 0 || !required)
+            {
+                return fresh;
+            }
+
+            return candidates;
         }
 
         private static string Fill(DialogueFragment fragment, RealizationReading reading)
