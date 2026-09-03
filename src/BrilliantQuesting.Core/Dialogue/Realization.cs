@@ -346,16 +346,49 @@ namespace BrilliantQuesting.Dialogue
         public WeirdnessBudget WeirdnessBudget { get; set; }
 
         /// <summary>
-        /// Old business the speaker is entitled to bring up, when the caller has selected one
-        /// (BQ-081). Null asks for no reference back at all, which is what most lines are.
+        /// Old business the speaker is entitled to bring up <em>and</em> willing to bring up with
+        /// this listener, when the caller has selected one (BQ-081). Null asks for no reference
+        /// back at all, which is what most lines are.
         ///
         /// It is a reference to a recorded event and never a retelling of it: what reaches wording
         /// is the kind of material and where its other party is standing, and nothing that could
         /// assert what happened. Selecting it is <c>CallbackHooks</c>' - including the whole of
         /// whether this speaker may know it - so a request cannot be the place a callback is
         /// invented, and <see cref="WhyNot"/> refuses one that belongs to somebody else.
+        ///
+        /// <b>A permit rather than a hook, on purpose.</b> Remembering something and being willing
+        /// to say it to the person opposite are different questions with different answers, and the
+        /// second one has a listener in it. Taking the clearance instead of the material means the
+        /// second question cannot be skipped by a caller who did not think to ask it:
+        /// <c>CallbackDisclosure.Permit</c> is the only thing that makes one, it makes it by asking
+        /// <c>Disclosure</c>, and <see cref="WhyNot"/> refuses a permit that was withheld or was
+        /// cleared for somebody this act does not address.
         /// </summary>
-        public CallbackHook Callback { get; set; }
+        public CallbackPermit Callback { get; set; }
+
+        /// <summary>
+        /// The hook wording may actually read, or null when there is none it may.
+        ///
+        /// Every path into the fragment pool goes through this rather than through
+        /// <see cref="Callback"/>, so a candidate listing - which does not run
+        /// <see cref="WhyNot"/> - cannot see material the request would have been refused for.
+        /// </summary>
+        internal CallbackHook Recalled
+        {
+            get
+            {
+                if (Callback == null || !Callback.Allowed || Callback.Hook == null || Act == null)
+                {
+                    return null;
+                }
+
+                return Callback.Hook.Recaller == Act.Speaker
+                       && Act.Addressees.Count == 1
+                       && Act.IsAddressedTo(Callback.Listener)
+                    ? Callback.Hook
+                    : null;
+            }
+        }
 
         /// <summary>
         /// The stream the choices are drawn from. Only forked, never advanced, so the same
@@ -367,11 +400,14 @@ namespace BrilliantQuesting.Dialogue
         /// <summary>
         /// Why this request could not be realized, or an empty string when it can be.
         ///
-        /// The three refusals are all the same refusal: the caller has described a situation the
+        /// Every refusal here is the same refusal: the caller has described a situation the
         /// semantic layer never produced. A realizer that quietly picked one of the two speakers,
-        /// or worded a decision about one claim as an act about another, would be inventing the
-        /// missing half in prose - which is exactly the failure this layer exists to make
-        /// impossible.
+        /// worded a decision about one claim as an act about another, or spoke a memory the speaker
+        /// would have kept from the person opposite, would be inventing the missing half in prose -
+        /// which is exactly the failure this layer exists to make impossible. Refusing rather than
+        /// dropping the offending part matters just as much: a line that silently came out without
+        /// the callback would leave the caller believing a permission question had been answered
+        /// when it had only been discarded.
         /// </summary>
         public string WhyNot()
         {
@@ -407,9 +443,31 @@ namespace BrilliantQuesting.Dialogue
             // putting somebody else's in this speaker's mouth would be wording claiming a memory
             // the simulation never granted them. Refusing here is what makes the knowledge gate
             // structural rather than a convention callers have to keep.
-            if (Callback != null && Callback.Recaller != Act.Speaker)
+            if (Callback != null && Callback.Hook == null)
+            {
+                return "the callback permit names no material";
+            }
+
+            if (Callback != null && Callback.Hook.Recaller != Act.Speaker)
             {
                 return "the callback belongs to somebody other than the speaker";
+            }
+
+            // The last two, and the ones that keep the knowledge gate from being spent as the
+            // willingness gate. A permit is a clearance to say a particular thing to a particular
+            // person: it has to be that person and only them - willingness was weighed against one
+            // listener, and an act addressed to several would spend the clearance in front of
+            // people nobody weighed it against - and it has to have been granted. Wording is the
+            // wrong place to discover either, so the request is refused rather than quietly worded
+            // without the callback.
+            if (Callback != null && (Act.Addressees.Count != 1 || !Act.IsAddressedTo(Callback.Listener)))
+            {
+                return "the callback was cleared for somebody other than the person being addressed";
+            }
+
+            if (Callback != null && !Callback.Allowed)
+            {
+                return "the speaker would not bring this up with this listener";
             }
 
             return string.Empty;

@@ -31,6 +31,9 @@ namespace BrilliantQuesting.Continuity
     /// is not that occasion when both differ from the ones offered. No new field, no bespoke event
     /// type, and nothing that only this one incident could satisfy - any hook, from any recorder,
     /// resurfaces the same way once it is old enough, memorable enough and out of its own context.
+    /// Separation is something an occasion has to establish rather than something it gets by
+    /// default: where nothing on either side is recorded there is no evidence of distance, and
+    /// unrecorded context is not the same claim as different context.
     ///
     /// <b>It stops before wording.</b> Which hook, if any, is worth the recall is all this answers.
     /// Saying it is still <c>DialogueRealizer</c>'s, through the <c>RealizationRequest.Callback</c>
@@ -69,10 +72,18 @@ namespace BrilliantQuesting.Continuity
         }
 
         /// <summary>
-        /// Whether <paramref name="context"/> is not where <paramref name="hook"/> happened. Both
-        /// the thread and the place have to differ from what the hook itself recorded, when either
-        /// is known; a hook with no thread or an event with no thread of its own is not evidence
-        /// either way, so it never blocks a match on that dimension alone.
+        /// Whether <paramref name="context"/> is somewhere <paramref name="hook"/> demonstrably did
+        /// not happen.
+        ///
+        /// Two rules, and the second one is the one that is easy to get wrong. A dimension the two
+        /// sides share rules the hook out: this is still that matter, or still that ground, and
+        /// recalling it there is the original context rather than a recurrence. A dimension either
+        /// side left blank rules nothing either way - and, crucially, cannot be counted toward
+        /// separation, because "neither of us recorded a thread" is not the same statement as "our
+        /// threads differ". So a second context has to be <em>proved</em>: at least one dimension
+        /// where both sides are known and they are not the same. A hook with no recorded thread and
+        /// no recorded place is material an occasion can never establish distance from, which is
+        /// the honest answer rather than the convenient one.
         /// </summary>
         public static bool IsUnrelatedContext(CallbackHook hook, ContinuityContext context)
         {
@@ -81,9 +92,22 @@ namespace BrilliantQuesting.Continuity
                 return false;
             }
 
-            bool sameThread = !hook.ThreadId.IsNone && !context.ThreadId.IsNone && hook.ThreadId == context.ThreadId;
-            bool sameSite = !hook.Place.IsNone && !context.SiteId.IsNone && hook.Place == context.SiteId;
-            return !sameThread && !sameSite;
+            bool threadComparable = !hook.ThreadId.IsNone && !context.ThreadId.IsNone;
+            bool siteComparable = !hook.Place.IsNone && !context.SiteId.IsNone;
+
+            if (threadComparable && hook.ThreadId == context.ThreadId)
+            {
+                return false;
+            }
+
+            if (siteComparable && hook.Place == context.SiteId)
+            {
+                return false;
+            }
+
+            // Nothing above matched, so any dimension that could be compared at all differed.
+            // Without one there is no evidence of separation, only the absence of evidence.
+            return threadComparable || siteComparable;
         }
 
         /// <summary>The whole gate: memorable, and not spoken where it already happened.</summary>
@@ -124,7 +148,8 @@ namespace BrilliantQuesting.Continuity
     /// The thread and place a hook is being weighed against for recurrence - "here", in the sense
     /// <see cref="CallbackRecurrence.IsUnrelatedContext"/> needs it. Either may be
     /// <see cref="EntityId.None"/> when the occasion has no thread of its own or no fixed site; a
-    /// blank half simply cannot rule a hook in or out on that dimension.
+    /// blank half simply cannot rule a hook in or out on that dimension - neither in, which was
+    /// always so, nor out, which is what makes a wholly blank context establish nothing at all.
     /// </summary>
     public readonly struct ContinuityContext
     {

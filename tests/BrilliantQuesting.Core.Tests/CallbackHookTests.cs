@@ -219,8 +219,9 @@ namespace BrilliantQuesting.Tests
             CallbackHook alices = CallbackHooks.Of(stage.World, stage.Vanilla, helped, stage.Alice, stage.Now);
 
             RealizationRequest borrowed = stage.Ask(stage.Cass, stage.Bram);
-            borrowed.Callback = alices;
+            borrowed.Callback = CallbackDisclosure.Permit(stage.World, alices, stage.Bram, stage.Now);
 
+            Assert.True(borrowed.Callback.Allowed);
             Assert.Equal("the callback belongs to somebody other than the speaker", borrowed.WhyNot());
             Assert.False(stage.Realizer.Realize(borrowed).Rendered);
         }
@@ -249,12 +250,12 @@ namespace BrilliantQuesting.Tests
         // -- people the world can no longer produce -------------------------------------------------
 
         /// <summary>
-        /// Somebody who has died stops being available to refer to, rather than being spoken of as
-        /// though they were standing there. The history is untouched: it is the offering of it that
-        /// stops, and a caller who wants it anyway has to ask and is told what it is worth.
+        /// Somebody who has died is still somebody to remember. The history is untouched and so is
+        /// the offering of it: what dying costs is being produced, not being referred to, and the
+        /// hook says which of the two it lost.
         /// </summary>
         [Fact]
-        public void AParticipantTheWorldCanNoLongerProduceDropsOutRatherThanBeingSpokenOfAsPresent()
+        public void AParticipantWhoHasDiedIsStillReferableAndSaysSo()
         {
             Stage stage = Stage.Create();
             stage.Record(WorldEventType.Helped, stage.Alice, stage.Bram);
@@ -264,12 +265,39 @@ namespace BrilliantQuesting.Tests
 
             stage.Vanilla.Kill(stage.Alice);
 
+            CallbackHook kept = Assert.Single(CallbackHooks.For(stage.World, stage.Vanilla, stage.Bram, stage.Vanilla.Now));
+            Assert.Equal(CallbackParty.Gone, kept.Party);
+            Assert.True(CallbackHooks.IsReferable(kept.Party));
+            Assert.False(CallbackHooks.IsStageable(kept.Party));
+
+            // The caller whose use of the hook needs the person themself asks the narrower question
+            // and is told no, which is the whole of what dying takes away here.
+            Assert.Empty(CallbackHooks.For(
+                stage.World, stage.Vanilla, stage.Bram, stage.Vanilla.Now,
+                new CallbackSelection { Parties = CallbackParties.Stageable }));
+        }
+
+        /// <summary>
+        /// Somebody the registry cannot produce at all is a different case from a dead person and
+        /// still drops out: there is no name to say and nothing to describe, so the material is not
+        /// offered unprompted. A caller that wants to see even that asks for everything.
+        /// </summary>
+        [Fact]
+        public void APartyTheRegistryCannotProduceIsNotOfferedUnprompted()
+        {
+            Stage stage = Stage.Create();
+            EntityId nobodyModels = stage.World.NewId("npc");
+            stage.World.Record(
+                WorldEventType.Helped, nobodyModels, stage.Bram, stage.Now, 0.6, EntityId.None, null, null, null, null, EntityId.None);
+            stage.Vanilla.AdvanceDays(14);
+
             Assert.Empty(CallbackHooks.For(stage.World, stage.Vanilla, stage.Bram, stage.Vanilla.Now));
 
             CallbackHook kept = Assert.Single(CallbackHooks.For(
                 stage.World, stage.Vanilla, stage.Bram, stage.Vanilla.Now,
-                new CallbackSelection { IncludeUnavailableParties = true }));
-            Assert.Equal(CallbackParty.Gone, kept.Party);
+                new CallbackSelection { Parties = CallbackParties.Any }));
+            Assert.Equal(CallbackParty.Unknown, kept.Party);
+            Assert.False(CallbackHooks.IsReferable(kept.Party));
         }
 
         /// <summary>Being away is not being gone: somebody who left town is still referable.</summary>
@@ -369,7 +397,7 @@ namespace BrilliantQuesting.Tests
             CallbackHook hook = CallbackHooks.Of(stage.World, stage.Vanilla, helped, stage.Alice, stage.Now);
 
             RealizationRequest request = stage.Ask(stage.Alice, stage.Bram);
-            request.Callback = hook;
+            request.Callback = CallbackDisclosure.Permit(stage.World, hook, stage.Bram, stage.Now);
             request.Cast = DialogueCast.From(stage.World, stage.Alice, stage.Bram);
 
             foreach (DialogueFragment fragment in stage.Realizer.Candidates(FragmentPosition.Callback, request))
@@ -483,7 +511,7 @@ namespace BrilliantQuesting.Tests
                 RealizedLine line = realizer.Realize(new RealizationRequest(act)
                 {
                     Cast = DialogueCast.From(lab.World, speaker, lab.Player, hook.Counterpart),
-                    Callback = hook,
+                    Callback = CallbackDisclosure.Permit(lab.World, hook, lab.Player, lab.Vanilla.Now),
                     Rng = new DeterministicRng(seed)
                 });
 

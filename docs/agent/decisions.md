@@ -810,15 +810,29 @@ the target of anything not tagged `unnoticed`, the event's own listed witnesses,
 believer in a claim the event is the `OriginEvent` of; a garbled version of that claim is knowledge
 of a story, not of what happened, and is refused. An event nobody has a route to produces no hook,
 and `RealizationRequest.WhyNot` refuses a hook belonging to somebody other than the speaker, so
-there is no path from private history to a line about it even for a caller assembling a request by
-hand. This is the same rule that keeps background simulation from granting omniscience, read at the
-point where history becomes speech.
+there is no path from history somebody could not know to a line about it even for a caller
+assembling a request by hand. This is the same rule that keeps background simulation from granting
+omniscience, read at the point where history becomes speech. It is a gate on *knowing* and only on
+knowing; whether the speaker would say it to the person opposite is a second question, and D044
+settles that one.
 
-**Honest about people who are no longer there.** A counterpart the world can no longer produce is
-dropped from selection rather than spoken of as present, which is `SceneStatus`' discipline kept for
-a finished event; being merely away is not being gone, and the caller who wants a hook anyway is
-told what its other side is worth. Selection is deterministic — salience descending, ties on event
-id — because a save reloaded mid-conversation has to offer the same material in the same order.
+**Honest about people who are no longer there — which is not the same as silent about them.**
+`CallbackParty` reports what the world can still produce of the other side, and two different
+questions are read off it. Whether somebody can still be *referred to* fails only for a party the
+registry cannot produce at all (`IsReferable`); whether they can still be *staged* fails for the
+dead as well (`IsStageable`). Selection admits the referable by default, because the dead and the
+departed are exactly what a settlement keeps talking about and dropping them would delete the most
+durable callback there is. `CallbackSelection.Parties` is how the narrower question is asked, by the
+caller whose use of the hook needs the person themself. Selection is deterministic — salience
+descending, ties on event id — because a save reloaded mid-conversation has to offer the same
+material in the same order.
+
+**A second context has to be proved, never assumed (BQ-082).** `CallbackRecurrence.IsUnrelatedContext`
+rules a hook out on any dimension the two sides share, and rules it *in* only where at least one
+dimension is known on both sides and differs. Unrecorded context establishes nothing in either
+direction: "neither of us recorded a thread" is not the claim "our threads differ", and reading it
+as one made an event with nothing recorded about where it happened resurface everywhere, including
+where it actually happened.
 
 Reason: the alternative is a second history. A stored hook is a copy of an event that can outlive
 it, disagree with it, need migrating, and — worst — be written for one occasion in words nobody can
@@ -993,5 +1007,51 @@ Reason: a narrowing that can be satisfied by an accident — another axis happen
 premise happening to share a genre, a pool computed before the thing that should have shrunk it —
 is not a constraint. Semantic correctness outranks stylistic variety, so each of these gives up some
 breadth of pool to say something true.
+
+## D044 — Remembering is not telling: a callback carries a clearance for one listener, not a hook
+
+BQ-081 derives a hook per recaller, which makes "they could not possibly know that" structurally
+impossible: material nobody had a route to does not exist to be spoken. That gate has no listener in
+it, and the gap it left was real. A claim held at secrecy 100, whose holder `Disclosure` would refuse
+to state if asked outright, could still be handed to `DialogueRealizer` as old business and come out
+as "I know what {recalled} is said to have done". `RealizationRequest.WhyNot` checked that the hook
+belonged to the speaker and nothing else, so recall permission was being spent as disclosure
+permission by any caller who did not remember a convention nothing enforced.
+
+**The seam is a permit, and `RealizationRequest` takes one instead of a hook.** `CallbackPermit` has
+an internal constructor, so the only thing that produces one is `CallbackDisclosure.Permit`, and the
+only way it produces one is by asking `Disclosure`. A request carrying a permit that was withheld, or
+one cleared for anybody but the single person the act addresses, is refused the way the other
+malformed requests are — refused rather than quietly worded without the callback, because a line that silently
+lost its reference would leave the caller believing a permission question had been answered when it
+had only been discarded. The shape is BQ-081's own, applied to the gate BQ-081 left to convention.
+
+**It adds no authority.** Every answer comes from the same `Disclosure.Decide` that settles
+willingness for every other claim, asked about the claims the recalled event already named.
+`CallbackHook.Claims` carries those as ids — the event's own `Related`, filtered to what the
+knowledge graph resolves — so the permit needs no rescan of the ledger and, more to the point,
+invents nothing to ask about. There is no callback-specific willingness, no second secrecy model and
+no fact minted to stand for "what the callback is about", which would be exactly the second fact
+system a hook exists not to be. Holding no belief about a named claim is not withholding it:
+`NothingToDisclose` passes, so a witness who was there without forming a view is not silenced.
+
+**What it does not reach is empty rather than open.** An event that named no claim has nothing for
+disclosure to weigh and is always permitted. That is honest: with no claim recorded and notice
+suppressed, the only surviving route is `FirstHand` — `unnoticed` closes `Involved` and `Witnessed`,
+and `Heard` requires a claim to have been believed — so the speaker is the one it happened by,
+talking about themselves. There is no third party whose secret could pass through a gap of that
+shape.
+
+**Selection had to move with it.** `CallbackHooks.Best` returning the most salient hook and the
+caller then finding it unsayable would lose every perfectly sayable callback standing behind it, so
+`CallbackDisclosure.Best` and `BestRecurrence` walk the same salience order and return the first the
+speaker would actually spend on this listener. Order is not re-sorted by willingness; withheld
+material is stepped over.
+
+Reason: knowing and telling are different questions with different answers — that is the whole of
+BQ-071 — and a callback is the one place the simulation had them collapsed. Keeping the answer where
+`Disclosure` already lives means a mended tie buys a callback the same way it buys an answer, and
+realization still reads no world state: the clearance is taken where the world is in hand and merely
+honoured where the words are chosen.
 
 Add a new entry only when the decision is both load-bearing and durable.

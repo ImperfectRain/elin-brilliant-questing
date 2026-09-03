@@ -150,6 +150,80 @@ namespace BrilliantQuesting.Tests
             Assert.Null(CallbackRecurrence.Best(stage.World, stage.Vanilla, stage.Bram, sameGround, stage.Vanilla.Now));
         }
 
+        /// <summary>
+        /// An occasion that recorded no context of its own proves no distance from anything. Two
+        /// blanks are not a difference: neither side can compare, so the second-context claim is
+        /// unproved and the recurrence is not offered.
+        ///
+        /// This is the direction the old reading got backwards. "Not the same thread" was satisfied
+        /// by there being no threads to compare, so an event with nothing recorded about where it
+        /// happened resurfaced everywhere - including, invisibly, where it actually happened.
+        /// </summary>
+        [Fact]
+        public void AnOccasionThatRecordedNoContextProvesNoSeparation()
+        {
+            Stage stage = Stage.Create();
+            stage.World.Record(WorldEventType.SecretRevealed, stage.Alice, stage.Bram, stage.Now, 0.6);
+            stage.Vanilla.AdvanceDays(15);
+
+            CallbackHook hook = CallbackHooks.Best(stage.World, stage.Vanilla, stage.Bram, stage.Vanilla.Now);
+            Assert.NotNull(hook);
+            Assert.True(hook.ThreadId.IsNone);
+            Assert.True(hook.Place.IsNone);
+
+            ContinuityContext nowhereInParticular = new ContinuityContext(EntityId.None, EntityId.None);
+            Assert.False(CallbackRecurrence.IsUnrelatedContext(hook, nowhereInParticular));
+            Assert.Null(CallbackRecurrence.Best(
+                stage.World, stage.Vanilla, stage.Bram, nowhereInParticular, stage.Vanilla.Now));
+        }
+
+        /// <summary>
+        /// A hook that recorded its context is no better off against an occasion that recorded
+        /// none, and neither is the other way round. One known half on each side is still nothing
+        /// to compare.
+        /// </summary>
+        [Fact]
+        public void NeitherSideCanEstablishSeparationAlone()
+        {
+            Stage stage = Stage.Create();
+            EntityId originThread = stage.World.NewId("thread");
+            stage.Record(WorldEventType.SecretRevealed, stage.Alice, stage.Bram, originThread, EntityId.None);
+            stage.Vanilla.AdvanceDays(15);
+
+            CallbackHook hook = CallbackHooks.Best(stage.World, stage.Vanilla, stage.Bram, stage.Vanilla.Now);
+
+            // The hook knows only its thread; the occasion knows only its site. Nothing lines up.
+            ContinuityContext siteOnly = new ContinuityContext(EntityId.None, stage.World.NewId("zone"));
+            Assert.False(CallbackRecurrence.IsUnrelatedContext(hook, siteOnly));
+
+            // Give the occasion a thread and the comparison becomes possible - and it differs.
+            ContinuityContext elsewhere = new ContinuityContext(stage.World.NewId("thread"), stage.World.NewId("zone"));
+            Assert.True(CallbackRecurrence.IsUnrelatedContext(hook, elsewhere));
+        }
+
+        /// <summary>
+        /// One comparable dimension is enough to prove separation, and the blank one neither helps
+        /// nor blocks. This is what "an unknown dimension is not evidence either way" was always
+        /// meant to say.
+        /// </summary>
+        [Fact]
+        public void OneKnownDimensionThatDiffersIsEnough()
+        {
+            Stage stage = Stage.Create();
+            EntityId originThread = stage.World.NewId("thread");
+            EntityId originSite = stage.World.NewId("zone");
+            stage.Record(WorldEventType.SecretRevealed, stage.Alice, stage.Bram, originThread, originSite);
+            stage.Vanilla.AdvanceDays(15);
+
+            CallbackHook hook = CallbackHooks.Best(stage.World, stage.Vanilla, stage.Bram, stage.Vanilla.Now);
+
+            ContinuityContext anotherSite = new ContinuityContext(EntityId.None, stage.World.NewId("zone"));
+            Assert.True(CallbackRecurrence.IsUnrelatedContext(hook, anotherSite));
+
+            // And the known half still rules it out when it matches, blank thread or not.
+            Assert.False(CallbackRecurrence.IsUnrelatedContext(hook, new ContinuityContext(EntityId.None, originSite)));
+        }
+
         // -- unavailable material prevents the recurrence ---------------------------------------------
 
         /// <summary>Nobody the world can offer this to is nobody it resurfaces for.</summary>
@@ -215,7 +289,7 @@ namespace BrilliantQuesting.Tests
                 RealizedLine line = stage.Realizer.Realize(new RealizationRequest(act)
                 {
                     Cast = DialogueCast.From(stage.World, speaker, listener, hook.Counterpart),
-                    Callback = hook,
+                    Callback = CallbackDisclosure.Permit(stage.World, hook, listener, stage.Now),
                     Rng = new DeterministicRng(seed)
                 });
 

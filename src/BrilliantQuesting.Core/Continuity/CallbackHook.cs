@@ -74,6 +74,16 @@ namespace BrilliantQuesting.Continuity
     /// callback that speaks of somebody as though they were still standing there is the failure
     /// BQ-008 exists to prevent, and history going on being true about them is not a licence to
     /// imply they are around.
+    ///
+    /// <b>Two different questions, and this enum answers both.</b> Whether somebody can still be
+    /// <em>referred to</em> is not whether they can still be <em>produced</em>. The dead, the
+    /// departed and the long gone are exactly what a town keeps talking about, and dropping their
+    /// history from selection would delete the most characteristic callback there is - "after what
+    /// your father did for me" - to protect a fragment that wanted a live name. So
+    /// <see cref="CallbackHooks.IsReferable"/> admits everyone history can still name and
+    /// <see cref="CallbackHooks.IsStageable"/> answers the narrower question separately, for the
+    /// caller that genuinely needs a person to be there. Only <see cref="Unknown"/> fails both:
+    /// somebody the registry cannot produce at all has no name to say and no standing to describe.
     /// </summary>
     public enum CallbackParty
     {
@@ -116,8 +126,15 @@ namespace BrilliantQuesting.Continuity
     ///
     /// <b>It stops before wording and before judgement.</b> Whether now is the moment to bring
     /// this up, and what humour it is worth, is BQ-082's; whether it may be said to this listener
-    /// is disclosure's (BQ-071 through BQ-073). This type only says the material is there and what
-    /// it is made of.
+    /// is disclosure's (BQ-071 through BQ-073), asked through <c>CallbackDisclosure</c> and
+    /// answered by the same <c>Disclosure</c> that answers it for every other claim. This type only
+    /// says the material is there and what it is made of.
+    ///
+    /// <b>Remembering is not telling.</b> <see cref="Recaller"/> and <see cref="Route"/> settle
+    /// that this person may hold this history; they settle nothing about whom they would hold it
+    /// in front of. The two gates are deliberately different questions with different answers - a
+    /// speaker may know a thing perfectly well and still not say it here, to this person, now - and
+    /// a hook is only ever the first of them.
     /// </summary>
     public sealed class CallbackHook
     {
@@ -133,6 +150,7 @@ namespace BrilliantQuesting.Continuity
             CallbackParty party,
             IReadOnlyList<EntityId> participants,
             IReadOnlyList<EntityId> objects,
+            IReadOnlyList<EntityId> claims,
             EntityId place,
             EntityId threadId,
             GameTime at,
@@ -150,6 +168,7 @@ namespace BrilliantQuesting.Continuity
             Party = party;
             Participants = participants ?? NoIds;
             Objects = objects ?? NoIds;
+            Claims = claims ?? NoIds;
             Place = place;
             ThreadId = threadId;
             At = at;
@@ -195,6 +214,24 @@ namespace BrilliantQuesting.Continuity
 
         /// <summary>The objects the event turned on - its recorded evidence.</summary>
         public IReadOnlyList<EntityId> Objects { get; }
+
+        /// <summary>
+        /// The claims this event named that the knowledge graph can still resolve, as ids and
+        /// nothing else.
+        ///
+        /// Carried for one reason: whether the speaker is willing to bring this up in front of a
+        /// particular listener is <c>Disclosure</c>'s question, and <c>Disclosure</c> asks it about
+        /// a claim. These are the claims to ask about - the event's own recorded
+        /// <c>WorldEvent.Related</c>, filtered to the ones that are facts - so the willingness gate
+        /// needs no rescan of the ledger and, more importantly, invents nothing to ask about. An
+        /// event that named no claim has none here, and that is not a gap to be filled: see
+        /// <c>CallbackDisclosure</c>.
+        ///
+        /// Ids, like everything else on this type. Nothing here says what a claim asserts, how
+        /// secret it is or who believes it; all three are read from the knowledge graph by whoever
+        /// has the standing to read them.
+        /// </summary>
+        public IReadOnlyList<EntityId> Claims { get; }
 
         /// <summary>Where it happened, as the event recorded it.</summary>
         public EntityId Place { get; }

@@ -1598,10 +1598,22 @@ lost object, weird incident.
   recaller, not per event: they did it (`FirstHand`), it was done to them and not tagged `unnoticed`
   (`Involved`), they are on the event's own witness list (`Witnessed`), or they confidently believe a
   claim the event is the `OriginEvent` of and that claim is not a distortion (`Heard`). An event
-  nobody has a route to yields no hook at all, so "private history does not leak" is a fact about
-  which hooks exist rather than a rule consumers must remember —
+  nobody has a route to yields no hook at all, so "history somebody could not know does not leak" is
+  a fact about which hooks exist rather than a rule consumers must remember —
   `RealizationRequest.WhyNot` then refuses a hook whose `Recaller` is not the speaker, which closes
   the same gate structurally at the wording seam.
+  **And a route is permission to remember, never permission to tell.** That gate has no listener in
+  it, so a claim its holder would refuse to state if asked outright could still be handed to wording
+  as old business. `CallbackDisclosure.Permit` closes that separately, by asking the same
+  `Disclosure` that settles willingness for every other claim about the claims the recalled event
+  already named (`CallbackHook.Claims`, ids only). `RealizationRequest.Callback` is a
+  `CallbackPermit` rather than a hook and the permit's constructor is internal, so wording a callback
+  nobody cleared is not something a caller can forget to prevent: a withheld permit, or one cleared
+  for anybody but the single person the act addresses, is refused like any other malformed request. Holding no
+  belief about a named claim is `NothingToDisclose` and passes; an event that named no claim is
+  always permitted, which is empty rather than open because such an event's only surviving route is
+  `FirstHand`. `CallbackDisclosure.Best`/`BestRecurrence` walk the same salience order and step over
+  withheld material rather than stopping at it. See decision `D044`.
   **The kind table reads the event's type and nothing else.** Six kinds, each a distinction history
   already records: `Promise`, `Kindness`, `Injury`, `Embarrassment`, `Scandal`, `LostObject`. `Weight`
   is the event's own magnitude, `Publicity` comes from the witness list and the secrecy of the claims
@@ -1609,10 +1621,17 @@ lost object, weird incident.
   else's, so what a callback would cost the other side is found by asking for *their* hooks.
   Selection is `SalienceOf` descending with ties broken on event id, the ordering convention
   `TalkRepertoire` already uses, and `CallbackSelection.MinimumAgeInDays` defaults to
-  `CallbackHooks.SettledDays` (10), the done-when's own threshold. A counterpart the world can no
-  longer produce is dropped rather than spoken of as present (`CallbackParty`); somebody merely away
-  is still referable. `NarrativeInspector.DescribeCallbacks` shows both the material and how much of
-  the ledger this person has no route to.
+  `CallbackHooks.SettledDays` (10), the done-when's own threshold. **Being remembered is not being
+  present.** `CallbackParty` answers two questions and selection reads the wider one:
+  `CallbackHooks.IsReferable` admits everybody history can still name — the away and the dead
+  included, because a settlement that could no longer say "after what your father did for me" would
+  have lost the most durable callback there is — and only a party the registry cannot produce at all
+  is dropped, having no name to say and nothing to describe. `CallbackHooks.IsStageable` answers the
+  narrower question separately, and `CallbackSelection.Parties` is how a caller whose use of the hook
+  needs the person themself asks it. `NarrativeInspector.DescribeCallbacks` shows both the material
+  and how much of the ledger this person has no route to;
+  `NarrativeInspector.DescribeCallbackPermission` shows the second gate closing, hook by hook,
+  against one listener.
   **The wording seam adds three readings and one slot**, all closed-vocabulary: `callback` (the
   primary `CallbackKind`), `callback_party` (`none`/`speaker`/`listener`/`other`, mirroring
   `referent`) and `callback_route`, plus the `{recalled}` slot filled from the cast. The route
@@ -1637,6 +1656,17 @@ Absurd history gains weight by recurring — in gossip, taxes, inheritance, fest
 new jokes.
 - **Depends** BQ-081, BQ-047.
 - **Done when** one absurd incident resurfaces in a second, unrelated context.
+- **Current implementation** `Continuity.CallbackRecurrence`, a filter over BQ-081's own material and
+  never a second source. `IsMemorable` reads the kind rather than a magnitude — `Scandal` and
+  `Embarrassment` are the two a small town keeps telling on somebody — and `IsUnrelatedContext` reads
+  the thread and place the hook already recorded against the `ContinuityContext` offered.
+  **Separation is proved, never assumed.** A dimension the two sides share rules the hook out; a
+  dimension either side left blank rules nothing, in *either* direction, so a second context needs at
+  least one dimension known on both sides that differs. Reading a blank as a difference made an event
+  with nothing recorded about where it happened resurface everywhere, its own origin included.
+  Whether the speaker would spend the recurrence on this particular listener is BQ-081's second gate,
+  reached through `CallbackDisclosure.BestRecurrence`; conversation-level memory of having already
+  used it is BQ-083's.
 - **Sources** CD §25; PM §42, §43.
 
 #### BQ-083 — Conversation state and commitments

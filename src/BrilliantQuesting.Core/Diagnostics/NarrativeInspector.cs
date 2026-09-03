@@ -1250,6 +1250,57 @@ namespace BrilliantQuesting.Diagnostics
         }
 
         /// <summary>
+        /// BQ-081 x BQ-071. Which of one person's callbacks they would actually raise in front of
+        /// another, and which claim keeps the rest of them back.
+        ///
+        /// The companion to <see cref="DescribeCallbacks"/>, and the same doctrine: a step whose
+        /// content is a gate has to be able to show the gate closing. This one shows the second
+        /// gate - the material is theirs to remember either way, and the question here is only whom
+        /// they would spend it on.
+        /// </summary>
+        public static string DescribeCallbackPermission(
+            NarrativeWorldState world,
+            IVanillaState vanilla,
+            EntityId recaller,
+            EntityId listener,
+            GameTime now,
+            CallbackSelection selection = null)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("callbacks ").Append(Who(world, recaller)).Append(" would raise with ")
+              .Append(Who(world, listener)).Append('\n');
+            if (world == null || recaller.IsNone || listener.IsNone)
+            {
+                sb.Append("  nobody to recall anything, or nobody to recall it to\n");
+                return sb.ToString();
+            }
+
+            IReadOnlyList<CallbackHook> hooks = CallbackHooks.For(world, vanilla, recaller, now, selection);
+            if (hooks.Count == 0)
+            {
+                sb.Append("  nothing old enough that they could know about\n");
+                return sb.ToString();
+            }
+
+            for (int i = 0; i < hooks.Count; i++)
+            {
+                CallbackPermit permit = CallbackDisclosure.Permit(world, hooks[i], listener, now);
+                sb.Append("  ").Append(hooks[i].EventType.ToString().PadRight(20));
+                sb.Append(hooks[i].PrimaryKind.ToString().PadRight(14));
+                sb.Append(permit.Allowed ? "would say  " : "withheld   ");
+                sb.Append(permit.Because);
+                if (!permit.Withheld.IsNone)
+                {
+                    sb.Append(" [").Append(permit.Withheld.Value).Append(' ').Append(permit.Strategy).Append(']');
+                }
+
+                sb.Append('\n');
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// BQ-082. Whether this recaller has continuity humour to bring to a given thread and
         /// site - old, memorable material that did not happen there - or an honest "nothing
         /// earns it" when the ledger offers nothing of the kind.

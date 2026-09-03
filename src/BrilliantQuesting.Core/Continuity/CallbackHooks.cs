@@ -8,6 +8,38 @@ using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Continuity
 {
+    /// <summary>
+    /// How much of the other side of an event a caller needs the world to be able to produce.
+    ///
+    /// The distinction the single "available" flag used to collapse. Being referable and being
+    /// present are different properties, they fail for different reasons, and a callback needs the
+    /// first far more often than the second: most of what a town says about somebody is said when
+    /// they are not in the room, and a good deal of it after they are dead.
+    /// </summary>
+    public enum CallbackParties
+    {
+        /// <summary>
+        /// Anybody history can still name - present, away or dead alike. The default, and the
+        /// honest reading of what a callback is: a reference to something that happened, not a
+        /// claim about who is standing here now. Somebody the registry cannot produce at all is
+        /// still excluded, because there is no name to say and nothing to describe.
+        /// </summary>
+        Referable = 0,
+
+        /// <summary>
+        /// Only somebody the world can put in front of a scene right now. What a caller asks for
+        /// when the callback is a step toward staging the person rather than toward mentioning
+        /// them - and never the default, because most references are only ever mentions.
+        /// </summary>
+        Stageable = 1,
+
+        /// <summary>
+        /// Everything, unavailable and unidentifiable parties included. For the inspector and for
+        /// a caller that has its own reason to see the whole of what the ledger left.
+        /// </summary>
+        Any = 2
+    }
+
     /// <summary>What a caller wants out of the ledger, and what it will not accept.</summary>
     public sealed class CallbackSelection
     {
@@ -25,10 +57,13 @@ namespace BrilliantQuesting.Continuity
         public EntityId About { get; set; }
 
         /// <summary>
-        /// Keep hooks whose other party the world can no longer produce. Off by default: see
-        /// <see cref="CallbackParty"/>.
+        /// Which other parties this caller will accept. Defaults to
+        /// <see cref="CallbackParties.Referable"/> - everybody history can still name, the dead and
+        /// the departed included, because remembering somebody is not claiming they are here. A
+        /// caller that needs the other party actually in front of somebody asks for
+        /// <see cref="CallbackParties.Stageable"/>; see <see cref="CallbackParty"/>.
         /// </summary>
-        public bool IncludeUnavailableParties { get; set; }
+        public CallbackParties Parties { get; set; } = CallbackParties.Referable;
 
         /// <summary>How many to return at most. Zero or less means no limit.</summary>
         public int Limit { get; set; } = 8;
@@ -54,6 +89,18 @@ namespace BrilliantQuesting.Continuity
     /// when to stop is the consumer's, wording is <c>DialogueRealizer</c>'s, and whether a known
     /// thing may be said to this listener is disclosure's (BQ-071 through BQ-073). Recurrence and
     /// the humour it earns are BQ-082's, and nothing here decides them.
+    ///
+    /// <b>A route is permission to remember, never permission to tell.</b> Everything on this class
+    /// answers one question - may this person hold this history - and that question has no listener
+    /// in it. Whether they would bring it up in front of a particular person is
+    /// <c>CallbackDisclosure</c>'s, which asks the same <c>Disclosure</c> that decides it for every
+    /// other claim; a hook that reaches wording without having been asked is refused by
+    /// <c>RealizationRequest.WhyNot</c> rather than quietly spoken.
+    ///
+    /// <b>Being remembered is not being present.</b> Selection admits everybody history can still
+    /// name, the dead and the departed included, because that is what a callback refers to. What
+    /// the world can still <em>produce</em> is reported separately as <see cref="CallbackParty"/>
+    /// and asked for separately as <see cref="CallbackParties.Stageable"/>.
     ///
     /// <b>It is deterministic.</b> Ordering is salience descending with ties broken on event id,
     /// the convention <c>TalkRepertoire</c> already uses, so the same world gives the same answer
@@ -87,6 +134,7 @@ namespace BrilliantQuesting.Continuity
         private static readonly CallbackKind[] ShownUp = { CallbackKind.Embarrassment, CallbackKind.Scandal };
         private static readonly CallbackKind[] TakenAway = { CallbackKind.Scandal, CallbackKind.LostObject };
         private static readonly CallbackHook[] NoHooks = new CallbackHook[0];
+        private static readonly EntityId[] NoIdList = new EntityId[0];
         private static readonly CallbackSelection Default = new CallbackSelection();
 
         /// <summary>
@@ -252,6 +300,7 @@ namespace BrilliantQuesting.Continuity
                 PartyOf(world, vanilla, counterpart),
                 Principals(worldEvent),
                 worldEvent.Evidence,
+                ClaimsOf(world, worldEvent),
                 worldEvent.Zone,
                 worldEvent.ThreadId,
                 worldEvent.Time,
@@ -307,7 +356,7 @@ namespace BrilliantQuesting.Continuity
                     continue;
                 }
 
-                if (!rules.IncludeUnavailableParties && !IsAvailable(hook.Party))
+                if (!Admits(rules.Parties, hook.Party))
                 {
                     continue;
                 }
@@ -417,9 +466,41 @@ namespace BrilliantQuesting.Continuity
             return world.Absences.IsPhysicallyAbsent(counterpart) ? CallbackParty.Away : CallbackParty.Present;
         }
 
-        private static bool IsAvailable(CallbackParty party)
+        /// <summary>
+        /// Whether history can still name this party: everybody except somebody the registry cannot
+        /// produce at all.
+        ///
+        /// The dead pass. That is the point of the split: an event's other side going into the
+        /// ground does not make the event stop having happened, and a settlement that could no
+        /// longer say "after what your father did for me" would have lost the most durable callback
+        /// there is. What being dead costs is <em>staging</em>, not reference, and
+        /// <see cref="IsStageable"/> is where that is charged.
+        /// </summary>
+        public static bool IsReferable(CallbackParty party)
+        {
+            return party != CallbackParty.Unknown;
+        }
+
+        /// <summary>
+        /// Whether the world could put this party in front of somebody now. The narrower question,
+        /// asked by a caller whose use of the hook needs a live person rather than a memory of one.
+        /// </summary>
+        public static bool IsStageable(CallbackParty party)
         {
             return party == CallbackParty.None || party == CallbackParty.Present || party == CallbackParty.Away;
+        }
+
+        private static bool Admits(CallbackParties wanted, CallbackParty party)
+        {
+            switch (wanted)
+            {
+                case CallbackParties.Stageable:
+                    return IsStageable(party);
+                case CallbackParties.Any:
+                    return true;
+                default:
+                    return IsReferable(party);
+            }
         }
 
         /// <summary>
@@ -518,6 +599,35 @@ namespace BrilliantQuesting.Continuity
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// The claims the event named, filtered to the ones the knowledge graph can resolve.
+        ///
+        /// <c>WorldEvent.Related</c> is a general list of ids, so this keeps only what is actually
+        /// a <c>Fact</c> - the same read <see cref="PublicityOf"/> already makes of it. Nothing is
+        /// minted here: an event that named no claim leaves an empty list, and no claim is invented
+        /// to stand for what it was about.
+        /// </summary>
+        private static IReadOnlyList<EntityId> ClaimsOf(NarrativeWorldState world, WorldEvent worldEvent)
+        {
+            List<EntityId> claims = null;
+            for (int i = 0; i < worldEvent.Related.Count; i++)
+            {
+                if (world.Knowledge.GetFact(worldEvent.Related[i]) == null)
+                {
+                    continue;
+                }
+
+                if (claims == null)
+                {
+                    claims = new List<EntityId>();
+                }
+
+                claims.Add(worldEvent.Related[i]);
+            }
+
+            return claims == null ? (IReadOnlyList<EntityId>)NoIdList : claims.ToArray();
         }
 
         private static IReadOnlyList<EntityId> Principals(WorldEvent worldEvent)
