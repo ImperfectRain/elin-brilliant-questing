@@ -135,6 +135,61 @@ namespace BrilliantQuesting.Diagnostics
         }
 
         /// <summary>
+        /// BQ-083. What one conversation has accumulated so far: every act in order, which
+        /// questions are still hanging, which lies BQ-073 already caught, and every unresolved
+        /// self-contradiction among the assertions made - the dump that makes "why did the NPC
+        /// just say that was never asked" and "why didn't it call out the contradiction"
+        /// answerable without re-running the scene.
+        /// </summary>
+        public static string DescribeConversation(NarrativeWorldState world, ConversationState conversation)
+        {
+            if (conversation == null)
+            {
+                return "no conversation.\n";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("conversation: ").Append(conversation.Acts.Count).Append(" act(s)\n");
+
+            for (int i = 0; i < conversation.Acts.Count; i++)
+            {
+                SpeechAct act = conversation.Acts[i];
+                sb.Append("  ").Append(i).Append(". ").Append(Who(world, act.Speaker)).Append(' ').Append(act.Type);
+                sb.Append(" -> ");
+                for (int a = 0; a < act.Addressees.Count; a++)
+                {
+                    if (a > 0)
+                    {
+                        sb.Append(", ");
+                    }
+
+                    sb.Append(Who(world, act.Addressees[a]));
+                }
+
+                sb.Append("  about ").Append(act.About.IsNone ? "nothing" : act.About.Value).Append('\n');
+            }
+
+            IReadOnlyList<SpeechAct> unanswered = conversation.UnansweredQuestions;
+            sb.Append("  unanswered:  ").Append(unanswered.Count).Append('\n');
+
+            sb.Append("  lies told:   ").Append(conversation.LiesTold.Count).Append('\n');
+
+            IReadOnlyList<DiscourseContradiction> contradictions = conversation.AllContradictions(world);
+            if (contradictions.Count == 0)
+            {
+                sb.Append("  contradictions: none\n");
+            }
+
+            for (int i = 0; i < contradictions.Count; i++)
+            {
+                DiscourseContradiction found = contradictions[i];
+                sb.Append("  contradiction: ").Append(Who(world, found.Later.Speaker)).Append(" - ").Append(found.Because).Append('\n');
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// BQ-071. Why somebody said it, or why they did not.
         ///
         /// The step's condition is that disclosure is a character decision rather than a

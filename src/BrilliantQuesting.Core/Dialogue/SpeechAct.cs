@@ -8,16 +8,22 @@ namespace BrilliantQuesting.Dialogue
     /// <summary>
     /// The core communicative vocabulary (CD §17.1, §38 Phase B).
     ///
-    /// Eleven acts, deliberately: the design archive lists three dozen, and the ones missing here
+    /// Twelve acts, deliberately: the design archive lists three dozen, and the ones missing here
     /// are missing because nothing consumes them yet. A vocabulary grows when a consumer needs a
     /// distinction, not when somebody thinks of a verb.
     ///
-    /// <see cref="Evade"/> is the one addition BQ-070 named in advance and left to BQ-073: a
+    /// <see cref="Evade"/> is the addition BQ-070 named in advance and left to BQ-073: a
     /// deflection had no act, so a speaker who let a question go produced either nothing or a
     /// <see cref="Refuse"/> they never made. There is still no <c>Lie</c>, and there will not be
     /// one - a falsehood is a stance held against the speaker's own belief, so it is a property of
     /// an assertion rather than a separate way of speaking, and <c>Deception</c> reads it off the
     /// act and the belief graph together.
+    ///
+    /// <see cref="Promise"/> is BQ-083's addition, for the same reason Evade was BQ-073's: a
+    /// conversation cannot hold somebody to their word if nothing they said was ever a commitment
+    /// rather than a claim. It takes no stance on any proposition - a promise is not true or
+    /// false, it is kept or broken, and which of those it becomes is decided later by what its
+    /// speaker does, not by anything readable at the moment of speaking.
     /// </summary>
     public enum SpeechActType
     {
@@ -41,7 +47,18 @@ namespace BrilliantQuesting.Dialogue
         /// would not say", "she changed the subject" and "she told me it was somebody else" are
         /// three different things to have learned about a person.
         /// </summary>
-        Evade
+        Evade,
+
+        /// <summary>
+        /// The speaker takes on a future doing, rather than asking for one or being asked for one.
+        ///
+        /// Distinct from <see cref="Request"/> (which seeks the addressee's action) and from
+        /// <see cref="Threaten"/> (which seeks it under pressure): a promise moves the obligation
+        /// onto the speaker themself. Whether it survives the conversation - whether it is worth
+        /// entering into the durable obligation ledger at all - is a judgement conversation state
+        /// makes, not a fact carried on the act.
+        /// </summary>
+        Promise
     }
 
     /// <summary>

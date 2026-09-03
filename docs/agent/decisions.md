@@ -825,4 +825,53 @@ it, disagree with it, need migrating, and — worst — be written for one occas
 check against what happened. Deriving instead means callbacks cost nothing to keep, cannot lie about
 the past, and cannot be made available to somebody who was not there.
 
+## D040 — Conversation state compares statements to statements, and a commitment survives only when something outside the conversation says so
+
+BQ-083. `ConversationState` holds one conversation's transcript - every `SpeechAct` exchanged,
+which questions are still hanging, and every lie BQ-073 already recorded - and answers "have I
+heard this before" and "does this square with what they said earlier" from nothing but that
+transcript. Two boundaries keep it from becoming the second belief graph, event ledger or
+obligation system the step explicitly rules out.
+
+**Self-contradiction is not `Deception.Contradictions`.** BQ-073 already catches a liar: an
+observer holds a belief a recorded statement cannot be squared with, read from durable history and
+needing the observer to have been there. `ConversationState.Contradicts` answers a narrower,
+cheaper question - does this speaker's new statement conflict with an earlier statement of their
+own, both already inside this conversation - and needs no belief graph and no event ledger to do
+it, only the transcript. The two shapes it checks are deliberately the same two `Deception.Assess`
+already treats as insincere against belief (the same claim reversed, or a rival version of it via
+`Fact.DistortionOf`), read statement-against-statement instead of statement-against-belief, and the
+private `Rivals` test BQ-073 used for the second shape is now `internal` so both read one
+definition of what counts as a rival claim rather than growing a second opinion about it. Reaching
+further back than the current conversation, or catching a lie one person tells another behind a
+third party's back, stays `Deception.Contradictions`' job.
+
+**A promise is a speech act, not a shadow structure conversation state invents.** BQ-070's
+vocabulary gains `SpeechActType.Promise` the same way it gained `Evade` for BQ-073: a consumer
+needed a distinction the ten-act table could not express, so the table grows by one row rather than
+by conversation state keeping its own list of "things that sounded like commitments." Stance is
+`None` and direction is the new `CommitsToAction` - a promise is not true or false at the moment it
+is spoken, so `Deception` correctly reads it as asserting nothing, and whether it was kept is a
+question about later behaviour, answered by `PromiseBroken` and the standing sheet, never by this
+step.
+
+**Promotion to durable is a call, never a consequence.** `ConversationState.Commit` writes a
+`WorldEventType.PromiseMade` event and a `SocialObligation(Kind.Promise)` naming it as source - the
+same event-then-obligation shape `ConsequenceEngine.AccrueFavor` already uses for a kept favour,
+into the same ledger BQ-071's disclosure pressure, BQ-077's negative-space lines and the standing
+sheet already read. Nothing about noting a promise triggers this: every act is noted for the
+transcript regardless of type, and only a promise a caller explicitly hands to `Commit` becomes
+durable, guarded against being committed twice. A conversation that never calls it leaves no trace
+once it ends, which is the whole of how transient debris stays transient.
+
+**Nothing here is saved.** `ConversationState` has no schema, is never attached to `NarrativeNpc`,
+and is built and discarded per conversation exactly as `DialogueExpressionHistory` (BQ-078) already
+is - `docs/agent/decisions.md`'s own D037 said this in advance, and this type is what it was said
+about.
+
+Reason: a conversation-state layer that read or wrote durable state directly would be a second
+opinion about belief, history or obligation that could drift from the one the rest of the mod
+already trusts; deriving from statements already in hand and writing through the one obligation
+ledger that exists keeps there being exactly one authority for each of the three.
+
 Add a new entry only when the decision is both load-bearing and durable.

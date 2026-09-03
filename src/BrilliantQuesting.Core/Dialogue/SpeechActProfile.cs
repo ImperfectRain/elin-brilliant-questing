@@ -32,7 +32,12 @@ namespace BrilliantQuesting.Dialogue
         /// answer of a kind and lands as one, and an evasion leaves the asker without even that.
         /// </summary>
         WithholdsInformation,
-        Repairs
+        Repairs,
+
+        /// <summary>
+        /// The speaker binds themself to a future doing, rather than asking anybody else for one.
+        /// </summary>
+        CommitsToAction
     }
 
     /// <summary>How much content the act must carry to be the act it claims to be.</summary>
@@ -171,7 +176,8 @@ namespace BrilliantQuesting.Dialogue
             SpeechActType.Threaten,
             SpeechActType.Apologize,
             SpeechActType.Gossip,
-            SpeechActType.Evade
+            SpeechActType.Evade,
+            SpeechActType.Promise
         };
 
         private static Dictionary<SpeechActType, SpeechActProfile> Build()
@@ -240,6 +246,15 @@ namespace BrilliantQuesting.Dialogue
             Add(table, SpeechActType.Evade, SpeechActStance.None, SpeechActDirection.WithholdsInformation,
                 SpeechActContentRule.Optional, SpeechActReferentRule.Optional, false, true,
                 new[] { SpeechActType.Ask, SpeechActType.Accuse, SpeechActType.Request });
+
+            // A commitment, not a claim (BQ-083). Stance is None for the same reason Request's and
+            // Threaten's are: nothing here is put forward as true or false, so Deception reads it
+            // as asserting nothing and no promise can be classified a lie at the moment it is
+            // spoken - it is kept or broken later, by what its speaker does. Unconstrained on what
+            // it may respond to, the same as Threaten and Apologize: a promise offered unprompted
+            // and one that answers a request are both ordinary.
+            Add(table, SpeechActType.Promise, SpeechActStance.None, SpeechActDirection.CommitsToAction,
+                SpeechActContentRule.Required, SpeechActReferentRule.Optional, false, false, null);
 
             return table;
         }

@@ -1628,6 +1628,34 @@ Short-term discourse memory: topics raised, claims made, questions unanswered, l
 made. Commitments that matter become durable world events.
 - **Depends** BQ-007, BQ-073.
 - **Done when** an NPC says a version of "that is not what you said five minutes ago" from recorded state.
+- **Current implementation** `Dialogue.ConversationState`, holding one conversation's transcript of
+  `SpeechAct`s and nothing else. `Note` appends an act and closes out whichever earlier `Ask` it
+  responded to - a refusal or an evasion counts as a response, so `UnansweredQuestions` only ever
+  names a question nobody has addressed at all, and `WasAlreadyAsked` catches the same matter raised
+  twice structurally, off `ActionBinding`, never off wording. `Claims` is every assertion made so far.
+  `Contradicts` is the step's own done-when: whether a new statement conflicts with an earlier one
+  the same speaker made in this conversation, checked in the same two shapes `Deception.Assess`
+  (BQ-073) already treats as insincere against belief - the identical claim reversed, or a rival
+  version of it via `Fact.DistortionOf`, now reading statement against statement with no belief graph
+  and no event ledger consulted, because both statements are already in hand. `AllContradictions`
+  runs the same check over the whole transcript for a post-hoc dump. `NoteDeception` files the
+  `RecordedStatement` a caller already pulled from `Deception.StatementOf`, so a lie told in this
+  conversation is filed once, never twice. `Commit` is the one write: given a well-formed
+  `SpeechActType.Promise`, it records a `WorldEventType.PromiseMade` event and a
+  `SocialObligation(Kind.Promise)` naming it as source - the same event-then-obligation shape
+  `ConsequenceEngine.AccrueFavor` already uses for a favour - into the same ledger BQ-071's
+  disclosure pressure, BQ-077's negative-space lines and the standing sheet already read. It is never
+  automatic and never fires twice for the same act: every promise is noted like any other act, and
+  only the ones a caller hands to `Commit` outlive the conversation.
+  `SpeechActType.Promise` is BQ-083's one addition to BQ-070's vocabulary, the same way `Evade` was
+  BQ-073's: stance `None` and a new direction, `CommitsToAction`, so a promise is not true or false
+  the moment it is spoken and `Deception` correctly reads it as asserting nothing - whether it was
+  kept is `PromiseBroken` and later behaviour, not this step. `NarrativeInspector.DescribeConversation`
+  dumps the transcript, the unanswered count, the lies filed and every contradiction found.
+  Deferred by design: nothing here is saved. `ConversationState` has no schema, is never attached to
+  `NarrativeNpc`, and is built and discarded per conversation exactly as `DialogueExpressionHistory`
+  (BQ-078) already is. Reaching further back than the live conversation, or catching a lie told to a
+  third party, stays `Deception.Contradictions`'.
 - **Sources** CD §28.5.
 
 #### BQ-084 — Social practices

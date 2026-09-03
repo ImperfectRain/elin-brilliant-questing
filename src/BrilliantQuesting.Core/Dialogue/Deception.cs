@@ -601,7 +601,13 @@ namespace BrilliantQuesting.Dialogue
             return EntityId.None;
         }
 
-        private static bool Rivals(Fact a, Fact b)
+        /// <summary>
+        /// Whether two claims are versions of one story that cannot both be so - the same
+        /// structural test <see cref="Assess"/> uses against belief, exposed so BQ-083's
+        /// conversation state can ask the identical question of two statements instead of growing
+        /// a second opinion about what counts as a rival.
+        /// </summary>
+        internal static bool Rivals(Fact a, Fact b)
         {
             return a.IsVersionOf(b.Id)
                 || b.IsVersionOf(a.Id)
