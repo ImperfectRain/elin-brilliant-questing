@@ -42,6 +42,9 @@ namespace BrilliantQuesting.Lab.Cli
                 new NewsScenario(),
                 new GuildsScenario(),
                 new AuthorityScenario(),
+                new PlaygroundScenario(),
+                new PlaygroundContrastScenario(),
+                new PlaygroundSystemsScenario(),
                 new IntegrationScenario(),
                 new SeedProbeScenario()
             });

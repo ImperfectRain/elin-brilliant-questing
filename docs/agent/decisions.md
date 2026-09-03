@@ -1164,4 +1164,42 @@ experiments. One authority for discovery and dispatch keeps that growth localize
 production-faithful harness into the same option model would buy uniformity by weakening the
 semantics the harness exists to have.
 
+## D049 — A playground writes state and reports; it never decides, and it names what it had to author
+
+`tools/BrilliantQuesting.Lab/Playground` puts two people in one exchange over one claim and prints
+the whole path. Its rule is that it may write authoritative state and read the result, and may do
+nothing else. A preset is a list of facts about the world - a tie, a belief, an emotion, a personal
+line, an obligation, an action the action layer actually performed - and there is no way for one to
+set a strategy, a depth, a tactic, a permit or a line, because the stage exposes the stores and not
+the decisions. The command line inherits the same rule: `--tie`, `--knowledge`, `--voice`,
+`--speaker` and `--turns` name state, and a test asserts that no option ever names an outcome.
+
+**Every semantic answer comes from production.** `SpeechAct.Compose` makes the acts, `Disclosure`
+decides and composes the reply, `CallbackDisclosure` clears old business, `DialogueRealizer` finds
+the words, `ConversationState` remembers the exchange and promotes a promise, `Deception` records a
+falsehood. The playground holds only what a conversation transiently holds - one `ConversationState`,
+one `DialogueExpressionHistory`, one `WeirdnessBudget` - and reporting is a read: running every
+reporter twice produces identical text and moves neither the ledger nor the obligations.
+
+**Inspection reuses the inspector.** `NarrativeInspector` already accounts for casting, disclosure,
+speech acts, veracity, reactions, callbacks and a conversation, so the playground calls it rather
+than holding a second opinion about how to print any of them. The one adapter it adds is the
+recurrence explanation, because `CallbackRecurrence.Best` returning null cannot distinguish "not the
+kind of history that recurs" from "memorable, and it happened right here"; both halves are read off
+that class's own public predicates. No diagnostic state was added to Core for the playground's sake.
+
+**What it had to author, it labels.** Nothing in Core assigns a `VoiceProfile` and nothing in Core
+selects a `Promise`, so the laboratory supplies both — and says so in the run's own output and in
+`playground-systems`, which sorts every system into production logic, production logic fed by the
+headless sandbox seam, choices the laboratory makes for want of a production authority, and systems
+that need a running Elin. That last column shares the integration harness's word, `PLUGIN ONLY`,
+because the honest answer to "can this be shown offline" must not depend on which laboratory command
+was run. It is an authored ledger kept beside the code, and the headline is the load-bearing part:
+no part of the plugin consumes a `SpeechAct`, a `DisclosureDecision` or a `RealizedLine`, so the last
+thing the playground can honestly show is a line and its meaning, never a line a player read.
+
+Reason: a demonstration that could author its own answers would prove nothing, and one that quietly
+filled a gap with a mock would prove something false. Making state the only input and labelling
+every choice the simulation does not yet make keeps the playground evidence rather than decoration.
+
 Add a new entry only when the decision is both load-bearing and durable.

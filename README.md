@@ -44,11 +44,27 @@ dotnet run --project tools/BrilliantQuesting.Lab -- describe questline    # its 
 dotnet run --project tools/BrilliantQuesting.Lab -- run questline --seed 15
 dotnet run --project tools/BrilliantQuesting.Lab -- --questline 15        # one seeded run, day by day
 dotnet run --project tools/BrilliantQuesting.Lab -- --questline-sweep 60  # the same policy over 60 seeds
+dotnet run --project tools/BrilliantQuesting.Lab -- run playground          # one exchange, every system that decided it
+dotnet run --project tools/BrilliantQuesting.Lab -- run playground --preset guarded-history
+dotnet run --project tools/BrilliantQuesting.Lab -- run playground-contrast # two states, one claim, side by side
+dotnet run --project tools/BrilliantQuesting.Lab -- run playground-systems  # what needs a live game, and what does not
 ```
 
 The laboratory is a set of registered scenarios behind one command line: `list`, `describe
 <scenario>` and `run <scenario> [--seed n]`. The historic flag forms above are registered aliases
 and keep working, as does a bare seed.
+
+`playground` is where the conversation systems can be handled. It puts two of the theft
+laboratory's people in one exchange over one claim and prints the whole path - what the world holds,
+what qualified whom for which scene, what the speaker decided about the claim and why, what old
+business they may raise and would raise with this listener, what constrained the wording, the line,
+and what any of it changed. A preset writes authoritative state and nothing else; every semantic
+answer comes from production Core, and there is no option that names an outcome. `describe
+playground` lists the presets and the state dimensions (`--speaker`, `--tie`, `--knowledge`,
+`--voice`, `--turns`); `playground-contrast` runs two presets over the same claim and marks the rows
+that differ; `playground-systems` says which systems are really being run, which are fed through the
+headless sandbox seam, which the laboratory has to choose for want of a production authority, and
+which need a live Elin and are therefore neither simulated nor mocked.
 
 `--questline` plays a generated situation end to end with the real dice, one in-game day at a time.
 The player is not a script: each day a policy asks the world what is currently possible and what the
