@@ -1375,6 +1375,35 @@ Subtle, metadata-driven, not every line.
 - **Done when** occupation is guessable from dialogue in a blind test, without it being stated.
 - **Sources** CD §17.6, §6.1.
 - **The pool comes from the observed work and hobby facets** (BQ-144 through BQ-145), not from a label BQ assigned. A character whose work could not be read gets no occupational pool rather than a default one, and wording is the *last* consumer of identity, never the first — a voice that leans on the job harder than the decisions do is the stereotype failure arriving through the back door.
+- **Current implementation** `OccupationalVocabulary.RequestedVocabulary(IdentityAffordances)` is
+  the one derivation, and it is the second half of BQ-075's own seam:
+  `RealizationRequest.Vocabulary` is a plain list of `DialogueVocabulary` tags —
+  `cultivation`, `alchemy`, `craft`, `trade`, `public_order`, one per `IdentityDomain` BQ-145
+  already owns — and `DialogueFragment.FitsVocabulary` narrows selection on it exactly where
+  `FitsTone` already narrows on `Tone`. The derivation reads only `IdentityAffordances.PlausibleKnowledge`
+  and `PlausibleInterests`; it takes no `CharacterIdentity`, no raw vanilla id and no substring
+  table of its own, so a domain reaches wording only because BQ-145 already called it plausible.
+  Race and character archetype therefore request nothing, not by a check this step added but
+  because BQ-145 derives nothing from either.
+  **Vocabulary tags are the free `Tags` field's first reader.** BQ-074 declared `Tags` for later
+  layers and read none of it; BQ-076 reads it through `DialogueVocabulary.IsVocabulary`, and a tag
+  outside that closed list — BQ-077's own, when it lands — has no vocabulary opinion and is left
+  alone. Unlike tone, asking for no vocabulary *excludes* a tagged fragment rather than admitting
+  it (D035): an unread identity must never let a flavoured line through, which is the one way this
+  mechanism could not simply reuse BQ-075's tone check unchanged.
+  Content ships five occupation-flavoured `modifier` fragments (`content/fragments/vocabulary.yaml`),
+  one per domain, phrased without ever naming the trade itself ("Some things need their season, and
+  I am not rushing this one." rather than "I am a farmer"); each is one more candidate in the same
+  selection pool a plain refusal modifier already fits, so it appears at ordinary odds rather than
+  displacing the unflavoured wording.
+  `OccupationalVocabularyTests` proves the gate in both directions — an unread identity, and one
+  described only by race and character archetype, request nothing and never unlock a flavoured
+  fragment; a farmer's own context does; every rendering under every lived context still carries
+  the act's unchanged `Meaning`; and a vocabulary request and a tone request narrow the same pool
+  independently.
+- **Deferred by design** the negative-space tags BQ-077 will add to the same `Tags` field, and any
+  vocabulary beyond the five domains `IdentityDomain` already owns — widening the tag list is
+  BQ-145's call, not a second taxonomy grown here.
 
 #### BQ-077 — Negative-space personality
 What an actor will *not* do — never begs, never lies directly, never speaks badly of family —

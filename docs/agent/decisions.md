@@ -623,4 +623,35 @@ BQ-075 as the filler). Reusing that seam rather than adding a parallel one keeps
 never creates" a single mechanism instead of two that could disagree, and keeps personality and
 voice from collapsing into each other the moment someone reaches for a stereotype as a shortcut.
 
+## D035 — Occupational vocabulary reads only BQ-145's derivation, and an unrequested tag excludes rather than admits
+
+BQ-076 adds `RealizationRequest.Vocabulary`, `DialogueFragment.FitsVocabulary` and
+`OccupationalVocabulary.RequestedVocabulary(IdentityAffordances)`. The derivation takes an
+`IdentityAffordances` — BQ-145's own output — and nothing else: it reads `PlausibleKnowledge` and
+`PlausibleInterests` for the domains BQ-145 already attributed to a work, hobby, service or
+institutional facet, and maps each to one `DialogueVocabulary` tag. There is no second read of
+`CharacterIdentity`, no substring table over vanilla ids, and no path from `Race` or
+`CharacterArchetype` to a tag, because `IdentityAffordances` already derives nothing from either —
+this step inherits BQ-145's anti-stereotype gate rather than re-implementing it.
+
+**A vocabulary tag excludes by default; a tone tag does not.** `FitsTone` treats an empty request as
+"no constraint," so an unmarked *and* a tone-marked fragment both stay eligible when nobody asked
+for a tone. `FitsVocabulary` cannot use that rule: a fragment carrying a `DialogueVocabulary` tag is
+eligible only when the request names that tag, and an empty or null request excludes it. Reusing
+tone's "ask for nothing, get everything" semantics here would let a flavoured fragment through for
+every unread identity, which is the guessed vocabulary D017 and BQ-145 both already refuse. A
+fragment carrying no recognised vocabulary tag is unaffected either way, which is what keeps this
+free tags field — `DialogueFragment.Tags`, shared with BQ-077's future negative-space tags — usable
+by more than one consumer without either one having to know about the other's vocabulary.
+
+**Presence, not magnitude, drives what gets requested.** Every domain BQ-145 derived at all is
+requested, whatever its plausibility; subtlety comes only from a flavoured fragment joining the same
+selection pool a plain one already fits, at the same odds as any other candidate, never from
+replacing the plain wording or from a threshold gating whether the tag fires at all.
+
+Reason: BQ-145 is "the one derivation of what identity implies," so a second place that decided which
+jobs sound like what — even indirectly, by re-reading `CharacterIdentity` or by admitting an
+occupational fragment when nothing was asked for — would reopen the anti-stereotype gate BQ-145 was
+its own step specifically to close.
+
 Add a new entry only when the decision is both load-bearing and durable.

@@ -216,7 +216,8 @@ namespace BrilliantQuesting.Dialogue
             for (int i = 0; i < all.Count; i++)
             {
                 DialogueFragment fragment = all[i];
-                if (fragment.Fits(reading) && fragment.FitsTone(request.Tone) && Resolves(fragment, reading))
+                if (fragment.Fits(reading) && fragment.FitsTone(request.Tone)
+                    && fragment.FitsVocabulary(request.Vocabulary) && Resolves(fragment, reading))
                 {
                     eligible.Add(fragment);
                 }

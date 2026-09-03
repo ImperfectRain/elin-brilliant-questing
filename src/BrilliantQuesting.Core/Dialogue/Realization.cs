@@ -214,6 +214,7 @@ namespace BrilliantQuesting.Dialogue
     public sealed class RealizationRequest
     {
         private static readonly string[] NoTone = new string[0];
+        private static readonly string[] NoVocabulary = new string[0];
 
         public RealizationRequest(SpeechAct act)
         {
@@ -245,6 +246,16 @@ namespace BrilliantQuesting.Dialogue
         /// among ways of saying the same thing and can never change which thing is said.
         /// </summary>
         public IReadOnlyList<string> Tone { get; set; } = NoTone;
+
+        /// <summary>
+        /// The lived-context vocabulary wanted, as <see cref="DialogueVocabulary"/> tags (BQ-076).
+        /// Empty asks for none, which is also the only thing
+        /// <see cref="OccupationalVocabulary.RequestedVocabulary"/> ever produces for an identity
+        /// nobody could read. Exactly like <see cref="Tone"/>, this narrows which fragment says the
+        /// point and can never change which point is said - <see cref="DialogueFragment.FitsVocabulary"/>
+        /// is the only place either list is read.
+        /// </summary>
+        public IReadOnlyList<string> Vocabulary { get; set; } = NoVocabulary;
 
         /// <summary>
         /// The stream the choices are drawn from. Only forked, never advanced, so the same

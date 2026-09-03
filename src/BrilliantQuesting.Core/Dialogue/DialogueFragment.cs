@@ -382,9 +382,12 @@ namespace BrilliantQuesting.Dialogue
         public IReadOnlyList<string> ToneTags { get; }
 
         /// <summary>
-        /// Free tags for the layers that will constrain selection later - voice (BQ-075),
-        /// occupational vocabulary (BQ-076), what a character will not say (BQ-077). Declared and
-        /// carried; nothing in this step reads them, and nothing in this step should.
+        /// Free tags for the layers that constrain selection beyond tone. BQ-075's voice reached
+        /// <see cref="ToneTags"/> instead, so <see cref="FitsVocabulary"/> (BQ-076) is this
+        /// vocabulary's first reader: a tag in <see cref="DialogueVocabulary"/> marks a fragment as
+        /// lived-context flavour for one identity domain. A tag outside that vocabulary - what a
+        /// character will not say (BQ-077) is expected to add its own - is carried and left alone
+        /// by this step, the same way an unmarked fragment is.
         /// </summary>
         public IReadOnlyList<string> Tags { get; }
 
@@ -448,6 +451,44 @@ namespace BrilliantQuesting.Dialogue
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Whether it suits the lived-context vocabulary an identity makes plausible (BQ-076).
+        ///
+        /// A fragment carrying none of <see cref="DialogueVocabulary"/>'s tags has no occupational
+        /// opinion and fits whatever is requested, including nothing - the same neutral default
+        /// every fragment had before this step, and true of any tag this vocabulary does not know
+        /// (BQ-077's, for instance). A fragment that does carry one of this vocabulary's tags fits
+        /// only when the request names it: unlike <see cref="FitsTone"/>, asking for nothing here
+        /// excludes such a fragment rather than admitting it, because a flavoured line let through
+        /// by an unread identity would be exactly the guessed vocabulary BQ-145 already refuses to
+        /// derive.
+        /// </summary>
+        public bool FitsVocabulary(IReadOnlyList<string> requested)
+        {
+            bool hasVocabularyTag = false;
+            for (int i = 0; i < Tags.Count; i++)
+            {
+                if (!DialogueVocabulary.IsVocabulary(Tags[i]))
+                {
+                    continue;
+                }
+
+                hasVocabularyTag = true;
+                if (requested != null)
+                {
+                    for (int j = 0; j < requested.Count; j++)
+                    {
+                        if (string.Equals(Tags[i], requested[j], StringComparison.Ordinal))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return !hasVocabularyTag;
         }
 
         public override string ToString() => Id + " [" + Position + "]";

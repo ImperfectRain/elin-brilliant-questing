@@ -1,0 +1,44 @@
+id: fragments.vocabulary
+kind: dialogueFragments
+payload:
+  fragments:
+    - id: mod.refuse.cultivation
+      position: modifier
+      text: "Some things need their season, and I am not rushing this one."
+      requires:
+        act: refuse
+      tags:
+        - cultivation
+      repetitionGroup: reserve
+    - id: mod.refuse.alchemy
+      position: modifier
+      text: "Not everything mixes well, and this will not either."
+      requires:
+        act: refuse
+      tags:
+        - alchemy
+      repetitionGroup: reserve
+    - id: mod.refuse.craft
+      position: modifier
+      text: "I do not hand over work before it is fit to be seen."
+      requires:
+        act: refuse
+      tags:
+        - craft
+      repetitionGroup: reserve
+    - id: mod.refuse.trade
+      position: modifier
+      text: "That is not a bargain I am making."
+      requires:
+        act: refuse
+      tags:
+        - trade
+      repetitionGroup: reserve
+    - id: mod.refuse.public_order
+      position: modifier
+      text: "That is not mine to hand over."
+      requires:
+        act: refuse
+      tags:
+        - public_order
+      repetitionGroup: reserve
