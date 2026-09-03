@@ -25,7 +25,9 @@ namespace BrilliantQuesting.Knowledge
             }
 
             string subject = registry.NameOf(fact.Subject);
-            string obj = registry.Npcs.ContainsKey(fact.Object)
+            // Every record, so a fact whose object is an id that has since been retired is still
+            // phrased as being about a person rather than printed as a raw id.
+            string obj = registry.AllNpcs.ContainsKey(fact.Object)
                 ? registry.NameOf(fact.Object)
                 : !string.IsNullOrEmpty(fact.Value) ? fact.Value : fact.Object.Value;
             return (subject + " " + fact.Predicate.Replace('_', ' ') + " " + obj).Trim();

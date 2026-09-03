@@ -88,6 +88,27 @@ namespace BrilliantQuesting.World
         /// </summary>
         public HashSet<string> Roles { get; } = new HashSet<string>();
 
+        /// <summary>
+        /// The actor this record turned out to be a second name for, or <see cref="EntityId.None"/>
+        /// for everybody else - which is nearly everybody.
+        ///
+        /// One live Elin character has exactly one participating BQ identity. Where two records
+        /// were nonetheless registered for one physical character - the intake minting a
+        /// uid-derived id for somebody BQ had already staged under an authored one - the later
+        /// record is retired onto the earlier rather than deleted: history already refers to it by
+        /// id, and rewriting old events to say somebody else did them would be a worse lie than
+        /// the duplicate was.
+        ///
+        /// A retired record keeps everything it had and stays resolvable, so a fact, belief,
+        /// relationship, callback or thread that names it still reads. What it loses is
+        /// participation: <see cref="EntityRegistry.Npcs"/> no longer lists it, so it cannot be
+        /// cast, simulated or counted as a second person.
+        /// </summary>
+        public EntityId AliasOf { get; set; }
+
+        /// <summary>Whether this record participates as an actor in its own right.</summary>
+        public bool IsCanonical => AliasOf.IsNone;
+
         public EntityId HomeSiteId { get; set; }
 
         public NarrativeImportance Importance { get; set; } = NarrativeImportance.Background;

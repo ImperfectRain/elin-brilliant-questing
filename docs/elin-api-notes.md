@@ -362,6 +362,62 @@ both argue against. Whether a low-frequency event or hook can see these changes 
 of the runtime list in the design document, and it should be answered before an adapter is written,
 not after.
 
+## Character identity — what the six facets are worth in play
+
+Read off a running game rather than off metadata, which is why it is here and not in the section
+above: `Found` in the assembly said the work column exists, and only play said what is in it.
+
+**`SourceChara.job` is a build column, not an occupation.** Live diagnostics have it answering with
+mechanical build and template values for characters whose trade is plainly something else:
+
+| Character | `job` reported | What they visibly are |
+|---|---|---|
+| shopkeeper-like NPCs | `predator` | somebody running a shop |
+| horses | `predator` | livestock |
+| nuns | `tourist` | clergy |
+| bartender/service actors | combat job templates | somebody serving drinks |
+
+So the column is real, stable and worth reading — it is just not evidence of a livelihood. The seam
+carries it verbatim as `CharacterIdentity.Work` (named for the column, deliberately not
+`Occupation`), and `IdentityAffordances` stakes a livelihood on it **only** where the id reads as a
+lived trade under the same vocabulary the domains use. An unrecognised work id is an observation
+that derives nothing, exactly like an unrecognised office. BQ-144 stays honest about what Elin said;
+BQ-145 declines to turn it into a claim.
+
+The **service trait** is the reliable read for "runs a business" and is unaffected by this: a
+shopkeeper whose `job` says `predator` still derives a business, a service operator role and its
+availability, because that comes off the trait subclass. Institutional standing is likewise
+independent. What was lost is only the unsupported half.
+
+Still unknown, and answerable only in play:
+
+- Whether any mechanical `job` value substring-matches a domain token by accident (the vocabulary
+  matches on substrings — `farm`, `smith`, `shop`, `guard` and so on). None of the observed
+  mechanical values does, but the observed set is small. A live pass should log the distinct `job`
+  values in a town beside what `IdentityAffordances` derived from each.
+- Whether `job` is ever a genuine trade on ordinary townspeople, or whether the diegetic answer
+  always has to come from the service trait and the Home work assignment. The derivation is correct
+  either way; the answer decides how much identity is worth reading at all.
+
+**One live Chara uid must map to one participating BQ actor.** Live diagnostics also found a single
+physical character registered under two BQ ids at once — an authored `npc_...` for somebody the mod
+staged, and an `npc_vanilla_<uid>` minted the next time the zone was walked. The intake now asks for
+the id a character already has before minting one (`ElinBindings.CanonicalIdFor`), the uid→id map
+keeps its incumbent rather than being overwritten, and a save that already carries the pair is
+reconciled on load: one record stays the actor, the other is retired onto it and keeps resolving so
+the history written under it still reads. Nothing is deleted and no event is repointed.
+
+Still unknown, and answerable only in play:
+
+- Whether any *other* live path can bind a second id to one uid. The three intakes that register
+  (zone registration, the action observer, the stager) and the two pure reads (Home roll, party) all
+  go through the one convention now, but that is a static argument about this codebase, not a
+  runtime observation about Elin.
+- Whether `Card.uid` is ever reused after a character is destroyed. If it is, a retired alias could
+  point at a body that is no longer the one it was written about. Nothing in the observed behaviour
+  suggests reuse, and nothing in this pass depends on it, but the reconciliation is keyed on the uid
+  and would inherit the confusion.
+
 ## Still unverified
 
 Everything above is metadata. None of it proves behaviour. Specifically open:

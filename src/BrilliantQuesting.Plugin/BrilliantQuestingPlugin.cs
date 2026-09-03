@@ -609,13 +609,16 @@ namespace BrilliantQuesting.Plugin
                     continue;
                 }
 
-                EntityId id = ElinBindings.MintCharaId(chara, _vanilla.PlayerId);
+                // The id this character already participates under, or a new one bound to them
+                // now. Minting unconditionally here is what registered a second NarrativeNpc for
+                // somebody BQ had already staged: one body, two castable identities, and casting,
+                // familiarity, beliefs and callbacks all splitting between them.
+                EntityId id = _bindings.CanonicalIdFor(chara, _vanilla.PlayerId);
                 if (id.IsNone)
                 {
                     continue;
                 }
 
-                _bindings.Bind(id, chara.uid);
                 NarrativeNpc npc = _world.Registry.GetNpc(id);
                 if (npc == null)
                 {
@@ -681,7 +684,10 @@ namespace BrilliantQuesting.Plugin
                         continue;
                     }
 
-                    EntityId id = ElinBindings.MintCharaId(chara, _vanilla.PlayerId);
+                    // The id they actually participate under, so the diagnostic names a staged
+                    // character as themselves rather than under a uid-derived id nothing else
+                    // uses. Derived, never bound: this is a report and must not enrol anybody.
+                    EntityId id = _bindings.IdOf(chara, _vanilla.PlayerId);
                     if (id.IsNone)
                     {
                         continue;

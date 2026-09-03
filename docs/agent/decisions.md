@@ -1054,4 +1054,52 @@ BQ-071 — and a callback is the one place the simulation had them collapsed. Ke
 realization still reads no world state: the clearance is taken where the world is in hand and merely
 honoured where the words are chosen.
 
+## D045 — Elin's work column is an observation, and only a recognised trade is evidence of a livelihood
+
+`SourceChara.job` is a build column before it is an occupation. Live diagnostics have it reporting
+`predator` for shopkeeper-like NPCs *and* for horses, `tourist` for nuns, and combat job templates for
+bartenders. BQ-144 was reading it correctly and BQ-145 was over-reading it: knowledge, interest and
+role eligibility were all gated on the domain vocabulary, but the livelihood stake fired for any
+known work id, so a horse acquired a trade to lose.
+
+**The observation is unchanged and stays verbatim.** The facet is named `Work` — the column — and
+never `Occupation`, and it says so where a consumer would otherwise assume. An unrecognised id is
+still carried through as itself, because it is a stable discriminator and it is what Elin said.
+
+**A livelihood is derived only where the id reads as a lived trade**, under the same vocabulary the
+domains already use, so there is one answer to "does this read as work" rather than two that can
+disagree. Observed service derives a business independently and off the trait subclass, so a
+shopkeeper whose work column says `predator` is still a shopkeeper; an office derives standing
+independently, so a guard is still a guard. Unrecognised work costs the livelihood and nothing else.
+
+Reason: the anti-stereotype gate is about not letting a label decide what somebody is, and asserting
+a livelihood from a job template is the same failure as asserting a temperament from a race. Race
+and character archetype were gated from the start; this was the one facet still ungated, and the
+game's own data is what proved it needed to be.
+
+## D046 — One live Chara uid is one participating BQ actor, and a superseded id is retired rather than erased
+
+Live diagnostics found one physical character registered under two BQ ids at once — an authored
+`npc_...` for somebody the mod staged, and an `npc_vanilla_<uid>` minted the next time the zone was
+walked. Zone registration minted an id before asking whether the character already had one. Casting,
+familiarity, beliefs, callbacks, relationships and history all assume an `EntityId` names one person,
+so all six were wrong at once and each looked like a different bug.
+
+**Canonicalisation happens at intake, not in consumers.** `ElinBindings.CanonicalIdFor` is the one
+way a live character becomes an id: the id they already have, or a new one bound to them now. The
+uid→id map keeps its incumbent rather than being overwritten, so the answer to "who is this
+character" cannot change underfoot. The two pure reads that must not register — the Home roll and the
+party — still derive an id, and still ask for the existing binding first.
+
+**A superseded id is retired, never deleted or repointed.** `EntityRegistry.Retire` marks one record
+as an alias of another. Both survive, both are saved, and `GetNpc` still returns either — the events,
+beliefs and threads written under the alias are true, and rewriting them would invent a past in which
+somebody else did those things. What the alias loses is participation: `Registry.Npcs` is the actors
+and `Registry.AllNpcs` is the records, so nothing that asks who is in the world can cast or simulate
+it as a second person, while save/load and existence checks over history see everything.
+
+Reason: identity stability is the assumption six systems rest on, so it is enforced once where ids
+are minted rather than checked six times; and history is evidence, so a duplicate is resolved by
+saying which id is the actor, not by editing what was recorded.
+
 Add a new entry only when the decision is both load-bearing and durable.

@@ -21,6 +21,20 @@ namespace BrilliantQuesting.Plugin
 
         internal IReadOnlyDictionary<EntityId, int> All => _entityToUid;
 
+        /// <summary>
+        /// Links a simulation id to a live object.
+        ///
+        /// <b>The incumbent wins.</b> A uid that already answers to an id keeps answering to that
+        /// one: a later id for the same body is recorded as another name that resolves to it, and
+        /// never displaces it. Displacing it was how one physical character came to have two
+        /// participating identities - the id the world model had been using since the character
+        /// was staged stayed in the forward map while every fresh lookup started returning the
+        /// uid-derived one, so history pointed at one of them and the live game at the other.
+        ///
+        /// Preventing the second id from being minted at all is <see cref="CanonicalIdFor"/>'s
+        /// job. This is the floor underneath it: even if something does bind twice, the reverse
+        /// map stays stable and the answer to "who is this character" stops changing underfoot.
+        /// </summary>
         internal void Bind(EntityId entity, int uid)
         {
             if (entity.IsNone || uid == 0)
@@ -29,7 +43,59 @@ namespace BrilliantQuesting.Plugin
             }
 
             _entityToUid[entity] = uid;
-            _uidToEntity[uid] = entity;
+            if (!_uidToEntity.ContainsKey(uid))
+            {
+                _uidToEntity[uid] = entity;
+            }
+        }
+
+        /// <summary>
+        /// The id this character participates under: the one they already have, or a freshly
+        /// minted one bound to them now.
+        ///
+        /// The single intake for a live character, and the reason there is one: minting first and
+        /// asking afterwards is what produced two BQ identities for one Elin uid. Every caller that
+        /// enrols, registers, reports on or reads a character goes through here, so a character BQ
+        /// staged under an authored id is never met a second time as `npc_vanilla_&lt;uid&gt;`.
+        ///
+        /// Registers nothing in the world model - that is the caller's decision and stays theirs.
+        /// </summary>
+        internal EntityId CanonicalIdFor(Chara chara, EntityId playerId)
+        {
+            if (chara == null)
+            {
+                return EntityId.None;
+            }
+
+            if (TryGetEntity(chara.uid, out EntityId existing))
+            {
+                return existing;
+            }
+
+            EntityId minted = MintCharaId(chara, playerId);
+            Bind(minted, chara.uid);
+            return minted;
+        }
+
+        /// <summary>
+        /// The id this character is known by, derived without binding or registering anything.
+        ///
+        /// The read-only half of <see cref="CanonicalIdFor"/>, and the one the pure reads use: the
+        /// Home roll, the party, and the identity diagnostic all have to name somebody the way the
+        /// rest of the mod names them, and none of them may enrol anybody in the world model by
+        /// asking. Same answer as the intake for anybody already bound; for a character nobody has
+        /// met it derives the id they *would* get without claiming it on their behalf.
+        /// </summary>
+        internal EntityId IdOf(Chara chara, EntityId playerId)
+        {
+            if (chara == null)
+            {
+                return EntityId.None;
+            }
+
+            return TryGetEntity(chara.uid, out EntityId existing)
+                ? existing
+                : MintCharaId(chara, playerId);
         }
 
         /// <summary>
@@ -59,22 +125,76 @@ namespace BrilliantQuesting.Plugin
                 log?.LogInfo("Restored " + restored + " object binding(s) from the save.");
             }
 
-            foreach (NarrativeNpc npc in world.Registry.Npcs.Values)
+            // Every record, retired aliases included: an alias still names a real piece of history
+            // and must keep resolving to the character it was written about.
+            foreach (NarrativeNpc npc in world.Registry.AllNpcs.Values)
             {
                 if (int.TryParse(npc.VanillaCharaRef, out int uid))
                 {
                     Bind(npc.Id, uid);
+                }
+            }
+
+            // Name recovery second, and only onto a character nobody has claimed. Two saved people
+            // who happen to share a staged name would otherwise both recover onto one body and
+            // become a duplicate identity that outlives the session - the failure this whole pass
+            // exists to make impossible.
+            foreach (NarrativeNpc npc in world.Registry.AllNpcs.Values)
+            {
+                if (!string.IsNullOrEmpty(npc.VanillaCharaRef))
+                {
                     continue;
                 }
 
                 Chara match = FindStagedChara(npc.Name);
-                if (match != null)
+                if (match == null)
                 {
-                    Bind(npc.Id, match.uid);
-                    npc.VanillaCharaRef = match.uid.ToString();
-                    log?.LogInfo("Recovered binding for " + npc.Name + " from loaded map (uid "
-                                 + match.uid + ").");
+                    continue;
                 }
+
+                if (TryGetEntity(match.uid, out EntityId already))
+                {
+                    log?.LogWarning("Not recovering " + npc.Name + " [" + npc.Id + "] onto uid "
+                                    + match.uid + ": that character is already " + already + ".");
+                    continue;
+                }
+
+                Bind(npc.Id, match.uid);
+                npc.VanillaCharaRef = match.uid.ToString();
+                log?.LogInfo("Recovered binding for " + npc.Name + " from loaded map (uid "
+                             + match.uid + ").");
+            }
+
+            // A save written before the intake was canonical can still carry two records for one
+            // character. Reconcile them into one participating actor, keeping both records so the
+            // history written under either id still reads.
+            IReadOnlyList<ActorIdentityIntake.Retirement> retired =
+                ActorIdentityIntake.Reconcile(world, IsVanillaMinted);
+            for (int i = 0; i < retired.Count; i++)
+            {
+                // Which of the two ids the reverse map happened to be holding depended on the
+                // order the save handed them back. Point it at the one reconciliation chose, so a
+                // live lookup and the world model agree about who this character is.
+                PointAt(retired[i].Canonical);
+                log?.LogWarning("Identity intake: " + retired[i]
+                                + "; the retired id stays readable in history and stops acting.");
+            }
+        }
+
+        /// <summary>
+        /// Makes this id the one the character's uid resolves to, displacing an incumbent that
+        /// reconciliation has just retired.
+        ///
+        /// The one place <see cref="Bind"/>'s incumbent rule is overridden, and only ever towards
+        /// the canonical actor: a retired alias must stop being the answer to "who is standing
+        /// here", or the live game and the world model would go on disagreeing after the duplicate
+        /// was resolved.
+        /// </summary>
+        private void PointAt(EntityId canonical)
+        {
+            if (_entityToUid.TryGetValue(canonical, out int uid))
+            {
+                _uidToEntity[uid] = canonical;
             }
         }
 
@@ -144,11 +264,18 @@ namespace BrilliantQuesting.Plugin
         }
 
         /// <summary>
-        /// The id this character would be known by, without registering anything.
+        /// The id this character would be known by, without binding or registering anything.
         ///
-        /// One convention, in one place: the observer enrols people in the world model when it
-        /// mints an id, and the Home read must not, but both have to arrive at the same string or
-        /// a resident who is later seen acting would come back as a second person.
+        /// One convention, in one place, so that a resident listed by the Home read and the same
+        /// resident later seen acting arrive at the same string instead of coming back as two
+        /// people.
+        ///
+        /// <b>Not an intake.</b> This answers what a character *would* be called if BQ had never
+        /// met them; it does not answer what they are called, because somebody BQ staged already
+        /// has a name and this would give them a second one. A caller that enrols, registers or
+        /// binds asks <see cref="CanonicalIdFor"/>. The two pure reads that derive an id without
+        /// touching the world model - the Home roll and the companions read - call this only after
+        /// <see cref="TryGetEntity"/> has said the character is unbound.
         /// </summary>
         internal static EntityId MintCharaId(Chara chara, EntityId playerId)
         {

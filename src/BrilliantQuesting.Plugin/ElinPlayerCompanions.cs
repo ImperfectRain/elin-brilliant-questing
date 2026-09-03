@@ -74,8 +74,10 @@ namespace BrilliantQuesting.Plugin
 
                 // Derived, never registered, exactly as the Home roll derives its ids: reading who
                 // is with the player must not enrol anybody in the world model or write a binding.
-                EntityId id = bindings != null && bindings.TryGetEntity(chara.uid, out EntityId bound)
-                    ? bound
+                // Same derivation both sides, so a companion who is also a resident is one actor
+                // rather than two records of one animal.
+                EntityId id = bindings != null
+                    ? bindings.IdOf(chara, playerId)
                     : ElinBindings.MintCharaId(chara, playerId);
 
                 if (!id.IsNone && id != playerId && seen.Add(id))

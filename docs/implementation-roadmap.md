@@ -497,6 +497,7 @@ nothing about what any facet means.
   rather than zero because `FactionRelation.rank` is the player's own standing (`ELIN-Q-0025`,
   `ELIN-Q-0028`).
 - **Out of scope** what a facet *means* (BQ-145), any write, persisting the observation, personality generation, mutation policy, and settlement residency — a populated `job` field does not answer ELIN-Q-0027 and must not be made to.
+- **Corrected by live diagnostics.** `SourceChara.job` is a build column, not an occupation: it answers `predator` for shopkeeper-like NPCs *and* for horses, `tourist` for nuns, and combat job templates for bartenders (`ELIN-Q-0028`). The observation is unchanged and stays verbatim — that is what this step is for — but the facet is named `Work` for the column rather than `Occupation` for a claim, and its documentation says outright that a populated work facet is not evidence of a trade. What may be derived from it is BQ-145's, and is now gated (`D045`).
 - **Sources** VS §4.2, §4.3, §4.4, §4.5, §7; CD §6.1; `docs/elin/bq-integration/world-affordances.md`; `docs/elin/api/actors.md`; D001, D004, D017, D019, D021.
 - **Unblocks** BQ-145, and the identity reads in BQ-039, BQ-049, BQ-051, BQ-064, BQ-067, BQ-068, BQ-076, BQ-084, BQ-123.
 - **Why its own step** one implementation site at the seam, with a completion test nothing else can run: the adapter answers or it does not. Every step in *Unblocks* is a different system reading the same answer, and folding the read into any one of them is exactly how four private reflective probes into `Chara` get written.
@@ -1059,6 +1060,7 @@ vocabulary.
 - **Unblocks** the identity slices of BQ-068, BQ-076, BQ-084, and the retrofits named in BQ-061, BQ-064 and BQ-067.
 - **Why its own step** the observation and its meaning fail differently. BQ-144 is wrong when the adapter reports the wrong facet; this is wrong when a facet is allowed to dictate a decision. Its done-when is the anti-stereotype test, which cannot be written against an adapter and must not be scattered across six consumers.
 - **This is the anti-stereotype gate.** Identity affects plausibility, eligibility and pressure; it never dictates personality. A Punk is not aggressive because they are a Punk. Any later step that reads a facet and concludes what somebody is *like* is wrong even if it works.
+- **Hardened after BQ-144's live diagnostics.** The work facet was the one place the gate leaked: knowledge, interest and role eligibility were all matched against the domain vocabulary, but the livelihood stake fired for *any* known work id. With Elin's work column reporting `predator` for horses and `tourist` for nuns, that made BQ assert a trade to lose on the strength of a job template. A livelihood is now derived only where the work id reads as a lived trade under the same vocabulary the domains use; an unrecognised work id is observable and derives nothing, as an unrecognised office already did. Observed service still derives a business independently, so a shopkeeper whose work column reads `predator` is still a shopkeeper (`D045`).
 
 #### BQ-068 — Role chemistry
 Score groups, not individuals: goal conflict, shared history, knowledge asymmetry, power asymmetry.
@@ -2203,6 +2205,14 @@ Casting may draw on the player's pets, residents and adventurers-turned-companio
 victim, suspect, the subject of another actor's grudge, or the thing somebody else wants.
 - **Depends** BQ-049, BQ-114.
 - **Done when** a situation casts a named pet or resident of the player's own household, correctly, and survives that character being sold, married off, or killed.
+- **One live character is one actor, across every registration path.** A companion is met by the Home
+  roll, by the party read, by the action observer and by zone registration, and all four have to
+  arrive at the same identity or the same pet becomes two people who each half-know the player. Live
+  diagnostics found exactly that failure — one Elin uid under an authored `npc_...` and an
+  `npc_vanilla_<uid>` at once — because zone registration minted an id instead of asking for the one
+  the character already had. Every intake now goes through one canonical lookup, and a save that
+  already carries the pair is reconciled on load by retiring one record onto the other rather than
+  deleting it, so the history written under the retired id still reads (`D046`).
 - **Identity for pets and companions is the same BQ-144 read, not a second one.** A pet has a race and a character archetype and usually no work, service or institutional role, and that is a complete and correct answer rather than a gap to fill — the unread facets stay unknown and simply make it ineligible for the roles that need them. Personhood stays `NarrativeActorKind`/`SocialAgency`'s answer, and mutation safety stays `NarrativeActorClass`'s (BQ-031): a companion is not more or less protected because of what species the game says they are. Ownership boundary: **BQ-049** owns residents as situation origins, **BQ-114** owns how well the player knows them, **BQ-144** owns what the game says they are, and **this step** owns only their admission to casting and their survival of being sold, married off or killed.
 - **Current implementation** `PlayerHousehold.Read(world, vanilla)` is the one place that says
   whose household this is. Two grounds, both the game's: the Home roll

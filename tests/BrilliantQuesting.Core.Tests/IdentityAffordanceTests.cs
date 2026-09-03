@@ -137,6 +137,109 @@ namespace BrilliantQuesting.Tests
             Assert.Empty(punk.ContributingFacets);
         }
 
+        // -- the work column is not an occupation ----------------------------------------------
+
+        /// <summary>
+        /// The BQ-144 runtime finding, pinned as a rule.
+        ///
+        /// Elin's work column is a build column before it is a trade: live diagnostics have it
+        /// answering `predator` for shopkeeper-like NPCs and for horses, and `tourist` for nuns.
+        /// A work id nothing recognises as a lived trade is carried through as the observation it
+        /// is and derives nothing - not a weaker livelihood, not a livelihood with a caveat. BQ
+        /// asserting that a horse has a trade to lose is the same stereotype failure as asserting
+        /// a Punk is aggressive, arriving through the one facet that was still ungated.
+        /// </summary>
+        [Theory]
+        [InlineData("predator")]
+        [InlineData("tourist")]
+        [InlineData("berserker")]
+        public void AMechanicalWorkIdIsObservedAndDerivesNoLivelihood(string workId)
+        {
+            CharacterIdentity observed = new CharacterIdentityBuilder(Nobody)
+                .WithWork(workId)
+                .WithHobbiesRead()
+                .WithInstitutionsRead()
+                .Build();
+
+            // The observation keeps it verbatim. BQ-144 stays honest whatever BQ-145 makes of it.
+            Assert.True(observed.Work.IsKnown);
+            Assert.Equal(workId, observed.Work.VanillaId);
+
+            IdentityAffordances derived = IdentityAffordances.Derive(observed);
+
+            Assert.Equal(0.0, derived.ExposureTo(IdentityStakeKind.Livelihood));
+            Assert.Empty(derived.Stakes);
+            Assert.Empty(derived.RoleEligibility);
+            Assert.False(derived.Service.IsProvider);
+            Assert.DoesNotContain(IdentityFacetKind.Work, derived.ContributingFacets);
+            Assert.True(derived.IsEmpty);
+        }
+
+        /// <summary>
+        /// The other direction, so the gate cannot be satisfied by deriving nothing from anybody.
+        /// A work id that reads as a lived trade still stakes a livelihood, and still names the
+        /// facet that did it.
+        /// </summary>
+        [Theory]
+        [InlineData("farmer")]
+        [InlineData("brewer")]
+        [InlineData("merchant")]
+        [InlineData("guard")]
+        public void RecognisedLivedWorkStillStakesALivelihood(string workId)
+        {
+            IdentityAffordances derived = IdentityAffordances.Derive(
+                new CharacterIdentityBuilder(Nobody).WithWork(workId).Build());
+
+            Assert.True(derived.ExposureTo(IdentityStakeKind.Livelihood) > 0.0);
+            Assert.Contains(IdentityFacetKind.Work, derived.ContributingFacets);
+            Assert.Contains(derived.Explain(), line => line.StartsWith("at stake livelihood"));
+        }
+
+        /// <summary>
+        /// An unrecognised work id costs the livelihood and nothing else. Observed service is its
+        /// own evidence: a shopkeeper whose work column says `predator` still runs a business,
+        /// because the shop is read from the trait and not from the job template.
+        /// </summary>
+        [Fact]
+        public void ObservedServiceSurvivesAMechanicalWorkId()
+        {
+            IdentityAffordances derived = IdentityAffordances.Derive(
+                new CharacterIdentityBuilder(Nobody)
+                    .WithWork("predator")
+                    .WithService("TraitShopGeneral", null, ServiceAvailability.Offered)
+                    .Build());
+
+            Assert.True(derived.Service.IsProvider);
+            Assert.True(derived.Service.AvailableNow);
+            Assert.True(derived.IsEligibleFor(IdentityRole.ServiceOperator));
+            Assert.True(derived.ExposureTo(IdentityStakeKind.Business) > 0.0);
+
+            // The business is the shop's, not the job template's.
+            Assert.Equal(0.0, derived.ExposureTo(IdentityStakeKind.Livelihood));
+            Assert.Equal(
+                new[] { IdentityFacetKind.Service },
+                derived.ContributingFacets.ToArray());
+        }
+
+        /// <summary>
+        /// An office is still an office. A guard whose work column reads as a combat template
+        /// keeps the standing the institutional facet grants, because the two facets fail
+        /// separately and always did.
+        /// </summary>
+        [Fact]
+        public void AnOfficeSurvivesAMechanicalWorkId()
+        {
+            IdentityAffordances derived = IdentityAffordances.Derive(
+                new CharacterIdentityBuilder(Nobody)
+                    .WithWork("predator")
+                    .AddInstitution("city_of_yowyn", "TraitGuard")
+                    .Build());
+
+            Assert.True(derived.IsEligibleFor(IdentityRole.Authority));
+            Assert.True(derived.ExposureTo(IdentityStakeKind.Standing) > 0.0);
+            Assert.Equal(0.0, derived.ExposureTo(IdentityStakeKind.Livelihood));
+        }
+
         // -- unknown contributes nothing -------------------------------------------------------
 
         [Fact]

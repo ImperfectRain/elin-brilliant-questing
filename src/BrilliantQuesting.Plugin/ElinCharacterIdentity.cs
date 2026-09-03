@@ -12,8 +12,9 @@ namespace BrilliantQuesting.Plugin
     ///
     /// The identity counterpart of <see cref="ElinHomeState"/>. Six facets, read from six
     /// different places in the game, each on its own: the `SourceChara` row is the character
-    /// archetype, `idRace` and the race row are what they are, the source `job` column is what
-    /// they do for a living, the `hobbies` column is what they do otherwise, the trait subclass
+    /// archetype, `idRace` and the race row are what they are, the source `job` column is the
+    /// game's work column (see <see cref="ReadWork"/> - not an occupation), the `hobbies` column is
+    /// what they do otherwise, the trait subclass
     /// says what can be bought from them, and the trait subclass plus `faction` say what they are
     /// entitled to do and on whose behalf.
     ///
@@ -117,10 +118,18 @@ namespace BrilliantQuesting.Plugin
         }
 
         /// <summary>
-        /// What they do for a living. The source `job` column only: the Home branch's own work
-        /// assignment is a second answer to the same question, it is read through
-        /// <see cref="ElinHomeState"/> for the settlement that has one, and reconciling the two is
-        /// not this read's business.
+        /// The source `job` column, carried verbatim, and nothing more than that.
+        ///
+        /// It is *not* proof of an occupation. Live diagnostics have this column answering
+        /// `predator` for shopkeeper-like NPCs and for horses, `tourist` for nuns, and combat job
+        /// templates for bartenders - it is a build column that sometimes reads as a trade rather
+        /// than a trade that sometimes reads oddly. That is exactly why it crosses the seam
+        /// unnormalised and why nothing here decides what it means: an id that reads as a lived
+        /// trade earns affordances above this seam, and one that does not earns none.
+        ///
+        /// The source column only: the Home branch's own work assignment is a second answer to the
+        /// same question, it is read through <see cref="ElinHomeState"/> for the settlement that
+        /// has one, and reconciling the two is not this read's business.
         /// </summary>
         private static void ReadWork(CharacterIdentityBuilder builder, Chara chara, object source)
         {

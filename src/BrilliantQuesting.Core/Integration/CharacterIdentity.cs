@@ -15,6 +15,11 @@ namespace BrilliantQuesting.Integration
     {
         CharacterArchetype,
         Race,
+
+        /// <summary>
+        /// The game's work column. Named Work rather than Occupation because that is all the
+        /// column has been proven to be - see <see cref="CharacterIdentity.Work"/>.
+        /// </summary>
         Work,
         Hobby,
         Service,
@@ -245,7 +250,21 @@ namespace BrilliantQuesting.Integration
         /// <summary>What they are. Embodiment, and frequently orthogonal to every other facet.</summary>
         public IdentityFacet Race { get; }
 
-        /// <summary>What they do for a living.</summary>
+        /// <summary>
+        /// The game's own work column for this character, carried verbatim.
+        ///
+        /// <b>Not proof of an occupation.</b> This is `SourceChara.job`, and live diagnostics have
+        /// it answering with mechanical build and template values rather than with a trade:
+        /// shopkeeper-like NPCs and horses alike reporting `predator`, nuns reporting `tourist`,
+        /// bartenders reporting combat job templates. The column is honest about what Elin stores
+        /// there and BQ reports it honestly, which is why the observation keeps it and why the
+        /// name is Work - what the sheet says - rather than Occupation, which would be a claim
+        /// about the character.
+        ///
+        /// So a consumer may not read this as "what they do for a living". What a work id is
+        /// allowed to imply is <see cref="World.IdentityAffordances"/>'s single answer, and an id
+        /// it does not recognise as a lived trade implies nothing at all.
+        /// </summary>
         public IdentityFacet Work { get; }
 
         /// <summary>What they do when they are not working. Zero or more; the weakest of the six.</summary>
@@ -417,6 +436,10 @@ namespace BrilliantQuesting.Integration
             return this;
         }
 
+        /// <summary>
+        /// Records the game's work column verbatim. See <see cref="CharacterIdentity.Work"/>: this
+        /// is what the sheet says, not an assertion that the character holds that trade.
+        /// </summary>
         public CharacterIdentityBuilder WithWork(string vanillaId, string displayName = null)
         {
             _work = IdentityFacet.FromVanilla(vanillaId, displayName);

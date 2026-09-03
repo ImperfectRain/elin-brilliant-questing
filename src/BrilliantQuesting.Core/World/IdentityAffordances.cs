@@ -36,7 +36,13 @@ namespace BrilliantQuesting.World
     /// </summary>
     public enum IdentityStakeKind
     {
-        /// <summary>A trade to lose.</summary>
+        /// <summary>
+        /// A trade to lose.
+        ///
+        /// Derived only from work this build recognises as a lived trade. An unrecognised work id
+        /// is still observable at the seam and still reported; it simply is not evidence that
+        /// there is a livelihood behind it.
+        /// </summary>
         Livelihood,
 
         /// <summary>A going concern that can close.</summary>
@@ -341,6 +347,13 @@ namespace BrilliantQuesting.World
     /// not a stereotype standing in for the answer the build declined to give (D017). An actor
     /// whose every facet is unknown derives <see cref="Nothing"/>, and that is a complete answer.
     ///
+    /// **An unrecognised facet contributes nothing either.** A read the vocabulary here does not
+    /// recognise - a work id, an office - is carried through the seam as itself and derives no
+    /// affordance, because being answered is not the same as being understood. Elin's work column
+    /// is the reason this is stated rather than assumed: it reports build and template values
+    /// (`predator` for horses, `tourist` for nuns) that are perfectly readable and are not trades
+    /// (D045).
+    ///
     /// **Race and character archetype derive nothing at all.** They are the two facets a
     /// stereotype would arrive through, and neither one tells anybody what somebody can do, is
     /// entitled to, or would lose. They stay observable at the seam and stay out of every weight
@@ -599,7 +612,21 @@ namespace BrilliantQuesting.World
             if (work != null)
             {
                 acc.AddDomains(work, WorkKnowledge, WorkInterest);
-                acc.AddStake(IdentityStakeKind.Livelihood, LivelihoodExposure, work);
+
+                // A livelihood only where the id reads as a lived trade. Elin's work column is a
+                // build column before it is an occupation - live diagnostics have it answering
+                // `predator` for shopkeeper-like NPCs and for horses, and `tourist` for nuns - so
+                // a work id
+                // this derivation does not recognise is carried as an observation and derives
+                // nothing, exactly as the domains and the roles below it already do. Staking a
+                // livelihood on it would be BQ asserting somebody has a trade to lose on the
+                // strength of a template name, which is the stereotype failure this step exists to
+                // prevent, arriving through the one facet that was still ungated.
+                if (ReadsAsLivedWork(work.VanillaId))
+                {
+                    acc.AddStake(IdentityStakeKind.Livelihood, LivelihoodExposure, work);
+                }
+
                 acc.AddRoles(work);
             }
 
@@ -729,6 +756,27 @@ namespace BrilliantQuesting.World
                 "guard", "watch", "reeve", "sheriff", "constable", "marshal", "warden", "authority", "court"),
             new RoleRule(IdentityRole.GuildStanding, "guild")
         };
+
+        /// <summary>
+        /// Whether a work id reads as a trade somebody actually lives by.
+        ///
+        /// The same recognition the domains use, asked as one question, so there is exactly one
+        /// vocabulary of what counts as lived work and a domain cannot be recognised for knowledge
+        /// while being unrecognised for stakes. An id nothing matches is not a weaker trade: it is
+        /// not evidence of a trade at all.
+        /// </summary>
+        private static bool ReadsAsLivedWork(string id)
+        {
+            for (int i = 0; i < DomainRules.Length; i++)
+            {
+                if (DomainRules[i].Matches(id))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         private static bool Matches(string id, IdentityDomain domain)
         {

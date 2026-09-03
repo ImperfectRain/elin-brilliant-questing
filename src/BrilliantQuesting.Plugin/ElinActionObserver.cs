@@ -376,8 +376,14 @@ namespace BrilliantQuesting.Plugin
                 return existing;
             }
 
-            EntityId id = ElinBindings.MintCharaId(chara, _vanilla.PlayerId);
-            _bindings.Bind(id, chara.uid);
+            // Only somebody nobody has met reaches here, and the intake decides what they are
+            // called - never a bare mint, which is how a staged character acquired a second
+            // identity the first time they swung at something.
+            EntityId id = _bindings.CanonicalIdFor(chara, _vanilla.PlayerId);
+            if (id.IsNone)
+            {
+                return id;
+            }
 
             NarrativeNpc npc = _world.Registry.GetNpc(id);
             if (npc == null)

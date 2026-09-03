@@ -709,10 +709,14 @@ namespace BrilliantQuesting.Storylets
                 ? new List<EntityId>()
                 : context.Vanilla.GetCharactersInZone(context.Place);
 
+            // Canonicalised on the way in, both here and for the thread's own participants below.
+            // The pool is a set of bodies, not of ids: an actor the thread cast under an id that
+            // has since been retired is present because the character is, and reaches the pool
+            // once, as themselves.
             HashSet<EntityId> present = new HashSet<EntityId>();
             for (int i = 0; i < here.Count; i++)
             {
-                present.Add(here[i]);
+                present.Add(context.World.Registry.Canonical(here[i]));
             }
 
             // A build that cannot say who is in a zone must not silently cast nobody: the thread's
@@ -722,7 +726,7 @@ namespace BrilliantQuesting.Storylets
 
             for (int i = 0; i < context.Thread.ParticipantIds.Count; i++)
             {
-                EntityId participant = context.Thread.ParticipantIds[i];
+                EntityId participant = context.World.Registry.Canonical(context.Thread.ParticipantIds[i]);
                 if (trustPresence && !present.Contains(participant))
                 {
                     continue;
@@ -737,7 +741,7 @@ namespace BrilliantQuesting.Storylets
             List<EntityId> others = new List<EntityId>();
             for (int i = 0; i < here.Count; i++)
             {
-                EntityId candidate = here[i];
+                EntityId candidate = context.World.Registry.Canonical(here[i]);
                 if (seen.Add(candidate) && IsCastableActor(context, candidate) && IsAvailable(context, candidate))
                 {
                     others.Add(candidate);
@@ -793,7 +797,10 @@ namespace BrilliantQuesting.Storylets
         /// </summary>
         private static bool IsCastableActor(StoryletCastingContext context, EntityId candidate)
         {
-            return !candidate.IsNone && context.World.Registry.GetNpc(candidate) != null;
+            // Participating actors, not every person record. A retired alias of somebody standing
+            // here is the same body as the actor it was retired onto, and casting both would put
+            // one character in two roles of one scene.
+            return context.World.Registry.IsActor(candidate);
         }
 
         /// <summary>

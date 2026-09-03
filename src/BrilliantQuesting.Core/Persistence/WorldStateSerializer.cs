@@ -134,7 +134,10 @@ namespace BrilliantQuesting.Persistence
         private static JsonValue NpcsToJson(NarrativeWorldState world)
         {
             JsonValue array = JsonValue.Array();
-            foreach (NarrativeNpc npc in world.Registry.Npcs.Values)
+
+            // Every record, retired aliases included: an alias dropped from the save would take
+            // the history written under its id with it on the next load.
+            foreach (NarrativeNpc npc in world.Registry.AllNpcs.Values)
             {
                 JsonValue personality = PersonalityToJson(npc.Personality);
                 JsonValue problemSolving = ProblemSolvingToJson(npc.ProblemSolving);
@@ -161,6 +164,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("id", npc.Id.Value)
                     .Set("name", npc.Name)
                     .Set("charaRef", npc.VanillaCharaRef)
+                    .Set("aliasOf", npc.AliasOf.Value)
                     .Set("occupation", npc.Occupation)
                     .Set("roles", Strings(npc.Roles))
                     .Set("homeSite", npc.HomeSiteId.Value)
@@ -528,6 +532,7 @@ namespace BrilliantQuesting.Persistence
                 NarrativeNpc npc = new NarrativeNpc(EntityId.Parse(json.GetString("id")), json.GetString("name"))
                 {
                     VanillaCharaRef = json.GetString("charaRef"),
+                    AliasOf = EntityId.Parse(json.GetString("aliasOf")),
                     Occupation = Occupation(json.GetString("occupation")),
                     HomeSiteId = EntityId.Parse(json.GetString("homeSite")),
                     Importance = (NarrativeImportance)json.GetInt("importance"),
@@ -1010,7 +1015,7 @@ namespace BrilliantQuesting.Persistence
             for (int i = 0; i < thread.ParticipantIds.Count; i++)
             {
                 EntityId participant = thread.ParticipantIds[i];
-                if (!participant.IsNone && !world.Registry.Npcs.ContainsKey(participant))
+                if (!participant.IsNone && !world.Registry.AllNpcs.ContainsKey(participant))
                 {
                     return "quarantined during save load: missing participant " + participant.Value;
                 }
@@ -1036,7 +1041,7 @@ namespace BrilliantQuesting.Persistence
 
                 foreach (KeyValuePair<string, EntityId> role in firing.RoleBindings)
                 {
-                    if (!role.Value.IsNone && !world.Registry.Npcs.ContainsKey(role.Value))
+                    if (!role.Value.IsNone && !world.Registry.AllNpcs.ContainsKey(role.Value))
                     {
                         return "quarantined during save load: storylet " + firing.StoryletId
                             + " role " + role.Key + " references missing actor " + role.Value.Value;

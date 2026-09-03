@@ -227,11 +227,11 @@ namespace BrilliantQuesting.Plugin
                 }
 
                 // Derived, never registered. Reading who lives at Home must not enrol anybody in
-                // the world model or write a binding: the id is computed the same way the observer
-                // computes it, so a resident who later does something the mod watches keeps the
-                // identity they were listed under here.
-                EntityId id = bindings != null && bindings.TryGetEntity(chara.uid, out EntityId bound)
-                    ? bound
+                // the world model or write a binding, and the id is the one the rest of the mod
+                // uses, so a resident who later does something the mod watches keeps the identity
+                // they were listed under here.
+                EntityId id = bindings != null
+                    ? bindings.IdOf(chara, playerId)
                     : ElinBindings.MintCharaId(chara, playerId);
 
                 builder.AddResident(id, chara.Name, JobOf(chara));

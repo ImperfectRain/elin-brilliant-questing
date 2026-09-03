@@ -1370,7 +1370,7 @@ namespace BrilliantQuesting.Diagnostics
             }
 
             string subject = world.Registry.NameOf(fact.Subject);
-            string obj = world.Registry.Npcs.ContainsKey(fact.Object)
+            string obj = world.Registry.AllNpcs.ContainsKey(fact.Object)
                 ? world.Registry.NameOf(fact.Object)
                 : !string.IsNullOrEmpty(fact.Value) ? fact.Value : fact.Object.Value;
             string truth = fact.Truth == Knowledge.TruthState.True ? string.Empty : " (" + fact.Truth + "!)";
