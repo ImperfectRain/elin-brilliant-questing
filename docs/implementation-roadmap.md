@@ -1525,6 +1525,43 @@ plus real mechanical consequence plus understated response.
 The same absurdity draws different reactions by character — the pragmatist, the zealot, the merchant.
 - **Depends** BQ-079, BQ-064.
 - **Done when** one absurd event produces five in-character reactions with no bespoke text for that event.
+- **Current implementation** `ActorReaction` and `ReactionDerivation`, the step between BQ-064's
+  interpretation and BQ-074's realization. BQ-064 answers "what is this?" and its answer is already
+  actor-local; this answers the two questions after it, which are not the same question: **what
+  about it is mine** (`Concern`) and **what would I do about it** (`Response`), plus **how odd it
+  strikes me** (`Registers`). CD §22.3's own example is that shape — the pragmatist, the zealot and
+  the merchant are not three wordings of one remark about a speaking cow, they are three different
+  things to have noticed about it and three different next moves.
+  **No vocabulary of its own.** Every axis is an existing canonical actor vocabulary: `ValueConcern`
+  is BQ-061's, `ProblemSolvingStyle` is BQ-062's, `WeirdnessLevel` is BQ-079's, and the
+  interpretation is BQ-064's `ActorInterpretationTrace` carried whole. There is no reaction
+  ontology, no per-event table and no second personality model. A concern is scored from a baseline
+  every concern gets, the sensitivities that bear on it (BQ-063), the identity affordances that make
+  somebody able to see that side of it (BQ-145, read exactly as BQ-064 reads them), and whether
+  BQ-064's chosen lens is a reading of that concern's own domain — then weighed by
+  `Pressure = engagement × importance × (1 − flexibility/2)`, character for character the formula
+  `MissingGoatProblemSolver` already uses, so "how much a threatened value presses" keeps one answer
+  rather than two that drift. A response is scored from the actor's own `ProblemSolvingProfile`
+  preference — deliberately the largest single term, since the profile that says how somebody turns
+  problems into action is the most direct statement of who they are the simulation holds — plus one
+  personality weight, one emotion where one bears on it, and what the winning concern reaches for.
+  **BQ-079 enters as tolerance, not as a gate.** `Registers` is the scene's premise level less the
+  CD §23 tier `CharacterQuirkProfile.Weirdness` already assigned, floored at `Mundane`: a character
+  the town already finds strange is the one least struck by a strange event, which is what makes
+  "it has always been opinionated" a reaction rather than a failure to react.
+  **No text, anywhere.** Nothing in the derivation reads `Fact.Value` or any other prose on the
+  event, so retitling the event changes no reaction to it — the mechanical form of "no bespoke text
+  for that event", and a stronger claim than "nobody wrote any". `ActorReaction.Signature` is a
+  wording-free identity in the sense `SpeechAct.Signature` is. `Derive` is pure; `React` writes only
+  the belief `ActorLocalInterpreter.Interpret` already writes, and never the event.
+  `ActorInterpretationTrace.LensDomain` is the one addition to BQ-064: the `IdentityDomain` behind
+  the lens, carried as the enum so a consumer never has to recover it by parsing `Lens`' prose.
+- **Deferred by design** no wording. A reaction is a meaning, exactly as a `SpeechAct` is, and
+  saying one aloud needs fragments authored for reactions — content (BQ-132), which does not exist
+  yet, and inventing it here is precisely the bespoke text the done-when rules out. Until it does,
+  `Registers` is what a later step hands `RealizationRequest.WeirdnessBudget` so a reaction stays
+  drier than the event it is to (CD §22.4). Reaction-to-reaction, memory of having reacted, and
+  callbacks to an old reaction are BQ-081's and BQ-083's; nothing here holds a second one.
 - **Sources** CD §22.3, §22.4; MD §20.
 - **This is Milestone 4.**
 

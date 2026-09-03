@@ -747,4 +747,43 @@ Reason: a repetition fix that could occasionally choose a fragment nothing licen
 leave a required slot silent when the simulation needs a line, would trade a correctness guarantee
 for smoother-sounding dialogue — exactly backward for a layer whose whole job is to never invent.
 
+## D038 — A reaction is what an interpretation is worth to somebody, and it has no words
+
+BQ-080. `ActorReaction` sits between BQ-064's interpretation and BQ-074's realization and answers
+two questions BQ-064 does not: what about the event is *mine* (`Concern`) and what would I *do*
+about it (`Response`), plus how odd the premise strikes me (`Registers`). CD §22.3's pragmatist,
+zealot and merchant are not three wordings of one remark — they are three different things noticed
+and three different next moves — so a layer that made them differ by adjective would have satisfied
+the sentence and missed the requirement.
+
+**Every axis is a vocabulary the simulation already had.** `ValueConcern` (BQ-061),
+`ProblemSolvingStyle` (BQ-062), `WeirdnessLevel` (BQ-079), and BQ-064's own trace carried whole. The
+step adds no reaction ontology and no second personality model, because the actor state that
+decides what somebody wants already exists and a parallel copy of it would be a second opinion
+about who they are. Where two of those vocabularies had to be put in correspondence — which
+sensitivities and which identity domains bear on which concern, what answering a concern reaches
+for — the correspondence says what a concern is *about*, never what a person of some kind believes,
+and the actor's own profile outweighs it every time.
+
+**Concern pressure keeps one formula.** `engagement × importance × (1 − flexibility/2)` is
+`MissingGoatProblemSolver`'s, unchanged, so "how hard does a threatened value press" has one answer
+in the simulation rather than two that drift apart.
+
+**Nothing in a reaction reads the event's prose.** Not `Fact.Value`, not a label, not a tag written
+for one occasion. Retitling an event therefore changes no reaction to it, which is what makes "no
+bespoke text for that event" a property of the type rather than a discipline about content — there
+is nowhere for such text to be read even if somebody wrote it. The event itself is carried by id and
+never rewritten: two actors reacting produce two reactions and one unchanged fact.
+
+**A reaction is a meaning, so it stops before wording.** Saying one aloud needs fragments authored
+for reactions, which are content (BQ-132) and do not exist; authoring them here to make five
+reactions audible would have been exactly the bespoke text the step forbids. `Registers` is the seam
+a later step hands `RealizationRequest.WeirdnessBudget`, so a reaction stays drier than the event it
+is to (CD §22.4).
+
+Reason: the difference between characters has to live in what they conclude and intend, where the
+rest of the simulation can act on it, rather than in how a line reads. A reaction layer that
+produced text would have put personality in the one place nothing downstream can consume, and would
+have made every new event need new writing to be reacted to at all.
+
 Add a new entry only when the decision is both load-bearing and durable.

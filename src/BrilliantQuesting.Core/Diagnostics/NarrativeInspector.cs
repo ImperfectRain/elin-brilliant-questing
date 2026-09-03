@@ -697,6 +697,49 @@ namespace BrilliantQuesting.Diagnostics
             return sb.ToString();
         }
 
+        /// <summary>
+        /// BQ-080. The reaction beside the interpretation it came out of, so a reader can see that
+        /// two actors differed because of what they are rather than because somebody wrote them
+        /// different lines. No text of the event appears here that the event did not already
+        /// carry, and no wording of the reaction appears at all - there is none to print.
+        /// </summary>
+        public static string DescribeReaction(NarrativeWorldState world, ActorReaction reaction)
+        {
+            if (reaction == null)
+            {
+                return "reaction: none\n";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("reaction for ").Append(world.Registry.NameOf(reaction.ActorId)).Append('\n');
+            sb.Append("  event: [").Append(reaction.SourceFactId).Append("] unchanged\n");
+            if (reaction.Interpretation != null)
+            {
+                sb.Append("  read as: ").Append(reaction.Interpretation.DerivedPredicate.Replace('_', ' '))
+                  .Append(" = ").Append(reaction.Interpretation.DerivedValue)
+                  .Append(" (lens: ").Append(reaction.Interpretation.Lens).Append(")\n");
+            }
+
+            sb.Append("  concern: ").Append(reaction.Concern).Append('\n');
+            sb.Append("  response: ").Append(reaction.Response).Append('\n');
+            sb.Append("  premise: ").Append(reaction.Premise)
+              .Append(" registers as ").Append(reaction.Registers).Append('\n');
+            sb.Append("  intensity: ").Append(reaction.Intensity.ToString("0.00")).Append('\n');
+            sb.Append("  concern terms:\n");
+            for (int i = 0; i < reaction.ConcernTerms.Count; i++)
+            {
+                sb.Append("    - ").Append(reaction.ConcernTerms[i]).Append('\n');
+            }
+
+            sb.Append("  response terms:\n");
+            for (int i = 0; i < reaction.ResponseTerms.Count; i++)
+            {
+                sb.Append("    - ").Append(reaction.ResponseTerms[i]).Append('\n');
+            }
+
+            return sb.ToString();
+        }
+
         private static void AppendValue(StringBuilder sb, string name, ValueConcernProfile value)
         {
             sb.Append(' ').Append(name).Append("(i ")

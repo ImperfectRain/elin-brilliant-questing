@@ -14,6 +14,7 @@ namespace BrilliantQuesting.World
             EntityId derivedFactId,
             string source,
             string lens,
+            IdentityDomain lensDomain,
             string derivedPredicate,
             string derivedValue,
             double confidence,
@@ -24,6 +25,7 @@ namespace BrilliantQuesting.World
             DerivedFactId = derivedFactId;
             Source = source;
             Lens = lens;
+            LensDomain = lensDomain;
             DerivedPredicate = derivedPredicate;
             DerivedValue = derivedValue;
             Confidence = confidence;
@@ -39,6 +41,17 @@ namespace BrilliantQuesting.World
         public string Source { get; }
 
         public string Lens { get; }
+
+        /// <summary>
+        /// The body of practical knowledge <see cref="Lens"/> is the reading of - the same
+        /// <see cref="IdentityDomain"/> the winning choice weighed
+        /// <see cref="IdentityAffordances.PlausibleKnowledgeOf"/> for.
+        ///
+        /// Carried as the enum rather than left to be recovered from <see cref="Lens"/>' prose,
+        /// because a consumer that parsed the words would be a second, silent copy of the
+        /// correspondence this class already knows. BQ-080 is its first reader.
+        /// </summary>
+        public IdentityDomain LensDomain { get; }
 
         public string DerivedPredicate { get; }
 
@@ -99,6 +112,7 @@ namespace BrilliantQuesting.World
                 derived.Id,
                 RenderSource(source),
                 choice.Lens,
+                choice.Domain,
                 choice.Predicate,
                 choice.Value,
                 choice.Confidence,
@@ -144,6 +158,7 @@ namespace BrilliantQuesting.World
             score.Add("sensitivity animals", actor.Sensitivities.Animals * 0.05);
             return new InterpretationChoice(
                 "cultivation",
+                IdentityDomain.Cultivation,
                 FactPredicates.HasSoilTrouble,
                 "soil trouble",
                 Confidence(score.Total),
@@ -165,6 +180,7 @@ namespace BrilliantQuesting.World
             score.Add("sensitivity dishonesty", actor.Sensitivities.Dishonesty * 0.03);
             return new InterpretationChoice(
                 "alchemical",
+                IdentityDomain.Alchemy,
                 FactPredicates.IsContaminated,
                 "possible contamination",
                 Confidence(score.Total),
@@ -191,6 +207,7 @@ namespace BrilliantQuesting.World
             score.Add("emotion suspicion", actor.Emotions.Get(EmotionalState.Suspicion) * 0.08);
             return new InterpretationChoice(
                 "public order",
+                IdentityDomain.PublicOrder,
                 FactPredicates.MayBeSabotaged,
                 "possible sabotage",
                 Confidence(score.Total),
@@ -279,6 +296,7 @@ namespace BrilliantQuesting.World
         {
             public InterpretationChoice(
                 string lens,
+                IdentityDomain domain,
                 string predicate,
                 string value,
                 double confidence,
@@ -286,6 +304,7 @@ namespace BrilliantQuesting.World
                 IReadOnlyList<string> terms)
             {
                 Lens = lens;
+                Domain = domain;
                 Predicate = predicate;
                 Value = value;
                 Confidence = confidence;
@@ -294,6 +313,8 @@ namespace BrilliantQuesting.World
             }
 
             public string Lens { get; }
+
+            public IdentityDomain Domain { get; }
 
             public string Predicate { get; }
 
