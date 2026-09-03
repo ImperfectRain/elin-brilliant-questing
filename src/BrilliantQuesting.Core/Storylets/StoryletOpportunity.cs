@@ -13,6 +13,8 @@ namespace BrilliantQuesting.Storylets
             List<string> castingNotes,
             StoryletChemistryScore chemistry,
             int groupsConsidered,
+            bool searchTruncated,
+            bool candidateBoundReached,
             string refusalReason)
         {
             Definition = definition;
@@ -22,6 +24,8 @@ namespace BrilliantQuesting.Storylets
             CastingNotes = castingNotes ?? EmptyNotes;
             Chemistry = chemistry ?? StoryletChemistryScore.Empty;
             GroupsConsidered = groupsConsidered;
+            SearchTruncated = searchTruncated;
+            CandidateBoundReached = candidateBoundReached;
             RefusalReason = refusalReason ?? string.Empty;
         }
 
@@ -51,8 +55,21 @@ namespace BrilliantQuesting.Storylets
         /// </summary>
         public StoryletChemistryScore Chemistry { get; }
 
-        /// <summary>How many complete qualified groups the casting pass weighed to arrive here.</summary>
+        /// <summary>How many complete qualified groups the casting pass scored to arrive here.</summary>
         public int GroupsConsidered { get; }
+
+        /// <summary>
+        /// Whether the group search stopped on its bound instead of running out of groups, so
+        /// <see cref="GroupsConsidered"/> is a prefix of the qualified groups rather than all of
+        /// them (BQ-068).
+        /// </summary>
+        public bool SearchTruncated { get; }
+
+        /// <summary>
+        /// Whether some role's shortlist filled up with people still unexamined in the pool, so
+        /// the groups weighed were built from a prefix of who qualified (BQ-068).
+        /// </summary>
+        public bool CandidateBoundReached { get; }
 
         public string RefusalReason { get; }
 
@@ -61,7 +78,7 @@ namespace BrilliantQuesting.Storylets
             EntityId focusFactId,
             Dictionary<string, EntityId> roleBindings)
         {
-            return new StoryletOpportunity(definition, focusFactId, true, roleBindings, null, null, 0, null);
+            return new StoryletOpportunity(definition, focusFactId, true, roleBindings, null, null, 0, false, false, null);
         }
 
         public static StoryletOpportunity Available(
@@ -70,7 +87,7 @@ namespace BrilliantQuesting.Storylets
             Dictionary<string, EntityId> roleBindings,
             List<string> castingNotes)
         {
-            return new StoryletOpportunity(definition, focusFactId, true, roleBindings, castingNotes, null, 0, null);
+            return new StoryletOpportunity(definition, focusFactId, true, roleBindings, castingNotes, null, 0, false, false, null);
         }
 
         public static StoryletOpportunity Available(
@@ -86,6 +103,8 @@ namespace BrilliantQuesting.Storylets
                 casting.Notes,
                 casting.Chemistry,
                 casting.GroupsConsidered,
+                casting.SearchTruncated,
+                casting.CandidateBoundReached,
                 null);
         }
 
@@ -94,7 +113,7 @@ namespace BrilliantQuesting.Storylets
             EntityId focusFactId,
             string reason)
         {
-            return new StoryletOpportunity(definition, focusFactId, false, null, null, null, 0, reason);
+            return new StoryletOpportunity(definition, focusFactId, false, null, null, null, 0, false, false, reason);
         }
     }
 }

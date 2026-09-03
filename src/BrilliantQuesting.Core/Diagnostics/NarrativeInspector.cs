@@ -855,6 +855,20 @@ namespace BrilliantQuesting.Diagnostics
               .Append(opportunity.GroupsConsidered == 1 ? " qualified group" : " qualified groups")
               .Append('\n');
 
+            // Both bounds, said out loud. Without them the line above reads as "and these were all
+            // of them", which is a claim the bounded search is not entitled to make: it weighs a
+            // prefix of the qualified groups, built from a prefix of the qualified people.
+            sb.Append("    search: ")
+              .Append(opportunity.SearchTruncated
+                  ? "truncated at the group bound; better groups may not have been weighed"
+                  : "exhausted; every group these shortlists allow was weighed")
+              .Append('\n');
+
+            if (opportunity.CandidateBoundReached)
+            {
+                sb.Append("    shortlist: a role reached its candidate bound; people who also qualified were never grouped\n");
+            }
+
             if (opportunity.Chemistry.IsFlat)
             {
                 sb.Append("    - nothing ties these people to each other; the first qualified group in the stable order was kept\n");

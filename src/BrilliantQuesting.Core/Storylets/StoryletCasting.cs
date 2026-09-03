@@ -81,7 +81,7 @@ namespace BrilliantQuesting.Storylets
             Dictionary<string, EntityId> bindings,
             List<string> notes,
             string uncastRole)
-            : this(bindings, notes, uncastRole, StoryletChemistryScore.Empty, 0)
+            : this(bindings, notes, uncastRole, StoryletChemistryScore.Empty, 0, false, false)
         {
         }
 
@@ -90,13 +90,17 @@ namespace BrilliantQuesting.Storylets
             List<string> notes,
             string uncastRole,
             StoryletChemistryScore chemistry,
-            int groupsConsidered)
+            int groupsConsidered,
+            bool searchTruncated,
+            bool candidateBoundReached)
         {
             Bindings = bindings;
             Notes = notes;
             UncastRequiredRole = uncastRole ?? string.Empty;
             Chemistry = chemistry ?? StoryletChemistryScore.Empty;
             GroupsConsidered = groupsConsidered;
+            SearchTruncated = searchTruncated;
+            CandidateBoundReached = candidateBoundReached;
         }
 
         public Dictionary<string, EntityId> Bindings { get; }
@@ -113,10 +117,37 @@ namespace BrilliantQuesting.Storylets
         public StoryletChemistryScore Chemistry { get; }
 
         /// <summary>
-        /// How many complete qualified groups this pass actually weighed. One means chemistry
+        /// How many complete qualified groups this pass actually *scored*. One means chemistry
         /// changed nothing, because there was only ever one way to cast the scene.
+        ///
+        /// Scored, not walked. A partial assignment the search reached and then abandoned because
+        /// a required role had nobody left is not a qualified group, and counting it here would
+        /// report a choice that was never made - the number has to account for the same set the
+        /// winning score was chosen from, or it explains nothing.
         /// </summary>
         public int GroupsConsidered { get; }
+
+        /// <summary>
+        /// Whether the group search stopped on its own bound rather than because it ran out of
+        /// groups (BQ-068).
+        ///
+        /// The bound is deliberate and stays; what was missing was saying so. A reader who is not
+        /// told cannot tell "these were all the ways to cast it" from "these were the first
+        /// hundred and twenty-eight", and the two support very different conclusions about why
+        /// this cast won. False is the ordinary answer: the search exhausted the groups.
+        /// </summary>
+        public bool SearchTruncated { get; }
+
+        /// <summary>
+        /// Whether some searched role's shortlist filled up while people it had not yet examined
+        /// were still standing in the pool (BQ-068).
+        ///
+        /// The same admission one level down. Eligibility is bounded per role before any group
+        /// exists, so when this is true the phrase "why these people rather than the others who
+        /// also qualified" is answering about the others the search actually looked at, and there
+        /// may be more it never reached.
+        /// </summary>
+        public bool CandidateBoundReached { get; }
 
         /// <summary>The first required role nobody qualified for, or empty when the scene is cast.</summary>
         public string UncastRequiredRole { get; }
@@ -184,8 +215,16 @@ namespace BrilliantQuesting.Storylets
         /// is a product: five roles offering eight people each is thousands of casts for a
         /// preference nobody would notice past the first few dozen. The search is depth-first in
         /// the unscored engine's own order, so the cap can only remove groups it would never have
-        /// reached first - the fallback group is enumerated before anything else and is always
-        /// weighed.
+        /// reached first, and the fallback group is taken outright rather than depending on the
+        /// walk to reach it.
+        ///
+        /// It bounds *walking*, not scoring, and only branches that could still yield a group are
+        /// walked at all - which is the repair, because the two used to be the same number. A
+        /// budget spent on branches that had already starved a required role could run out before
+        /// any complete group was reached, and a storylet seven qualified people could have cast
+        /// came back "required role ... cannot be cast". Reaching the bound is now reported
+        /// (<see cref="StoryletCastingResult.SearchTruncated"/>) rather than left to look like
+        /// exhaustion.
         /// </summary>
         private const int MaxGroupsConsidered = 128;
 
@@ -234,7 +273,14 @@ namespace BrilliantQuesting.Storylets
                 Shortlist(searched[i], context, focus, pool, taken, searched.Count);
             }
 
+            bool candidateBoundReached = false;
+            for (int i = 0; i < searched.Count; i++)
+            {
+                candidateBoundReached |= searched[i].BoundReached;
+            }
+
             GroupSearch search = new GroupSearch(definition, context, focus, named, order);
+            search.EstablishFallback(searched, taken);
             search.Walk(searched, 0, new Dictionary<string, EntityId>(StringComparer.Ordinal), new HashSet<EntityId>(taken));
 
             Dictionary<string, EntityId> bindings = search.Chosen;
@@ -253,7 +299,9 @@ namespace BrilliantQuesting.Storylets
                 Notes(context, order, bindings),
                 uncast,
                 search.ChosenChemistry,
-                search.Considered);
+                search.Considered,
+                search.Truncated,
+                candidateBoundReached);
         }
 
         /// <summary>One sentence per bound role, in the order the roles were bound.</summary>
@@ -330,7 +378,7 @@ namespace BrilliantQuesting.Storylets
                     continue;
                 }
 
-                searched.Add(new SearchedRole(role));
+                searched.Add(new SearchedRole(role, required));
             }
         }
 
@@ -362,7 +410,8 @@ namespace BrilliantQuesting.Storylets
             int searchedRoleCount)
         {
             int limit = Math.Max(MaxCandidatesPerRole, searchedRoleCount + 1);
-            for (int i = 0; i < pool.Count && role.Candidates.Count < limit; i++)
+            int i = 0;
+            for (; i < pool.Count && role.Candidates.Count < limit; i++)
             {
                 EntityId candidate = pool[i];
                 if (!takenByName.Contains(candidate) && Qualifies(role.Role.Source, context, focus, candidate))
@@ -370,20 +419,32 @@ namespace BrilliantQuesting.Storylets
                     role.Candidates.Add(candidate);
                 }
             }
+
+            // Stopping on the bound with people still unexamined is the one case where "everybody
+            // this role's requirement admits" is not what the shortlist holds. Recorded rather
+            // than corrected: the bound is the point, and a reader is owed the difference.
+            role.BoundReached = role.Candidates.Count >= limit && i < pool.Count;
         }
 
         /// <summary>A searched role and the people who actually meet its requirement.</summary>
         private sealed class SearchedRole
         {
-            public SearchedRole(StoryletRole role)
+            public SearchedRole(StoryletRole role, bool required)
             {
                 Role = role;
+                Required = required;
                 Candidates = new List<EntityId>();
             }
 
             public StoryletRole Role { get; }
 
+            /// <summary>Whether the scene fails without this role, rather than merely losing a part.</summary>
+            public bool Required { get; }
+
             public List<EntityId> Candidates { get; }
+
+            /// <summary>Whether the shortlist filled up before the pool was exhausted.</summary>
+            public bool BoundReached { get; set; }
         }
 
         /// <summary>
@@ -412,6 +473,7 @@ namespace BrilliantQuesting.Storylets
             private Dictionary<string, EntityId> _best;
             private StoryletChemistryScore _bestChemistry = StoryletChemistryScore.Empty;
             private int _bestBound = -1;
+            private int _walked;
 
             public GroupSearch(
                 StoryletDefinition definition,
@@ -432,8 +494,11 @@ namespace BrilliantQuesting.Storylets
                 }
             }
 
-            /// <summary>How many complete groups were weighed.</summary>
+            /// <summary>How many complete groups were actually scored.</summary>
             public int Considered { get; private set; }
+
+            /// <summary>Whether the walk stopped on <see cref="MaxGroupsConsidered"/>.</summary>
+            public bool Truncated { get; private set; }
 
             /// <summary>
             /// The group that won, or - when no group filled every required role - the one the
@@ -449,6 +514,41 @@ namespace BrilliantQuesting.Storylets
                 get { return _best == null ? StoryletChemistryScore.Empty : _bestChemistry; }
             }
 
+            /// <summary>
+            /// The group the unscored engine would have cast, taken directly rather than inferred
+            /// from where the walk happened to arrive first.
+            ///
+            /// It is the same group either way - BQ-067 fills each role, in binding order, with
+            /// the first candidate nobody ahead of it took, and that is exactly the walk's first
+            /// leaf. Computing it up front is what lets the walk skip subtrees that can never be
+            /// scored (see <see cref="Walk"/>) without the fallback disappearing along with them,
+            /// so an uncastable storylet still names the same role it always did.
+            /// </summary>
+            public void EstablishFallback(List<SearchedRole> searched, HashSet<EntityId> takenByName)
+            {
+                Dictionary<string, EntityId> bindings =
+                    new Dictionary<string, EntityId>(_named, StringComparer.Ordinal);
+                HashSet<EntityId> taken = new HashSet<EntityId>(takenByName);
+
+                for (int i = 0; i < searched.Count; i++)
+                {
+                    SearchedRole role = searched[i];
+                    for (int c = 0; c < role.Candidates.Count; c++)
+                    {
+                        if (taken.Contains(role.Candidates[c]))
+                        {
+                            continue;
+                        }
+
+                        bindings[role.Role.Id] = role.Candidates[c];
+                        taken.Add(role.Candidates[c]);
+                        break;
+                    }
+                }
+
+                _fallback = bindings;
+            }
+
             public void Walk(
                 List<SearchedRole> searched,
                 int index,
@@ -458,6 +558,18 @@ namespace BrilliantQuesting.Storylets
                 if (index >= searched.Count)
                 {
                     Consider(assignment);
+                    return;
+                }
+
+                // A branch that has already starved a required role cannot produce a group any
+                // score will be taken from, so walking it spends the bound on nothing. Before the
+                // repair the bound could be spent entirely on such branches, and a storylet with a
+                // perfectly good cast behind them was reported uncastable - the search stopping
+                // early was indistinguishable from nobody qualifying. Pruning them changes no
+                // answer the search would otherwise have given: every group removed here is one
+                // that was never scored.
+                if (StarvedRequiredRole(searched, index, taken))
+                {
                     return;
                 }
 
@@ -478,8 +590,9 @@ namespace BrilliantQuesting.Storylets
                     taken.Remove(candidate);
                     assignment.Remove(role.Role.Id);
 
-                    if (Considered >= MaxGroupsConsidered)
+                    if (_walked >= MaxGroupsConsidered)
                     {
+                        Truncated = true;
                         return;
                     }
                 }
@@ -493,18 +606,47 @@ namespace BrilliantQuesting.Storylets
                 }
             }
 
+            /// <summary>
+            /// Whether a required role from here on has nobody left who could take it.
+            ///
+            /// Read one role at a time, which is the cheap half of the question and the half that
+            /// pays: a role whose whole shortlist is already spoken for cannot be filled however
+            /// the rest of the branch goes. Two required roles contending for the same last person
+            /// is not caught here and does not need to be - that branch still ends in a group the
+            /// completeness check refuses, exactly as before.
+            /// </summary>
+            private static bool StarvedRequiredRole(List<SearchedRole> searched, int index, HashSet<EntityId> taken)
+            {
+                for (int i = index; i < searched.Count; i++)
+                {
+                    SearchedRole role = searched[i];
+                    if (!role.Required)
+                    {
+                        continue;
+                    }
+
+                    bool free = false;
+                    for (int c = 0; c < role.Candidates.Count && !free; c++)
+                    {
+                        free = !taken.Contains(role.Candidates[c]);
+                    }
+
+                    if (!free)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
             private void Consider(Dictionary<string, EntityId> assignment)
             {
-                Considered++;
+                _walked++;
                 Dictionary<string, EntityId> bindings = new Dictionary<string, EntityId>(_named, StringComparer.Ordinal);
                 foreach (KeyValuePair<string, EntityId> pair in assignment)
                 {
                     bindings[pair.Key] = pair.Value;
-                }
-
-                if (_fallback == null)
-                {
-                    _fallback = bindings;
                 }
 
                 for (int i = 0; i < _definition.RequiredRoles.Count; i++)
@@ -514,6 +656,8 @@ namespace BrilliantQuesting.Storylets
                         return;
                     }
                 }
+
+                Considered++;
 
                 StoryletChemistryScore chemistry = StoryletChemistry.Score(
                     _context, _focus, _roleIds, bindings, _identities);

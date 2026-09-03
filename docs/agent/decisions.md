@@ -1102,4 +1102,39 @@ Reason: identity stability is the assumption six systems rest on, so it is enfor
 are minted rather than checked six times; and history is evidence, so a duplicate is resolved by
 saying which id is the actor, not by editing what was recorded.
 
+## D047 — A bounded search spends its budget only on branches that could be chosen, and says when it stopped early
+
+`StoryletCasting`'s group search keeps both of BQ-068's bounds: a role shortlists at most a handful
+of the people it admits, and one pass weighs at most a fixed number of complete groups. Finding
+scenes must not cost more than playing them, and neither number is up for negotiation on the
+strength of a preference nobody would notice.
+
+**The budget buys scoring, not walking.** The search used to count every assignment it enumerated,
+including the ones where an early role had already taken the only person a later required role could
+have had. Those assignments are not groups — nothing scores them, and no cast was ever preferred to
+one — but they spent the bound just the same, so with enough qualified people the search could run
+out inside them before reaching a single complete cast. What came back was `required role ... cannot
+be cast`: the sentence the engine uses when *nobody qualified*, about a role somebody was standing
+there to fill. A branch that has starved a required role is now skipped rather than walked, which
+removes no group any score was taken from and restores the one thing group formation exists to add
+over BQ-067 — backtracking that actually reaches the cast behind the obvious wrong first choice.
+
+**The fallback is taken outright rather than found.** BQ-067's answer is each role filled, in binding
+order, with the first candidate nobody ahead of it took, and that used to be read off whichever leaf
+the walk happened to reach first. Skipping branches would have taken the fallback with them, so it is
+now computed directly. It is the same group either way, which is what keeps an uncastable storylet
+naming the same role it always named.
+
+**Reaching a bound is reported, never inferred.** `GroupsConsidered` counts groups scored, which is
+what its name always claimed; `SearchTruncated` says the walk stopped on the group bound rather than
+running out of groups; `CandidateBoundReached` says a shortlist filled up with people still
+unexamined. `NarrativeInspector.DescribeCasting` prints all three. Without them the report read
+`over N qualified groups` whether it had weighed all of them or the first hundred and twenty-eight,
+and "why these people rather than the others who also qualified" quietly claimed an exhaustiveness a
+bounded search does not have.
+
+Reason: a bound is a legitimate answer and an unspoken bound is not. The cost of the bound must fall
+on preference — a slightly worse cast — and never on correctness, and a reader must be able to tell
+a search that finished from one that gave up.
+
 Add a new entry only when the decision is both load-bearing and durable.

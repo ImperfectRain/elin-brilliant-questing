@@ -1079,6 +1079,18 @@ Score groups, not individuals: goal conflict, shared history, knowledge asymmetr
   fallback in a town where nothing distinguishes anybody. Both bounds are stated on the constants:
   a shortlist is at least one longer than the number of searched roles, so the fallback group is
   provably reachable, and at most 128 complete groups are weighed per pass.
+  **Hardened by the BQ-068 … BQ-083 integration audit (`D047`).** The group bound used to be spent
+  on branches that could never be scored — an early role taking the only person a later required
+  role could have had — so a town with seven qualified people and a scene wanting five of them
+  exhausted the budget inside the dead branches and came back `required role ... cannot be cast`
+  about a role somebody was standing there to fill. Those branches are now skipped rather than
+  walked, which removes no group any score was taken from, and BQ-067's fallback is computed
+  directly instead of being read off the walk's first leaf, so an uncastable storylet still names
+  the role it always named. Both bounds also stopped being silent: `GroupsConsidered` counts groups
+  *scored* rather than assignments walked, and `SearchTruncated` and `CandidateBoundReached` say
+  when a pass stopped on the group bound or grouped only a prefix of who qualified —
+  `DescribeCasting` prints all three, because "why these people rather than the others who also
+  qualified" was otherwise claiming an exhaustiveness a bounded search does not have.
   The model is four dimensions and no fifth term. **Goal conflict** reads BQ-056 … BQ-060's own
   goals — one aimed at the other person, or two unsatisfied goals over the same subject, worth more
   when the aims differ than when they merely coincide. **Shared history** reads the relationship
