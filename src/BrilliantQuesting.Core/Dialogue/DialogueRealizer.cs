@@ -147,6 +147,8 @@ namespace BrilliantQuesting.Dialogue
             DialogueExpressionHistory history = request.History;
             history?.NoteAct(reading.Value(DialogueReadings.Act));
 
+            DialogueFragment reserved = ReserveCore(cores, act, rng, history, request.WeirdnessBudget);
+
             StringBuilder text = new StringBuilder();
             List<string> used = new List<string>();
             string core = string.Empty;
@@ -155,21 +157,29 @@ namespace BrilliantQuesting.Dialogue
             {
                 FragmentPosition position = Line[i];
                 bool required = position == FragmentPosition.Core;
-                List<DialogueFragment> candidates = required ? cores : Candidates(position, request, reading);
-                candidates = AvoidRepetition(candidates, required, history);
-                if (candidates.Count == 0)
+                DialogueFragment fragment;
+                if (required)
                 {
-                    continue;
+                    fragment = reserved;
+                }
+                else
+                {
+                    List<DialogueFragment> candidates = AvoidRepetition(Candidates(position, request, reading), false, history);
+                    if (candidates.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    DeterministicRng stream = rng.Fork("bq074|" + position + "|" + act.Signature);
+                    int pick = stream.NextInt(candidates.Count + 1);
+                    if (pick == candidates.Count)
+                    {
+                        continue;
+                    }
+
+                    fragment = candidates[pick];
                 }
 
-                DeterministicRng stream = rng.Fork("bq074|" + position + "|" + act.Signature);
-                int pick = stream.NextInt(required ? candidates.Count : candidates.Count + 1);
-                if (pick == candidates.Count)
-                {
-                    continue;
-                }
-
-                DialogueFragment fragment = candidates[pick];
                 string phrase = Fill(fragment, reading);
                 if (phrase.Length == 0)
                 {
@@ -184,10 +194,13 @@ namespace BrilliantQuesting.Dialogue
                 text.Append(phrase);
                 used.Add(fragment.Id);
                 history?.Note(fragment);
-                request.WeirdnessBudget?.Note(fragment);
                 if (required)
                 {
                     core = fragment.Id;
+                }
+                else
+                {
+                    request.WeirdnessBudget?.Note(fragment);
                 }
             }
 
@@ -252,6 +265,39 @@ namespace BrilliantQuesting.Dialogue
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Chooses the core, and spends the scene's weirdness on it, before any optional slot gets
+        /// to run.
+        ///
+        /// The core is the one fragment that has to be said, so it is the one entitled to the
+        /// scene's single absurd premise (BQ-079). Selecting it inside the spoken order left it
+        /// choosing from a pool computed before the loop began, while an opener spoken ahead of it
+        /// had already been able to <see cref="WeirdnessBudget.Note"/> a premise of its own - so a
+        /// line could open on one absurd premise and then make its actual point on a second,
+        /// against the very invariant the budget exists to hold. Deciding the core first inverts
+        /// that: whatever premise the core commits to is already noted by the time any optional
+        /// slot is filtered, and an optional fragment can never price out the fragment carrying the
+        /// point.
+        ///
+        /// It changes no output on its own. The pick is drawn from the same
+        /// <see cref="DeterministicRng.Fork"/> key over the same candidate list, and the fragment
+        /// is still spoken - and still noted into <see cref="RealizationRequest.History"/> - in the
+        /// core's own place in the line.
+        /// </summary>
+        private static DialogueFragment ReserveCore(
+            List<DialogueFragment> cores,
+            SpeechAct act,
+            DeterministicRng rng,
+            DialogueExpressionHistory history,
+            WeirdnessBudget budget)
+        {
+            List<DialogueFragment> candidates = AvoidRepetition(cores, true, history);
+            DeterministicRng stream = rng.Fork("bq074|" + FragmentPosition.Core + "|" + act.Signature);
+            DialogueFragment core = candidates[stream.NextInt(candidates.Count)];
+            budget?.Note(core);
+            return core;
         }
 
         /// <summary>

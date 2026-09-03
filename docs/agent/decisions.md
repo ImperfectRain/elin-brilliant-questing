@@ -946,4 +946,52 @@ Reason: everything durable this type can cause comes out of one call, so that ca
 conversation's authority has to end. What it heard, it can promote; what it did not hear, and who
 it cannot say was owed, are not its to decide.
 
+## D043 — A tone request is a position on axes, and a premise is named by content rather than by genre
+
+Three defects in how BQ-075 through BQ-079 narrow the fragment pool, all of the same shape: a filter
+that looked like a constraint but did not actually constrain.
+
+**Tone tags are the marked poles of four axes, not seven alternatives.** `FitsTone` admitted a
+fragment when any of its tone tags matched any requested one, so naming more axes *widened* the pool
+— a voice specified as formal, curt, cold and wry admitted the union of four tone pools, leaving a
+strongly specified voice less constrained than a one-axis one. Worse, a fragment marked `formal` and
+`curt` passed a voice that had explicitly asked for `plain`: one axis matching re-admitted a fragment
+the other axis contradicted. `VoiceProfile` already read the tags as four axes — one axis requests
+one tag — and this is the half the tags themselves were missing. `DialogueTones.Opposite` pairs
+formal with plain, curt with wary, warm with cold, and a fragment is now refused exactly when one of
+its own marks takes the opposite pole on an axis the caller took a position on. Marks on axes the
+caller said nothing about are left alone, which is the same "requesting nothing narrows nothing" rule
+`VoiceProfile.Neutral` relies on, applied one axis at a time instead of only to the empty request.
+Naming an axis can therefore only ever remove candidates, and unmarked fragments stay safe fallback
+material for every voice.
+
+Sincerity has no tag, so nothing contradicts a wry fragment. That is a gap in the authored
+vocabulary, not in the reading, and closing it means shipping a tag content would have to start
+using — which BQ-075 declined to do for sentence length and metaphor for the same reason.
+
+**One absurd premise, not one absurd genre.** `WeirdnessBudget` committed to a *category*, so two
+unrelated bizarre tax premises — both bureaucratic — stacked in one scene while the rule that was
+supposed to stop them reported success. A category is a taxonomy; what distinguishes follow-on
+material about the scene's premise from the start of a second is which premise it is about. A
+`premise_` tag in the existing free tag list names it, disjoint from the category and level families
+and read from authored content exactly as they are, and untagged premise-level content falls back to
+the fragment's own id — unnamed is not shared, so a second unnamed premise never passes as more of
+the first. The category is still recorded, and is still what a distribution check reads; it simply is
+not what the anti-stacking rule compares. Nothing here decides what an absurd premise *is*: the tag
+is opaque, and its only meaning is "same string, same premise".
+
+**The core is entitled to the premise before an optional slot can spend it.** The realizer computed
+the core pool once, before the loop, then spoke the opener first — and the opener could `Note` a
+premise of its own while the core still chose from a pool computed before that opener existed. A line
+could open on one absurd premise and make its actual point on a second, against the invariant the
+budget exists to hold. The core is the fragment that has to be said, so it is now chosen and noted
+first; it is still spoken, and still noted into the expression history, in its own place in the line.
+The pick comes from the same forked stream over the same candidate list, so no output changes on
+account of the reordering alone.
+
+Reason: a narrowing that can be satisfied by an accident — another axis happening to match, another
+premise happening to share a genre, a pool computed before the thing that should have shrunk it —
+is not a constraint. Semantic correctness outranks stylistic variety, so each of these gives up some
+breadth of pool to say something true.
+
 Add a new entry only when the decision is both load-bearing and durable.

@@ -1358,6 +1358,12 @@ selection without creating meaning.
   left open, narrowing which already-eligible fragment says the point and never which point is
   said. Between the four axes, every tag in BQ-074's seven-tag vocabulary has exactly one axis that
   can request it, so a voice is nothing more or less than a stance on that existing vocabulary.
+  `DialogueFragment.FitsTone` reads a request as those axis positions rather than as a list of
+  alternatives (`DialogueTones.Opposite` pairs formal with plain, curt with wary, warm with cold): a
+  marked fragment is refused exactly when one of its marks takes the opposite pole on an axis the
+  voice took a position on, and marks on axes the voice said nothing about are left alone. Naming
+  another axis can therefore only remove candidates, never add them, and an unmarked fragment stays
+  eligible for every voice. See `D043`.
   `VoiceProfile` has no reference to `PersonalityWeights`, `DisclosureDecision` or `SpeechAct` and
   no constructor from race, archetype, occupation or hobby — a profile is simply given to whoever
   is speaking, and nothing here reads identity to build one.
@@ -1511,14 +1517,21 @@ plus real mechanical consequence plus understated response.
   should remain 0-2", and FeverDream the rarest tier by a wide margin - plus the one absurd premise
   category the scene has committed to, if any. `IsAdmissible` is this step's whole contribution to
   selection: Mundane content is never gated by a budget, tagged content needs its level within the
-  ceiling, and content at AbsurdPremiseCentral or above needs a category that either matches the one
+  ceiling, and content at AbsurdPremiseCentral or above needs a *premise* that either matches the one
   already noted (`Note`) or has not been committed to yet - CD §22's "one absurd premise", not the
-  first the fragment pool happens to offer. `DialogueFragment.FitsWeirdness` and
+  first the fragment pool happens to offer. The premise is a third tag family, `premise_`, read from
+  authored content beside the category and level ones: a category is a genre two unrelated premises
+  can share, so gating on it let a second bizarre bureaucratic premise stack as if it were more of
+  the first. Premise-level content that names no premise falls back to the fragment's own id, so
+  unnamed is never mistaken for shared; `AdmittedCategory` is still recorded and is still what a
+  distribution check reads. `DialogueRealizer` also chooses and notes the core before any optional
+  slot is filtered, so an opener can no longer spend the scene's one premise on something other than
+  the fragment carrying the point. See `D043`. `DialogueFragment.FitsWeirdness` and
   `RealizationRequest.WeirdnessBudget` are the same opt-in seam BQ-078's `History` already is: null
   asks for no constraint at all, and `DialogueRealizer.Candidates` narrows only what `Fits`,
   `FitsTone`, `FitsVocabulary` and `FitsManner` already admitted, never adding a candidate those
   checks refused.
-- **Deferred by design** no comedy content: nothing in `content/` carries a weirdness tag yet, and
+- **Deferred by design** no comedy content: nothing in `content/` carries a weirdness or premise tag yet, and
   authoring one is a later content-pipeline concern this step does not reach - `WeirdnessBudget`
   gates weirdness, it does not invent it. Per-character reactions to an admitted premise are
   BQ-080's; nothing here reads or produces one.

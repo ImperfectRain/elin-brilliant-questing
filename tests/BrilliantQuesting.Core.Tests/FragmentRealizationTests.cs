@@ -218,8 +218,10 @@ namespace BrilliantQuesting.Tests
             Assert.NotEmpty(curt);
             for (int i = 0; i < curt.Count; i++)
             {
-                // Unmarked fragments suit any tone; a marked one has to suit this one.
-                Assert.True(curt[i].ToneTags.Count == 0 || curt[i].ToneTags.Contains(DialogueTones.Curt));
+                // Unmarked fragments suit any tone; a marked one may not contradict the axis this
+                // request took a position on. Asking for curt rules out the wary end of directness
+                // and says nothing about formality, warmth or sarcasm.
+                Assert.DoesNotContain(DialogueTones.Wary, curt[i].ToneTags);
             }
 
             foreach (RealizedLine line in scene.Renderings(request, 20))

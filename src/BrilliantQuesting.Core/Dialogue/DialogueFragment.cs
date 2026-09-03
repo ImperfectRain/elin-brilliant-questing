@@ -392,6 +392,43 @@ namespace BrilliantQuesting.Dialogue
 
         public static IReadOnlyList<string> Vocabulary { get; } = new[] { Plain, Warm, Cold, Curt, Formal, Wary, Wry };
 
+        /// <summary>
+        /// The tag at the other end of the same axis, or null when nothing contradicts this one.
+        ///
+        /// Tone tags are not seven alternatives; they are the marked poles of four independent axes
+        /// - formality, directness, warmth and sarcasm - which is exactly what BQ-075's
+        /// <see cref="VoiceProfile"/> already treats them as when it maps one axis to one tag. This
+        /// is the half of that reading the tags themselves were missing: knowing that
+        /// <see cref="Formal"/> and <see cref="Plain"/> are two answers to one question, rather than
+        /// two unrelated labels a fragment might happen to carry.
+        ///
+        /// <see cref="Wry"/> has no opposite because sincerity is the unmarked baseline - there is
+        /// no "sincere" tag for a fragment to carry or a voice to request, so nothing about a wry
+        /// fragment can contradict a voice. That is a gap in the authored vocabulary rather than in
+        /// this reading, and closing it means shipping a tag content would have to start using;
+        /// BQ-075 declined that for sentence length and metaphor for the same reason.
+        /// </summary>
+        public static string Opposite(string tag)
+        {
+            switch (tag)
+            {
+                case Formal:
+                    return Plain;
+                case Plain:
+                    return Formal;
+                case Curt:
+                    return Wary;
+                case Wary:
+                    return Curt;
+                case Warm:
+                    return Cold;
+                case Cold:
+                    return Warm;
+                default:
+                    return null;
+            }
+        }
+
         public static bool IsTone(string tag)
         {
             for (int i = 0; i < Vocabulary.Count; i++)
@@ -562,6 +599,23 @@ namespace BrilliantQuesting.Dialogue
         /// <summary>
         /// Whether it suits a requested tone. An unmarked fragment suits every tone, and a caller
         /// who asks for none is asking for no tonal constraint at all rather than for silence.
+        ///
+        /// <b>A request is a set of positions on axes, not a list of alternatives.</b> Each tag in
+        /// <paramref name="requested"/> names one pole of one <see cref="DialogueTones"/> axis, and
+        /// a fragment is refused exactly when one of its own marks takes the opposite pole on an
+        /// axis the caller has taken a position on. Marks on axes the caller said nothing about are
+        /// left alone, because a voice with no opinion on directness has no grounds to reject a
+        /// curt line - the same "requesting nothing narrows nothing" rule
+        /// <see cref="VoiceProfile.Neutral"/> relies on, applied one axis at a time instead of only
+        /// to the empty request.
+        ///
+        /// Reading the request as alternatives instead - admit a fragment when any mark matches any
+        /// request - made naming more axes <em>widen</em> the pool, because every added tag added a
+        /// whole pool of its own, and let a fragment marked <see cref="DialogueTones.Formal"/> and
+        /// <see cref="DialogueTones.Curt"/> through to a voice that had explicitly asked for
+        /// <see cref="DialogueTones.Plain"/>: one axis matching re-admitted a fragment the other
+        /// axis contradicted. Every mark now has to survive on its own, so naming an axis can only
+        /// ever remove candidates, and a more specified voice is never a less constrained one.
         /// </summary>
         public bool FitsTone(IReadOnlyList<string> requested)
         {
@@ -572,16 +626,22 @@ namespace BrilliantQuesting.Dialogue
 
             for (int i = 0; i < ToneTags.Count; i++)
             {
+                string opposite = DialogueTones.Opposite(ToneTags[i]);
+                if (opposite == null)
+                {
+                    continue;
+                }
+
                 for (int j = 0; j < requested.Count; j++)
                 {
-                    if (string.Equals(ToneTags[i], requested[j], StringComparison.Ordinal))
+                    if (string.Equals(opposite, requested[j], StringComparison.Ordinal))
                     {
-                        return true;
+                        return false;
                     }
                 }
             }
 
-            return false;
+            return true;
         }
 
         /// <summary>

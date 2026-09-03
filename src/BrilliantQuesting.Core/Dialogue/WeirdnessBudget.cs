@@ -48,6 +48,28 @@ namespace BrilliantQuesting.Dialogue
         public const string Adventurer = "weird_adventurer";
         public const string Cosmic = "weird_cosmic";
 
+        /// <summary>
+        /// The prefix marking which absurd premise a fragment is about, as opposed to which
+        /// <see cref="Categories">category</see> of premise it belongs to.
+        ///
+        /// A category is a taxonomy - "this is bureaucratic weirdness" - and CD §22's formula asks
+        /// for one absurd <em>premise</em>, not one absurd genre. Two unrelated bizarre tax
+        /// premises are both bureaucratic, so a category on its own cannot tell follow-on material
+        /// about one premise apart from the start of a second, which is the whole of what the
+        /// anti-stacking rule has to decide. A tag such as "premise_tax_on_ghosts" names the
+        /// premise itself, and every fragment that is part of the same premise carries the same
+        /// one.
+        ///
+        /// It lives in the free <see cref="DialogueFragment.Tags"/> list beside the category and
+        /// level families, disjoint from both and from BQ-076's vocabulary and BQ-077's manners,
+        /// and it is read from authored content exactly as they are. Nothing here decides what an
+        /// absurd premise is or when two fragments belong to the same one - the author does, by
+        /// tagging them alike. That is deliberately not an ontology of comedy: the vocabulary is
+        /// open, the tag is opaque to this layer, and its only meaning is "same string, same
+        /// premise".
+        /// </summary>
+        public const string PremisePrefix = "premise_";
+
         public const string Level1 = "weird_level_1";
         public const string Level2 = "weird_level_2";
         public const string Level3 = "weird_level_3";
@@ -104,6 +126,37 @@ namespace BrilliantQuesting.Dialogue
             }
 
             return level;
+        }
+
+        /// <summary>Whether a tag names an absurd premise rather than a category or a level.</summary>
+        public static bool IsPremise(string tag)
+        {
+            return tag != null
+                && tag.Length > PremisePrefix.Length
+                && tag.StartsWith(PremisePrefix, StringComparison.Ordinal);
+        }
+
+        /// <summary>
+        /// The absurd premise a fragment is about, or null when its content named none. Unnamed is
+        /// not the same as shared: a fragment that names no premise speaks for no premise but its
+        /// own, which is what <see cref="WeirdnessBudget"/> falls back on.
+        /// </summary>
+        public static string PremiseOf(IReadOnlyList<string> tags)
+        {
+            if (tags == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < tags.Count; i++)
+            {
+                if (IsPremise(tags[i]))
+                {
+                    return tags[i];
+                }
+            }
+
+            return null;
         }
 
         /// <summary>The category a fragment's absurd premise belongs to, or null when it carries none.</summary>
@@ -190,8 +243,24 @@ namespace BrilliantQuesting.Dialogue
         /// <summary>The highest level actually admitted so far. Starts at Mundane.</summary>
         public WeirdnessLevel Spent { get; private set; } = WeirdnessLevel.Mundane;
 
-        /// <summary>The one absurd-premise category this scene has committed to, or null for none yet.</summary>
+        /// <summary>
+        /// The category the scene's absurd premise belongs to, or null for none yet. Descriptive
+        /// taxonomy - it says what kind of weirdness this scene turned out to be about, and is what
+        /// a distribution check over generated scenes reads. It is no longer what the anti-stacking
+        /// rule gates on; <see cref="AdmittedPremise"/> is.
+        /// </summary>
         public string AdmittedCategory { get; private set; }
+
+        /// <summary>
+        /// The one absurd premise this scene has committed to, or null for none yet.
+        ///
+        /// CD §22's formula asks for one absurd premise, and this is the identity of that premise:
+        /// a <see cref="DialogueWeirdness.PremisePrefix"/> tag when the content named one, and the
+        /// fragment's own id when it did not. The fallback is what makes an unnamed premise safe -
+        /// a fragment that never said which premise it belongs to speaks only for itself, so a
+        /// second unnamed premise never passes as follow-on material for the first.
+        /// </summary>
+        public string AdmittedPremise { get; private set; }
 
         /// <summary>A budget whose ceiling is drawn from CD §22.2's distribution.</summary>
         public static WeirdnessBudget Roll(DeterministicRng rng)
@@ -227,8 +296,15 @@ namespace BrilliantQuesting.Dialogue
         /// <summary>
         /// Whether this fragment may still be said. Mundane content is always admissible; tagged
         /// content needs its level within <see cref="Ceiling"/>, and - once its level reaches
-        /// <see cref="WeirdnessLevel.AbsurdPremiseCentral"/> - a category that either matches the one
+        /// <see cref="WeirdnessLevel.AbsurdPremiseCentral"/> - a premise that either matches the one
         /// already committed to or has not been committed yet.
+        ///
+        /// <b>Premise, not category.</b> Gating on the category admitted a second absurd premise
+        /// whenever it happened to share a genre with the first - two unrelated bizarre tax
+        /// premises are both bureaucratic - which approximated CD §22's "one absurd premise" rather
+        /// than enforcing it. What distinguishes further material about the scene's premise from
+        /// the start of a new one is which premise it is about, so that is what is compared;
+        /// the category is still recorded, and still says what kind of scene this became.
         /// </summary>
         public bool IsAdmissible(DialogueFragment fragment)
         {
@@ -248,17 +324,26 @@ namespace BrilliantQuesting.Dialogue
                 return false;
             }
 
-            if (level >= WeirdnessLevel.AbsurdPremiseCentral)
+            if (level >= WeirdnessLevel.AbsurdPremiseCentral && AdmittedPremise != null)
             {
-                string category = DialogueWeirdness.CategoryOf(fragment.Tags);
-                if (category != null && AdmittedCategory != null
-                    && !string.Equals(category, AdmittedCategory, StringComparison.Ordinal))
+                string premise = PremiseIdentity(fragment);
+                if (premise.Length == 0 || !string.Equals(premise, AdmittedPremise, StringComparison.Ordinal))
                 {
                     return false;
                 }
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Which absurd premise a fragment belongs to: the one its content named, or itself when it
+        /// named none. Never a category - a genre two premises share is not an identity either of
+        /// them has.
+        /// </summary>
+        private static string PremiseIdentity(DialogueFragment fragment)
+        {
+            return DialogueWeirdness.PremiseOf(fragment.Tags) ?? fragment.Id;
         }
 
         /// <summary>Records that this fragment was actually said.</summary>
@@ -275,12 +360,13 @@ namespace BrilliantQuesting.Dialogue
                 Spent = level;
             }
 
-            if (level >= WeirdnessLevel.AbsurdPremiseCentral && AdmittedCategory == null)
+            if (level >= WeirdnessLevel.AbsurdPremiseCentral && AdmittedPremise == null)
             {
-                string category = DialogueWeirdness.CategoryOf(fragment.Tags);
-                if (category != null)
+                string premise = PremiseIdentity(fragment);
+                if (premise.Length != 0)
                 {
-                    AdmittedCategory = category;
+                    AdmittedPremise = premise;
+                    AdmittedCategory = DialogueWeirdness.CategoryOf(fragment.Tags);
                 }
             }
         }

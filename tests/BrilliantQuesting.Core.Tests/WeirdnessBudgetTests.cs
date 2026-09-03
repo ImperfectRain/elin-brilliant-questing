@@ -94,8 +94,10 @@ namespace BrilliantQuesting.Tests
         public void ASecondUnrelatedAbsurdPremiseIsRefusedOnceOneHasBeenAdmitted()
         {
             WeirdnessBudget budget = new WeirdnessBudget(WeirdnessLevel.FeverDream);
-            DialogueFragment domestic = Fragment(new[] { DialogueWeirdness.Domestic, DialogueWeirdness.Level3 });
-            DialogueFragment bureaucratic = Fragment(new[] { DialogueWeirdness.Bureaucratic, DialogueWeirdness.Level3 });
+            DialogueFragment domestic = Fragment(
+                new[] { DialogueWeirdness.Domestic, DialogueWeirdness.Level3 }, "test.premise.domestic");
+            DialogueFragment bureaucratic = Fragment(
+                new[] { DialogueWeirdness.Bureaucratic, DialogueWeirdness.Level3 }, "test.premise.bureaucratic");
 
             Assert.True(budget.IsAdmissible(domestic));
             budget.Note(domestic);
@@ -103,16 +105,103 @@ namespace BrilliantQuesting.Tests
             Assert.False(budget.IsAdmissible(bureaucratic));
         }
 
+        /// <summary>
+        /// Follow-on material says which premise it is following on from. Two different fragments
+        /// are the same premise because their content says so - the same
+        /// <see cref="DialogueWeirdness.PremisePrefix"/> tag - not because they share a genre.
+        /// </summary>
         [Fact]
         public void FurtherContentFromTheSameAlreadyCommittedPremiseStaysAdmissible()
         {
+            const string GhostTax = DialogueWeirdness.PremisePrefix + "tax_on_ghosts";
             WeirdnessBudget budget = new WeirdnessBudget(WeirdnessLevel.FeverDream);
-            DialogueFragment first = Fragment(new[] { DialogueWeirdness.Domestic, DialogueWeirdness.Level3 });
-            DialogueFragment second = Fragment(new[] { DialogueWeirdness.Domestic, DialogueWeirdness.Level4 });
+            DialogueFragment first = Fragment(
+                new[] { DialogueWeirdness.Domestic, DialogueWeirdness.Level3, GhostTax }, "test.premise.first");
+            DialogueFragment second = Fragment(
+                new[] { DialogueWeirdness.Domestic, DialogueWeirdness.Level4, GhostTax }, "test.premise.second");
 
             budget.Note(first);
 
+            Assert.Equal(GhostTax, budget.AdmittedPremise);
             Assert.True(budget.IsAdmissible(second));
+        }
+
+        /// <summary>
+        /// The defect the premise tag exists for: a category is a genre, and two unrelated absurd
+        /// premises can share one. Gating on the category let the second through as if it were more
+        /// of the first, which approximated CD §22's "one absurd premise" rather than holding it.
+        /// </summary>
+        [Fact]
+        public void ASecondUnrelatedPremiseInTheSameCategoryCannotStack()
+        {
+            WeirdnessBudget budget = new WeirdnessBudget(WeirdnessLevel.FeverDream);
+            DialogueFragment ghostTax = Fragment(
+                new[] { DialogueWeirdness.Bureaucratic, DialogueWeirdness.Level3, DialogueWeirdness.PremisePrefix + "tax_on_ghosts" },
+                "test.premise.ghost.tax");
+            DialogueFragment doorPermit = Fragment(
+                new[] { DialogueWeirdness.Bureaucratic, DialogueWeirdness.Level3, DialogueWeirdness.PremisePrefix + "permit_to_own_a_door" },
+                "test.premise.door.permit");
+
+            budget.Note(ghostTax);
+
+            Assert.False(budget.IsAdmissible(doorPermit));
+
+            // The category is still recorded - it is the taxonomy a distribution check reads - it
+            // simply is not what the anti-stacking rule compares.
+            Assert.Equal(DialogueWeirdness.Bureaucratic, budget.AdmittedCategory);
+        }
+
+        /// <summary>
+        /// Content that never named its premise speaks for itself alone. Two same-category
+        /// fragments with no premise tag are two premises, not one, because nothing in either says
+        /// they are the same one - authored content stays authoritative about that.
+        /// </summary>
+        [Fact]
+        public void TwoUntaggedPremisesInOneCategoryAreStillTwoPremises()
+        {
+            WeirdnessBudget budget = new WeirdnessBudget(WeirdnessLevel.FeverDream);
+            DialogueFragment first = Fragment(
+                new[] { DialogueWeirdness.Bureaucratic, DialogueWeirdness.Level3 }, "test.premise.untagged.first");
+            DialogueFragment second = Fragment(
+                new[] { DialogueWeirdness.Bureaucratic, DialogueWeirdness.Level3 }, "test.premise.untagged.second");
+
+            budget.Note(first);
+
+            Assert.True(budget.IsAdmissible(first));
+            Assert.False(budget.IsAdmissible(second));
+        }
+
+        [Fact]
+        public void APremiseTagIsReadFromContentAndIsNeitherACategoryNorALevel()
+        {
+            const string Tag = DialogueWeirdness.PremisePrefix + "tax_on_ghosts";
+
+            Assert.True(DialogueWeirdness.IsPremise(Tag));
+            Assert.False(DialogueWeirdness.IsCategory(Tag));
+            Assert.False(DialogueWeirdness.IsLevelTag(Tag));
+            Assert.False(DialogueWeirdness.IsPremise(DialogueWeirdness.Bureaucratic));
+            Assert.False(DialogueWeirdness.IsPremise(DialogueWeirdness.PremisePrefix));
+            Assert.False(DialogueWeirdness.IsPremise(null));
+
+            Assert.Equal(Tag, DialogueWeirdness.PremiseOf(new[] { DialogueWeirdness.Bureaucratic, Tag }));
+            Assert.Null(DialogueWeirdness.PremiseOf(new[] { DialogueWeirdness.Bureaucratic }));
+            Assert.Null(DialogueWeirdness.PremiseOf(null));
+        }
+
+        /// <summary>
+        /// Ordinary scenes stay ordinary: a premise tag on sub-premise-level content commits
+        /// nothing, exactly as a category on it never did.
+        /// </summary>
+        [Fact]
+        public void APremiseTagBelowAbsurdPremiseCentralCommitsNothing()
+        {
+            WeirdnessBudget budget = new WeirdnessBudget(WeirdnessLevel.FeverDream);
+            budget.Note(Fragment(
+                new[] { DialogueWeirdness.Domestic, DialogueWeirdness.Level2, DialogueWeirdness.PremisePrefix + "a" }, "test.odd"));
+
+            Assert.Null(budget.AdmittedPremise);
+            Assert.True(budget.IsAdmissible(Fragment(
+                new[] { DialogueWeirdness.Bureaucratic, DialogueWeirdness.Level3 }, "test.real.premise")));
         }
 
         [Fact]
@@ -125,6 +214,7 @@ namespace BrilliantQuesting.Tests
             // Neither an odd detail nor plain content ever rises to AbsurdPremiseCentral, so no
             // category has been committed to yet and a genuine premise is still free to start.
             Assert.Null(budget.AdmittedCategory);
+            Assert.Null(budget.AdmittedPremise);
             Assert.True(budget.IsAdmissible(Fragment(new[] { DialogueWeirdness.Bureaucratic, DialogueWeirdness.Level3 })));
         }
 
@@ -187,6 +277,74 @@ namespace BrilliantQuesting.Tests
             IReadOnlyList<DialogueFragment> after = scene.Realizer.Candidates(FragmentPosition.Modifier, request);
             Assert.Contains(domesticPremise, after);
             Assert.DoesNotContain(bureaucraticPremise, after);
+        }
+
+        /// <summary>
+        /// Filter ordering: the core is the fragment that has to be said, so it is the one entitled
+        /// to the scene's single premise. Selecting it inside the spoken order let an opener spoken
+        /// ahead of it commit a premise first, while the core still chose from a pool computed
+        /// before that opener existed - so a line could open on one absurd premise and make its
+        /// actual point on a second.
+        /// </summary>
+        [Fact]
+        public void AnOptionalSlotCannotSpendThePremiseTheCoreNeeds()
+        {
+            FragmentRealizationTests.Scene scene = FragmentRealizationTests.Scene.Create();
+            RealizationRequest probe = scene.WitnessAnswers();
+
+            // Make every core for this act carry one absurd premise, and offer an opener carrying a
+            // different one. Only one of the two may reach the line.
+            IReadOnlyList<DialogueFragment> cores = scene.Realizer.Candidates(FragmentPosition.Core, probe);
+            Assert.NotEmpty(cores);
+            DialogueFragmentLibrary library = new DialogueFragmentLibrary();
+            foreach (DialogueFragment original in cores)
+            {
+                Assert.True(library.Register(Retag(
+                    original,
+                    new[] { DialogueWeirdness.Domestic, DialogueWeirdness.Level3, DialogueWeirdness.PremisePrefix + "the_cores_premise" })));
+            }
+
+            DialogueFragment weirdOpener = new DialogueFragment(
+                "test.open.other.premise",
+                FragmentPosition.Opener,
+                "Speaking of the ledger.",
+                requires: null,
+                forbids: null,
+                toneTags: null,
+                tags: new[] { DialogueWeirdness.Bureaucratic, DialogueWeirdness.Level3, DialogueWeirdness.PremisePrefix + "an_unrelated_premise" },
+                repetitionGroup: "test.opener",
+                slots: null);
+            Assert.True(library.Register(weirdOpener));
+
+            DialogueRealizer realizer = new DialogueRealizer(library);
+            for (ulong seed = 1; seed <= 40; seed++)
+            {
+                RealizationRequest request = scene.WitnessAnswers();
+                request.WeirdnessBudget = new WeirdnessBudget(WeirdnessLevel.FeverDream);
+                request.Rng = new DeterministicRng(seed);
+
+                RealizedLine line = realizer.Realize(request);
+
+                // The core always survives - an optional slot never prices out the point - and the
+                // unrelated opener never joins it.
+                Assert.True(line.Rendered, line.Refusal);
+                Assert.NotEqual(string.Empty, line.Core);
+                Assert.DoesNotContain(weirdOpener.Id, line.Fragments);
+            }
+        }
+
+        private static DialogueFragment Retag(DialogueFragment original, IReadOnlyList<string> tags)
+        {
+            return new DialogueFragment(
+                original.Id,
+                original.Position,
+                original.Text,
+                original.Requires,
+                original.Forbids,
+                original.ToneTags,
+                tags,
+                original.RepetitionGroup,
+                original.Slots);
         }
 
         [Fact]

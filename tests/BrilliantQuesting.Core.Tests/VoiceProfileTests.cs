@@ -75,6 +75,138 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(voice.RequestedTone(), voice.RequestedTone());
         }
 
+        // -- a request is a set of axis positions, not a list of alternatives -------------------------
+
+        /// <summary>
+        /// The defect: with tone read as alternatives, a fragment that took the opposite position
+        /// on one axis was re-admitted by a second axis that happened to match, so a voice that had
+        /// explicitly asked to sound plain could be handed a formal line.
+        /// </summary>
+        [Fact]
+        public void AFragmentContradictingOneAxisCannotPassBecauseAnotherAxisMatches()
+        {
+            DialogueFragment formalAndCurt = Marked(DialogueTones.Formal, DialogueTones.Curt);
+            IReadOnlyList<string> plainAndBlunt = new VoiceProfile { Formality = 0.0, Directness = 1.0 }.RequestedTone();
+
+            Assert.Equal(new[] { DialogueTones.Plain, DialogueTones.Curt }, plainAndBlunt);
+            Assert.False(formalAndCurt.FitsTone(plainAndBlunt));
+
+            // The same fragment is fine for a voice that never took a position on formality.
+            Assert.True(formalAndCurt.FitsTone(new VoiceProfile { Directness = 1.0 }.RequestedTone()));
+        }
+
+        /// <summary>
+        /// The property the defect broke: naming another axis can only ever remove candidates. A
+        /// voice specified on four axes is never a less constrained one than a voice specified on
+        /// one.
+        /// </summary>
+        [Fact]
+        public void NamingMoreAxesNeverWidensThePool()
+        {
+            DialogueFragment[] pool =
+            {
+                Marked(),
+                Marked(DialogueTones.Plain),
+                Marked(DialogueTones.Formal),
+                Marked(DialogueTones.Curt),
+                Marked(DialogueTones.Wary),
+                Marked(DialogueTones.Warm),
+                Marked(DialogueTones.Cold),
+                Marked(DialogueTones.Wry),
+                Marked(DialogueTones.Formal, DialogueTones.Cold),
+            };
+
+            VoiceProfile[] widening =
+            {
+                VoiceProfile.Neutral,
+                new VoiceProfile { Formality = 1.0 },
+                new VoiceProfile { Formality = 1.0, Directness = 1.0 },
+                new VoiceProfile { Formality = 1.0, Directness = 1.0, Warmth = 0.0 },
+                new VoiceProfile { Formality = 1.0, Directness = 1.0, Warmth = 0.0, Sarcasm = 1.0 },
+            };
+
+            int previous = int.MaxValue;
+            foreach (VoiceProfile voice in widening)
+            {
+                IReadOnlyList<string> tone = voice.RequestedTone();
+                int admitted = pool.Count(fragment => fragment.FitsTone(tone));
+                Assert.True(
+                    admitted <= previous,
+                    "specifying " + tone.Count + " axes admitted " + admitted + ", up from " + previous);
+                previous = admitted;
+            }
+
+            // And it really does constrain: the four-axis voice is strictly narrower than neutral.
+            Assert.True(previous < pool.Length);
+        }
+
+        /// <summary>
+        /// The floor the narrowing must not cross: an unmarked fragment is safe fallback material
+        /// for every voice, however strongly specified, and a neutral voice narrows nothing at all.
+        /// </summary>
+        [Fact]
+        public void UnmarkedFragmentsStayUsableUnderEveryVoiceAndNeutralNarrowsNothing()
+        {
+            DialogueFragment unmarked = Marked();
+            VoiceProfile[] voices =
+            {
+                VoiceProfile.Neutral,
+                new VoiceProfile { Formality = 1.0, Directness = 1.0, Warmth = 1.0, Sarcasm = 1.0 },
+                new VoiceProfile { Formality = 0.0, Directness = 0.0, Warmth = 0.0, Sarcasm = 0.0 },
+            };
+
+            foreach (VoiceProfile voice in voices)
+            {
+                Assert.True(unmarked.FitsTone(voice.RequestedTone()));
+            }
+
+            IReadOnlyList<string> neutral = VoiceProfile.Neutral.RequestedTone();
+            foreach (string tag in DialogueTones.Vocabulary)
+            {
+                Assert.True(Marked(tag).FitsTone(neutral));
+            }
+        }
+
+        [Fact]
+        public void EveryToneTagPairsWithTheOtherEndOfItsOwnAxis()
+        {
+            Assert.Equal(DialogueTones.Plain, DialogueTones.Opposite(DialogueTones.Formal));
+            Assert.Equal(DialogueTones.Formal, DialogueTones.Opposite(DialogueTones.Plain));
+            Assert.Equal(DialogueTones.Wary, DialogueTones.Opposite(DialogueTones.Curt));
+            Assert.Equal(DialogueTones.Curt, DialogueTones.Opposite(DialogueTones.Wary));
+            Assert.Equal(DialogueTones.Cold, DialogueTones.Opposite(DialogueTones.Warm));
+            Assert.Equal(DialogueTones.Warm, DialogueTones.Opposite(DialogueTones.Cold));
+
+            // Sincerity is the unmarked baseline, so nothing contradicts a wry fragment.
+            Assert.Null(DialogueTones.Opposite(DialogueTones.Wry));
+            Assert.Null(DialogueTones.Opposite("not_a_tone"));
+
+            // The pairing is an involution over everything it claims, and claims nothing else.
+            foreach (string tag in DialogueTones.Vocabulary)
+            {
+                string opposite = DialogueTones.Opposite(tag);
+                if (opposite != null)
+                {
+                    Assert.True(DialogueTones.IsTone(opposite));
+                    Assert.Equal(tag, DialogueTones.Opposite(opposite));
+                }
+            }
+        }
+
+        private static DialogueFragment Marked(params string[] tone)
+        {
+            return new DialogueFragment(
+                "test.tone." + string.Join(".", tone),
+                FragmentPosition.Modifier,
+                "Text.",
+                requires: null,
+                forbids: null,
+                toneTags: tone,
+                tags: null,
+                repetitionGroup: null,
+                slots: null);
+        }
+
         // -- the done-when ----------------------------------------------------------------------------
 
         /// <summary>
