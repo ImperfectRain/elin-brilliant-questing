@@ -786,4 +786,43 @@ rest of the simulation can act on it, rather than in how a line reads. A reactio
 produced text would have put personality in the one place nothing downstream can consume, and would
 have made every new event need new writing to be reacted to at all.
 
+## D039 — A callback is a reference to history somebody is entitled to make, never a second copy of it
+
+BQ-081. When a scene refers back to something that happened, the material it refers to is derived
+from `EventLedger` at the moment it is asked for. There is no callback store: no ledger, no index,
+no cache, no save entry. This is BQ-034's own shape — `Chronicle` is a reading of history rather
+than a second copy — applied to the other direction of travel, and it is what makes the persistence
+question have no answer to give. Everything a hook names is already in the save, so it survives a
+reload for the reason the ledger does, and a retracted or corrected event takes every hook to it
+with it.
+
+**A hook is a reference, and the wording layer never gets more than one.** `CallbackHook` carries an
+event id, participants, objects, place and thread as stable ids, and readings computed from the
+event's own recorded fields. No prose, no summary sentence, no phrase written for the occasion —
+so retitling an event changes every callback to it and there is nowhere for a detached retelling to
+live. Realization is told three things about a hook and no more: which kind of material it is, where
+its other party is standing, and which way round it went. Referring to an event and asserting what
+happened in it stay different acts.
+
+**It is derived per recaller, so the knowledge gate is the type rather than a rule.** There is no
+callback the world holds — only one somebody is entitled to make. `CallbackRoute` admits the actor,
+the target of anything not tagged `unnoticed`, the event's own listed witnesses, and a confident
+believer in a claim the event is the `OriginEvent` of; a garbled version of that claim is knowledge
+of a story, not of what happened, and is refused. An event nobody has a route to produces no hook,
+and `RealizationRequest.WhyNot` refuses a hook belonging to somebody other than the speaker, so
+there is no path from private history to a line about it even for a caller assembling a request by
+hand. This is the same rule that keeps background simulation from granting omniscience, read at the
+point where history becomes speech.
+
+**Honest about people who are no longer there.** A counterpart the world can no longer produce is
+dropped from selection rather than spoken of as present, which is `SceneStatus`' discipline kept for
+a finished event; being merely away is not being gone, and the caller who wants a hook anyway is
+told what its other side is worth. Selection is deterministic — salience descending, ties on event
+id — because a save reloaded mid-conversation has to offer the same material in the same order.
+
+Reason: the alternative is a second history. A stored hook is a copy of an event that can outlive
+it, disagree with it, need migrating, and — worst — be written for one occasion in words nobody can
+check against what happened. Deriving instead means callbacks cost nothing to keep, cannot lie about
+the past, and cannot be made available to somebody who was not there.
+
 Add a new entry only when the decision is both load-bearing and durable.

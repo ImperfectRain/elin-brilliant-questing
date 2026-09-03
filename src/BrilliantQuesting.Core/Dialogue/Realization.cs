@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using BrilliantQuesting.Continuity;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.World;
@@ -67,8 +68,10 @@ namespace BrilliantQuesting.Dialogue
     /// <see cref="DialogueReadings"/> a fragment may be chosen on, and <see cref="Slot"/> answers
     /// the <see cref="DialogueSlots"/> a fragment may name. Everything in both comes off the
     /// <see cref="SpeechAct"/>, the <see cref="DisclosureDecision"/> the caller passed, the
-    /// <see cref="Fact"/> the caller passed and the names the caller supplied. There is no fifth
-    /// source, which is why no wording can carry a meaning the simulation did not already have.
+    /// <see cref="Fact"/> the caller passed, the <see cref="CallbackHook"/> the caller selected
+    /// and the names the caller supplied. There is no sixth source, which is why no wording can
+    /// carry a meaning the simulation did not already have - and the fifth is the narrowest of
+    /// them, since a hook is itself derived from a recorded event rather than composed here.
     ///
     /// <b>The wording layer is never told that the speaker is lying.</b> A decision whose tactic
     /// is <see cref="DisclosureTactic.Falsify"/> is read as though no decision had been given at
@@ -104,6 +107,25 @@ namespace BrilliantQuesting.Dialogue
 
         public static RealizationReading Of(SpeechAct act, DisclosureDecision decision, Fact claim, DialogueCast cast)
         {
+            return Of(act, decision, claim, cast, null);
+        }
+
+        /// <summary>
+        /// The same reading, plus the old business the caller is bringing (BQ-081).
+        ///
+        /// The hook is a fifth input in the same sense the other four are: everything read off it
+        /// - the kind of material and where its other party is standing - was derived from a
+        /// recorded event before this call, and nothing here can add to it. A null hook reads
+        /// exactly as no hook: <see cref="DialogueReadings.Absent"/>, so a fragment authored to
+        /// refer back is not eligible in a scene with nothing to refer back to.
+        /// </summary>
+        public static RealizationReading Of(
+            SpeechAct act,
+            DisclosureDecision decision,
+            Fact claim,
+            DialogueCast cast,
+            CallbackHook callback)
+        {
             RealizationReading reading = new RealizationReading();
             if (act == null)
             {
@@ -119,8 +141,48 @@ namespace BrilliantQuesting.Dialogue
             reading._readings[DialogueReadings.Reply] = act.InReplyTo == null ? "none" : Lower(act.InReplyTo.Type.ToString());
             reading._readings[DialogueReadings.Audience] = act.Addressees.Count > 1 ? "several" : "one";
             ReadDecision(reading, decision);
-            ReadSlots(reading, act, claim, cast ?? DialogueCast.Anonymous);
+            ReadCallback(reading, act, callback);
+            ReadSlots(reading, act, claim, cast ?? DialogueCast.Anonymous, callback);
             return reading;
+        }
+
+        /// <summary>
+        /// What the hook says, and the only three things it is allowed to say here: which kind of
+        /// material it is, where its other party is standing, and which way round it went.
+        ///
+        /// A hook belonging to somebody other than the speaker is read as no hook at all rather
+        /// than refused, because <see cref="RealizationRequest.WhyNot"/> has already refused the
+        /// request by the time wording runs; this keeps the reading honest for a caller that built
+        /// one by hand.
+        /// </summary>
+        private static void ReadCallback(RealizationReading reading, SpeechAct act, CallbackHook callback)
+        {
+            if (callback == null || callback.Recaller != act.Speaker)
+            {
+                reading._readings[DialogueReadings.Callback] = DialogueReadings.Absent;
+                reading._readings[DialogueReadings.CallbackParty] = DialogueReadings.Absent;
+                reading._readings[DialogueReadings.CallbackRoute] = DialogueReadings.Absent;
+                return;
+            }
+
+            reading._readings[DialogueReadings.Callback] = Snake(callback.PrimaryKind.ToString());
+            reading._readings[DialogueReadings.CallbackParty] = ReadParty(act, callback.Counterpart);
+            reading._readings[DialogueReadings.CallbackRoute] = Snake(callback.Route.ToString());
+        }
+
+        private static string ReadParty(SpeechAct act, EntityId counterpart)
+        {
+            if (counterpart.IsNone)
+            {
+                return "none";
+            }
+
+            if (counterpart == act.Speaker)
+            {
+                return "speaker";
+            }
+
+            return act.IsAddressedTo(counterpart) ? "listener" : "other";
         }
 
         private static void ReadDecision(RealizationReading reading, DisclosureDecision decision)
@@ -146,7 +208,7 @@ namespace BrilliantQuesting.Dialogue
             reading._readings[DialogueReadings.HeldBack] = decision.HeldBack ? "yes" : "no";
         }
 
-        private static void ReadSlots(RealizationReading reading, SpeechAct act, Fact claim, DialogueCast cast)
+        private static void ReadSlots(RealizationReading reading, SpeechAct act, Fact claim, DialogueCast cast, CallbackHook callback)
         {
             Fill(reading, DialogueSlots.Speaker, cast.NameOf(act.Speaker));
             Fill(reading, DialogueSlots.Listener, act.Addressees.Count == 1 ? cast.NameOf(act.Addressees[0]) : null);
@@ -155,6 +217,12 @@ namespace BrilliantQuesting.Dialogue
 
             string matter = claim == null || string.IsNullOrWhiteSpace(claim.Value) ? act.Content.Purpose : claim.Value;
             Fill(reading, DialogueSlots.Matter, matter);
+
+            // Named from the cast like everybody else, so a callback about somebody nobody put on
+            // stage makes the fragments that would have named them ineligible rather than reaching
+            // for a way to describe them.
+            Fill(reading, DialogueSlots.Recalled,
+                callback == null || callback.Recaller != act.Speaker ? null : cast.NameOf(callback.Counterpart));
         }
 
         private static void Fill(RealizationReading reading, string slot, string value)
@@ -292,6 +360,18 @@ namespace BrilliantQuesting.Dialogue
         public WeirdnessBudget WeirdnessBudget { get; set; }
 
         /// <summary>
+        /// Old business the speaker is entitled to bring up, when the caller has selected one
+        /// (BQ-081). Null asks for no reference back at all, which is what most lines are.
+        ///
+        /// It is a reference to a recorded event and never a retelling of it: what reaches wording
+        /// is the kind of material and where its other party is standing, and nothing that could
+        /// assert what happened. Selecting it is <c>CallbackHooks</c>' - including the whole of
+        /// whether this speaker may know it - so a request cannot be the place a callback is
+        /// invented, and <see cref="WhyNot"/> refuses one that belongs to somebody else.
+        /// </summary>
+        public CallbackHook Callback { get; set; }
+
+        /// <summary>
         /// The stream the choices are drawn from. Only forked, never advanced, so the same
         /// semantic state and the same seed produce the same line however many other lines were
         /// realized in between.
@@ -335,6 +415,15 @@ namespace BrilliantQuesting.Dialogue
             if (Claim != null && Decision != null && !Decision.FactId.IsNone && Claim.Id != Decision.FactId)
             {
                 return "the claim is not the one the decision was about";
+            }
+
+            // The fourth refusal, and the same refusal: a hook is derived for one person, so
+            // putting somebody else's in this speaker's mouth would be wording claiming a memory
+            // the simulation never granted them. Refusing here is what makes the knowledge gate
+            // structural rather than a convention callers have to keep.
+            if (Callback != null && Callback.Recaller != Act.Speaker)
+            {
+                return "the callback belongs to somebody other than the speaker";
             }
 
             return string.Empty;

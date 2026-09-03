@@ -41,6 +41,72 @@
               "reply": "request"
             },
             "repetitionGroup": "callback.reply"
+          },
+          {
+            "id": "call.history.kindness.mine.listener",
+            "position": "callback",
+            "text": "After what I did for you.",
+            "requires": {
+              "callback": "kindness",
+              "callback_route": "first_hand",
+              "callback_party": "listener"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.kindness.mine.other",
+            "position": "callback",
+            "text": "After what I did for {recalled}.",
+            "requires": {
+              "callback": "kindness",
+              "callback_route": "first_hand",
+              "callback_party": "other"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.kindness.theirs.listener",
+            "position": "callback",
+            "text": "After what you did for me.",
+            "requires": {
+              "callback": "kindness",
+              "callback_route": "involved",
+              "callback_party": "listener"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.injury.theirs.listener",
+            "position": "callback",
+            "text": "After what you did to me.",
+            "requires": {
+              "callback": "injury",
+              "callback_route": "involved",
+              "callback_party": "listener"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.injury.seen.other",
+            "position": "callback",
+            "text": "I saw what {recalled} did.",
+            "requires": {
+              "callback": "injury",
+              "callback_route": "witnessed",
+              "callback_party": "other"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.scandal.heard.other",
+            "position": "callback",
+            "text": "I know what {recalled} is said to have done.",
+            "requires": {
+              "callback": "scandal",
+              "callback_route": "heard",
+              "callback_party": "other"
+            },
+            "repetitionGroup": "callback.history"
           }
         ]
       }

@@ -1570,6 +1570,49 @@ Store reusable narrative material from events: embarrassment, promise, injury, n
 lost object, weird incident.
 - **Depends** BQ-034.
 - **Done when** a scene references an event from at least ten in-game days earlier, unprompted.
+- **Current implementation** `CallbackHook` and `CallbackHooks` under `Continuity/`, plus the seam
+  that lets a line use one. **There is no callback store.** Hooks are read off `EventLedger` on
+  demand exactly as BQ-034's `Chronicle` reads what is finished, so they cannot drift from history,
+  cannot outlive a retracted event, and add no save schema — which is also the whole of the
+  persistence answer, and why the round-trip test asserts identical material rather than a migration.
+  A hook is a reference and never a retelling: an event id, the participants, objects, place and
+  thread as stable ids, and readings computed from the event's own recorded fields. Nothing on it is
+  prose, so rewriting an event changes every hook to it.
+  **A hook belongs to somebody.** `CallbackRoute` is the knowledge gate and it is derived per
+  recaller, not per event: they did it (`FirstHand`), it was done to them and not tagged `unnoticed`
+  (`Involved`), they are on the event's own witness list (`Witnessed`), or they confidently believe a
+  claim the event is the `OriginEvent` of and that claim is not a distortion (`Heard`). An event
+  nobody has a route to yields no hook at all, so "private history does not leak" is a fact about
+  which hooks exist rather than a rule consumers must remember —
+  `RealizationRequest.WhyNot` then refuses a hook whose `Recaller` is not the speaker, which closes
+  the same gate structurally at the wording seam.
+  **The kind table reads the event's type and nothing else.** Six kinds, each a distinction history
+  already records: `Promise`, `Kindness`, `Injury`, `Embarrassment`, `Scandal`, `LostObject`. `Weight`
+  is the event's own magnitude, `Publicity` comes from the witness list and the secrecy of the claims
+  named, and `Embarrassment` is the recaller's own exposure scaled by publicity — never anybody
+  else's, so what a callback would cost the other side is found by asking for *their* hooks.
+  Selection is `SalienceOf` descending with ties broken on event id, the ordering convention
+  `TalkRepertoire` already uses, and `CallbackSelection.MinimumAgeInDays` defaults to
+  `CallbackHooks.SettledDays` (10), the done-when's own threshold. A counterpart the world can no
+  longer produce is dropped rather than spoken of as present (`CallbackParty`); somebody merely away
+  is still referable. `NarrativeInspector.DescribeCallbacks` shows both the material and how much of
+  the ledger this person has no route to.
+  **The wording seam adds three readings and one slot**, all closed-vocabulary: `callback` (the
+  primary `CallbackKind`), `callback_party` (`none`/`speaker`/`listener`/`other`, mirroring
+  `referent`) and `callback_route`, plus the `{recalled}` slot filled from the cast. The route
+  reading exists because "after what I did for you" and "after what you did for me" are opposite
+  claims about one event; without it the fragment pool would decide which way round it went. Six dry
+  history-callback fragments ship in `fragments.callbacks`, chosen only where the wording is true for
+  the whole kind.
+- **Deferred by design** the design's `nickname` and `weird incident` hooks: nothing mints a
+  nickname, and weirdness is a premise the caller states (BQ-079) rather than something the ledger
+  records, so deriving either would mean inventing the fact then referring back to it. The
+  vocabulary grows when a recorder exists, as `SpeechActType`'s does. `ValidContexts` is not stored —
+  which contexts a callback suits is BQ-082's recurrence and BQ-084's practices, not a list kept
+  here. Per-recaller *impression* is not read: `MemoryRecord` carries no id of the event it came
+  from, and matching one by type and timestamp would be a guess dressed as provenance, so `Weight` is
+  the plain recorded magnitude. Whether now is the moment, and the humour recurrence earns, is
+  BQ-082's; conversation-level memory of having already said it is BQ-083's.
 - **Sources** CD §24, §25; PM §51.
 - **This is Milestone 5.**
 

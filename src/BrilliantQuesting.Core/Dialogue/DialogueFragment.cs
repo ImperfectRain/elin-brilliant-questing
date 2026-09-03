@@ -27,9 +27,13 @@ namespace BrilliantQuesting.Dialogue
         Modifier = 2,
 
         /// <summary>
-        /// A reference back to what is already in the conversation. Grounded in the act's own
-        /// antecedent and nothing else - the relationship and history callbacks CD §18 sketches
-        /// need state this layer does not have and must not invent.
+        /// A reference back: to what is already in the conversation, or to something that happened
+        /// long enough ago to be worth remarking on.
+        ///
+        /// The first is grounded in the act's own antecedent. The second is grounded in a
+        /// <c>CallbackHook</c> the caller selected (BQ-081), which is a reference to a recorded
+        /// event and carries the whole of whether this speaker may know it - so wording still
+        /// invents nothing, it is simply no longer the case that the state is missing.
         /// </summary>
         Callback = 3,
 
@@ -105,6 +109,36 @@ namespace BrilliantQuesting.Dialogue
         public const string Audience = "audience";
 
         /// <summary>
+        /// What old business the speaker has to hand, as a <see cref="CallbackKind"/> (BQ-081).
+        ///
+        /// It says which kind of material is in play - never what happened, or when. A fragment
+        /// conditioned on it is one authored for referring back to a promise or an injury in
+        /// general, which is why no event ever needs prose written for it.
+        /// </summary>
+        public const string Callback = "callback";
+
+        /// <summary>
+        /// Where the other side of that old business is standing now: the person being spoken to,
+        /// somebody else, or nobody at all.
+        ///
+        /// Separated from <see cref="Callback"/> because "after what I did for you" and "after
+        /// what I did for your brother" are different claims, and a fragment that could be chosen
+        /// for either would be wording deciding which of them is true.
+        /// </summary>
+        public const string CallbackParty = "callback_party";
+
+        /// <summary>
+        /// How the speaker comes to the old business, as a <see cref="CallbackRoute"/>: they did
+        /// it, it was done to them, they watched, or they were told.
+        ///
+        /// The third and last thing wording learns about a hook, and it is there for the same
+        /// reason the second is. "After what I did for you" and "after what you did for me" are
+        /// opposite claims about one event, and a pool that admitted both would let the words
+        /// decide which way round it was.
+        /// </summary>
+        public const string CallbackRoute = "callback_route";
+
+        /// <summary>
         /// Nothing was given to read: no decision was passed, or the caller supplied no fact. Not
         /// the same as a decision that came out empty - <c>strategy: nothing_to_disclose</c> is a
         /// speaker who holds nothing, and this is a wording layer that was told nothing.
@@ -117,7 +151,7 @@ namespace BrilliantQuesting.Dialogue
         public static IReadOnlyList<string> Vocabulary { get; } = new[]
         {
             Act, Stance, Direction, Strategy, Depth, Tactic, Commitment, HeldBack,
-            Referent, Claim, ClaimPredicate, Reply, Audience
+            Referent, Claim, ClaimPredicate, Reply, Audience, Callback, CallbackParty, CallbackRoute
         };
 
         public static bool IsKey(string key) => key != null && Allowed.ContainsKey(key);
@@ -155,6 +189,12 @@ namespace BrilliantQuesting.Dialogue
             allowed[ClaimPredicate] = null;
             allowed[Reply] = Set("none", "ask", "answer", "accuse", "deny", "admit", "request", "refuse", "threaten", "apologize", "gossip", "evade");
             allowed[Audience] = Set("one", "several");
+
+            // The kind slugs are `CallbackKind`'s own names, so the enum stays the authority and
+            // content cannot condition on a kind the simulation does not derive.
+            allowed[Callback] = Set(Absent, "promise", "kindness", "injury", "embarrassment", "scandal", "lost_object");
+            allowed[CallbackParty] = Set(Absent, "none", "speaker", "listener", "other");
+            allowed[CallbackRoute] = Set(Absent, "first_hand", "involved", "witnessed", "heard");
             return allowed;
         }
 
@@ -186,7 +226,16 @@ namespace BrilliantQuesting.Dialogue
         /// <summary>The label the claim or the binding already carries: "silver ring", "12000 orens".</summary>
         public const string Matter = "matter";
 
-        public static IReadOnlyList<string> Vocabulary { get; } = new[] { Speaker, Listener, Referent, Subject, Matter };
+        /// <summary>
+        /// The other side of the callback the caller supplied (BQ-081), named from the cast.
+        ///
+        /// Nothing else about the recalled event has a placeholder. What it was is carried by the
+        /// fragment that was authored for that kind of business, and a placeholder that phrased
+        /// the event itself would be prose standing in for history.
+        /// </summary>
+        public const string Recalled = "recalled";
+
+        public static IReadOnlyList<string> Vocabulary { get; } = new[] { Speaker, Listener, Referent, Subject, Matter, Recalled };
 
         public static bool IsSlot(string name)
         {

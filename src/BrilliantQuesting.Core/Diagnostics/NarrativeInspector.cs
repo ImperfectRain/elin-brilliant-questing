@@ -3,6 +3,7 @@ using System.Text;
 using BrilliantQuesting.Actions;
 using BrilliantQuesting.Actions.Library;
 using BrilliantQuesting.Checks;
+using BrilliantQuesting.Continuity;
 using BrilliantQuesting.Developments;
 using BrilliantQuesting.Dialogue;
 using BrilliantQuesting.Foundation;
@@ -1121,6 +1122,75 @@ namespace BrilliantQuesting.Diagnostics
                           + answer[i].FactId + "]\n");
             }
 
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// BQ-081. What old business one person may bring up, and why the rest of history is not
+        /// theirs to bring up.
+        ///
+        /// Both halves matter. The listing answers "where would a callback here come from"; the
+        /// tally underneath answers the question that is harder to see from the outside, which is
+        /// how much of the ledger this person has no route to at all. A step whose whole content
+        /// is a gate has to be able to show the gate closing.
+        /// </summary>
+        public static string DescribeCallbacks(
+            NarrativeWorldState world,
+            IVanillaState vanilla,
+            EntityId recaller,
+            GameTime now,
+            CallbackSelection selection = null)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("callbacks available to ").Append(Who(world, recaller)).Append('\n');
+            if (world == null || recaller.IsNone)
+            {
+                sb.Append("  nobody to recall anything\n");
+                return sb.ToString();
+            }
+
+            IReadOnlyList<CallbackHook> hooks = CallbackHooks.For(world, vanilla, recaller, now, selection);
+            if (hooks.Count == 0)
+            {
+                sb.Append("  nothing old enough that they could know about\n");
+            }
+
+            for (int i = 0; i < hooks.Count; i++)
+            {
+                CallbackHook hook = hooks[i];
+                sb.Append("  ").Append(hook.EventType.ToString().PadRight(20));
+                sb.Append("day ").Append(hook.At.TotalDays).Append(" (").Append(hook.AgeInDays).Append("d ago)  ");
+                sb.Append(hook.PrimaryKind.ToString().PadRight(14));
+                sb.Append(hook.Route.ToString().PadRight(10));
+                sb.Append("with ").Append(hook.Counterpart.IsNone ? "nobody" : world.Registry.NameOf(hook.Counterpart));
+                sb.Append(" [").Append(hook.Party).Append(']');
+                sb.Append("  weight ").Append(hook.Weight.ToString("0.00"));
+                sb.Append(" embarrassment ").Append(hook.Embarrassment);
+                sb.Append(" publicity ").Append(hook.Publicity);
+                sb.Append('\n');
+            }
+
+            int material = 0;
+            int noRoute = 0;
+            IReadOnlyList<Events.WorldEvent> events = world.Ledger.Events;
+            for (int i = 0; i < events.Count; i++)
+            {
+                if (CallbackHooks.KindsOf(events[i].Type).Count == 0)
+                {
+                    continue;
+                }
+
+                material++;
+                Continuity.CallbackRoute route;
+                if (!CallbackHooks.TryRoute(world, events[i], recaller, out route))
+                {
+                    noRoute++;
+                }
+            }
+
+            sb.Append("  ").Append(material).Append(" of ").Append(events.Count)
+              .Append(" recorded events leave reusable material; ").Append(noRoute)
+              .Append(" of those are not theirs to know\n");
             return sb.ToString();
         }
 
