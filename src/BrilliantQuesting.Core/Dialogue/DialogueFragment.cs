@@ -385,9 +385,11 @@ namespace BrilliantQuesting.Dialogue
         /// Free tags for the layers that constrain selection beyond tone. BQ-075's voice reached
         /// <see cref="ToneTags"/> instead, so <see cref="FitsVocabulary"/> (BQ-076) is this
         /// vocabulary's first reader: a tag in <see cref="DialogueVocabulary"/> marks a fragment as
-        /// lived-context flavour for one identity domain. A tag outside that vocabulary - what a
-        /// character will not say (BQ-077) is expected to add its own - is carried and left alone
-        /// by this step, the same way an unmarked fragment is.
+        /// lived-context flavour for one identity domain. <see cref="FitsManner"/> (BQ-077) is the
+        /// second: a tag in <see cref="DialogueManners"/> marks a fragment as speaking in a way a
+        /// personal line can rule out. The two vocabularies are disjoint and are read separately,
+        /// and a tag in neither is still carried and left alone, the same way an unmarked fragment
+        /// is.
         /// </summary>
         public IReadOnlyList<string> Tags { get; }
 
@@ -489,6 +491,45 @@ namespace BrilliantQuesting.Dialogue
             }
 
             return !hasVocabularyTag;
+        }
+
+        /// <summary>
+        /// Whether a speaker whose lines rule out these manners can say it (BQ-077).
+        ///
+        /// The mirror image of <see cref="FitsVocabulary"/> in both senses. What is passed is what
+        /// is <em>forbidden</em> rather than what is wanted, so a fragment carrying no manner tag
+        /// - which is nearly all of them - is always eligible and an empty list rules nothing out;
+        /// and the list is a set of rulings already taken elsewhere rather than a request, because
+        /// a manner is only ever removed by a line that is currently holding.
+        ///
+        /// A fragment carrying a manner tag outside <see cref="DialogueManners"/>'s vocabulary is
+        /// left alone here, exactly as a non-vocabulary tag is left alone by
+        /// <see cref="FitsVocabulary"/>: neither reader claims a tag it does not own.
+        /// </summary>
+        public bool FitsManner(IReadOnlyList<string> forbidden)
+        {
+            if (forbidden == null || forbidden.Count == 0 || Tags.Count == 0)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < Tags.Count; i++)
+            {
+                if (!DialogueManners.IsManner(Tags[i]))
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < forbidden.Count; j++)
+                {
+                    if (string.Equals(Tags[i], forbidden[j], StringComparison.Ordinal))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         public override string ToString() => Id + " [" + Position + "]";

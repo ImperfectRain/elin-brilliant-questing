@@ -654,4 +654,58 @@ jobs sound like what — even indirectly, by re-reading `CharacterIdentity` or b
 occupational fragment when nothing was asked for — would reopen the anti-stereotype gate BQ-145 was
 its own step specifically to close.
 
+## D036 — A prohibition removes an option before the choice, and breaks only for a pressure already on the record
+
+BQ-077 gives a character `NegativeSpaceProfile`, a small set of `PersonalProhibition` lines held
+beside `ContradictionProfile` and `CharacterQuirkProfile` and saved with them. Four rules keep it
+from becoming either a second personality model or a wording filter.
+
+**A prohibition names a move, never a disposition.** Every member of the vocabulary points at
+something this simulation already selects: `NeverBegs` and `NeverInvolvesAuthority` at
+`ProblemSolvingStyle` candidates the goal pipeline scores, `NeverLiesDirectly` at BQ-073's
+`DisclosureTactic.Falsify`, `NeverSpeaksBadlyOfFamily` at putting a discrediting claim about kin
+forward at all. That is what separates a line from a trait, and it is the whole reason the list is
+four entries rather than one per `PersonalityWeights` axis: `Honesty` is a slope that makes lying
+less likely as it rises, and `NeverLiesDirectly` is a declaration that survives a low slope. A
+character who trades sharply and still will not tell you a flat untruth is not expressible as a
+number, and turning every trait into a prohibition would lose the distinction in the other
+direction.
+
+**It removes an option; it never moves a number.** The goal pipeline still scores every candidate,
+including the forbidden one, and then chooses the best-scoring *permitted* one — so the trace shows
+the action that was lost, still scoring highest, beside the line that took it. `DisclosureDecision`
+gains `Prohibitions` and not another `DisclosurePressure`: a line is not summed into `Balance`, and
+the inspector prints the two apart, because a prohibition rendered as a large weight is
+indistinguishable from a strong preference and "will not" collapses back into "would rather not".
+This is also why the disclosure balance is byte-identical whether or not the speaker holds a line
+about the claim.
+
+**Breaking needs pressure the surrounding decision already established.** `NegativeSpaceProfile.Rule`
+takes the pressure as an argument and computes none: the goal pipeline passes the need pressure it
+already derived from the threatened value, and `Disclosure` passes how far its own weighing ran past
+the threshold the forbidden move needed. A line breaks when that reaches its firmness, and the
+ruling carries the reason in words — which is what makes a break an event with a cause rather than a
+fallthrough. An unbreakable line is a fact about the character and still not a fact about the world:
+the move stays available to everybody else, so a prohibition is never a physical impossibility.
+
+**Wording carries out a constraint; it never decides or hides one.** A prohibited move is refused
+where it would have been selected, so it never reaches a `RealizationRequest` at all — a speaker who
+will not speak badly of her brother has already composed a `Refuse`, not a gently-worded answer.
+What remains for realization is the register: `RealizationRequest.Forbidden` carries
+`DialogueManners` tags and `DialogueFragment.FitsManner` excludes fragments in them, and it is fed
+*rulings* rather than a profile so a line that broke stops constraining the words too. Only
+`NeverBegs` has a manner, because it is the only line that leaves a sentence behind to filter — it
+takes an action off the table and takes the appealing register out of the questions the same person
+is still willing to ask. Pairing a manner with `NeverSpeaksBadlyOfFamily` would author a rule that
+could never fire.
+
+**Nothing derives a line from identity.** There is no constructor from `CharacterIdentity`,
+`IdentityAffordances`, race, character archetype or occupation anywhere in this step's surface, held
+structurally by test rather than by convention. A guard may hold `NeverInvolvesAuthority` and a
+thief may not.
+
+Reason: what somebody will not do is more recognizable than another positive trait (`CD §17.7`), but
+only if it costs them — a prohibition enforced after selection, or only in wording, is a character
+who does the thing and describes it differently, which is worse than not modelling it at all.
+
 Add a new entry only when the decision is both load-bearing and durable.

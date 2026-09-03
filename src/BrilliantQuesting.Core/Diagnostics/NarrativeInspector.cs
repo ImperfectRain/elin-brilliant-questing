@@ -256,8 +256,51 @@ namespace BrilliantQuesting.Diagnostics
                 sb.Append('\n');
             }
 
+            AppendProhibitions(sb, decision);
             sb.Append("  wording:     none - this layer decides meaning only\n");
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// The personal lines that bore on this decision (BQ-077), printed apart from the pressures
+        /// because they are not pressures: a line does not push the balance one way, it limits what
+        /// the balance is allowed to buy, and listing the two together would invite reading a
+        /// prohibition as a heavy weight.
+        /// </summary>
+        private static void AppendProhibitions(StringBuilder sb, DisclosureDecision decision)
+        {
+            if (decision.Prohibitions.Count == 0)
+            {
+                return;
+            }
+
+            sb.Append("  lines held:\n");
+            for (int i = 0; i < decision.Prohibitions.Count; i++)
+            {
+                ProhibitionRuling ruling = decision.Prohibitions[i];
+                sb.Append("    ").Append(ruling.Kind.ToString().PadRight(26));
+                sb.Append(ruling.Broke ? "broke   " : "holds   ");
+                sb.Append(ruling.Because).Append('\n');
+            }
+
+            IReadOnlyList<string> manners = decision.ForbiddenManners;
+            if (manners.Count == 0)
+            {
+                return;
+            }
+
+            sb.Append("  wording ruled out: ");
+            for (int i = 0; i < manners.Count; i++)
+            {
+                if (i > 0)
+                {
+                    sb.Append(", ");
+                }
+
+                sb.Append(manners[i]);
+            }
+
+            sb.Append('\n');
         }
 
         /// <summary>
@@ -455,6 +498,32 @@ namespace BrilliantQuesting.Diagnostics
 
             sb.Append('\n');
 
+            // BQ-077. What this character will not do, listed even when the answer is nothing:
+            // negative space is only recognizable as a fact about somebody if its absence is a
+            // fact about everybody else.
+            sb.Append("  will not: ");
+            IReadOnlyList<PersonalProhibition> lines = npc.NegativeSpace.Declared;
+            if (lines.Count == 0)
+            {
+                sb.Append("nothing declared");
+            }
+            else
+            {
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    if (i > 0)
+                    {
+                        sb.Append("; ");
+                    }
+
+                    sb.Append(NegativeSpaceProfile.Describe(lines[i]))
+                      .Append(" (firmness ").Append(npc.NegativeSpace.FirmnessOf(lines[i]).ToString("0.00"))
+                      .Append(npc.NegativeSpace.IsBreakable(lines[i]) ? ", breakable)" : ", unbreakable)");
+                }
+            }
+
+            sb.Append('\n');
+
             // BQ-145. Not the identity observation - that is BQ-144's and is a live read of the
             // game - but what BQ derives from it, with the facet behind every weight named. An
             // identity-derived number nobody can attribute to a facet is a number nobody can argue
@@ -579,13 +648,22 @@ namespace BrilliantQuesting.Diagnostics
             sb.Append("  candidate actions:\n");
             foreach (GoalActionTrace action in trace.CandidateActions)
             {
-                sb.Append(action == trace.ChosenAction ? "    [chosen] " : "             ");
+                sb.Append(action == trace.ChosenAction
+                    ? "    [chosen] "
+                    : action.Forbidden ? " [forbidden] " : "             ");
                 sb.Append(action.Action).Append(" -> ").Append(action.Outcome)
                   .Append(" via ").Append(action.Style).Append(" score ")
                   .Append(action.Score.ToString("0.00")).Append('\n');
                 for (int i = 0; i < action.ScoreTerms.Count; i++)
                 {
                     sb.Append("      - ").Append(action.ScoreTerms[i]).Append('\n');
+                }
+
+                // Printed beside the score it cost, because a prohibition that is only visible as
+                // an action never taken is indistinguishable from a scoring bug (BQ-077).
+                if (action.Ruling.Held)
+                {
+                    sb.Append("      * ").Append(action.Ruling.Because).Append('\n');
                 }
             }
 

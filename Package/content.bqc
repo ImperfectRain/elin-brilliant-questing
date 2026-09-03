@@ -498,6 +498,38 @@
       }
     },
     {
+      "id": "fragments.negative.space",
+      "kind": "dialogueFragments",
+      "payload": {
+        "fragments": [
+          {
+            "id": "mod.ask.kindness",
+            "position": "modifier",
+            "text": "I would take it as a kindness.",
+            "requires": {
+              "act": "ask"
+            },
+            "tags": [
+              "pleading"
+            ],
+            "repetitionGroup": "appeal"
+          },
+          {
+            "id": "mod.ask.nobody.else",
+            "position": "modifier",
+            "text": "There is nobody else I can put this to.",
+            "requires": {
+              "act": "ask"
+            },
+            "tags": [
+              "pleading"
+            ],
+            "repetitionGroup": "appeal"
+          }
+        ]
+      }
+    },
+    {
       "id": "fragments.openers",
       "kind": "dialogueFragments",
       "payload": {

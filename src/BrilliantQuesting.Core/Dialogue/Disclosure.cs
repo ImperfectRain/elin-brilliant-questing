@@ -182,7 +182,25 @@ namespace BrilliantQuesting.Dialogue
             pressures.Sort(ByMagnitude);
 
             double balance = Sum(pressures);
-            DisclosureStrategy strategy = Band(balance, belief.Confidence);
+            DisclosureStrategy weighed = Band(balance, belief.Confidence);
+            DisclosureStrategy strategy = weighed;
+
+            // BQ-077, before anything downstream. A line against speaking badly of one's own kin
+            // bears on whether the claim is put forward at all, so it is settled here rather than
+            // after the depth and the tactic have been derived from a strategy it was about to
+            // change - and emphatically not in wording, which would leave the speaker having
+            // decided to say a thing about their brother and merely phrasing it kindly.
+            List<ProhibitionRuling> rulings = new List<ProhibitionRuling>();
+            ProhibitionRuling kin = KinLine(world, npc, speaker, fact, strategy, balance);
+            if (kin.Held)
+            {
+                rulings.Add(kin);
+            }
+
+            if (kin.Forbids)
+            {
+                strategy = DisclosureStrategy.Refuse;
+            }
 
             // The second axis. Nothing above is re-read or re-weighed: how far they go is decided
             // from the belief they hold, the tie they have and the pressures already weighed.
@@ -196,7 +214,12 @@ namespace BrilliantQuesting.Dialogue
             // second one: what somebody does instead of answering is decided by how badly they
             // want the claim kept and by what kind of person they are, and both were already
             // established above.
-            DisclosureTactic tactic = Tactic(world, npc, speaker, fact, belief, strategy, balance);
+            ProhibitionRuling honesty;
+            DisclosureTactic tactic = Tactic(world, npc, speaker, fact, belief, strategy, balance, out honesty);
+            if (honesty.Held)
+            {
+                rulings.Add(honesty);
+            }
 
             return new DisclosureDecision(
                 speaker,
@@ -205,7 +228,11 @@ namespace BrilliantQuesting.Dialogue
                 strategy,
                 balance,
                 pressures,
-                Decisive(pressures, balance, belief.Confidence, strategy),
+                // Against the strategy the *weighing* produced, never the one a line imposed on it.
+                // "The pressures whose removal would have changed the answer" is a statement about
+                // the balance, and measuring it against a capped strategy would report every
+                // pressure as decisive for a decision none of them settled (BQ-077).
+                Decisive(pressures, balance, belief.Confidence, weighed),
                 string.Empty,
                 depth,
                 known,
@@ -213,7 +240,8 @@ namespace BrilliantQuesting.Dialogue
                 standing,
                 Bound(strategy, depth, known, reached, restraint),
                 tactic,
-                fact.Subject);
+                fact.Subject,
+                rulings);
         }
 
         /// <summary>
@@ -344,6 +372,16 @@ namespace BrilliantQuesting.Dialogue
         /// <b>And it needs someone who would.</b> Severe pressure alone is not enough. An honest
         /// person under it refuses, which costs them; keeping character as a hard condition rather
         /// than a weight is what stops a big enough number from making anybody a liar.
+        ///
+        /// <b>And they must not have ruled it out (BQ-077).</b> A fourth condition, applied at
+        /// this same gate rather than beside it, because it is the same subject: a speaker holding
+        /// <c>PersonalProhibition.NeverLiesDirectly</c> falls through to the refusal or the evasion
+        /// the three rules above already fall through to. It is deliberately not a second honesty
+        /// figure. <see cref="CandourThatWillNotLie"/> is a slope - the more candid somebody is,
+        /// the sooner they stop short of a lie - and the line is a declaration that survives a low
+        /// slope, which is the character CD §17.7 names and the one this model could not otherwise
+        /// hold. It is checked last so the ruling is produced only where it could cost something:
+        /// a speaker who was never going to falsify here has nothing to have refrained from.
         /// </summary>
         private static DisclosureTactic Tactic(
             NarrativeWorldState world,
@@ -352,8 +390,10 @@ namespace BrilliantQuesting.Dialogue
             Fact fact,
             KnowledgeRecord belief,
             DisclosureStrategy strategy,
-            double balance)
+            double balance,
+            out ProhibitionRuling honesty)
         {
+            honesty = ProhibitionRuling.NotHeld(PersonalProhibition.NeverLiesDirectly);
             if (strategy != DisclosureStrategy.Refuse && strategy != DisclosureStrategy.Deflect)
             {
                 return DisclosureTactic.None;
@@ -363,7 +403,15 @@ namespace BrilliantQuesting.Dialogue
                 && belief.Confidence >= ConvictionToStandBehind
                 && npc.Personality.Honesty < CandourThatWillNotLie)
             {
-                return DisclosureTactic.Falsify;
+                honesty = npc.NegativeSpace.Rule(
+                    PersonalProhibition.NeverLiesDirectly,
+                    PastThreshold(FalsifyAt - balance),
+                    "the weighing ran past the point at which keeping quiet would itself answer");
+
+                if (!honesty.Forbids)
+                {
+                    return DisclosureTactic.Falsify;
+                }
             }
 
             if (strategy == DisclosureStrategy.Refuse)
@@ -374,6 +422,78 @@ namespace BrilliantQuesting.Dialogue
             return HasSomethingElseToSay(world, speaker, fact)
                 ? DisclosureTactic.AnswerElsewhere
                 : DisclosureTactic.ChangeSubject;
+        }
+
+        /// <summary>
+        /// What a speaker's line against speaking badly of their own kin does to a claim they were
+        /// otherwise going to put forward (BQ-077).
+        ///
+        /// Ruled on only where it could cost something, which is four conditions: the weighing had
+        /// them speaking, the claim discredits whoever it is about, that person is not the speaker,
+        /// and the tie to them is kin. A ruling produced anywhere else would be a line reported as
+        /// having held in a situation it never bore on.
+        ///
+        /// Distinct from the loyalty pressure already weighed above, and not a second helping of
+        /// it: loyalty is warmth making somebody less willing and it is summed with everything
+        /// else, so a strong enough grievance or legal duty outweighs it and the claim comes out.
+        /// This is the line that is still there after that sum came out in favour of speaking, and
+        /// it is what makes the difference between a person who would rather not and a person who
+        /// will not.
+        /// </summary>
+        private static ProhibitionRuling KinLine(
+            NarrativeWorldState world,
+            NarrativeNpc npc,
+            EntityId speaker,
+            Fact fact,
+            DisclosureStrategy strategy,
+            double balance)
+        {
+            ProhibitionRuling nothing = ProhibitionRuling.NotHeld(PersonalProhibition.NeverSpeaksBadlyOfFamily);
+            if (strategy < DisclosureStrategy.Hedge
+                || !Discredits(fact.Predicate)
+                || fact.Subject.IsNone
+                || fact.Subject == speaker)
+            {
+                return nothing;
+            }
+
+            RelationshipEdge tie = world.Relationships.Find(speaker, fact.Subject);
+            if (tie == null || (tie.Kind != RelationKind.Family && tie.Kind != RelationKind.Spouse))
+            {
+                return nothing;
+            }
+
+            return npc.NegativeSpace.Rule(
+                PersonalProhibition.NeverSpeaksBadlyOfFamily,
+                PastThreshold(balance - HedgeAt),
+                "the weighing came out in favour of saying a " + fact.Predicate + " of their own "
+                + (tie.Kind == RelationKind.Spouse ? "spouse" : "family"));
+        }
+
+        /// <summary>
+        /// Whether a claim puts the person it is about in a bad light, and so is the kind of thing
+        /// a line about one's own family is a line against.
+        ///
+        /// The criminal predicates <see cref="LegalRisk"/> already recognises, plus having lied.
+        /// Reusing that list rather than authoring a second one keeps "discrediting" a single
+        /// answer: a predicate that becomes a crime becomes discrediting in the same commit.
+        /// </summary>
+        private static bool Discredits(string predicate)
+        {
+            return IsCriminal(predicate) || predicate == FactPredicates.LiedAbout;
+        }
+
+        /// <summary>
+        /// How far a weighing ran past the threshold the forbidden move needed, as the 0..1
+        /// pressure a breakable line is measured against.
+        ///
+        /// Not a new reading of the situation: the excess is arithmetic on the same
+        /// <see cref="DisclosureDecision.Balance"/> the inspector already prints, so a break can
+        /// be explained by pointing at the pressures that produced it.
+        /// </summary>
+        private static double PastThreshold(double excess)
+        {
+            return excess < 0.0 ? 0.0 : excess > 1.0 ? 1.0 : excess;
         }
 
         /// <summary>
@@ -1117,7 +1237,8 @@ namespace BrilliantQuesting.Dialogue
                 0.0,
                 DisclosureLimit.Unspoken,
                 DisclosureTactic.None,
-                EntityId.None);
+                EntityId.None,
+                null);
         }
     }
 }

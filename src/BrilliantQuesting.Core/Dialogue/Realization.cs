@@ -215,6 +215,7 @@ namespace BrilliantQuesting.Dialogue
     {
         private static readonly string[] NoTone = new string[0];
         private static readonly string[] NoVocabulary = new string[0];
+        private static readonly string[] NoManners = new string[0];
 
         public RealizationRequest(SpeechAct act)
         {
@@ -256,6 +257,20 @@ namespace BrilliantQuesting.Dialogue
         /// is the only place either list is read.
         /// </summary>
         public IReadOnlyList<string> Vocabulary { get; set; } = NoVocabulary;
+
+        /// <summary>
+        /// The <see cref="DialogueManners"/> the speaker's still-holding personal lines take off
+        /// the table (BQ-077). Empty rules nothing out, which is what a speaker with no lines and
+        /// a speaker whose lines all broke both produce.
+        ///
+        /// Unlike <see cref="Tone"/> and <see cref="Vocabulary"/> this is not a request: it is the
+        /// result of rulings already taken where the decision was taken, carried here so wording
+        /// can honour them rather than re-take them. It is also never the only place a prohibition
+        /// applies - a forbidden semantic move is refused where it would have been selected and so
+        /// never reaches a request - which is why nothing here can turn a permitted act into a
+        /// forbidden one or the other way about.
+        /// </summary>
+        public IReadOnlyList<string> Forbidden { get; set; } = NoManners;
 
         /// <summary>
         /// The stream the choices are drawn from. Only forked, never advanced, so the same

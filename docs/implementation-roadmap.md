@@ -1411,6 +1411,52 @@ constraining both action selection and wording, breakable only under documented 
 - **Depends** BQ-075, BQ-057.
 - **Done when** a prohibition visibly costs an NPC an otherwise optimal action.
 - **Sources** CD §17.7.
+- **Current implementation** `NegativeSpaceProfile`, a set of `PersonalProhibition` lines held on
+  `NarrativeNpc` beside `ContradictionProfile` and `CharacterQuirkProfile` and saved with them
+  (schema 10). Four lines, and every one of them names a move this simulation already selects
+  rather than a disposition it already scores: `NeverBegs` and `NeverInvolvesAuthority` name
+  `ProblemSolvingStyle` candidates BQ-057's goal pipeline scores, `NeverLiesDirectly` names
+  BQ-073's `DisclosureTactic.Falsify`, and `NeverSpeaksBadlyOfFamily` names putting a discrediting
+  claim about one's own kin forward at all. That is the whole sizing rule (`D036`): a line earns its
+  place by naming an existing move, so the vocabulary cannot grow one entry per personality axis,
+  and `PersonalityWeights.Honesty` staying a slope while `NeverLiesDirectly` is a declaration is
+  exactly what lets a sharp trader who still will not tell a flat untruth exist.
+  **The line is applied where the move is chosen.** `MissingGoatProblemSolver` scores every
+  candidate as it always did and then picks the best-scoring *permitted* one, so
+  `GoalActionTrace.Ruling` shows the lost action still scoring highest with the line that took it
+  named beside it — the done-when, read straight off the inspector. On the disclosure side the kin
+  line is settled before depth and tactic are derived, and the lying line is a fourth condition at
+  BQ-073's own falsify gate rather than a check beside it, so a speaker who holds it falls through
+  to the refusal or evasion that gate already reached. No parallel solver, no second utility model:
+  `NegativeSpaceProfile.Rule` answers "is this move off the table" and computes no score of its own.
+  **Breaking reads pressure the caller already established.** `Rule` takes the pressure as an
+  argument — the goal pipeline passes the need pressure it derived from the threatened value, and
+  `Disclosure` passes how far its own balance ran past the threshold the forbidden move needed — so
+  a break is explained by pointing at figures the inspector already prints, and `ProhibitionRuling.Because`
+  says which. An unbreakable line never gives way; it is still not a physical impossibility, since
+  the move stays available to everybody else. A ruling is produced only where the line could have
+  cost something, so a line never takes credit for a decision it did not make.
+  **Wording carries the constraint out and can never substitute for it.** A prohibited move is
+  refused where it would have been selected and so never reaches a `RealizationRequest` at all; what
+  remains is the register, as `DialogueManners` tags in the `Tags` field BQ-076 opened, excluded by
+  `DialogueFragment.FitsManner` and fed from `RealizationRequest.Forbidden`. That list is built from
+  *rulings* rather than from a profile, so a line that broke stops constraining the words too.
+  `NegativeSpacePersonalityTests` proves the whole contract, the near-misses included: the forbidden
+  action is still the highest-scoring one, the chosen action is never one the actor ruled out under
+  any combination of lines, a line moves no score and never enters `DisclosureDecision.Balance`,
+  both breakable lines break for an inspectable reason and both unbreakable ones do not, the kin
+  line bears only on a discrediting claim about kin, meaning is unchanged by a manner constraint,
+  everything is deterministic, and nothing in the step's surface takes a `CharacterIdentity`,
+  an `IdentityAffordances` or a vanilla read.
+- **Deferred by design** the four other lines CD §17.7 lists — never threatens children, never
+  admits uncertainty, never discusses religion, never apologizes publicly, never accepts charity —
+  name moves this simulation does not yet select among, and `NeverAdmitsUncertainty` in particular
+  would have to decide what a speaker forbidden to `Hedge` does with a belief they hold below
+  `ConvictionToStandBehind`, which is a disclosure question rather than a negative-space one.
+  `DialogueManners` ships one tag because exactly one line leaves a sentence behind to filter.
+  Nothing assigns a line to anybody yet: as with `PersonalityWeights` before BQ-056, generation is
+  whichever later step first needs a populated world to hold them, and the anti-stereotype rule that
+  step inherits is `D036`'s — a line is declared onto a character, never derived from what they are.
 
 #### BQ-078 — Repetition control
 Track recent use by fragment, repetition group, opener, semantic act, metaphor family and cadence.

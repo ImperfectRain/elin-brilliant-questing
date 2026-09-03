@@ -23,6 +23,7 @@ namespace BrilliantQuesting.Persistence
             Register(6, AddValueAndNeedProfiles);
             Register(7, AddEmotionalStateProfiles);
             Register(8, AddStoryletFirings);
+            Register(9, AddNegativeSpaceProfiles);
         }
 
         /// <summary>Registers an upgrade from <paramref name="fromVersion"/> to the next version.</summary>
@@ -245,6 +246,25 @@ namespace BrilliantQuesting.Persistence
             }
 
             return root.Set("schemaVersion", 9);
+        }
+
+        /// <summary>
+        /// BQ-077. Everyone in an existing save holds no lines, which is both the correct reading
+        /// of a world that had no concept of them and the ordinary state going forward - negative
+        /// space is recognizable because it is rare, so an empty array is the default rather than
+        /// a placeholder waiting to be filled.
+        /// </summary>
+        private static JsonValue AddNegativeSpaceProfiles(JsonValue root)
+        {
+            foreach (JsonValue npc in root.GetArray("npcs"))
+            {
+                if (npc["negativeSpace"] == null)
+                {
+                    npc.Set("negativeSpace", JsonValue.Array());
+                }
+            }
+
+            return root.Set("schemaVersion", 10);
         }
 
         private static JsonValue NeutralValueProfile()

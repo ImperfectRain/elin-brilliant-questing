@@ -33,6 +33,7 @@ namespace BrilliantQuesting.World
             Sensitivities = new SensitivityProfile();
             Contradiction = new ContradictionProfile();
             Quirk = new CharacterQuirkProfile();
+            NegativeSpace = new NegativeSpaceProfile();
             Values = new ValueProfile();
             Needs = new NarrativeNeedProfile();
             Emotions = new EmotionalStateProfile();
@@ -100,6 +101,15 @@ namespace BrilliantQuesting.World
         public ContradictionProfile Contradiction { get; }
 
         public CharacterQuirkProfile Quirk { get; }
+
+        /// <summary>
+        /// The lines this character holds against moves this simulation makes (BQ-077). Durable
+        /// personality in the same sense <see cref="Contradiction"/> and <see cref="Quirk"/> are:
+        /// declared onto the character, saved with them, and never derived from what they are.
+        /// Empty for nearly everybody, which is the point - negative space is recognizable because
+        /// it is rare.
+        /// </summary>
+        public NegativeSpaceProfile NegativeSpace { get; }
 
         public ValueProfile Values { get; }
 

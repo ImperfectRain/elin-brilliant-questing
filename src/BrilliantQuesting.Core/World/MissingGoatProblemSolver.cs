@@ -48,11 +48,22 @@ namespace BrilliantQuesting.World
     public sealed class MissingGoatDecision
     {
         public MissingGoatDecision(ProblemSolvingStyle style, MissingGoatResponse response, double score, NpcGoal goal)
+            : this(style, response, score, goal, ProhibitionRuling.NotHeld(default(PersonalProhibition)))
+        {
+        }
+
+        public MissingGoatDecision(
+            ProblemSolvingStyle style,
+            MissingGoatResponse response,
+            double score,
+            NpcGoal goal,
+            ProhibitionRuling ruling)
         {
             Style = style;
             Response = response;
             Score = score;
             Goal = goal;
+            Ruling = ruling;
         }
 
         public ProblemSolvingStyle Style { get; }
@@ -62,6 +73,14 @@ namespace BrilliantQuesting.World
         public double Score { get; }
 
         public NpcGoal Goal { get; }
+
+        /// <summary>
+        /// What a personal line did to the action that was chosen (BQ-077). A not-held ruling for
+        /// an actor with no line bearing on it, and a broken one when the actor holds a line
+        /// against this very action and the need pressure carried it. Never a forbidding ruling:
+        /// a forbidden candidate is not chosen.
+        /// </summary>
+        public ProhibitionRuling Ruling { get; }
     }
 
     public static class MissingGoatProblemSolver
@@ -89,7 +108,8 @@ namespace BrilliantQuesting.World
                 trace.ChosenAction.Style,
                 (MissingGoatResponse)Enum.Parse(typeof(MissingGoatResponse), trace.ChosenAction.Outcome),
                 trace.ChosenAction.Score,
-                trace.CandidateGoal);
+                trace.CandidateGoal,
+                trace.ChosenAction.Ruling);
         }
 
         public static GoalFormationTrace Trace(NarrativeNpc actor, MissingGoatProblem problem, EntityId subject)
@@ -108,23 +128,52 @@ namespace BrilliantQuesting.World
             NarrativeNeed need = NeedFor(concern);
             double pressure = Pressure(actor, problem, concern);
 
-            int bestIndex = 0;
-            ScoreBreakdown bestScore = Score(actor, problem, Candidates[0].Style);
-            List<GoalActionTrace> actions = new List<GoalActionTrace>();
-            actions.Add(ActionTrace(Candidates[0], bestScore));
+            // BQ-077. Every candidate is still scored, because the cost of a personal line is only
+            // visible beside the score of the action it took away; what a line changes is which
+            // candidates are eligible to win, not what any of them is worth. The pressure a
+            // breakable line is weighed against is the need pressure already derived above from
+            // the threatened value - the actor's own stake in this problem, not a second reading
+            // of it invented for prohibitions.
+            string stake = "need " + NeedName(need) + " from threatened value " + ConcernName(concern);
 
-            for (int i = 1; i < Candidates.Length; i++)
+            int bestIndex = -1;
+            double bestTotal = 0.0;
+            int bestOverall = 0;
+            double bestOverallTotal = double.NegativeInfinity;
+            List<GoalActionTrace> actions = new List<GoalActionTrace>();
+
+            for (int i = 0; i < Candidates.Length; i++)
             {
                 ScoreBreakdown score = Score(actor, problem, Candidates[i].Style);
-                actions.Add(ActionTrace(Candidates[i], score));
-                if (score.Total > bestScore.Total)
+                ProhibitionRuling ruling = NegativeSpace.Rule(
+                    actor.NegativeSpace,
+                    Candidates[i].Style,
+                    pressure,
+                    stake);
+                actions.Add(ActionTrace(Candidates[i], score, ruling));
+
+                if (score.Total > bestOverallTotal)
+                {
+                    bestOverall = i;
+                    bestOverallTotal = score.Total;
+                }
+
+                if (ruling.Forbids)
+                {
+                    continue;
+                }
+
+                if (bestIndex < 0 || score.Total > bestTotal)
                 {
                     bestIndex = i;
-                    bestScore = score;
+                    bestTotal = score.Total;
                 }
             }
 
-            GoalActionTrace chosen = actions[bestIndex];
+            // Unreachable with this vocabulary: `Wait` is always a candidate and no prohibition
+            // bears on it, so something is always permitted. Kept so that widening either list
+            // degrades to the pre-BQ-077 choice rather than to no choice at all.
+            GoalActionTrace chosen = actions[bestIndex < 0 ? bestOverall : bestIndex];
             GoalFormationTrace trace = new GoalFormationTrace(
                 actor.Id,
                 ProblemSummary(problem),
@@ -243,14 +292,15 @@ namespace BrilliantQuesting.World
             }
         }
 
-        private static GoalActionTrace ActionTrace(Candidate candidate, ScoreBreakdown score)
+        private static GoalActionTrace ActionTrace(Candidate candidate, ScoreBreakdown score, ProhibitionRuling ruling)
         {
             return new GoalActionTrace(
                 candidate.Style,
                 "missing_goat." + candidate.Style,
                 candidate.Response.ToString(),
                 score.Total,
-                score.Terms);
+                score.Terms,
+                ruling);
         }
 
         private static string ProblemSummary(MissingGoatProblem problem)

@@ -53,12 +53,24 @@ namespace BrilliantQuesting.World
             string outcome,
             double score,
             IReadOnlyList<string> scoreTerms)
+            : this(style, action, outcome, score, scoreTerms, ProhibitionRuling.NotHeld(default(PersonalProhibition)))
+        {
+        }
+
+        public GoalActionTrace(
+            ProblemSolvingStyle style,
+            string action,
+            string outcome,
+            double score,
+            IReadOnlyList<string> scoreTerms,
+            ProhibitionRuling ruling)
         {
             Style = style;
             Action = action;
             Outcome = outcome;
             Score = score;
             ScoreTerms = scoreTerms;
+            Ruling = ruling;
         }
 
         public ProblemSolvingStyle Style { get; }
@@ -67,8 +79,26 @@ namespace BrilliantQuesting.World
 
         public string Outcome { get; }
 
+        /// <summary>
+        /// What this action scored. Computed for every candidate, including one a personal line
+        /// forbids: the score is what makes the cost of a prohibition visible, so it is never
+        /// suppressed for a candidate that was taken off the table (BQ-077).
+        /// </summary>
         public double Score { get; }
 
         public IReadOnlyList<string> ScoreTerms { get; }
+
+        /// <summary>
+        /// What the actor's negative space did to this candidate (BQ-077), or a not-held ruling
+        /// when no line bears on it.
+        ///
+        /// <see cref="ProhibitionRuling.Forbids"/> means this candidate was not eligible to be
+        /// chosen however well it scored, and <see cref="ProhibitionRuling.Broke"/> means a line
+        /// that bore on it gave way under the need pressure this trace already reports.
+        /// </summary>
+        public ProhibitionRuling Ruling { get; }
+
+        /// <summary>Whether a line took this candidate off the table.</summary>
+        public bool Forbidden => Ruling.Forbids;
     }
 }

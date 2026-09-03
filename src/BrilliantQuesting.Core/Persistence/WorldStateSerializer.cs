@@ -141,6 +141,7 @@ namespace BrilliantQuesting.Persistence
                 JsonValue sensitivities = SensitivitiesToJson(npc.Sensitivities);
                 JsonValue contradiction = ContradictionToJson(npc.Contradiction);
                 JsonValue quirk = QuirkToJson(npc.Quirk);
+                JsonValue negativeSpace = NegativeSpaceToJson(npc.NegativeSpace);
                 JsonValue values = ValuesToJson(npc.Values);
                 JsonValue needs = NeedsToJson(npc.Needs);
                 JsonValue emotions = EmotionsToJson(npc.Emotions);
@@ -171,6 +172,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("sensitivities", sensitivities)
                     .Set("contradiction", contradiction)
                     .Set("quirk", quirk)
+                    .Set("negativeSpace", negativeSpace)
                     .Set("values", values)
                     .Set("needs", needs)
                     .Set("emotions", emotions)
@@ -566,6 +568,12 @@ namespace BrilliantQuesting.Persistence
                 if (quirk != null)
                 {
                     ReadQuirk(npc.Quirk, quirk);
+                }
+
+                JsonValue negativeSpace = json["negativeSpace"];
+                if (negativeSpace != null)
+                {
+                    ReadNegativeSpace(npc.NegativeSpace, negativeSpace);
                 }
 
                 JsonValue values = json["values"];
@@ -1198,6 +1206,49 @@ namespace BrilliantQuesting.Persistence
             target.Assigned = profile.GetBool("assigned");
             target.Weirdness = weirdness;
             target.Kind = kind;
+        }
+
+        /// <summary>
+        /// The lines this character holds (BQ-077), as an array rather than a fixed object so a
+        /// save carries only what was declared. An actor with no lines writes an empty array, and
+        /// a kind this build does not know is dropped on load rather than failing the save: the
+        /// vocabulary is closed, but a save written by a later build must still open.
+        /// </summary>
+        private static JsonValue NegativeSpaceToJson(NegativeSpaceProfile profile)
+        {
+            JsonValue array = JsonValue.Array();
+            IReadOnlyList<PersonalProhibition> declared = profile.Declared;
+            for (int i = 0; i < declared.Count; i++)
+            {
+                PersonalProhibition kind = declared[i];
+                array.Add(JsonValue.Object()
+                    .Set("kind", kind.ToString())
+                    .Set("firmness", profile.FirmnessOf(kind))
+                    .Set("breakable", profile.IsBreakable(kind)));
+            }
+
+            return array;
+        }
+
+        private static void ReadNegativeSpace(NegativeSpaceProfile target, JsonValue profile)
+        {
+            if (profile.Kind != JsonKind.Array)
+            {
+                return;
+            }
+
+            for (int i = 0; i < profile.Items.Count; i++)
+            {
+                JsonValue entry = profile.Items[i];
+                PersonalProhibition kind;
+                if (!Enum.TryParse(entry.GetString("kind", string.Empty), out kind)
+                    || !Enum.IsDefined(typeof(PersonalProhibition), kind))
+                {
+                    continue;
+                }
+
+                target.Declare(kind, entry.GetNumber("firmness", 1.0), entry.GetBool("breakable"));
+            }
         }
 
         private static JsonValue ValuesToJson(ValueProfile profile)

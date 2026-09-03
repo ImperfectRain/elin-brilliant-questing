@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
+using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Dialogue
 {
@@ -296,6 +297,7 @@ namespace BrilliantQuesting.Dialogue
     public sealed class DisclosureDecision
     {
         private static readonly DisclosurePressure[] NoPressures = new DisclosurePressure[0];
+        private static readonly ProhibitionRuling[] NoProhibitions = new ProhibitionRuling[0];
 
         internal DisclosureDecision(
             EntityId speaker,
@@ -312,7 +314,8 @@ namespace BrilliantQuesting.Dialogue
             double standing,
             DisclosureLimit limit,
             DisclosureTactic tactic,
-            EntityId claimSubject)
+            EntityId claimSubject,
+            IReadOnlyList<ProhibitionRuling> prohibitions)
         {
             Speaker = speaker;
             Asker = asker;
@@ -329,6 +332,7 @@ namespace BrilliantQuesting.Dialogue
             Limit = limit;
             Tactic = tactic;
             ClaimSubject = claimSubject;
+            Prohibitions = prohibitions ?? NoProhibitions;
         }
 
         public EntityId Speaker { get; }
@@ -436,6 +440,27 @@ namespace BrilliantQuesting.Dialogue
         /// or merely reached should read that rather than this.
         /// </summary>
         public bool HeldBack => WillDisclose && Depth < KnownDepth;
+
+        /// <summary>
+        /// Every personal line that bore on this decision (BQ-077), in the order they were
+        /// settled. Empty for a speaker who holds none, and empty for one whose lines had nothing
+        /// to bear on here - a ruling is produced only where the line could have cost something.
+        ///
+        /// Diagnostic in the same sense <see cref="Decisive"/> is, and read the same way: a
+        /// ruling whose <see cref="ProhibitionRuling.Forbids"/> is true names a move this speaker
+        /// took off their own table, and one whose <see cref="ProhibitionRuling.Broke"/> is true
+        /// names the pressure that carried a line they hold. What a ruling never is, is a pressure
+        /// - none of these is summed into <see cref="Balance"/>, because a line is not another
+        /// reason to talk or keep quiet, it is a limit on what the balance is allowed to buy.
+        /// </summary>
+        public IReadOnlyList<ProhibitionRuling> Prohibitions { get; }
+
+        /// <summary>
+        /// The <see cref="Dialogue.DialogueManners"/> a still-holding line takes away from wording
+        /// (BQ-077). Never the whole of what a prohibition did here: the moves are already settled
+        /// above, and this is only the part that remains for a realizer to honour.
+        /// </summary>
+        public IReadOnlyList<string> ForbiddenManners => NegativeSpaceVoice.ForbiddenManners(Prohibitions);
 
         /// <summary>Whether this disclosure goes at least as deep as some rung a caller needs.</summary>
         public bool Reaches(DisclosureDepth depth) => Depth >= depth;
