@@ -1137,4 +1137,31 @@ Reason: a bound is a legitimate answer and an unspoken bound is not. The cost of
 on preference — a slightly worse cast — and never on correctness, and a reader must be able to tell
 a search that finished from one that gave up.
 
+## D048 — The laboratory has one dispatch authority, and the integration harness keeps its own command line
+
+`tools/BrilliantQuesting.Lab` is a set of registered scenarios behind one command line. A scenario
+declares its id, summary, description, aliases, options and default seed, and runs once against a
+resolved context; `LabCatalog` is the only place that knows which scenarios exist, and
+`LabCommandLine` is the only place that reads a command line. `Program.Main` is one call into it.
+
+**Registration is local, dispatch is not.** Adding an experiment is a new `LabScenario` subclass plus
+one line in `LabCatalog.Default`. The chain of `args[0] == "--flag"` checks that used to live in
+`Program.Main` re-implemented seed parsing, argument parsing and exit status once per mode, and grew
+by one branch per experiment; the shared concerns now sit in the runner, so a scenario contains only
+what is particular to it. Historic flags survive as registered aliases on the scenario they select,
+which is what keeps `--ambient 15` and a bare seed working with no branch anywhere.
+
+**A scenario that owns its command line says so.** `IntegrationHarness` is a production-faithful
+harness with an established argument surface — modes, snapshots, watch levels, JSON output, and an
+exit status that reports whether the run held its invariants. It is not fitted to the option model;
+its scenario declares that it forwards raw arguments, and the runner hands them over unvalidated.
+The adapter parses and validates before running so a mistyped harness argument reports a usage
+failure rather than an unhandled exception, and the harness itself is unchanged apart from splitting
+its parse from its run.
+
+Reason: the laboratory is where BQ systems are proved without a game, so it will keep gaining
+experiments. One authority for discovery and dispatch keeps that growth localized; forcing a
+production-faithful harness into the same option model would buy uniformity by weakening the
+semantics the harness exists to have.
+
 Add a new entry only when the decision is both load-bearing and durable.

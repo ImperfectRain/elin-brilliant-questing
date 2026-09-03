@@ -22,7 +22,15 @@ namespace BrilliantQuesting.Lab
 
         public static int RunCli(string[] args)
         {
-            IntegrationHarnessConfig config = Parse(args);
+            return Execute(Parse(args));
+        }
+
+        /// <summary>
+        /// Runs an already-parsed configuration and reports it the way the command line does, so a
+        /// caller that wants to report a bad argument itself can parse first and run afterwards.
+        /// </summary>
+        public static int Execute(IntegrationHarnessConfig config)
+        {
             HarnessRunResult result = Run(config);
             string json = result.ToJson().ToJson(indented: true);
             if (!string.IsNullOrWhiteSpace(config.JsonOutputPath))
