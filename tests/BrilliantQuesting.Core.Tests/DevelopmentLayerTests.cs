@@ -145,8 +145,9 @@ namespace BrilliantQuesting.Tests
             Assert.True(lab.Situation.Thread.IsLive);
             Assert.NotEmpty(lab.Situation.Thread.Escalation);
 
-            // Storylet: an authored pattern, which never depended on any of this.
-            Assert.Equal(5, ShippedDefinitions().Count);
+            // Storylet: an authored pattern, which never depended on any of this. The library
+            // grows; that it is unmoved by the development layer is the claim, not its size.
+            Assert.NotEmpty(ShippedDefinitions());
         }
 
         /// <summary>
@@ -342,7 +343,7 @@ namespace BrilliantQuesting.Tests
             IReadOnlyList<StoryletOpportunity> opportunities =
                 DevelopmentExpression.Opportunities(engine, lab.World, lab.Vanilla, development);
 
-            Assert.Equal(5, opportunities.Count);
+            Assert.True(opportunities.Count >= 5, "only " + opportunities.Count + " scenes were available");
             foreach (StoryletOpportunity opportunity in opportunities)
             {
                 Assert.True(opportunity.IsAvailable);
@@ -350,8 +351,10 @@ namespace BrilliantQuesting.Tests
                 engine.Fire(opportunity, lab.Situation.Thread, lab.Vanilla.Now);
             }
 
-            Assert.Equal(5, lab.Situation.Thread.StoryletFirings.Count);
-            Assert.Equal(5, lab.Situation.Thread.StoryletFirings.Select(f => f.StoryletId).Distinct(StringComparer.Ordinal).Count());
+            Assert.Equal(opportunities.Count, lab.Situation.Thread.StoryletFirings.Count);
+            Assert.Equal(
+                opportunities.Count,
+                lab.Situation.Thread.StoryletFirings.Select(f => f.StoryletId).Distinct(StringComparer.Ordinal).Count());
             Assert.Equal(factsBefore, lab.World.Knowledge.Facts.Count);
             Assert.Equal(eventsBefore, lab.World.Ledger.Events.Count);
         }

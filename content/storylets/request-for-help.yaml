@@ -26,10 +26,124 @@ payload:
       role: requester
     - kind: RoleAlive
       role: suspect
+  resolutions:
+    - help_promised
+    - help_refused
+    - handed_to_authority
+    - loss_named_only
   beats:
-    - identify_loss
-    - ask_for_help
-    - name_lead
-    - set_stakes
+    - id: identify_loss
+      speaker: victim
+      listener: requester
+      intentions:
+        - act: inform
+        - act: ask
+      playerIntersections:
+        - question
+        - inspect
+      routes:
+        - when: spoke
+          to: ask_for_help
+        - when: always
+          ends: loss_named_only
+
+    - id: ask_for_help
+      speaker: victim
+      listener: requester
+      intentions:
+        - act: request
+        - act: offer
+        - act: evade
+      playerIntersections:
+        - rapport
+        - persuade
+        - search
+      consequences:
+        - hook: help_was_asked_for
+          act: request
+        - hook: payment_was_offered
+          act: offer
+      routes:
+        - when: always
+          act: evade
+          ends: loss_named_only
+        - when: spoke
+          to: name_lead
+        - when: always
+          ends: loss_named_only
+
+    - id: name_lead
+      speaker: requester
+      listener: victim
+      intentions:
+        - act: answer
+        - act: inform
+        - act: refuse
+        - act: evade
+      check:
+        profile: proc_investigation
+        actor: requester
+        target: suspect
+        question: is_there_a_lead_worth_naming
+      playerIntersections:
+        - search
+        - track
+        - question
+        - search_records
+      consequences:
+        - hook: lead_found
+          when: check_pass
+        - hook: trail_went_cold
+          when: check_fail
+      routes:
+        - when: always
+          act: refuse
+          ends: help_refused
+        - when: always
+          act: evade
+          ends: help_refused
+        - when: always
+          to: set_stakes
+
+    - id: set_stakes
+      speaker: requester
+      listener: victim
+      intentions:
+        - act: promise
+        - act: warn
+        - act: refuse
+        - act: request
+      playerIntersections:
+        - report
+        - invoke_authority
+        - persuade
+        - return_item
+      consequences:
+        - hook: undertaking_given
+          event: PromiseMade
+          actor: requester
+          target: victim
+          magnitude: 0.5
+          act: promise
+        - hook: turned_the_matter_over
+          act: request
+        - hook: help_declined
+          event: RequestDeclined
+          actor: requester
+          target: victim
+          magnitude: 0.3
+          act: refuse
+      routes:
+        - when: always
+          act: promise
+          ends: help_promised
+        - when: always
+          act: request
+          ends: handed_to_authority
+        - when: always
+          act: refuse
+          ends: help_refused
+        - when: always
+          ends: loss_named_only
   consequenceHooks:
     - record_help_request

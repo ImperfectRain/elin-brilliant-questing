@@ -1,0 +1,90 @@
+id: storylet.household_disturbance
+kind: storylet
+payload:
+  situationTags:
+    - theft
+    - household
+  toneTags:
+    - domestic
+    - unsettled
+  requiredRoles:
+    - id: resident
+      source: HouseholdMemberHere
+    - id: caller
+      source: AnyoneWhoKnowsFocus
+    - id: named
+      source: FactSubject
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: stole
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: caller
+    - kind: RoleAlive
+      role: resident
+    - kind: RoleAlive
+      role: caller
+  resolutions:
+    - matter_reached_the_house
+    - caller_sent_away
+    - house_left_alone
+  beats:
+    - id: someone_came_asking
+      speaker: caller
+      listener: resident
+      intentions:
+        - act: ask
+        - act: inform
+        - act: request
+      playerIntersections:
+        - question
+        - rapport
+        - inspect
+      consequences:
+        - hook: the_matter_arrived_at_the_door
+          act: inform
+      routes:
+        - when: spoke
+          to: house_answers
+        - when: always
+          ends: house_left_alone
+
+    - id: house_answers
+      speaker: resident
+      listener: caller
+      intentions:
+        - act: refuse
+        - act: answer
+        - act: evade
+        - act: inform
+        - act: warn
+      check:
+        profile: proc_hospitality
+        actor: resident
+        target: caller
+        question: is_this_somebody_the_house_talks_to
+      playerIntersections:
+        - rapport
+        - persuade
+        - question
+        - host
+      consequences:
+        - hook: house_gave_something_up
+          act: answer
+        - hook: house_shut_the_door
+          act: refuse
+      routes:
+        - when: always
+          act: refuse
+          ends: caller_sent_away
+        - when: always
+          act: evade
+          ends: caller_sent_away
+        - when: spoke
+          ends: matter_reached_the_house
+        - when: always
+          ends: house_left_alone
+  consequenceHooks:
+    - record_household_pressure

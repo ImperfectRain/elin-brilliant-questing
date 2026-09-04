@@ -1,0 +1,97 @@
+id: storylet.rumor_correction
+kind: storylet
+payload:
+  situationTags:
+    - theft
+    - rumor
+  toneTags:
+    - corrective
+    - social
+  requiredRoles:
+    - id: corrector
+      source: AnyoneWhoKnowsFocus
+    - id: named
+      source: FactSubject
+  optionalRoles:
+    - id: repeater
+      source: AnyoneWhoKnowsFocus
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: stole
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: corrector
+    - kind: RoleAlive
+      role: corrector
+    - kind: RoleAlive
+      role: named
+  resolutions:
+    - story_straightened
+    - story_ran_on
+    - correction_declined
+  beats:
+    - id: version_repeated
+      speaker: repeater
+      listener: corrector
+      intentions:
+        - act: gossip
+          referent: named
+        - act: ask
+      playerIntersections:
+        - eavesdrop
+        - question
+      routes:
+        - when: spoke
+          to: version_challenged
+        - when: always
+          ends: story_ran_on
+
+    - id: version_challenged
+      speaker: corrector
+      listener: repeater
+      intentions:
+        - act: deny
+        - act: inform
+        - act: refuse
+        - act: evade
+      check:
+        profile: proc_corroboration
+        actor: corrector
+        target: repeater
+        question: does_the_correction_hold_against_the_story
+      playerIntersections:
+        - compare_testimony
+        - persuade
+        - question
+      consequences:
+        - hook: correction_offered
+          act: deny
+        - hook: correction_took
+          event: RumorSpread
+          actor: corrector
+          target: repeater
+          magnitude: 0.2
+          when: check_pass
+        - hook: correction_bounced
+          event: RumorDistorted
+          actor: repeater
+          target: corrector
+          magnitude: 0.3
+          when: check_fail
+      routes:
+        - when: always
+          act: refuse
+          ends: correction_declined
+        - when: always
+          act: evade
+          ends: correction_declined
+        - when: check_pass
+          ends: story_straightened
+        - when: check_fail
+          ends: story_ran_on
+        - when: always
+          ends: story_ran_on
+  consequenceHooks:
+    - record_rumor_pressure

@@ -1,0 +1,90 @@
+id: storylet.animal_witness
+kind: storylet
+payload:
+  situationTags:
+    - theft
+    - testimony
+  toneTags:
+    - domestic
+    - discounted
+  requiredRoles:
+    - id: claimant
+      source: AnyoneWhoKnowsFocus
+    - id: creature
+      source: HouseholdMemberHere
+    - id: doubted
+      source: FactSubject
+  optionalRoles:
+    - id: skeptic
+      source: AnyoneWhoKnowsFocus
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: stole
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: claimant
+    - kind: RoleAlive
+      role: claimant
+    - kind: RoleAlive
+      role: creature
+  resolutions:
+    - lead_taken_seriously
+    - lead_laughed_off
+    - lead_kept_at_home
+  beats:
+    - id: creature_noticed
+      speaker: claimant
+      listener: skeptic
+      intentions:
+        - act: inform
+        - act: ask
+        - act: refuse
+      playerIntersections:
+        - inspect
+        - question
+        - rapport
+      consequences:
+        - hook: household_observation_raised
+          act: inform
+      routes:
+        - when: always
+          act: refuse
+          ends: lead_kept_at_home
+        - when: spoke
+          to: creature_doubted
+        - when: always
+          ends: lead_kept_at_home
+
+    - id: creature_doubted
+      speaker: skeptic
+      listener: claimant
+      intentions:
+        - act: deny
+        - act: ask
+        - act: inform
+      check:
+        profile: proc_investigation
+        actor: claimant
+        target: doubted
+        question: does_the_household_sign_point_anywhere
+      playerIntersections:
+        - inspect
+        - track
+        - search
+        - persuade
+      consequences:
+        - hook: household_sign_led_somewhere
+          when: check_pass
+        - hook: household_sign_led_nowhere
+          when: check_fail
+      routes:
+        - when: check_pass
+          ends: lead_taken_seriously
+        - when: check_fail
+          ends: lead_laughed_off
+        - when: always
+          ends: lead_kept_at_home
+  consequenceHooks:
+    - record_household_testimony

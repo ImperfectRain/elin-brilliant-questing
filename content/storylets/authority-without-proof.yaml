@@ -1,0 +1,128 @@
+id: storylet.authority_without_proof
+kind: storylet
+payload:
+  situationTags:
+    - theft
+    - authority
+  toneTags:
+    - official
+    - constrained
+  requiredRoles:
+    - id: officer
+      source: AnyoneWithStandingHere
+    - id: suspect
+      source: FactSubject
+  optionalRoles:
+    - id: informant
+      source: AnyoneWhoKnowsFocus
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: stole
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleAlive
+      role: officer
+    - kind: RoleAlive
+      role: suspect
+  resolutions:
+    - inquiry_opened
+    - suspect_released
+    - matter_handed_back
+  beats:
+    - id: office_asks
+      speaker: officer
+      listener: suspect
+      intentions:
+        - act: ask
+        - act: inform
+        - act: warn
+      playerIntersections:
+        - question
+        - report
+        - invoke_authority
+      routes:
+        - when: spoke
+          to: office_weighs_the_answer
+        - when: always
+          ends: matter_handed_back
+
+    - id: office_weighs_the_answer
+      speaker: suspect
+      listener: officer
+      intentions:
+        - act: answer
+        - act: deny
+        - act: evade
+        - act: refuse
+        - act: admit
+      check:
+        profile: proc_vigilance
+        actor: officer
+        target: suspect
+        question: does_the_officer_notice_the_gap
+      playerIntersections:
+        - lie
+        - persuade
+        - compare_testimony
+        - search
+      consequences:
+        - hook: suspect_owned_it_to_authority
+          event: CrimeReported
+          actor: officer
+          target: suspect
+          magnitude: 0.6
+          act: admit
+        - hook: officer_caught_the_gap
+          when: check_pass
+      routes:
+        - when: always
+          act: admit
+          ends: inquiry_opened
+        - when: check_pass
+          to: office_states_its_limits
+        - when: always
+          to: office_states_its_limits
+
+    - id: office_states_its_limits
+      speaker: officer
+      listener: suspect
+      intentions:
+        - act: warn
+        - act: request
+        - act: refuse
+        - act: threaten
+      playerIntersections:
+        - report
+        - invoke_authority
+        - search
+        - store_evidence
+      consequences:
+        - hook: inquiry_opened_without_proof
+          event: InquiryOpened
+          actor: officer
+          target: suspect
+          magnitude: 0.4
+          act: request
+        - hook: office_stood_down
+          act: refuse
+        - hook: office_leaned
+          event: Threatened
+          actor: officer
+          target: suspect
+          magnitude: 0.4
+          act: threaten
+      routes:
+        - when: always
+          act: request
+          ends: inquiry_opened
+        - when: always
+          act: threaten
+          ends: inquiry_opened
+        - when: always
+          act: refuse
+          ends: suspect_released
+        - when: always
+          ends: matter_handed_back
+  consequenceHooks:
+    - record_authority_pressure

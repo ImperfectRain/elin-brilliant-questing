@@ -27,10 +27,109 @@ payload:
       role: speaker
     - kind: RoleAlive
       role: subject
+  resolutions:
+    - passed_on
+    - kept_quiet
+    - corrected
   beats:
-    - open_with_hearsay
-    - shade_detail
-    - test_listener
-    - pass_on_hook
+    - id: open_with_hearsay
+      speaker: speaker
+      listener: knower
+      intentions:
+        - act: gossip
+          referent: subject
+        - act: evade
+        - act: refuse
+      playerIntersections:
+        - eavesdrop
+        - question
+        - rapport
+      consequences:
+        - hook: word_started_moving
+          event: RumorSpread
+          actor: speaker
+          target: knower
+          magnitude: 0.3
+          act: gossip
+      routes:
+        - when: always
+          act: gossip
+          to: shade_detail
+        - when: always
+          ends: kept_quiet
+
+    - id: shade_detail
+      speaker: speaker
+      listener: knower
+      intentions:
+        - act: gossip
+          referent: subject
+        - act: inform
+      check:
+        profile: proc_credibility
+        actor: speaker
+        target: knower
+        question: does_the_listener_take_it_as_told
+      playerIntersections:
+        - question
+        - compare_testimony
+      consequences:
+        - hook: told_straight
+          when: check_pass
+        - hook: told_crooked
+          event: RumorDistorted
+          actor: speaker
+          target: knower
+          magnitude: 0.3
+          when: check_fail
+      routes:
+        - when: always
+          to: test_listener
+
+    - id: test_listener
+      speaker: knower
+      listener: speaker
+      intentions:
+        - act: ask
+        - act: deny
+        - act: inform
+        - act: evade
+      playerIntersections:
+        - question
+        - persuade
+        - compare_testimony
+      consequences:
+        - hook: story_pushed_back_on
+          act: deny
+      routes:
+        - when: always
+          act: deny
+          ends: corrected
+        - when: always
+          to: pass_on_hook
+
+    - id: pass_on_hook
+      speaker: knower
+      listener: speaker
+      intentions:
+        - act: promise
+        - act: request
+        - act: refuse
+      playerIntersections:
+        - question
+        - report
+      consequences:
+        - hook: carried_further
+          event: RumorSpread
+          actor: knower
+          target: speaker
+          magnitude: 0.2
+          act: promise
+      routes:
+        - when: always
+          act: refuse
+          ends: kept_quiet
+        - when: always
+          ends: passed_on
   consequenceHooks:
     - record_gossip_pressure

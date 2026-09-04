@@ -1,0 +1,166 @@
+id: storylet.debt_called_in
+kind: storylet
+payload:
+  situationTags:
+    - debt
+    - obligation
+  toneTags:
+    - transactional
+    - awkward
+  requiredRoles:
+    - id: debtor
+      source: FactSubject
+    - id: creditor
+      source: AnyoneWhoKnowsFocus
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: owes
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: creditor
+    - kind: RoleAlive
+      role: debtor
+    - kind: RoleAlive
+      role: creditor
+  resolutions:
+    - debt_settled
+    - debt_deferred
+    - debt_forgiven
+    - debt_escalated
+  beats:
+    - id: account_raised
+      speaker: creditor
+      listener: debtor
+      intentions:
+        - act: request
+        - act: inform
+        - act: evade
+      playerIntersections:
+        - question
+        - pay_debt
+        - rapport
+      consequences:
+        - hook: account_was_raised
+          act: request
+      routes:
+        - when: always
+          act: evade
+          ends: debt_deferred
+        - when: spoke
+          to: account_answered
+        - when: always
+          ends: debt_deferred
+
+    - id: account_answered
+      speaker: debtor
+      listener: creditor
+      intentions:
+        - act: offer
+        - act: promise
+        - act: refuse
+        - act: apologize
+        - act: evade
+      check:
+        profile: proc_persuasion
+        actor: debtor
+        target: creditor
+        question: will_the_creditor_wait
+      playerIntersections:
+        - pay_debt
+        - persuade
+        - lie
+        - bribe
+      consequences:
+        - hook: terms_proposed_against_debt
+          act: offer
+        - hook: repayment_undertaken
+          event: PromiseMade
+          actor: debtor
+          target: creditor
+          magnitude: 0.5
+          act: promise
+        - hook: repayment_refused
+          event: RequestDeclined
+          actor: debtor
+          target: creditor
+          magnitude: 0.4
+          act: refuse
+      routes:
+        - when: always
+          act: refuse
+          to: account_pressed
+        - when: check_fail
+          to: account_pressed
+        - when: spoke
+          to: account_closed
+        - when: always
+          to: account_pressed
+
+    - id: account_closed
+      speaker: creditor
+      listener: debtor
+      intentions:
+        - act: forgive
+          referent: debtor
+          content: none
+        - act: promise
+        - act: request
+      playerIntersections:
+        - pay_debt
+        - persuade
+      consequences:
+        - hook: ledger_cleared
+          event: DebtPaid
+          actor: debtor
+          target: creditor
+          magnitude: 0.5
+          act: forgive
+      routes:
+        - when: always
+          act: forgive
+          ends: debt_forgiven
+        - when: always
+          ends: debt_settled
+
+    - id: account_pressed
+      speaker: creditor
+      listener: debtor
+      intentions:
+        - act: threaten
+        - act: warn
+        - act: forgive
+          referent: debtor
+          content: none
+        - act: request
+      playerIntersections:
+        - pay_debt
+        - intimidate
+        - report
+        - invoke_authority
+        - persuade
+      consequences:
+        - hook: debt_pressed_hard
+          event: Threatened
+          actor: creditor
+          target: debtor
+          magnitude: 0.5
+          act: threaten
+        - hook: debt_written_off
+          event: DebtPaid
+          actor: debtor
+          target: creditor
+          magnitude: 0.3
+          act: forgive
+      routes:
+        - when: always
+          act: forgive
+          ends: debt_forgiven
+        - when: always
+          act: threaten
+          ends: debt_escalated
+        - when: always
+          ends: debt_deferred
+  consequenceHooks:
+    - record_debt_pressure

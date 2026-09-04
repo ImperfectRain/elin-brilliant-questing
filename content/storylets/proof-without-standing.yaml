@@ -1,0 +1,98 @@
+id: storylet.proof_without_standing
+kind: storylet
+payload:
+  situationTags:
+    - theft
+    - evidence
+  toneTags:
+    - practical
+    - unheard
+  requiredRoles:
+    - id: prover
+      source: AnyoneWhoCanProveFocus
+    - id: subject
+      source: FactSubject
+  optionalRoles:
+    - id: officer
+      source: AnyoneWithStandingHere
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: stole
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleCanProveFocus
+      role: prover
+    - kind: RoleAlive
+      role: prover
+    - kind: RoleAlive
+      role: subject
+  resolutions:
+    - evidence_carried_upward
+    - evidence_kept
+    - evidence_dismissed
+  beats:
+    - id: evidence_named
+      speaker: prover
+      listener: officer
+      intentions:
+        - act: inform
+        - act: ask
+        - act: refuse
+      playerIntersections:
+        - question
+        - store_evidence
+        - report
+      consequences:
+        - hook: evidence_offered_upward
+          act: inform
+      routes:
+        - when: always
+          act: refuse
+          ends: evidence_kept
+        - when: spoke
+          to: evidence_weighed
+        - when: always
+          ends: evidence_kept
+
+    - id: evidence_weighed
+      speaker: officer
+      listener: prover
+      intentions:
+        - act: ask
+        - act: refuse
+        - act: promise
+        - act: warn
+      check:
+        profile: proc_credibility
+        actor: prover
+        target: officer
+        question: is_the_witness_worth_listening_to
+      playerIntersections:
+        - persuade
+        - invoke_authority
+        - report
+        - rapport
+      consequences:
+        - hook: standing_lent_to_the_evidence
+          event: InquiryOpened
+          actor: officer
+          target: subject
+          magnitude: 0.5
+          when: check_pass
+          act: promise
+        - hook: witness_was_not_believed
+          when: check_fail
+      routes:
+        - when: check_pass
+          act: promise
+          ends: evidence_carried_upward
+        - when: check_fail
+          ends: evidence_dismissed
+        - when: always
+          act: refuse
+          ends: evidence_dismissed
+        - when: always
+          ends: evidence_kept
+  consequenceHooks:
+    - record_evidence_pressure

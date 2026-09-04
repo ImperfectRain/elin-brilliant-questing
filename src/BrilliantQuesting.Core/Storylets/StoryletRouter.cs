@@ -32,6 +32,7 @@ namespace BrilliantQuesting.Storylets
             EntityId speaker,
             EntityId listener,
             IntentChoice choice,
+            DisclosureDecision decision,
             CheckResult check,
             RealizedLine line,
             IReadOnlyList<string> consequences,
@@ -43,6 +44,7 @@ namespace BrilliantQuesting.Storylets
             Speaker = speaker;
             Listener = listener;
             Choice = choice;
+            Decision = decision;
             Check = check;
             Line = line;
             Consequences = consequences ?? Nothing;
@@ -62,7 +64,17 @@ namespace BrilliantQuesting.Storylets
         /// <summary>What the speaker weighed and what they picked, or null for a beat nobody speaks in.</summary>
         public IntentChoice Choice { get; }
 
-        public SpeechAct Act => Choice?.Act;
+        public SpeechAct Act => Chosen;
+
+        /// <summary>What was actually said, whichever layer decided it.</summary>
+        public SpeechAct Chosen { get; internal set; }
+
+        /// <summary>
+        /// The disclosure decision behind the act, when the speaker was answering a question about
+        /// the focus and <c>Disclosure</c> was therefore the layer that decided (BQ-071..073).
+        /// Null for every other beat.
+        /// </summary>
+        public DisclosureDecision Decision { get; }
 
         public CheckResult Check { get; }
 
@@ -232,14 +244,16 @@ namespace BrilliantQuesting.Storylets
             HashSet<string> guard = new HashSet<string>(StringComparer.Ordinal);
 
             StoryletBeat beat = definition.Beats.Count == 0 ? null : definition.Beats[0];
+            SpeechAct lastSpoken = null;
             int steps = 0;
             while (beat != null && steps < context.MaxBeats)
             {
                 steps++;
                 guard.Add(beat.Id);
 
-                PlayedBeat outcome = PlayBeat(definition, beat, opportunity, context, focus, now, rng, firing);
+                PlayedBeat outcome = PlayBeat(beat, opportunity, context, focus, now, rng, lastSpoken);
                 played.Add(outcome);
+                lastSpoken = outcome.Chosen ?? lastSpoken;
 
                 if (outcome.Route == null)
                 {
@@ -291,14 +305,13 @@ namespace BrilliantQuesting.Storylets
         }
 
         private PlayedBeat PlayBeat(
-            StoryletDefinition definition,
             StoryletBeat beat,
             StoryletOpportunity opportunity,
             StoryletPlayContext context,
             Fact focus,
             GameTime now,
             DeterministicRng rng,
-            StoryletFiring firing)
+            SpeechAct lastSpoken)
         {
             // A beat whose requirements have lapsed is skipped rather than played anyway. The
             // scene still routes out of it, so the world moving under a scene degrades it instead
@@ -307,28 +320,72 @@ namespace BrilliantQuesting.Storylets
             string lapsed = Lapsed(beat, context, focus, opportunity.RoleBindings);
             if (lapsed.Length != 0)
             {
-                return new PlayedBeat(beat, EntityId.None, EntityId.None, null, null, null, null, null,
+                PlayedBeat skipped = new PlayedBeat(beat, EntityId.None, EntityId.None, null, null, null, null, null, null,
                     Route(beat, null, null), lapsed);
+                return skipped;
             }
 
             EntityId speaker = Role(opportunity, beat.SpeakerRole);
             EntityId listener = Role(opportunity, beat.ListenerRole);
 
+            // The question this beat is answering, when it is answering one at all.
+            SpeechAct antecedent = lastSpoken != null && lastSpoken.Speaker != speaker && lastSpoken.IsAddressedTo(speaker)
+                ? lastSpoken
+                : null;
+
+            // How forthcoming to be about a claim somebody has just asked you about is not this
+            // layer's question: `Disclosure` (BQ-071 .. BQ-073) already weighs privacy, tie, fear,
+            // loyalty and leverage for exactly that, and produces the answer, the refusal, the
+            // evasion or the falsehood. Asking it first and taking its answer when the beat offers
+            // that move keeps one decision in one place; anything else is `ActorIntent`'s.
+            DisclosureDecision decision = null;
+            SpeechAct said = null;
+            if (antecedent != null && antecedent.Type == SpeechActType.Ask && antecedent.Content.HasProposition
+                && !speaker.IsNone && Offers(beat, SpeechActType.Answer))
+            {
+                decision = Disclosure.Decide(context.World, antecedent, speaker, now);
+                SpeechAct disclosed = Disclosure.Compose(decision, antecedent);
+                if (disclosed != null && Offers(beat, disclosed.Type))
+                {
+                    said = disclosed;
+                }
+                else
+                {
+                    decision = null;
+                }
+            }
+
             IntentChoice choice = null;
-            if (!speaker.IsNone && !listener.IsNone && beat.Intentions.Count > 0)
+            if (said == null && !speaker.IsNone && !listener.IsNone && beat.Intentions.Count > 0)
             {
                 choice = ActorIntent.Choose(
                     context.World, context.Vanilla, speaker, listener, focus,
-                    beat.Intentions, opportunity.RoleBindings, context.InPublic, beat.Id, rng);
+                    beat.Intentions, opportunity.RoleBindings, context.InPublic, beat.Id, rng, antecedent);
+                said = choice.Act;
             }
 
             CheckResult check = Resolve(beat, opportunity, context, rng);
-            RealizedLine line = Say(choice, focus, context, opportunity, speaker, listener, rng, beat);
-            List<string> consequences = Apply(beat, opportunity, context, focus, now, firing);
+            RealizedLine line = Say(said, decision, focus, context, opportunity, speaker, listener, rng, beat);
+            List<string> consequences = Apply(beat, opportunity, context, focus, now, said, check);
             List<string> intersections = new List<string>(beat.PlayerIntersections);
 
-            return new PlayedBeat(beat, speaker, listener, choice, check, line, consequences, intersections,
-                Route(beat, choice, check), string.Empty);
+            PlayedBeat outcome = new PlayedBeat(beat, speaker, listener, choice, decision, check, line, consequences,
+                intersections, Route(beat, said, check), string.Empty);
+            outcome.Chosen = said;
+            return outcome;
+        }
+
+        private static bool Offers(StoryletBeat beat, SpeechActType act)
+        {
+            for (int i = 0; i < beat.Intentions.Count; i++)
+            {
+                if (beat.Intentions[i].Act == act)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -383,7 +440,8 @@ namespace BrilliantQuesting.Storylets
         /// must not start to.
         /// </summary>
         private RealizedLine Say(
-            IntentChoice choice,
+            SpeechAct said,
+            DisclosureDecision decision,
             Fact focus,
             StoryletPlayContext context,
             StoryletOpportunity opportunity,
@@ -392,7 +450,7 @@ namespace BrilliantQuesting.Storylets
             DeterministicRng rng,
             StoryletBeat beat)
         {
-            if (_realizer == null || choice == null || !choice.Spoke)
+            if (_realizer == null || said == null)
             {
                 return null;
             }
@@ -411,16 +469,56 @@ namespace BrilliantQuesting.Storylets
                 named.Add(focus.Subject);
             }
 
-            RealizationRequest request = new RealizationRequest(choice.Act)
+            RealizationRequest request = new RealizationRequest(said)
             {
+                Decision = decision,
                 Claim = focus,
                 Cast = DialogueCast.From(context.World, named.ToArray()),
                 Feeling = actor == null ? SpeakerFeeling.None : SpeakerFeeling.Of(actor.Emotions, now),
                 Tie = SpeakerTie.Of(context.World.Relationships, speaker, listener),
+                Callback = Recall(context, said, speaker, listener, now),
                 Rng = rng.Fork("bq146|line|" + beat.Id)
             };
 
-            return _realizer.Realize(request);
+            RealizedLine line = _realizer.Realize(request);
+
+            // A permit that turned out not to be wordable here is dropped and the line is said
+            // without it, rather than the scene falling silent over a flourish. Refusing was the
+            // right answer for a caller that had asked a permission question; the scene never
+            // asked one - it took whatever old business happened to be to hand.
+            if (!line.Rendered && request.Callback != null)
+            {
+                request.Callback = null;
+                line = _realizer.Realize(request);
+            }
+
+            return line;
+        }
+
+        /// <summary>
+        /// Old business this speaker is entitled to raise <em>and</em> willing to raise with this
+        /// listener, or null (BQ-081, BQ-082).
+        ///
+        /// Selected rather than composed: <c>CallbackDisclosure</c> owns both gates - what the
+        /// speaker may know about the event, and whether they would bring it up with the person
+        /// opposite - and a scene that reached past either would be putting a memory into somebody's
+        /// mouth that the simulation never granted them. Only for an act addressed to one person,
+        /// because a permit is weighed against one listener.
+        /// </summary>
+        private static CallbackPermit Recall(
+            StoryletPlayContext context,
+            SpeechAct said,
+            EntityId speaker,
+            EntityId listener,
+            GameTime now)
+        {
+            if (said.Addressees.Count != 1 || listener.IsNone || context.Vanilla == null)
+            {
+                return null;
+            }
+
+            CallbackPermit permit = CallbackDisclosure.Best(context.World, context.Vanilla, speaker, listener, now);
+            return permit != null && permit.Allowed && permit.Hook != null ? permit : null;
         }
 
         /// <summary>
@@ -434,12 +532,22 @@ namespace BrilliantQuesting.Storylets
             StoryletPlayContext context,
             Fact focus,
             GameTime now,
-            StoryletFiring firing)
+            SpeechAct said,
+            CheckResult check)
         {
             List<string> applied = new List<string>();
             for (int i = 0; i < beat.Consequences.Count; i++)
             {
                 BeatConsequence consequence = beat.Consequences[i];
+
+                // A consequence records what happened, so it applies only when the thing it
+                // records happened. A beat that offers a charge and a question would otherwise
+                // file an accusation nobody made.
+                if (!Fired(consequence.When, consequence.Act, said, check))
+                {
+                    continue;
+                }
+
                 applied.Add(consequence.HookId);
 
                 if (!consequence.Event.HasValue || !context.ApplyConsequences)
@@ -476,11 +584,11 @@ namespace BrilliantQuesting.Storylets
         /// a route turns on what this beat produced, and questions about the world belong in the
         /// next beat's own requirements.
         /// </summary>
-        private static BeatRoute Route(StoryletBeat beat, IntentChoice choice, CheckResult check)
+        private static BeatRoute Route(StoryletBeat beat, SpeechAct said, CheckResult check)
         {
             for (int i = 0; i < beat.Routes.Count; i++)
             {
-                if (Fired(beat.Routes[i], choice, check))
+                if (Fired(beat.Routes[i].When, beat.Routes[i].Act, said, check))
                 {
                     return beat.Routes[i];
                 }
@@ -489,15 +597,20 @@ namespace BrilliantQuesting.Storylets
             return null;
         }
 
-        private static bool Fired(BeatRoute route, IntentChoice choice, CheckResult check)
+        /// <summary>
+        /// Whether one trigger fired, for a route or for a consequence. One predicate, because
+        /// "where the scene goes" and "what the scene records" turn on the same two facts: what
+        /// the actor decided to say, and how the check came out.
+        /// </summary>
+        private static bool Fired(BeatTrigger when, SpeechActType? act, SpeechAct said, CheckResult check)
         {
-            bool spoke = choice != null && choice.Spoke;
-            if (route.Act.HasValue && (!spoke || choice.Act.Type != route.Act.Value))
+            bool spoke = said != null;
+            if (act.HasValue && (!spoke || said.Type != act.Value))
             {
                 return false;
             }
 
-            switch (route.When)
+            switch (when)
             {
                 case BeatTrigger.Always:
                     return true;

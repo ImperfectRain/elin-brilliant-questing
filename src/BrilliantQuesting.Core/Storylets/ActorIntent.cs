@@ -132,7 +132,8 @@ namespace BrilliantQuesting.Storylets
             IReadOnlyDictionary<string, EntityId> roles,
             bool inPublic,
             string beatId,
-            DeterministicRng rng)
+            DeterministicRng rng,
+            SpeechAct inReplyTo = null)
         {
             List<IntentScore> considered = new List<IntentScore>();
             if (world == null || intentions == null || intentions.Count == 0)
@@ -145,7 +146,7 @@ namespace BrilliantQuesting.Storylets
 
             for (int i = 0; i < intentions.Count; i++)
             {
-                considered.Add(Score(world, actor, speaker, listener, focus, intentions[i], roles, inPublic, now, beatId, rng));
+                considered.Add(Score(world, actor, speaker, listener, focus, intentions[i], roles, inPublic, now, beatId, rng, inReplyTo));
             }
 
             IntentScore best = null;
@@ -171,7 +172,8 @@ namespace BrilliantQuesting.Storylets
             bool inPublic,
             GameTime now,
             string beatId,
-            DeterministicRng rng)
+            DeterministicRng rng,
+            SpeechAct inReplyTo)
         {
             EntityId referent = Referent(intention, roles);
             ActionBinding content = Content(intention, focus);
@@ -182,11 +184,22 @@ namespace BrilliantQuesting.Storylets
                 return new IntentScore(intention, null, 0.0, null, refusal);
             }
 
-            SpeechAct act = SpeechAct.Compose(intention.Act, speaker, listener, content, referent);
+            // Composed against what was just said to this speaker where there is anything, because
+            // several acts are unintelligible without it - an evasion of nothing is just talk, and
+            // a refusal of nothing is not a refusal. An act that only fails *because* of the
+            // antecedent is retried without one when its profile permits, so an unrelated remark
+            // earlier in the scene cannot make a well-formed move unsayable.
+            SpeechAct antecedent = Antecedent(inReplyTo, speaker);
+            SpeechAct act = SpeechAct.Compose(intention.Act, speaker, listener, content, referent, antecedent);
+            if (act == null && antecedent != null && !SpeechActProfile.Of(intention.Act).AntecedentRequired)
+            {
+                act = SpeechAct.Compose(intention.Act, speaker, listener, content, referent);
+            }
+
             if (act == null)
             {
                 return new IntentScore(intention, null, 0.0, null,
-                    SpeechAct.WhyNot(intention.Act, speaker, new[] { listener }, content, referent, null));
+                    SpeechAct.WhyNot(intention.Act, speaker, new[] { listener }, content, referent, antecedent));
             }
 
             List<IntentReason> reasons = new List<IntentReason>();
@@ -659,6 +672,21 @@ namespace BrilliantQuesting.Storylets
 
         /// <summary>A dimension as a signed distance from the midpoint, so the average person scores nothing.</summary>
         private static double Off(double value) => value - 0.5;
+
+        /// <summary>
+        /// The act this speaker may be answering, or null. Responding means responding to somebody
+        /// who spoke to you: an act that was not addressed to this speaker is not theirs to answer,
+        /// and their own last act is not something they respond to.
+        /// </summary>
+        private static SpeechAct Antecedent(SpeechAct inReplyTo, EntityId speaker)
+        {
+            if (inReplyTo == null || inReplyTo.Speaker == speaker || !inReplyTo.IsAddressedTo(speaker))
+            {
+                return null;
+            }
+
+            return inReplyTo;
+        }
 
         private static EntityId Referent(BeatIntention intention, IReadOnlyDictionary<string, EntityId> roles)
         {

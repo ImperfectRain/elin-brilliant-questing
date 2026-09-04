@@ -574,6 +574,9 @@ namespace BrilliantQuesting.Storylets
                 return false;
             }
 
+            // Order matters: the check has to be read before consequences and routes, because both
+            // may only turn on a check the beat actually makes, and intentions before both, because
+            // both may only name an act somebody here can decide to say.
             if (!ReadBeatRequires(record, where, json["requires"], beat, roleIds, out diagnostic)
                 || !ReadBeatCheck(record, where, json["check"], beat, roleIds, out diagnostic)
                 || !ReadIntersections(record, where, json["playerIntersections"], beat, out diagnostic)
@@ -833,6 +836,8 @@ namespace BrilliantQuesting.Storylets
                 string actor = string.Empty;
                 string target = string.Empty;
                 double magnitude = 0.5;
+                BeatTrigger when = BeatTrigger.Always;
+                SpeechActType? act = null;
 
                 if (item.Kind == JsonKind.Object)
                 {
@@ -870,9 +875,42 @@ namespace BrilliantQuesting.Storylets
                         diagnostic = Invalid(record, at + ".magnitude", "Consequence magnitude must be between 0 and 1.");
                         return false;
                     }
+
+                    string whenName = item.GetString("when", "always");
+                    if (!TryTrigger(whenName, out when))
+                    {
+                        diagnostic = Invalid(record, at + ".when", "Consequence trigger is unknown: " + whenName + ".");
+                        return false;
+                    }
+
+                    if (when != BeatTrigger.Always && when != BeatTrigger.Spoke && when != BeatTrigger.Silent && beat.Check == null)
+                    {
+                        diagnostic = Invalid(record, at + ".when", "This consequence turns on a check the beat does not make.");
+                        return false;
+                    }
+
+                    string actName = item.GetString("act", null);
+                    if (actName != null)
+                    {
+                        SpeechActType parsed;
+                        if (!TryAct(actName, out parsed))
+                        {
+                            diagnostic = Invalid(record, at + ".act", "Semantic act is unknown: " + actName + ".");
+                            return false;
+                        }
+
+                        if (!Offers(beat, parsed))
+                        {
+                            diagnostic = Invalid(record, at + ".act",
+                                "This consequence records " + parsed + ", which nobody here can decide to say.");
+                            return false;
+                        }
+
+                        act = parsed;
+                    }
                 }
 
-                beat.Consequences.Add(new BeatConsequence(hook, eventType, actor, target, magnitude));
+                beat.Consequences.Add(new BeatConsequence(hook, eventType, actor, target, magnitude, when, act));
             }
 
             return true;

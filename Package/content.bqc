@@ -5667,6 +5667,555 @@
       }
     },
     {
+      "id": "storylet.animal_witness",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "theft",
+          "testimony"
+        ],
+        "toneTags": [
+          "domestic",
+          "discounted"
+        ],
+        "requiredRoles": [
+          {
+            "id": "claimant",
+            "source": "AnyoneWhoKnowsFocus"
+          },
+          {
+            "id": "creature",
+            "source": "HouseholdMemberHere"
+          },
+          {
+            "id": "doubted",
+            "source": "FactSubject"
+          }
+        ],
+        "optionalRoles": [
+          {
+            "id": "skeptic",
+            "source": "AnyoneWhoKnowsFocus"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "stole"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "claimant"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "claimant"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "creature"
+          }
+        ],
+        "resolutions": [
+          "lead_taken_seriously",
+          "lead_laughed_off",
+          "lead_kept_at_home"
+        ],
+        "beats": [
+          {
+            "id": "creature_noticed",
+            "speaker": "claimant",
+            "listener": "skeptic",
+            "intentions": [
+              {
+                "act": "inform"
+              },
+              {
+                "act": "ask"
+              },
+              {
+                "act": "refuse"
+              }
+            ],
+            "playerIntersections": [
+              "inspect",
+              "question",
+              "rapport"
+            ],
+            "consequences": [
+              {
+                "hook": "household_observation_raised",
+                "act": "inform"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "lead_kept_at_home"
+              },
+              {
+                "when": "spoke",
+                "to": "creature_doubted"
+              },
+              {
+                "when": "always",
+                "ends": "lead_kept_at_home"
+              }
+            ]
+          },
+          {
+            "id": "creature_doubted",
+            "speaker": "skeptic",
+            "listener": "claimant",
+            "intentions": [
+              {
+                "act": "deny"
+              },
+              {
+                "act": "ask"
+              },
+              {
+                "act": "inform"
+              }
+            ],
+            "check": {
+              "profile": "proc_investigation",
+              "actor": "claimant",
+              "target": "doubted",
+              "question": "does_the_household_sign_point_anywhere"
+            },
+            "playerIntersections": [
+              "inspect",
+              "track",
+              "search",
+              "persuade"
+            ],
+            "consequences": [
+              {
+                "hook": "household_sign_led_somewhere",
+                "when": "check_pass"
+              },
+              {
+                "hook": "household_sign_led_nowhere",
+                "when": "check_fail"
+              }
+            ],
+            "routes": [
+              {
+                "when": "check_pass",
+                "ends": "lead_taken_seriously"
+              },
+              {
+                "when": "check_fail",
+                "ends": "lead_laughed_off"
+              },
+              {
+                "when": "always",
+                "ends": "lead_kept_at_home"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_household_testimony"
+        ]
+      }
+    },
+    {
+      "id": "storylet.authority_without_proof",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "theft",
+          "authority"
+        ],
+        "toneTags": [
+          "official",
+          "constrained"
+        ],
+        "requiredRoles": [
+          {
+            "id": "officer",
+            "source": "AnyoneWithStandingHere"
+          },
+          {
+            "id": "suspect",
+            "source": "FactSubject"
+          }
+        ],
+        "optionalRoles": [
+          {
+            "id": "informant",
+            "source": "AnyoneWhoKnowsFocus"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "stole"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "officer"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "suspect"
+          }
+        ],
+        "resolutions": [
+          "inquiry_opened",
+          "suspect_released",
+          "matter_handed_back"
+        ],
+        "beats": [
+          {
+            "id": "office_asks",
+            "speaker": "officer",
+            "listener": "suspect",
+            "intentions": [
+              {
+                "act": "ask"
+              },
+              {
+                "act": "inform"
+              },
+              {
+                "act": "warn"
+              }
+            ],
+            "playerIntersections": [
+              "question",
+              "report",
+              "invoke_authority"
+            ],
+            "routes": [
+              {
+                "when": "spoke",
+                "to": "office_weighs_the_answer"
+              },
+              {
+                "when": "always",
+                "ends": "matter_handed_back"
+              }
+            ]
+          },
+          {
+            "id": "office_weighs_the_answer",
+            "speaker": "suspect",
+            "listener": "officer",
+            "intentions": [
+              {
+                "act": "answer"
+              },
+              {
+                "act": "deny"
+              },
+              {
+                "act": "evade"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "admit"
+              }
+            ],
+            "check": {
+              "profile": "proc_vigilance",
+              "actor": "officer",
+              "target": "suspect",
+              "question": "does_the_officer_notice_the_gap"
+            },
+            "playerIntersections": [
+              "lie",
+              "persuade",
+              "compare_testimony",
+              "search"
+            ],
+            "consequences": [
+              {
+                "hook": "suspect_owned_it_to_authority",
+                "event": "CrimeReported",
+                "actor": "officer",
+                "target": "suspect",
+                "magnitude": 0.6,
+                "act": "admit"
+              },
+              {
+                "hook": "officer_caught_the_gap",
+                "when": "check_pass"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "admit",
+                "ends": "inquiry_opened"
+              },
+              {
+                "when": "check_pass",
+                "to": "office_states_its_limits"
+              },
+              {
+                "when": "always",
+                "to": "office_states_its_limits"
+              }
+            ]
+          },
+          {
+            "id": "office_states_its_limits",
+            "speaker": "officer",
+            "listener": "suspect",
+            "intentions": [
+              {
+                "act": "warn"
+              },
+              {
+                "act": "request"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "threaten"
+              }
+            ],
+            "playerIntersections": [
+              "report",
+              "invoke_authority",
+              "search",
+              "store_evidence"
+            ],
+            "consequences": [
+              {
+                "hook": "inquiry_opened_without_proof",
+                "event": "InquiryOpened",
+                "actor": "officer",
+                "target": "suspect",
+                "magnitude": 0.4,
+                "act": "request"
+              },
+              {
+                "hook": "office_stood_down",
+                "act": "refuse"
+              },
+              {
+                "hook": "office_leaned",
+                "event": "Threatened",
+                "actor": "officer",
+                "target": "suspect",
+                "magnitude": 0.4,
+                "act": "threaten"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "request",
+                "ends": "inquiry_opened"
+              },
+              {
+                "when": "always",
+                "act": "threaten",
+                "ends": "inquiry_opened"
+              },
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "suspect_released"
+              },
+              {
+                "when": "always",
+                "ends": "matter_handed_back"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_authority_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.blocked_way",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "obstruction",
+          "practical"
+        ],
+        "toneTags": [
+          "mundane",
+          "obstructed"
+        ],
+        "requiredRoles": [
+          {
+            "id": "reporter",
+            "source": "AnyoneWhoKnowsFocus"
+          },
+          {
+            "id": "blocked",
+            "source": "FactSubject"
+          }
+        ],
+        "optionalRoles": [
+          {
+            "id": "officer",
+            "source": "AnyoneWithStandingHere"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "blocks_access_to"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "reporter"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "reporter"
+          }
+        ],
+        "resolutions": [
+          "way_being_cleared",
+          "way_left_shut",
+          "matter_raised_upward"
+        ],
+        "beats": [
+          {
+            "id": "obstruction_reported",
+            "speaker": "reporter",
+            "listener": "officer",
+            "intentions": [
+              {
+                "act": "inform"
+              },
+              {
+                "act": "warn"
+              },
+              {
+                "act": "request"
+              }
+            ],
+            "playerIntersections": [
+              "inspect",
+              "report",
+              "invoke_authority"
+            ],
+            "consequences": [
+              {
+                "hook": "obstruction_reported_to_somebody",
+                "act": "inform"
+              }
+            ],
+            "routes": [
+              {
+                "when": "spoke",
+                "to": "obstruction_answered"
+              },
+              {
+                "when": "always",
+                "ends": "way_left_shut"
+              }
+            ]
+          },
+          {
+            "id": "obstruction_answered",
+            "speaker": "officer",
+            "listener": "reporter",
+            "intentions": [
+              {
+                "act": "promise"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "request"
+              },
+              {
+                "act": "warn"
+              }
+            ],
+            "check": {
+              "profile": "proc_clearing",
+              "actor": "officer",
+              "target": "blocked",
+              "question": "is_there_anybody_here_who_can_shift_it"
+            },
+            "playerIntersections": [
+              "inspect",
+              "transport",
+              "invoke_authority",
+              "provide_supplies"
+            ],
+            "consequences": [
+              {
+                "hook": "clearance_undertaken",
+                "event": "PromiseMade",
+                "actor": "officer",
+                "target": "reporter",
+                "magnitude": 0.4,
+                "act": "promise"
+              },
+              {
+                "hook": "nobody_free_to_shift_it",
+                "when": "check_fail"
+              }
+            ],
+            "routes": [
+              {
+                "when": "check_fail",
+                "ends": "way_left_shut"
+              },
+              {
+                "when": "always",
+                "act": "promise",
+                "ends": "way_being_cleared"
+              },
+              {
+                "when": "always",
+                "act": "request",
+                "ends": "matter_raised_upward"
+              },
+              {
+                "when": "always",
+                "ends": "way_left_shut"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_obstruction_pressure"
+        ]
+      }
+    },
+    {
       "id": "storylet.confession",
       "kind": "storylet",
       "payload": {
@@ -5713,14 +6262,1647 @@
             "role": "confessor"
           }
         ],
+        "resolutions": [
+          "owned_and_settled",
+          "owned_and_unresolved",
+          "withdrawn",
+          "carried_on"
+        ],
         "beats": [
-          "admit_act",
-          "name_reason",
-          "face_response",
-          "leave_commitment"
+          {
+            "id": "admit_act",
+            "speaker": "confessor",
+            "listener": "listener",
+            "intentions": [
+              {
+                "act": "admit"
+              },
+              {
+                "act": "evade"
+              },
+              {
+                "act": "deny"
+              }
+            ],
+            "playerIntersections": [
+              "question",
+              "rapport",
+              "persuade"
+            ],
+            "consequences": [
+              {
+                "hook": "owned_the_act",
+                "event": "SecretRevealed",
+                "actor": "confessor",
+                "target": "listener",
+                "magnitude": 0.5,
+                "act": "admit"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "admit",
+                "to": "name_reason"
+              },
+              {
+                "when": "always",
+                "ends": "withdrawn"
+              }
+            ]
+          },
+          {
+            "id": "name_reason",
+            "speaker": "confessor",
+            "listener": "listener",
+            "intentions": [
+              {
+                "act": "inform"
+              },
+              {
+                "act": "apologize"
+              },
+              {
+                "act": "refuse"
+              }
+            ],
+            "playerIntersections": [
+              "question",
+              "rapport"
+            ],
+            "consequences": [
+              {
+                "hook": "reason_given",
+                "act": "inform"
+              },
+              {
+                "hook": "apology_offered",
+                "act": "apologize"
+              }
+            ],
+            "routes": [
+              {
+                "when": "spoke",
+                "to": "face_response"
+              },
+              {
+                "when": "always",
+                "ends": "owned_and_unresolved"
+              }
+            ]
+          },
+          {
+            "id": "face_response",
+            "speaker": "listener",
+            "listener": "confessor",
+            "intentions": [
+              {
+                "act": "forgive",
+                "referent": "confessor",
+                "content": "none"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "threaten"
+              },
+              {
+                "act": "request"
+              }
+            ],
+            "check": {
+              "profile": "proc_persuasion",
+              "actor": "confessor",
+              "target": "listener",
+              "question": "does_owning_it_buy_anything"
+            },
+            "playerIntersections": [
+              "persuade",
+              "report",
+              "pay_debt",
+              "return_item"
+            ],
+            "consequences": [
+              {
+                "hook": "confession_forgiven",
+                "event": "DebtPaid",
+                "actor": "confessor",
+                "target": "listener",
+                "magnitude": 0.4,
+                "act": "forgive"
+              },
+              {
+                "hook": "restitution_demanded",
+                "act": "request"
+              },
+              {
+                "hook": "confession_answered_with_threat",
+                "event": "Threatened",
+                "actor": "listener",
+                "target": "confessor",
+                "magnitude": 0.4,
+                "act": "threaten"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "forgive",
+                "to": "leave_commitment"
+              },
+              {
+                "when": "always",
+                "act": "request",
+                "to": "leave_commitment"
+              },
+              {
+                "when": "always",
+                "ends": "owned_and_unresolved"
+              }
+            ]
+          },
+          {
+            "id": "leave_commitment",
+            "speaker": "confessor",
+            "listener": "listener",
+            "intentions": [
+              {
+                "act": "promise"
+              },
+              {
+                "act": "offer"
+              },
+              {
+                "act": "refuse"
+              }
+            ],
+            "playerIntersections": [
+              "return_item",
+              "pay_debt",
+              "persuade"
+            ],
+            "consequences": [
+              {
+                "hook": "undertaking_after_confession",
+                "event": "PromiseMade",
+                "actor": "confessor",
+                "target": "listener",
+                "magnitude": 0.5,
+                "act": "promise"
+              },
+              {
+                "hook": "terms_after_confession",
+                "act": "offer"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "carried_on"
+              },
+              {
+                "when": "spoke",
+                "ends": "owned_and_settled"
+              },
+              {
+                "when": "always",
+                "ends": "owned_and_unresolved"
+              }
+            ]
+          }
         ],
         "consequenceHooks": [
           "record_confession_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.contaminated_goods",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "production",
+          "harm"
+        ],
+        "toneTags": [
+          "technical",
+          "defensive"
+        ],
+        "requiredRoles": [
+          {
+            "id": "producer",
+            "source": "AnyoneWhoKnowsFocus"
+          },
+          {
+            "id": "batch_owner",
+            "source": "FactSubject"
+          }
+        ],
+        "optionalRoles": [
+          {
+            "id": "expert",
+            "source": "AnyoneWhoCanProveFocus"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "is_contaminated"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "producer"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "producer"
+          }
+        ],
+        "resolutions": [
+          "fault_owned",
+          "fault_denied",
+          "cause_identified",
+          "matter_dropped"
+        ],
+        "beats": [
+          {
+            "id": "batch_questioned",
+            "speaker": "producer",
+            "listener": "expert",
+            "intentions": [
+              {
+                "act": "inform"
+              },
+              {
+                "act": "ask"
+              },
+              {
+                "act": "deny"
+              },
+              {
+                "act": "admit"
+              }
+            ],
+            "playerIntersections": [
+              "identify_substance",
+              "inspect",
+              "question"
+            ],
+            "consequences": [
+              {
+                "hook": "producer_owned_the_batch",
+                "act": "admit"
+              },
+              {
+                "hook": "producer_disputed_the_batch",
+                "act": "deny"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "deny",
+                "ends": "fault_denied"
+              },
+              {
+                "when": "spoke",
+                "to": "batch_examined"
+              },
+              {
+                "when": "always",
+                "ends": "matter_dropped"
+              }
+            ]
+          },
+          {
+            "id": "batch_examined",
+            "speaker": "expert",
+            "listener": "producer",
+            "intentions": [
+              {
+                "act": "inform"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "warn"
+              }
+            ],
+            "check": {
+              "profile": "proc_substance",
+              "actor": "expert",
+              "target": "batch_owner",
+              "question": "what_actually_spoiled_it"
+            },
+            "playerIntersections": [
+              "identify_substance",
+              "search",
+              "read",
+              "inspect"
+            ],
+            "consequences": [
+              {
+                "hook": "cause_found",
+                "event": "EvidenceCreated",
+                "actor": "expert",
+                "target": "batch_owner",
+                "magnitude": 0.4,
+                "when": "check_pass",
+                "act": "inform"
+              },
+              {
+                "hook": "cause_unfound",
+                "when": "check_fail"
+              }
+            ],
+            "routes": [
+              {
+                "when": "check_pass",
+                "ends": "cause_identified"
+              },
+              {
+                "when": "check_fail",
+                "to": "batch_owned_or_not"
+              },
+              {
+                "when": "always",
+                "to": "batch_owned_or_not"
+              }
+            ]
+          },
+          {
+            "id": "batch_owned_or_not",
+            "speaker": "producer",
+            "listener": "expert",
+            "intentions": [
+              {
+                "act": "admit"
+              },
+              {
+                "act": "offer"
+              },
+              {
+                "act": "deny"
+              },
+              {
+                "act": "refuse"
+              }
+            ],
+            "playerIntersections": [
+              "pay_debt",
+              "persuade",
+              "repair",
+              "destroy_evidence"
+            ],
+            "consequences": [
+              {
+                "hook": "harm_owned_after_examination",
+                "event": "SecretRevealed",
+                "actor": "producer",
+                "target": "batch_owner",
+                "magnitude": 0.4,
+                "act": "admit"
+              },
+              {
+                "hook": "replacement_offered",
+                "act": "offer"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "deny",
+                "ends": "fault_denied"
+              },
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "matter_dropped"
+              },
+              {
+                "when": "always",
+                "ends": "fault_owned"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_production_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.damaged_property",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "damage",
+          "restitution"
+        ],
+        "toneTags": [
+          "domestic",
+          "aggrieved"
+        ],
+        "requiredRoles": [
+          {
+            "id": "owner",
+            "source": "AnyoneWhoKnowsFocus"
+          },
+          {
+            "id": "damaged_thing",
+            "source": "FactSubject"
+          }
+        ],
+        "optionalRoles": [
+          {
+            "id": "suspected",
+            "source": "AnyoneWhoKnowsFocus"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "damaged"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "owner"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "owner"
+          }
+        ],
+        "resolutions": [
+          "repair_undertaken",
+          "blame_placed",
+          "loss_absorbed"
+        ],
+        "beats": [
+          {
+            "id": "damage_shown",
+            "speaker": "owner",
+            "listener": "suspected",
+            "intentions": [
+              {
+                "act": "inform"
+              },
+              {
+                "act": "ask"
+              },
+              {
+                "act": "accuse",
+                "referent": "suspected"
+              }
+            ],
+            "playerIntersections": [
+              "inspect",
+              "question",
+              "repair"
+            ],
+            "consequences": [
+              {
+                "hook": "damage_put_to_somebody",
+                "act": "accuse",
+                "event": "AccusationMade",
+                "actor": "owner",
+                "target": "suspected",
+                "magnitude": 0.3
+              }
+            ],
+            "routes": [
+              {
+                "when": "spoke",
+                "to": "damage_answered"
+              },
+              {
+                "when": "always",
+                "ends": "loss_absorbed"
+              }
+            ]
+          },
+          {
+            "id": "damage_answered",
+            "speaker": "suspected",
+            "listener": "owner",
+            "intentions": [
+              {
+                "act": "deny"
+              },
+              {
+                "act": "admit"
+              },
+              {
+                "act": "offer"
+              },
+              {
+                "act": "evade"
+              }
+            ],
+            "check": {
+              "profile": "proc_repairs",
+              "actor": "suspected",
+              "target": "owner",
+              "question": "can_this_be_put_right_at_all"
+            },
+            "playerIntersections": [
+              "repair",
+              "pay_debt",
+              "persuade",
+              "craft_to_property"
+            ],
+            "consequences": [
+              {
+                "hook": "damage_owned",
+                "event": "SecretRevealed",
+                "actor": "suspected",
+                "target": "owner",
+                "magnitude": 0.3,
+                "act": "admit"
+              },
+              {
+                "hook": "repair_offered",
+                "act": "offer"
+              },
+              {
+                "hook": "beyond_repair",
+                "when": "check_fail"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "deny",
+                "ends": "blame_placed"
+              },
+              {
+                "when": "check_pass",
+                "act": "offer",
+                "ends": "repair_undertaken"
+              },
+              {
+                "when": "always",
+                "act": "admit",
+                "ends": "repair_undertaken"
+              },
+              {
+                "when": "always",
+                "ends": "loss_absorbed"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_damage_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.debt_called_in",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "debt",
+          "obligation"
+        ],
+        "toneTags": [
+          "transactional",
+          "awkward"
+        ],
+        "requiredRoles": [
+          {
+            "id": "debtor",
+            "source": "FactSubject"
+          },
+          {
+            "id": "creditor",
+            "source": "AnyoneWhoKnowsFocus"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "owes"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "creditor"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "debtor"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "creditor"
+          }
+        ],
+        "resolutions": [
+          "debt_settled",
+          "debt_deferred",
+          "debt_forgiven",
+          "debt_escalated"
+        ],
+        "beats": [
+          {
+            "id": "account_raised",
+            "speaker": "creditor",
+            "listener": "debtor",
+            "intentions": [
+              {
+                "act": "request"
+              },
+              {
+                "act": "inform"
+              },
+              {
+                "act": "evade"
+              }
+            ],
+            "playerIntersections": [
+              "question",
+              "pay_debt",
+              "rapport"
+            ],
+            "consequences": [
+              {
+                "hook": "account_was_raised",
+                "act": "request"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "evade",
+                "ends": "debt_deferred"
+              },
+              {
+                "when": "spoke",
+                "to": "account_answered"
+              },
+              {
+                "when": "always",
+                "ends": "debt_deferred"
+              }
+            ]
+          },
+          {
+            "id": "account_answered",
+            "speaker": "debtor",
+            "listener": "creditor",
+            "intentions": [
+              {
+                "act": "offer"
+              },
+              {
+                "act": "promise"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "apologize"
+              },
+              {
+                "act": "evade"
+              }
+            ],
+            "check": {
+              "profile": "proc_persuasion",
+              "actor": "debtor",
+              "target": "creditor",
+              "question": "will_the_creditor_wait"
+            },
+            "playerIntersections": [
+              "pay_debt",
+              "persuade",
+              "lie",
+              "bribe"
+            ],
+            "consequences": [
+              {
+                "hook": "terms_proposed_against_debt",
+                "act": "offer"
+              },
+              {
+                "hook": "repayment_undertaken",
+                "event": "PromiseMade",
+                "actor": "debtor",
+                "target": "creditor",
+                "magnitude": 0.5,
+                "act": "promise"
+              },
+              {
+                "hook": "repayment_refused",
+                "event": "RequestDeclined",
+                "actor": "debtor",
+                "target": "creditor",
+                "magnitude": 0.4,
+                "act": "refuse"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "refuse",
+                "to": "account_pressed"
+              },
+              {
+                "when": "check_fail",
+                "to": "account_pressed"
+              },
+              {
+                "when": "spoke",
+                "to": "account_closed"
+              },
+              {
+                "when": "always",
+                "to": "account_pressed"
+              }
+            ]
+          },
+          {
+            "id": "account_closed",
+            "speaker": "creditor",
+            "listener": "debtor",
+            "intentions": [
+              {
+                "act": "forgive",
+                "referent": "debtor",
+                "content": "none"
+              },
+              {
+                "act": "promise"
+              },
+              {
+                "act": "request"
+              }
+            ],
+            "playerIntersections": [
+              "pay_debt",
+              "persuade"
+            ],
+            "consequences": [
+              {
+                "hook": "ledger_cleared",
+                "event": "DebtPaid",
+                "actor": "debtor",
+                "target": "creditor",
+                "magnitude": 0.5,
+                "act": "forgive"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "forgive",
+                "ends": "debt_forgiven"
+              },
+              {
+                "when": "always",
+                "ends": "debt_settled"
+              }
+            ]
+          },
+          {
+            "id": "account_pressed",
+            "speaker": "creditor",
+            "listener": "debtor",
+            "intentions": [
+              {
+                "act": "threaten"
+              },
+              {
+                "act": "warn"
+              },
+              {
+                "act": "forgive",
+                "referent": "debtor",
+                "content": "none"
+              },
+              {
+                "act": "request"
+              }
+            ],
+            "playerIntersections": [
+              "pay_debt",
+              "intimidate",
+              "report",
+              "invoke_authority",
+              "persuade"
+            ],
+            "consequences": [
+              {
+                "hook": "debt_pressed_hard",
+                "event": "Threatened",
+                "actor": "creditor",
+                "target": "debtor",
+                "magnitude": 0.5,
+                "act": "threaten"
+              },
+              {
+                "hook": "debt_written_off",
+                "event": "DebtPaid",
+                "actor": "debtor",
+                "target": "creditor",
+                "magnitude": 0.3,
+                "act": "forgive"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "forgive",
+                "ends": "debt_forgiven"
+              },
+              {
+                "when": "always",
+                "act": "threaten",
+                "ends": "debt_escalated"
+              },
+              {
+                "when": "always",
+                "ends": "debt_deferred"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_debt_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.endangered_neighbour",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "danger",
+          "rescue"
+        ],
+        "toneTags": [
+          "urgent",
+          "plain"
+        ],
+        "requiredRoles": [
+          {
+            "id": "at_risk",
+            "source": "FactSubject"
+          },
+          {
+            "id": "alarmed",
+            "source": "AnyoneWhoKnowsFocus"
+          }
+        ],
+        "optionalRoles": [
+          {
+            "id": "officer",
+            "source": "AnyoneWithStandingHere"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "at_risk"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "alarmed"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "alarmed"
+          }
+        ],
+        "resolutions": [
+          "help_on_the_way",
+          "warning_given_only",
+          "nobody_moved"
+        ],
+        "beats": [
+          {
+            "id": "danger_named",
+            "speaker": "alarmed",
+            "listener": "officer",
+            "intentions": [
+              {
+                "act": "warn"
+              },
+              {
+                "act": "inform"
+              },
+              {
+                "act": "request"
+              }
+            ],
+            "playerIntersections": [
+              "report",
+              "invoke_authority",
+              "rescue",
+              "escort"
+            ],
+            "consequences": [
+              {
+                "hook": "danger_named_aloud",
+                "act": "warn"
+              },
+              {
+                "hook": "help_asked_for_someone_else",
+                "act": "request"
+              }
+            ],
+            "routes": [
+              {
+                "when": "spoke",
+                "to": "danger_answered"
+              },
+              {
+                "when": "always",
+                "ends": "nobody_moved"
+              }
+            ]
+          },
+          {
+            "id": "danger_answered",
+            "speaker": "officer",
+            "listener": "alarmed",
+            "intentions": [
+              {
+                "act": "promise"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "warn"
+              },
+              {
+                "act": "request"
+              }
+            ],
+            "check": {
+              "profile": "proc_vigilance",
+              "actor": "officer",
+              "target": "at_risk",
+              "question": "is_anybody_actually_able_to_go"
+            },
+            "playerIntersections": [
+              "rescue",
+              "escort",
+              "assign_protection",
+              "persuade",
+              "shelter"
+            ],
+            "consequences": [
+              {
+                "hook": "someone_undertook_to_go",
+                "event": "PromiseMade",
+                "actor": "officer",
+                "target": "alarmed",
+                "magnitude": 0.6,
+                "act": "promise"
+              },
+              {
+                "hook": "nobody_could_be_spared",
+                "event": "RequestDeclined",
+                "actor": "officer",
+                "target": "alarmed",
+                "magnitude": 0.4,
+                "act": "refuse"
+              },
+              {
+                "hook": "no_hands_available",
+                "when": "check_fail"
+              }
+            ],
+            "routes": [
+              {
+                "when": "check_fail",
+                "ends": "warning_given_only"
+              },
+              {
+                "when": "always",
+                "act": "promise",
+                "ends": "help_on_the_way"
+              },
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "warning_given_only"
+              },
+              {
+                "when": "always",
+                "ends": "nobody_moved"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_danger_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.extortion_pressure",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "coercion",
+          "protection"
+        ],
+        "toneTags": [
+          "threatening",
+          "quiet"
+        ],
+        "requiredRoles": [
+          {
+            "id": "squeezed",
+            "source": "FactSubject"
+          },
+          {
+            "id": "confidant",
+            "source": "AnyoneWhoKnowsFocus"
+          }
+        ],
+        "optionalRoles": [
+          {
+            "id": "officer",
+            "source": "AnyoneWithStandingHere"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "extorted"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "confidant"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "squeezed"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "confidant"
+          }
+        ],
+        "resolutions": [
+          "reported_upward",
+          "paid_quietly",
+          "endured_alone"
+        ],
+        "beats": [
+          {
+            "id": "pressure_disclosed",
+            "speaker": "squeezed",
+            "listener": "confidant",
+            "intentions": [
+              {
+                "act": "inform"
+              },
+              {
+                "act": "request"
+              },
+              {
+                "act": "evade"
+              },
+              {
+                "act": "refuse"
+              }
+            ],
+            "playerIntersections": [
+              "question",
+              "rapport",
+              "eavesdrop"
+            ],
+            "consequences": [
+              {
+                "hook": "squeeze_named_aloud",
+                "act": "inform"
+              },
+              {
+                "hook": "help_sought_against_the_squeeze",
+                "act": "request"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "evade",
+                "ends": "endured_alone"
+              },
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "endured_alone"
+              },
+              {
+                "when": "spoke",
+                "to": "pressure_weighed"
+              },
+              {
+                "when": "always",
+                "ends": "endured_alone"
+              }
+            ]
+          },
+          {
+            "id": "pressure_weighed",
+            "speaker": "confidant",
+            "listener": "squeezed",
+            "intentions": [
+              {
+                "act": "offer"
+              },
+              {
+                "act": "warn"
+              },
+              {
+                "act": "request"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "promise"
+              }
+            ],
+            "check": {
+              "profile": "proc_vigilance",
+              "actor": "confidant",
+              "target": "squeezed",
+              "question": "is_there_a_safe_way_to_take_this_further"
+            },
+            "playerIntersections": [
+              "report",
+              "invoke_authority",
+              "assign_protection",
+              "pay_debt",
+              "shelter"
+            ],
+            "consequences": [
+              {
+                "hook": "matter_taken_to_authority",
+                "event": "CrimeReported",
+                "actor": "confidant",
+                "target": "squeezed",
+                "magnitude": 0.5,
+                "when": "check_pass",
+                "act": "request"
+              },
+              {
+                "hook": "advised_to_pay",
+                "act": "warn"
+              },
+              {
+                "hook": "left_to_handle_it",
+                "event": "RequestDeclined",
+                "actor": "confidant",
+                "target": "squeezed",
+                "magnitude": 0.3,
+                "act": "refuse"
+              }
+            ],
+            "routes": [
+              {
+                "when": "check_pass",
+                "act": "request",
+                "ends": "reported_upward"
+              },
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "endured_alone"
+              },
+              {
+                "when": "always",
+                "act": "warn",
+                "ends": "paid_quietly"
+              },
+              {
+                "when": "spoke",
+                "ends": "paid_quietly"
+              },
+              {
+                "when": "always",
+                "ends": "endured_alone"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_coercion_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.false_accusation_named",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "deception",
+          "reputation"
+        ],
+        "toneTags": [
+          "contested",
+          "exposed"
+        ],
+        "requiredRoles": [
+          {
+            "id": "liar",
+            "source": "FactSubject"
+          },
+          {
+            "id": "challenger",
+            "source": "AnyoneWhoKnowsFocus"
+          }
+        ],
+        "optionalRoles": [
+          {
+            "id": "wronged",
+            "source": "AnyoneWhoCanProveFocus"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "lied_about"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "challenger"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "liar"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "challenger"
+          }
+        ],
+        "resolutions": [
+          "lie_exposed",
+          "lie_held",
+          "lie_withdrawn"
+        ],
+        "beats": [
+          {
+            "id": "account_contradicted",
+            "speaker": "challenger",
+            "listener": "liar",
+            "intentions": [
+              {
+                "act": "accuse",
+                "referent": "liar"
+              },
+              {
+                "act": "ask"
+              },
+              {
+                "act": "inform"
+              }
+            ],
+            "check": {
+              "profile": "proc_corroboration",
+              "actor": "challenger",
+              "target": "liar",
+              "question": "do_the_two_accounts_come_apart"
+            },
+            "playerIntersections": [
+              "compare_testimony",
+              "question",
+              "search_records"
+            ],
+            "consequences": [
+              {
+                "hook": "contradiction_named",
+                "event": "AccusationMade",
+                "actor": "challenger",
+                "target": "liar",
+                "magnitude": 0.4,
+                "act": "accuse"
+              },
+              {
+                "hook": "contradiction_found",
+                "when": "check_pass"
+              }
+            ],
+            "routes": [
+              {
+                "when": "check_pass",
+                "to": "account_defended"
+              },
+              {
+                "when": "spoke",
+                "to": "account_defended"
+              },
+              {
+                "when": "always",
+                "ends": "lie_held"
+              }
+            ]
+          },
+          {
+            "id": "account_defended",
+            "speaker": "liar",
+            "listener": "challenger",
+            "intentions": [
+              {
+                "act": "deny"
+              },
+              {
+                "act": "admit"
+              },
+              {
+                "act": "evade"
+              },
+              {
+                "act": "apologize"
+              },
+              {
+                "act": "refuse"
+              }
+            ],
+            "playerIntersections": [
+              "persuade",
+              "intimidate",
+              "lie",
+              "expose",
+              "report"
+            ],
+            "consequences": [
+              {
+                "hook": "falsehood_owned",
+                "event": "DeceptionExposed",
+                "actor": "liar",
+                "target": "challenger",
+                "magnitude": 0.6,
+                "act": "admit"
+              },
+              {
+                "hook": "falsehood_apologised_for",
+                "act": "apologize"
+              },
+              {
+                "hook": "falsehood_maintained",
+                "act": "deny"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "admit",
+                "ends": "lie_exposed"
+              },
+              {
+                "when": "always",
+                "act": "apologize",
+                "ends": "lie_withdrawn"
+              },
+              {
+                "when": "always",
+                "act": "deny",
+                "ends": "lie_held"
+              },
+              {
+                "when": "always",
+                "ends": "lie_held"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_deception_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.favor_comes_due",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "debt",
+          "favour"
+        ],
+        "toneTags": [
+          "personal",
+          "reluctant"
+        ],
+        "requiredRoles": [
+          {
+            "id": "asker",
+            "source": "AnyoneWhoKnowsFocus"
+          },
+          {
+            "id": "owing",
+            "source": "FactSubject"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "owes"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "asker"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "asker"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "owing"
+          }
+        ],
+        "resolutions": [
+          "favour_answered",
+          "favour_declined",
+          "favour_released"
+        ],
+        "beats": [
+          {
+            "id": "old_kindness_named",
+            "speaker": "asker",
+            "listener": "owing",
+            "intentions": [
+              {
+                "act": "request"
+              },
+              {
+                "act": "inform"
+              },
+              {
+                "act": "forgive",
+                "referent": "owing",
+                "content": "none"
+              }
+            ],
+            "playerIntersections": [
+              "call_favor",
+              "rapport",
+              "question"
+            ],
+            "consequences": [
+              {
+                "hook": "favour_invoked",
+                "event": "FavorRedeemed",
+                "actor": "asker",
+                "target": "owing",
+                "magnitude": 0.4,
+                "act": "request"
+              },
+              {
+                "hook": "favour_let_go",
+                "act": "forgive"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "forgive",
+                "ends": "favour_released"
+              },
+              {
+                "when": "spoke",
+                "to": "old_kindness_answered"
+              },
+              {
+                "when": "always",
+                "ends": "favour_declined"
+              }
+            ]
+          },
+          {
+            "id": "old_kindness_answered",
+            "speaker": "owing",
+            "listener": "asker",
+            "intentions": [
+              {
+                "act": "promise"
+              },
+              {
+                "act": "offer"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "evade"
+              },
+              {
+                "act": "apologize"
+              }
+            ],
+            "check": {
+              "profile": "proc_persuasion",
+              "actor": "asker",
+              "target": "owing",
+              "question": "does_the_old_kindness_still_weigh"
+            },
+            "playerIntersections": [
+              "persuade",
+              "call_favor",
+              "pay_debt"
+            ],
+            "consequences": [
+              {
+                "hook": "favour_honoured",
+                "event": "PromiseMade",
+                "actor": "owing",
+                "target": "asker",
+                "magnitude": 0.5,
+                "act": "promise"
+              },
+              {
+                "hook": "favour_turned_down",
+                "event": "RequestDeclined",
+                "actor": "owing",
+                "target": "asker",
+                "magnitude": 0.4,
+                "act": "refuse"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "favour_declined"
+              },
+              {
+                "when": "always",
+                "act": "evade",
+                "ends": "favour_declined"
+              },
+              {
+                "when": "spoke",
+                "ends": "favour_answered"
+              },
+              {
+                "when": "always",
+                "ends": "favour_declined"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_favour_pressure"
         ]
       }
     },
@@ -5777,14 +7959,348 @@
             "role": "subject"
           }
         ],
+        "resolutions": [
+          "passed_on",
+          "kept_quiet",
+          "corrected"
+        ],
         "beats": [
-          "open_with_hearsay",
-          "shade_detail",
-          "test_listener",
-          "pass_on_hook"
+          {
+            "id": "open_with_hearsay",
+            "speaker": "speaker",
+            "listener": "knower",
+            "intentions": [
+              {
+                "act": "gossip",
+                "referent": "subject"
+              },
+              {
+                "act": "evade"
+              },
+              {
+                "act": "refuse"
+              }
+            ],
+            "playerIntersections": [
+              "eavesdrop",
+              "question",
+              "rapport"
+            ],
+            "consequences": [
+              {
+                "hook": "word_started_moving",
+                "event": "RumorSpread",
+                "actor": "speaker",
+                "target": "knower",
+                "magnitude": 0.3,
+                "act": "gossip"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "gossip",
+                "to": "shade_detail"
+              },
+              {
+                "when": "always",
+                "ends": "kept_quiet"
+              }
+            ]
+          },
+          {
+            "id": "shade_detail",
+            "speaker": "speaker",
+            "listener": "knower",
+            "intentions": [
+              {
+                "act": "gossip",
+                "referent": "subject"
+              },
+              {
+                "act": "inform"
+              }
+            ],
+            "check": {
+              "profile": "proc_credibility",
+              "actor": "speaker",
+              "target": "knower",
+              "question": "does_the_listener_take_it_as_told"
+            },
+            "playerIntersections": [
+              "question",
+              "compare_testimony"
+            ],
+            "consequences": [
+              {
+                "hook": "told_straight",
+                "when": "check_pass"
+              },
+              {
+                "hook": "told_crooked",
+                "event": "RumorDistorted",
+                "actor": "speaker",
+                "target": "knower",
+                "magnitude": 0.3,
+                "when": "check_fail"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "to": "test_listener"
+              }
+            ]
+          },
+          {
+            "id": "test_listener",
+            "speaker": "knower",
+            "listener": "speaker",
+            "intentions": [
+              {
+                "act": "ask"
+              },
+              {
+                "act": "deny"
+              },
+              {
+                "act": "inform"
+              },
+              {
+                "act": "evade"
+              }
+            ],
+            "playerIntersections": [
+              "question",
+              "persuade",
+              "compare_testimony"
+            ],
+            "consequences": [
+              {
+                "hook": "story_pushed_back_on",
+                "act": "deny"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "deny",
+                "ends": "corrected"
+              },
+              {
+                "when": "always",
+                "to": "pass_on_hook"
+              }
+            ]
+          },
+          {
+            "id": "pass_on_hook",
+            "speaker": "knower",
+            "listener": "speaker",
+            "intentions": [
+              {
+                "act": "promise"
+              },
+              {
+                "act": "request"
+              },
+              {
+                "act": "refuse"
+              }
+            ],
+            "playerIntersections": [
+              "question",
+              "report"
+            ],
+            "consequences": [
+              {
+                "hook": "carried_further",
+                "event": "RumorSpread",
+                "actor": "knower",
+                "target": "speaker",
+                "magnitude": 0.2,
+                "act": "promise"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "kept_quiet"
+              },
+              {
+                "when": "always",
+                "ends": "passed_on"
+              }
+            ]
+          }
         ],
         "consequenceHooks": [
           "record_gossip_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.household_disturbance",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "theft",
+          "household"
+        ],
+        "toneTags": [
+          "domestic",
+          "unsettled"
+        ],
+        "requiredRoles": [
+          {
+            "id": "resident",
+            "source": "HouseholdMemberHere"
+          },
+          {
+            "id": "caller",
+            "source": "AnyoneWhoKnowsFocus"
+          },
+          {
+            "id": "named",
+            "source": "FactSubject"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "stole"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "caller"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "resident"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "caller"
+          }
+        ],
+        "resolutions": [
+          "matter_reached_the_house",
+          "caller_sent_away",
+          "house_left_alone"
+        ],
+        "beats": [
+          {
+            "id": "someone_came_asking",
+            "speaker": "caller",
+            "listener": "resident",
+            "intentions": [
+              {
+                "act": "ask"
+              },
+              {
+                "act": "inform"
+              },
+              {
+                "act": "request"
+              }
+            ],
+            "playerIntersections": [
+              "question",
+              "rapport",
+              "inspect"
+            ],
+            "consequences": [
+              {
+                "hook": "the_matter_arrived_at_the_door",
+                "act": "inform"
+              }
+            ],
+            "routes": [
+              {
+                "when": "spoke",
+                "to": "house_answers"
+              },
+              {
+                "when": "always",
+                "ends": "house_left_alone"
+              }
+            ]
+          },
+          {
+            "id": "house_answers",
+            "speaker": "resident",
+            "listener": "caller",
+            "intentions": [
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "answer"
+              },
+              {
+                "act": "evade"
+              },
+              {
+                "act": "inform"
+              },
+              {
+                "act": "warn"
+              }
+            ],
+            "check": {
+              "profile": "proc_hospitality",
+              "actor": "resident",
+              "target": "caller",
+              "question": "is_this_somebody_the_house_talks_to"
+            },
+            "playerIntersections": [
+              "rapport",
+              "persuade",
+              "question",
+              "host"
+            ],
+            "consequences": [
+              {
+                "hook": "house_gave_something_up",
+                "act": "answer"
+              },
+              {
+                "hook": "house_shut_the_door",
+                "act": "refuse"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "caller_sent_away"
+              },
+              {
+                "when": "always",
+                "act": "evade",
+                "ends": "caller_sent_away"
+              },
+              {
+                "when": "spoke",
+                "ends": "matter_reached_the_house"
+              },
+              {
+                "when": "always",
+                "ends": "house_left_alone"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_household_pressure"
         ]
       }
     },
@@ -5841,14 +8357,395 @@
             "role": "accused"
           }
         ],
+        "resolutions": [
+          "settled_quietly",
+          "denial_stands",
+          "escalated_to_the_open",
+          "nothing_said"
+        ],
         "beats": [
-          "close_distance",
-          "state_suspicion",
-          "offer_quiet_exit",
-          "record_boundary"
+          {
+            "id": "close_distance",
+            "speaker": "challenger",
+            "listener": "accused",
+            "intentions": [
+              {
+                "act": "ask"
+              },
+              {
+                "act": "warn"
+              }
+            ],
+            "playerIntersections": [
+              "question",
+              "rapport"
+            ],
+            "routes": [
+              {
+                "when": "spoke",
+                "to": "state_suspicion"
+              },
+              {
+                "when": "always",
+                "ends": "nothing_said"
+              }
+            ]
+          },
+          {
+            "id": "state_suspicion",
+            "speaker": "challenger",
+            "listener": "accused",
+            "intentions": [
+              {
+                "act": "accuse",
+                "referent": "accused"
+              },
+              {
+                "act": "ask"
+              },
+              {
+                "act": "inform"
+              }
+            ],
+            "check": {
+              "profile": "proc_interrogation",
+              "actor": "challenger",
+              "target": "accused",
+              "question": "does_the_accused_keep_their_nerve"
+            },
+            "playerIntersections": [
+              "question",
+              "persuade",
+              "compare_testimony"
+            ],
+            "consequences": [
+              {
+                "hook": "suspicion_named_privately",
+                "event": "AccusationMade",
+                "actor": "challenger",
+                "target": "accused",
+                "magnitude": 0.3,
+                "act": "accuse"
+              }
+            ],
+            "routes": [
+              {
+                "when": "check_fail",
+                "to": "offer_quiet_exit"
+              },
+              {
+                "when": "spoke",
+                "to": "offer_quiet_exit"
+              },
+              {
+                "when": "always",
+                "ends": "nothing_said"
+              }
+            ]
+          },
+          {
+            "id": "offer_quiet_exit",
+            "speaker": "accused",
+            "listener": "challenger",
+            "intentions": [
+              {
+                "act": "admit"
+              },
+              {
+                "act": "offer"
+              },
+              {
+                "act": "deny"
+              },
+              {
+                "act": "evade"
+              },
+              {
+                "act": "refuse"
+              }
+            ],
+            "playerIntersections": [
+              "lie",
+              "persuade",
+              "return_item",
+              "pay_debt"
+            ],
+            "consequences": [
+              {
+                "hook": "quiet_admission",
+                "event": "SecretLearned",
+                "actor": "accused",
+                "target": "challenger",
+                "magnitude": 0.4,
+                "act": "admit"
+              },
+              {
+                "hook": "terms_put_forward",
+                "act": "offer"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "admit",
+                "to": "record_boundary"
+              },
+              {
+                "when": "always",
+                "act": "offer",
+                "to": "record_boundary"
+              },
+              {
+                "when": "always",
+                "act": "deny",
+                "ends": "denial_stands"
+              },
+              {
+                "when": "always",
+                "ends": "escalated_to_the_open"
+              }
+            ]
+          },
+          {
+            "id": "record_boundary",
+            "speaker": "challenger",
+            "listener": "accused",
+            "intentions": [
+              {
+                "act": "forgive",
+                "referent": "accused",
+                "content": "none"
+              },
+              {
+                "act": "threaten"
+              },
+              {
+                "act": "request"
+              },
+              {
+                "act": "warn"
+              }
+            ],
+            "playerIntersections": [
+              "persuade",
+              "report",
+              "return_item"
+            ],
+            "consequences": [
+              {
+                "hook": "matter_settled_between_them",
+                "event": "DebtPaid",
+                "actor": "accused",
+                "target": "challenger",
+                "magnitude": 0.4,
+                "act": "forgive"
+              },
+              {
+                "hook": "terms_demanded",
+                "act": "request"
+              },
+              {
+                "hook": "threat_left_behind",
+                "event": "Threatened",
+                "actor": "challenger",
+                "target": "accused",
+                "magnitude": 0.4,
+                "act": "threaten"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "forgive",
+                "ends": "settled_quietly"
+              },
+              {
+                "when": "always",
+                "act": "threaten",
+                "ends": "escalated_to_the_open"
+              },
+              {
+                "when": "always",
+                "ends": "settled_quietly"
+              }
+            ]
+          }
         ],
         "consequenceHooks": [
           "record_private_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.proof_without_standing",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "theft",
+          "evidence"
+        ],
+        "toneTags": [
+          "practical",
+          "unheard"
+        ],
+        "requiredRoles": [
+          {
+            "id": "prover",
+            "source": "AnyoneWhoCanProveFocus"
+          },
+          {
+            "id": "subject",
+            "source": "FactSubject"
+          }
+        ],
+        "optionalRoles": [
+          {
+            "id": "officer",
+            "source": "AnyoneWithStandingHere"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "stole"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleCanProveFocus",
+            "role": "prover"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "prover"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "subject"
+          }
+        ],
+        "resolutions": [
+          "evidence_carried_upward",
+          "evidence_kept",
+          "evidence_dismissed"
+        ],
+        "beats": [
+          {
+            "id": "evidence_named",
+            "speaker": "prover",
+            "listener": "officer",
+            "intentions": [
+              {
+                "act": "inform"
+              },
+              {
+                "act": "ask"
+              },
+              {
+                "act": "refuse"
+              }
+            ],
+            "playerIntersections": [
+              "question",
+              "store_evidence",
+              "report"
+            ],
+            "consequences": [
+              {
+                "hook": "evidence_offered_upward",
+                "act": "inform"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "evidence_kept"
+              },
+              {
+                "when": "spoke",
+                "to": "evidence_weighed"
+              },
+              {
+                "when": "always",
+                "ends": "evidence_kept"
+              }
+            ]
+          },
+          {
+            "id": "evidence_weighed",
+            "speaker": "officer",
+            "listener": "prover",
+            "intentions": [
+              {
+                "act": "ask"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "promise"
+              },
+              {
+                "act": "warn"
+              }
+            ],
+            "check": {
+              "profile": "proc_credibility",
+              "actor": "prover",
+              "target": "officer",
+              "question": "is_the_witness_worth_listening_to"
+            },
+            "playerIntersections": [
+              "persuade",
+              "invoke_authority",
+              "report",
+              "rapport"
+            ],
+            "consequences": [
+              {
+                "hook": "standing_lent_to_the_evidence",
+                "event": "InquiryOpened",
+                "actor": "officer",
+                "target": "subject",
+                "magnitude": 0.5,
+                "when": "check_pass",
+                "act": "promise"
+              },
+              {
+                "hook": "witness_was_not_believed",
+                "when": "check_fail"
+              }
+            ],
+            "routes": [
+              {
+                "when": "check_pass",
+                "act": "promise",
+                "ends": "evidence_carried_upward"
+              },
+              {
+                "when": "check_fail",
+                "ends": "evidence_dismissed"
+              },
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "evidence_dismissed"
+              },
+              {
+                "when": "always",
+                "ends": "evidence_kept"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_evidence_pressure"
         ]
       }
     },
@@ -5905,12 +8802,269 @@
             "role": "accused"
           }
         ],
+        "resolutions": [
+          "charge_pressed",
+          "charge_dismissed",
+          "taken_aside",
+          "owned_in_public"
+        ],
         "beats": [
-          "gather_attention",
-          "name_charge",
-          "demand_answer",
-          "invite_witness",
-          "leave_pressure"
+          {
+            "id": "gather_attention",
+            "speaker": "accuser",
+            "listener": "accused",
+            "intentions": [
+              {
+                "act": "inform"
+              },
+              {
+                "act": "ask"
+              }
+            ],
+            "playerIntersections": [
+              "question",
+              "persuade"
+            ],
+            "routes": [
+              {
+                "when": "spoke",
+                "to": "name_charge"
+              },
+              {
+                "when": "always",
+                "ends": "taken_aside"
+              }
+            ]
+          },
+          {
+            "id": "name_charge",
+            "speaker": "accuser",
+            "listener": "accused",
+            "intentions": [
+              {
+                "act": "accuse",
+                "referent": "accused"
+              },
+              {
+                "act": "ask"
+              },
+              {
+                "act": "warn"
+              }
+            ],
+            "check": {
+              "profile": "proc_credibility",
+              "actor": "accuser",
+              "target": "accused",
+              "question": "does_the_room_take_the_charge"
+            },
+            "playerIntersections": [
+              "compare_testimony",
+              "persuade",
+              "intimidate"
+            ],
+            "consequences": [
+              {
+                "hook": "charge_named_in_public",
+                "event": "AccusationMade",
+                "actor": "accuser",
+                "target": "accused",
+                "magnitude": 0.5,
+                "act": "accuse"
+              }
+            ],
+            "routes": [
+              {
+                "when": "check_pass",
+                "act": "accuse",
+                "to": "demand_answer"
+              },
+              {
+                "when": "check_fail",
+                "act": "accuse",
+                "to": "invite_witness"
+              },
+              {
+                "when": "spoke",
+                "to": "demand_answer"
+              },
+              {
+                "when": "always",
+                "ends": "taken_aside"
+              }
+            ]
+          },
+          {
+            "id": "demand_answer",
+            "speaker": "accused",
+            "listener": "accuser",
+            "intentions": [
+              {
+                "act": "deny"
+              },
+              {
+                "act": "admit"
+              },
+              {
+                "act": "evade"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "offer"
+              }
+            ],
+            "playerIntersections": [
+              "lie",
+              "persuade",
+              "intimidate",
+              "report"
+            ],
+            "consequences": [
+              {
+                "hook": "charge_answered_with_denial",
+                "act": "deny"
+              },
+              {
+                "hook": "owned_before_witnesses",
+                "event": "SecretRevealed",
+                "actor": "accused",
+                "target": "accuser",
+                "magnitude": 0.6,
+                "act": "admit"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "admit",
+                "ends": "owned_in_public"
+              },
+              {
+                "when": "always",
+                "act": "offer",
+                "ends": "charge_pressed"
+              },
+              {
+                "when": "always",
+                "act": "deny",
+                "to": "invite_witness"
+              },
+              {
+                "when": "always",
+                "to": "leave_pressure"
+              }
+            ]
+          },
+          {
+            "id": "invite_witness",
+            "speaker": "accuser",
+            "listener": "accused",
+            "requires": [
+              {
+                "kind": "RoleAlive",
+                "role": "accuser"
+              }
+            ],
+            "intentions": [
+              {
+                "act": "inform"
+              },
+              {
+                "act": "threaten"
+              },
+              {
+                "act": "request"
+              }
+            ],
+            "check": {
+              "profile": "proc_corroboration",
+              "actor": "accuser",
+              "target": "accused",
+              "question": "does_a_second_account_hold_up"
+            },
+            "playerIntersections": [
+              "compare_testimony",
+              "search",
+              "report"
+            ],
+            "consequences": [
+              {
+                "hook": "corroboration_offered",
+                "when": "check_pass"
+              },
+              {
+                "hook": "charge_left_unsupported",
+                "event": "AccusationRejected",
+                "actor": "accused",
+                "target": "accuser",
+                "magnitude": 0.4,
+                "when": "check_fail"
+              }
+            ],
+            "routes": [
+              {
+                "when": "check_pass",
+                "ends": "charge_pressed"
+              },
+              {
+                "when": "check_fail",
+                "ends": "charge_dismissed"
+              },
+              {
+                "when": "always",
+                "to": "leave_pressure"
+              }
+            ]
+          },
+          {
+            "id": "leave_pressure",
+            "speaker": "accuser",
+            "listener": "accused",
+            "intentions": [
+              {
+                "act": "warn"
+              },
+              {
+                "act": "threaten"
+              },
+              {
+                "act": "forgive",
+                "referent": "accused",
+                "content": "none"
+              }
+            ],
+            "playerIntersections": [
+              "report",
+              "persuade"
+            ],
+            "consequences": [
+              {
+                "hook": "pressure_left_standing",
+                "act": "threaten",
+                "event": "Threatened",
+                "actor": "accuser",
+                "target": "accused",
+                "magnitude": 0.4
+              },
+              {
+                "hook": "matter_let_go",
+                "act": "forgive"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "forgive",
+                "ends": "charge_dismissed"
+              },
+              {
+                "when": "always",
+                "ends": "charge_pressed"
+              }
+            ]
+          }
         ],
         "consequenceHooks": [
           "record_public_pressure"
@@ -5968,14 +9122,971 @@
             "role": "suspect"
           }
         ],
+        "resolutions": [
+          "help_promised",
+          "help_refused",
+          "handed_to_authority",
+          "loss_named_only"
+        ],
         "beats": [
-          "identify_loss",
-          "ask_for_help",
-          "name_lead",
-          "set_stakes"
+          {
+            "id": "identify_loss",
+            "speaker": "victim",
+            "listener": "requester",
+            "intentions": [
+              {
+                "act": "inform"
+              },
+              {
+                "act": "ask"
+              }
+            ],
+            "playerIntersections": [
+              "question",
+              "inspect"
+            ],
+            "routes": [
+              {
+                "when": "spoke",
+                "to": "ask_for_help"
+              },
+              {
+                "when": "always",
+                "ends": "loss_named_only"
+              }
+            ]
+          },
+          {
+            "id": "ask_for_help",
+            "speaker": "victim",
+            "listener": "requester",
+            "intentions": [
+              {
+                "act": "request"
+              },
+              {
+                "act": "offer"
+              },
+              {
+                "act": "evade"
+              }
+            ],
+            "playerIntersections": [
+              "rapport",
+              "persuade",
+              "search"
+            ],
+            "consequences": [
+              {
+                "hook": "help_was_asked_for",
+                "act": "request"
+              },
+              {
+                "hook": "payment_was_offered",
+                "act": "offer"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "evade",
+                "ends": "loss_named_only"
+              },
+              {
+                "when": "spoke",
+                "to": "name_lead"
+              },
+              {
+                "when": "always",
+                "ends": "loss_named_only"
+              }
+            ]
+          },
+          {
+            "id": "name_lead",
+            "speaker": "requester",
+            "listener": "victim",
+            "intentions": [
+              {
+                "act": "answer"
+              },
+              {
+                "act": "inform"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "evade"
+              }
+            ],
+            "check": {
+              "profile": "proc_investigation",
+              "actor": "requester",
+              "target": "suspect",
+              "question": "is_there_a_lead_worth_naming"
+            },
+            "playerIntersections": [
+              "search",
+              "track",
+              "question",
+              "search_records"
+            ],
+            "consequences": [
+              {
+                "hook": "lead_found",
+                "when": "check_pass"
+              },
+              {
+                "hook": "trail_went_cold",
+                "when": "check_fail"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "help_refused"
+              },
+              {
+                "when": "always",
+                "act": "evade",
+                "ends": "help_refused"
+              },
+              {
+                "when": "always",
+                "to": "set_stakes"
+              }
+            ]
+          },
+          {
+            "id": "set_stakes",
+            "speaker": "requester",
+            "listener": "victim",
+            "intentions": [
+              {
+                "act": "promise"
+              },
+              {
+                "act": "warn"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "request"
+              }
+            ],
+            "playerIntersections": [
+              "report",
+              "invoke_authority",
+              "persuade",
+              "return_item"
+            ],
+            "consequences": [
+              {
+                "hook": "undertaking_given",
+                "event": "PromiseMade",
+                "actor": "requester",
+                "target": "victim",
+                "magnitude": 0.5,
+                "act": "promise"
+              },
+              {
+                "hook": "turned_the_matter_over",
+                "act": "request"
+              },
+              {
+                "hook": "help_declined",
+                "event": "RequestDeclined",
+                "actor": "requester",
+                "target": "victim",
+                "magnitude": 0.3,
+                "act": "refuse"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "promise",
+                "ends": "help_promised"
+              },
+              {
+                "when": "always",
+                "act": "request",
+                "ends": "handed_to_authority"
+              },
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "help_refused"
+              },
+              {
+                "when": "always",
+                "ends": "loss_named_only"
+              }
+            ]
+          }
         ],
         "consequenceHooks": [
           "record_help_request"
+        ]
+      }
+    },
+    {
+      "id": "storylet.restitution_offered",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "theft",
+          "restitution"
+        ],
+        "toneTags": [
+          "practical",
+          "conditional"
+        ],
+        "requiredRoles": [
+          {
+            "id": "taker",
+            "source": "FactSubject"
+          },
+          {
+            "id": "loser",
+            "source": "OwnerOfFocusObject"
+          }
+        ],
+        "optionalRoles": [
+          {
+            "id": "onlooker",
+            "source": "AnyoneWhoKnowsFocus"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "stole"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "taker"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "loser"
+          }
+        ],
+        "resolutions": [
+          "made_good",
+          "terms_refused",
+          "pressed_further",
+          "nothing_offered"
+        ],
+        "beats": [
+          {
+            "id": "restitution_opens",
+            "speaker": "taker",
+            "listener": "loser",
+            "intentions": [
+              {
+                "act": "offer"
+              },
+              {
+                "act": "apologize"
+              },
+              {
+                "act": "admit"
+              },
+              {
+                "act": "evade"
+              }
+            ],
+            "playerIntersections": [
+              "return_item",
+              "pay_debt",
+              "persuade",
+              "rapport"
+            ],
+            "consequences": [
+              {
+                "hook": "restitution_put_on_the_table",
+                "act": "offer"
+              },
+              {
+                "hook": "restitution_preceded_by_apology",
+                "act": "apologize"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "evade",
+                "ends": "nothing_offered"
+              },
+              {
+                "when": "spoke",
+                "to": "restitution_weighed"
+              },
+              {
+                "when": "always",
+                "ends": "nothing_offered"
+              }
+            ]
+          },
+          {
+            "id": "restitution_weighed",
+            "speaker": "loser",
+            "listener": "taker",
+            "intentions": [
+              {
+                "act": "forgive",
+                "referent": "taker",
+                "content": "none"
+              },
+              {
+                "act": "request"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "threaten"
+              }
+            ],
+            "check": {
+              "profile": "proc_persuasion",
+              "actor": "taker",
+              "target": "loser",
+              "question": "are_the_terms_enough_to_close_it"
+            },
+            "playerIntersections": [
+              "persuade",
+              "pay_debt",
+              "return_item",
+              "report",
+              "intimidate"
+            ],
+            "consequences": [
+              {
+                "hook": "loss_made_good",
+                "event": "ItemReturned",
+                "actor": "taker",
+                "target": "loser",
+                "magnitude": 0.6,
+                "act": "forgive"
+              },
+              {
+                "hook": "more_was_demanded",
+                "act": "request"
+              },
+              {
+                "hook": "restitution_refused",
+                "event": "RequestDeclined",
+                "actor": "loser",
+                "target": "taker",
+                "magnitude": 0.3,
+                "act": "refuse"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "forgive",
+                "ends": "made_good"
+              },
+              {
+                "when": "always",
+                "act": "threaten",
+                "ends": "pressed_further"
+              },
+              {
+                "when": "always",
+                "act": "request",
+                "to": "terms_revisited"
+              },
+              {
+                "when": "always",
+                "ends": "terms_refused"
+              }
+            ]
+          },
+          {
+            "id": "terms_revisited",
+            "speaker": "taker",
+            "listener": "loser",
+            "intentions": [
+              {
+                "act": "promise"
+              },
+              {
+                "act": "offer"
+              },
+              {
+                "act": "refuse"
+              }
+            ],
+            "playerIntersections": [
+              "pay_debt",
+              "return_item",
+              "persuade"
+            ],
+            "consequences": [
+              {
+                "hook": "harder_terms_accepted",
+                "event": "PromiseMade",
+                "actor": "taker",
+                "target": "loser",
+                "magnitude": 0.5,
+                "act": "promise"
+              },
+              {
+                "hook": "harder_terms_refused",
+                "act": "refuse"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "pressed_further"
+              },
+              {
+                "when": "spoke",
+                "ends": "made_good"
+              },
+              {
+                "when": "always",
+                "ends": "terms_refused"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_restitution_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.rumor_correction",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "theft",
+          "rumor"
+        ],
+        "toneTags": [
+          "corrective",
+          "social"
+        ],
+        "requiredRoles": [
+          {
+            "id": "corrector",
+            "source": "AnyoneWhoKnowsFocus"
+          },
+          {
+            "id": "named",
+            "source": "FactSubject"
+          }
+        ],
+        "optionalRoles": [
+          {
+            "id": "repeater",
+            "source": "AnyoneWhoKnowsFocus"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "stole"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "corrector"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "corrector"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "named"
+          }
+        ],
+        "resolutions": [
+          "story_straightened",
+          "story_ran_on",
+          "correction_declined"
+        ],
+        "beats": [
+          {
+            "id": "version_repeated",
+            "speaker": "repeater",
+            "listener": "corrector",
+            "intentions": [
+              {
+                "act": "gossip",
+                "referent": "named"
+              },
+              {
+                "act": "ask"
+              }
+            ],
+            "playerIntersections": [
+              "eavesdrop",
+              "question"
+            ],
+            "routes": [
+              {
+                "when": "spoke",
+                "to": "version_challenged"
+              },
+              {
+                "when": "always",
+                "ends": "story_ran_on"
+              }
+            ]
+          },
+          {
+            "id": "version_challenged",
+            "speaker": "corrector",
+            "listener": "repeater",
+            "intentions": [
+              {
+                "act": "deny"
+              },
+              {
+                "act": "inform"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "evade"
+              }
+            ],
+            "check": {
+              "profile": "proc_corroboration",
+              "actor": "corrector",
+              "target": "repeater",
+              "question": "does_the_correction_hold_against_the_story"
+            },
+            "playerIntersections": [
+              "compare_testimony",
+              "persuade",
+              "question"
+            ],
+            "consequences": [
+              {
+                "hook": "correction_offered",
+                "act": "deny"
+              },
+              {
+                "hook": "correction_took",
+                "event": "RumorSpread",
+                "actor": "corrector",
+                "target": "repeater",
+                "magnitude": 0.2,
+                "when": "check_pass"
+              },
+              {
+                "hook": "correction_bounced",
+                "event": "RumorDistorted",
+                "actor": "repeater",
+                "target": "corrector",
+                "magnitude": 0.3,
+                "when": "check_fail"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "correction_declined"
+              },
+              {
+                "when": "always",
+                "act": "evade",
+                "ends": "correction_declined"
+              },
+              {
+                "when": "check_pass",
+                "ends": "story_straightened"
+              },
+              {
+                "when": "check_fail",
+                "ends": "story_ran_on"
+              },
+              {
+                "when": "always",
+                "ends": "story_ran_on"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_rumor_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.shortage_appeal",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "shortage",
+          "request"
+        ],
+        "toneTags": [
+          "domestic",
+          "urgent"
+        ],
+        "requiredRoles": [
+          {
+            "id": "short",
+            "source": "FactSubject"
+          },
+          {
+            "id": "neighbour",
+            "source": "AnyoneWhoKnowsFocus"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "needs"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "neighbour"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "short"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "neighbour"
+          }
+        ],
+        "resolutions": [
+          "supply_promised",
+          "supply_refused",
+          "need_left_standing"
+        ],
+        "beats": [
+          {
+            "id": "need_stated",
+            "speaker": "short",
+            "listener": "neighbour",
+            "intentions": [
+              {
+                "act": "request"
+              },
+              {
+                "act": "inform"
+              },
+              {
+                "act": "refuse"
+              }
+            ],
+            "playerIntersections": [
+              "provide_supplies",
+              "question",
+              "buy_supplies"
+            ],
+            "consequences": [
+              {
+                "hook": "need_put_to_somebody",
+                "act": "request"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "need_left_standing"
+              },
+              {
+                "when": "spoke",
+                "to": "need_answered"
+              },
+              {
+                "when": "always",
+                "ends": "need_left_standing"
+              }
+            ]
+          },
+          {
+            "id": "need_answered",
+            "speaker": "neighbour",
+            "listener": "short",
+            "intentions": [
+              {
+                "act": "offer"
+              },
+              {
+                "act": "promise"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "evade"
+              },
+              {
+                "act": "warn"
+              }
+            ],
+            "check": {
+              "profile": "proc_logistics",
+              "actor": "neighbour",
+              "target": "short",
+              "question": "can_this_household_actually_spare_it"
+            },
+            "playerIntersections": [
+              "provide_supplies",
+              "buy_supplies",
+              "persuade",
+              "invest_in_supplier"
+            ],
+            "consequences": [
+              {
+                "hook": "supply_undertaken",
+                "event": "PromiseMade",
+                "actor": "neighbour",
+                "target": "short",
+                "magnitude": 0.5,
+                "act": "promise"
+              },
+              {
+                "hook": "supply_offered_on_terms",
+                "act": "offer"
+              },
+              {
+                "hook": "nothing_to_spare",
+                "event": "RequestDeclined",
+                "actor": "neighbour",
+                "target": "short",
+                "magnitude": 0.3,
+                "act": "refuse"
+              },
+              {
+                "hook": "the_store_would_not_stretch",
+                "when": "check_fail"
+              }
+            ],
+            "routes": [
+              {
+                "when": "check_fail",
+                "ends": "supply_refused"
+              },
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "supply_refused"
+              },
+              {
+                "when": "always",
+                "act": "evade",
+                "ends": "need_left_standing"
+              },
+              {
+                "when": "spoke",
+                "ends": "supply_promised"
+              },
+              {
+                "when": "always",
+                "ends": "need_left_standing"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_shortage_pressure"
+        ]
+      }
+    },
+    {
+      "id": "storylet.suspected_sabotage",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "sabotage",
+          "suspicion"
+        ],
+        "toneTags": [
+          "wary",
+          "unproven"
+        ],
+        "requiredRoles": [
+          {
+            "id": "affected",
+            "source": "FactSubject"
+          },
+          {
+            "id": "suspicious",
+            "source": "AnyoneWhoKnowsFocus"
+          }
+        ],
+        "optionalRoles": [
+          {
+            "id": "investigator",
+            "source": "AnyoneWhoCanProveFocus"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "may_be_sabotaged"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "suspicious"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "suspicious"
+          }
+        ],
+        "resolutions": [
+          "sabotage_substantiated",
+          "suspicion_dropped",
+          "suspicion_left_open"
+        ],
+        "beats": [
+          {
+            "id": "suspicion_voiced",
+            "speaker": "suspicious",
+            "listener": "investigator",
+            "intentions": [
+              {
+                "act": "inform"
+              },
+              {
+                "act": "ask"
+              },
+              {
+                "act": "refuse"
+              }
+            ],
+            "playerIntersections": [
+              "inspect",
+              "question",
+              "search"
+            ],
+            "consequences": [
+              {
+                "hook": "suspicion_put_to_somebody",
+                "act": "inform"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "refuse",
+                "ends": "suspicion_left_open"
+              },
+              {
+                "when": "spoke",
+                "to": "suspicion_tested"
+              },
+              {
+                "when": "always",
+                "ends": "suspicion_left_open"
+              }
+            ]
+          },
+          {
+            "id": "suspicion_tested",
+            "speaker": "investigator",
+            "listener": "suspicious",
+            "intentions": [
+              {
+                "act": "inform"
+              },
+              {
+                "act": "warn"
+              },
+              {
+                "act": "refuse"
+              },
+              {
+                "act": "ask"
+              }
+            ],
+            "check": {
+              "profile": "proc_investigation",
+              "actor": "investigator",
+              "target": "affected",
+              "question": "does_the_damage_read_as_deliberate"
+            },
+            "playerIntersections": [
+              "inspect",
+              "search",
+              "track",
+              "identify_substance",
+              "compare_testimony"
+            ],
+            "consequences": [
+              {
+                "hook": "deliberate_hand_found",
+                "event": "EvidenceCreated",
+                "actor": "investigator",
+                "target": "affected",
+                "magnitude": 0.5,
+                "when": "check_pass",
+                "act": "inform"
+              },
+              {
+                "hook": "nothing_deliberate_found",
+                "when": "check_fail"
+              }
+            ],
+            "routes": [
+              {
+                "when": "check_pass",
+                "ends": "sabotage_substantiated"
+              },
+              {
+                "when": "check_fail",
+                "ends": "suspicion_dropped"
+              },
+              {
+                "when": "always",
+                "ends": "suspicion_left_open"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_sabotage_pressure"
         ]
       }
     }

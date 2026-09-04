@@ -198,7 +198,14 @@ namespace BrilliantQuesting.Storylets
     /// </summary>
     public sealed class BeatConsequence
     {
-        public BeatConsequence(string hookId, WorldEventType? eventType, string actorRole, string targetRole, double magnitude)
+        public BeatConsequence(
+            string hookId,
+            WorldEventType? eventType,
+            string actorRole,
+            string targetRole,
+            double magnitude,
+            BeatTrigger when = BeatTrigger.Always,
+            SpeechActType? act = null)
         {
             if (string.IsNullOrEmpty(hookId))
             {
@@ -210,7 +217,23 @@ namespace BrilliantQuesting.Storylets
             ActorRole = actorRole ?? string.Empty;
             TargetRole = targetRole ?? string.Empty;
             Magnitude = magnitude;
+            When = when;
+            Act = act;
         }
+
+        /// <summary>
+        /// What has to have happened in this beat for the consequence to apply, in exactly the
+        /// vocabulary a route uses (BQ-146).
+        ///
+        /// Without it a beat that offers a charge and a question records the charge either way,
+        /// and the ledger fills with accusations nobody made. Sharing the trigger vocabulary with
+        /// routing rather than growing a second one keeps "what the scene records" and "where the
+        /// scene goes" answerable from the same fact about what the actor decided.
+        /// </summary>
+        public BeatTrigger When { get; }
+
+        /// <summary>Narrows to one chosen act, or null for any.</summary>
+        public SpeechActType? Act { get; }
 
         public string HookId { get; }
 

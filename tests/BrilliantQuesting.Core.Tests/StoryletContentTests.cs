@@ -63,7 +63,16 @@ namespace BrilliantQuesting.Tests
 
             Assert.Empty(bundle.Diagnostics);
             Assert.Empty(diagnostics);
-            Assert.Equal(FirstFive.OrderBy(id => id), opportunities.Select(o => o.Definition.Id).OrderBy(id => id));
+
+            // Every one of the five plays on the laboratory theft. Which *other* scenes the
+            // library has grown that also fit a theft is not this test's business - asserting the
+            // exact set made it a count of the content directory.
+            HashSet<string> available = new HashSet<string>(
+                opportunities.Select(o => o.Definition.Id), StringComparer.Ordinal);
+            foreach (string id in FirstFive)
+            {
+                Assert.Contains(id, available);
+            }
         }
 
         [Fact]

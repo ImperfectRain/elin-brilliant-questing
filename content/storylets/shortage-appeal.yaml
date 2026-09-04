@@ -1,0 +1,105 @@
+id: storylet.shortage_appeal
+kind: storylet
+payload:
+  situationTags:
+    - shortage
+    - request
+  toneTags:
+    - domestic
+    - urgent
+  requiredRoles:
+    - id: short
+      source: FactSubject
+    - id: neighbour
+      source: AnyoneWhoKnowsFocus
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: needs
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: neighbour
+    - kind: RoleAlive
+      role: short
+    - kind: RoleAlive
+      role: neighbour
+  resolutions:
+    - supply_promised
+    - supply_refused
+    - need_left_standing
+  beats:
+    - id: need_stated
+      speaker: short
+      listener: neighbour
+      intentions:
+        - act: request
+        - act: inform
+        - act: refuse
+      playerIntersections:
+        - provide_supplies
+        - question
+        - buy_supplies
+      consequences:
+        - hook: need_put_to_somebody
+          act: request
+      routes:
+        - when: always
+          act: refuse
+          ends: need_left_standing
+        - when: spoke
+          to: need_answered
+        - when: always
+          ends: need_left_standing
+
+    - id: need_answered
+      speaker: neighbour
+      listener: short
+      intentions:
+        - act: offer
+        - act: promise
+        - act: refuse
+        - act: evade
+        - act: warn
+      check:
+        profile: proc_logistics
+        actor: neighbour
+        target: short
+        question: can_this_household_actually_spare_it
+      playerIntersections:
+        - provide_supplies
+        - buy_supplies
+        - persuade
+        - invest_in_supplier
+      consequences:
+        - hook: supply_undertaken
+          event: PromiseMade
+          actor: neighbour
+          target: short
+          magnitude: 0.5
+          act: promise
+        - hook: supply_offered_on_terms
+          act: offer
+        - hook: nothing_to_spare
+          event: RequestDeclined
+          actor: neighbour
+          target: short
+          magnitude: 0.3
+          act: refuse
+        - hook: the_store_would_not_stretch
+          when: check_fail
+      routes:
+        - when: check_fail
+          ends: supply_refused
+        - when: always
+          act: refuse
+          ends: supply_refused
+        - when: always
+          act: evade
+          ends: need_left_standing
+        - when: spoke
+          ends: supply_promised
+        - when: always
+          ends: need_left_standing
+  consequenceHooks:
+    - record_shortage_pressure

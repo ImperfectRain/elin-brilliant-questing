@@ -1,0 +1,102 @@
+id: storylet.endangered_neighbour
+kind: storylet
+payload:
+  situationTags:
+    - danger
+    - rescue
+  toneTags:
+    - urgent
+    - plain
+  requiredRoles:
+    - id: at_risk
+      source: FactSubject
+    - id: alarmed
+      source: AnyoneWhoKnowsFocus
+  optionalRoles:
+    - id: officer
+      source: AnyoneWithStandingHere
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: at_risk
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: alarmed
+    - kind: RoleAlive
+      role: alarmed
+  resolutions:
+    - help_on_the_way
+    - warning_given_only
+    - nobody_moved
+  beats:
+    - id: danger_named
+      speaker: alarmed
+      listener: officer
+      intentions:
+        - act: warn
+        - act: inform
+        - act: request
+      playerIntersections:
+        - report
+        - invoke_authority
+        - rescue
+        - escort
+      consequences:
+        - hook: danger_named_aloud
+          act: warn
+        - hook: help_asked_for_someone_else
+          act: request
+      routes:
+        - when: spoke
+          to: danger_answered
+        - when: always
+          ends: nobody_moved
+
+    - id: danger_answered
+      speaker: officer
+      listener: alarmed
+      intentions:
+        - act: promise
+        - act: refuse
+        - act: warn
+        - act: request
+      check:
+        profile: proc_vigilance
+        actor: officer
+        target: at_risk
+        question: is_anybody_actually_able_to_go
+      playerIntersections:
+        - rescue
+        - escort
+        - assign_protection
+        - persuade
+        - shelter
+      consequences:
+        - hook: someone_undertook_to_go
+          event: PromiseMade
+          actor: officer
+          target: alarmed
+          magnitude: 0.6
+          act: promise
+        - hook: nobody_could_be_spared
+          event: RequestDeclined
+          actor: officer
+          target: alarmed
+          magnitude: 0.4
+          act: refuse
+        - hook: no_hands_available
+          when: check_fail
+      routes:
+        - when: check_fail
+          ends: warning_given_only
+        - when: always
+          act: promise
+          ends: help_on_the_way
+        - when: always
+          act: refuse
+          ends: warning_given_only
+        - when: always
+          ends: nobody_moved
+  consequenceHooks:
+    - record_danger_pressure

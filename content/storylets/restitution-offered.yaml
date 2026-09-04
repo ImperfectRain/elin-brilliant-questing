@@ -1,0 +1,139 @@
+id: storylet.restitution_offered
+kind: storylet
+payload:
+  situationTags:
+    - theft
+    - restitution
+  toneTags:
+    - practical
+    - conditional
+  requiredRoles:
+    - id: taker
+      source: FactSubject
+    - id: loser
+      source: OwnerOfFocusObject
+  optionalRoles:
+    - id: onlooker
+      source: AnyoneWhoKnowsFocus
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: stole
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleAlive
+      role: taker
+    - kind: RoleAlive
+      role: loser
+  resolutions:
+    - made_good
+    - terms_refused
+    - pressed_further
+    - nothing_offered
+  beats:
+    - id: restitution_opens
+      speaker: taker
+      listener: loser
+      intentions:
+        - act: offer
+        - act: apologize
+        - act: admit
+        - act: evade
+      playerIntersections:
+        - return_item
+        - pay_debt
+        - persuade
+        - rapport
+      consequences:
+        - hook: restitution_put_on_the_table
+          act: offer
+        - hook: restitution_preceded_by_apology
+          act: apologize
+      routes:
+        - when: always
+          act: evade
+          ends: nothing_offered
+        - when: spoke
+          to: restitution_weighed
+        - when: always
+          ends: nothing_offered
+
+    - id: restitution_weighed
+      speaker: loser
+      listener: taker
+      intentions:
+        - act: forgive
+          referent: taker
+          content: none
+        - act: request
+        - act: refuse
+        - act: threaten
+      check:
+        profile: proc_persuasion
+        actor: taker
+        target: loser
+        question: are_the_terms_enough_to_close_it
+      playerIntersections:
+        - persuade
+        - pay_debt
+        - return_item
+        - report
+        - intimidate
+      consequences:
+        - hook: loss_made_good
+          event: ItemReturned
+          actor: taker
+          target: loser
+          magnitude: 0.6
+          act: forgive
+        - hook: more_was_demanded
+          act: request
+        - hook: restitution_refused
+          event: RequestDeclined
+          actor: loser
+          target: taker
+          magnitude: 0.3
+          act: refuse
+      routes:
+        - when: always
+          act: forgive
+          ends: made_good
+        - when: always
+          act: threaten
+          ends: pressed_further
+        - when: always
+          act: request
+          to: terms_revisited
+        - when: always
+          ends: terms_refused
+
+    - id: terms_revisited
+      speaker: taker
+      listener: loser
+      intentions:
+        - act: promise
+        - act: offer
+        - act: refuse
+      playerIntersections:
+        - pay_debt
+        - return_item
+        - persuade
+      consequences:
+        - hook: harder_terms_accepted
+          event: PromiseMade
+          actor: taker
+          target: loser
+          magnitude: 0.5
+          act: promise
+        - hook: harder_terms_refused
+          act: refuse
+      routes:
+        - when: always
+          act: refuse
+          ends: pressed_further
+        - when: spoke
+          ends: made_good
+        - when: always
+          ends: terms_refused
+  consequenceHooks:
+    - record_restitution_pressure
