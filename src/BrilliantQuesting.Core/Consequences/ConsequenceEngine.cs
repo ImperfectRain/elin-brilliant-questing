@@ -183,6 +183,24 @@ namespace BrilliantQuesting.Consequences
             Trace.Add(_world.Registry.NameOf(worldEvent.Target) + " owes you a favor");
         }
 
+        /// <summary>
+        /// BQ-084: what the place this happened in makes of it.
+        ///
+        /// Read once per event and only where it can matter - the norms are about what the room
+        /// makes of an act, so an event nobody reacts to, an event with nobody watching and an
+        /// event with nowhere to have happened all answer
+        /// <see cref="SocialPracticeReading.Ordinary"/> without a read.
+        /// </summary>
+        private SocialPracticeReading PracticesAt(WorldEvent worldEvent)
+        {
+            if (worldEvent.Zone.IsNone || worldEvent.Witnesses.Count == 0)
+            {
+                return SocialPracticeReading.Ordinary;
+            }
+
+            return SocialPractices.Read(_world, _vanilla, worldEvent.Zone, worldEvent.Time);
+        }
+
         private void ApplyToTarget(WorldEvent worldEvent, ConsequenceProfile profile, double magnitude, bool actorIsPlayer)
         {
             if (worldEvent.Target.IsNone || worldEvent.Target == worldEvent.Actor)
@@ -222,11 +240,21 @@ namespace BrilliantQuesting.Consequences
             }
         }
 
-        private void ApplyToWitnesses(WorldEvent worldEvent, ConsequenceProfile profile, double magnitude, bool actorIsPlayer)
+        private void ApplyToWitnesses(
+            WorldEvent worldEvent,
+            ConsequenceProfile profile,
+            double magnitude,
+            bool actorIsPlayer)
         {
             if (profile.WitnessAffinity == 0 && profile.Weight < MemoryWeight.Notable)
             {
                 return;
+            }
+
+            SocialNormReading norm = PracticesAt(worldEvent).ReadingOf(worldEvent.Type);
+            if (!norm.IsSilent)
+            {
+                Trace.Add("practice here: " + norm.Describe());
             }
 
             for (int i = 0; i < worldEvent.Witnesses.Count; i++)
@@ -242,13 +270,13 @@ namespace BrilliantQuesting.Consequences
                     continue;
                 }
 
-                int delta = WitnessAffinityDelta(worldEvent, witness, profile, magnitude);
+                int delta = WitnessAffinityDelta(worldEvent, witness, profile, magnitude, norm);
                 if (actorIsPlayer && delta != 0 && _vanilla.Supports(VanillaCapability.ReadWriteAffinity))
                 {
                     _vanilla.ChangeAffinity(witness, delta);
                 }
 
-                Trace.Add(WitnessTrace(worldEvent, witness, profile, delta));
+                Trace.Add(WitnessTrace(worldEvent, witness, profile, delta, norm));
 
                 _world.Memories.Add(new MemoryRecord(
                     _world.NewId("mem"),
@@ -262,7 +290,12 @@ namespace BrilliantQuesting.Consequences
             }
         }
 
-        private int WitnessAffinityDelta(WorldEvent worldEvent, EntityId witness, ConsequenceProfile profile, double magnitude)
+        private int WitnessAffinityDelta(
+            WorldEvent worldEvent,
+            EntityId witness,
+            ConsequenceProfile profile,
+            double magnitude,
+            SocialNormReading norm)
         {
             if (profile.WitnessAffinity == 0)
             {
@@ -274,7 +307,7 @@ namespace BrilliantQuesting.Consequences
                 return Scale(profile.WitnessAffinity, magnitude);
             }
 
-            double relevance = WitnessRelevance(worldEvent, witness);
+            double relevance = RoomRelevance(WitnessRelevance(worldEvent, witness), norm);
             if (relevance <= 0.0)
             {
                 return 0;
@@ -284,7 +317,37 @@ namespace BrilliantQuesting.Consequences
             return delta;
         }
 
-        private string WitnessTrace(WorldEvent worldEvent, EntityId witness, ConsequenceProfile profile, int delta)
+        /// <summary>
+        /// BQ-084: what the place makes of it, folded into how much of the room's reaction lands.
+        ///
+        /// A norm in force is a reason for somebody with no tie and no stake to mind at all - that
+        /// is what "theft at a wake is not theft from an unattended warehouse" means mechanically,
+        /// and it is the only thing that gives a bystander standing here. A norm that licenses the
+        /// act works the other way and takes the edge off a reaction somebody already had.
+        ///
+        /// It modulates and never invents: an event type the room has no reaction to is unchanged
+        /// however solemn the room is, because that decision belongs to the consequence table.
+        /// </summary>
+        private static double RoomRelevance(double relevance, SocialNormReading norm)
+        {
+            if (norm.Aggravation > 0.0)
+            {
+                relevance = Math.Max(relevance, norm.Aggravation);
+            }
+            else if (norm.Aggravation < 0.0)
+            {
+                relevance = relevance * (1.0 + norm.Aggravation);
+            }
+
+            return relevance > 1.0 ? 1.0 : relevance < 0.0 ? 0.0 : relevance;
+        }
+
+        private string WitnessTrace(
+            WorldEvent worldEvent,
+            EntityId witness,
+            ConsequenceProfile profile,
+            int delta,
+            SocialNormReading norm)
         {
             string prefix = _world.Registry.NameOf(witness) + " witnessed " + worldEvent.Type + " toward "
                             + _world.Registry.NameOf(worldEvent.Target) + ": ";
@@ -299,14 +362,19 @@ namespace BrilliantQuesting.Consequences
                 return prefix + "broad witness reaction " + Signed(delta) + " (" + profile.SummaryTag + ")";
             }
 
-            double relevance = WitnessRelevance(worldEvent, witness);
+            double tie = WitnessRelevance(worldEvent, witness);
+            double relevance = RoomRelevance(tie, norm);
             if (relevance <= 0.0)
             {
                 return prefix + "no affinity effect; no positive tie to target, hostile tie to actor, or direct stake";
             }
 
             return prefix + "relevance " + relevance.ToString("0.00") + " -> " + Signed(delta)
-                   + " (" + WitnessReason(worldEvent, witness) + ")";
+                   + " (" + (relevance > tie
+                       ? "practice in force here"
+                       : relevance < tie
+                           ? "practice here takes it more lightly; " + WitnessReason(worldEvent, witness)
+                           : WitnessReason(worldEvent, witness)) + ")";
         }
 
         private string WitnessReason(WorldEvent worldEvent, EntityId witness)

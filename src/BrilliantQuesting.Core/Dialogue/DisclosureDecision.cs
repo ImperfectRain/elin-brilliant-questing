@@ -201,9 +201,11 @@ namespace BrilliantQuesting.Dialogue
     /// Tags rather than an enum for the reason <c>FactPredicates</c>, <c>EventTags</c> and
     /// <c>DevelopmentPressures</c> are: a later rule adds a word without reshaping every consumer.
     /// The list is closed for a different reason though - it is CD §17.5's list, minus the entries
-    /// no authoritative state supports yet. Social practice is the notable absence: §16's norms do
-    /// not exist as state, and a pressure derived from nothing would be a number pretending to be
-    /// a reason.
+    /// no authoritative state supports yet. Social practice is still the notable absence, though no
+    /// longer for want of state: BQ-084 makes §16's norms readable (<c>SocialPractices</c>), and
+    /// what is missing now is which way each of them presses a speaker, which is its own question
+    /// with its own answer to prove. A pressure derived from nothing would be a number pretending
+    /// to be a reason, and so would a pressure derived from state nobody has decided the sign of.
     /// </summary>
     public static class DisclosurePressures
     {

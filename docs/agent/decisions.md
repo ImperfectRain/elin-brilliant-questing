@@ -1348,4 +1348,34 @@ because a library that is mostly signature is a library of catchphrases however 
 
 Reason: the corpus this pass promoted is full of lines that are excellent once and irritating twice.
 
+## D056 — A practice is read from the place, modulates a reaction, and is never a verdict
+
+CD §16's contextual norms are derived per pass by `SocialPractices.Read` from three things the world
+already holds — where this is, what has lately happened here, and who is standing in it — and are
+never set by a caller, attached to a zone by hand, or named after a town. Where those reads say
+nothing the answer is no practice, which is the honest description of most of the map.
+
+Three boundaries hold, and each is a failure mode rather than a preference.
+
+**The vocabulary names the norm, not the ceremony.** Elin has no funeral to ask about. `Mourning` is
+a death recorded *here* plus somebody standing here who cared, because those are the two questions a
+funeral is the answer to and they are readable; a member named for an occasion nothing can detect
+would be a category with no derivation behind it.
+
+**A practice modulates a reaction; it never invents one.** It changes how hard the room takes
+something the room already reacts to. An event the consequence table gives witnesses no reaction to
+stays unwitnessed however solemn the room is — the alternative is context minting consequences on
+its own, which is the same defect as a norm asserted from an unread facet.
+
+**A practice is not a verdict and not a loss.** Karma and fame are the law's answer and stay
+BQ-046's; what an act cost the person it happened to is theirs and does not depend on the company
+they were in. What a practice changes is what the *room* made of it.
+
+Nothing derived is persisted, and the practice is not written onto the event: history records what
+happened, and what the place made of it is recomputed from the same reads next time.
+
+Reason: the cheap versions of this step are a zone flag somebody sets, a severity multiplier that
+quietly doubles as a legal judgment, and a stereotype standing in for an unread role. All three
+survive a demo and none survives a save.
+
 Add a new entry only when the decision is both load-bearing and durable.

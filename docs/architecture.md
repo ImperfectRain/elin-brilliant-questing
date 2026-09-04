@@ -24,6 +24,9 @@ rather than removal, so one character exists throughout and bringing them home i
 **One place where consequences happen.** Verbs do not adjust affinity, Karma or knowledge directly.
 They record an event. `Consequences/ConsequenceEngine.cs` derives the rest from a single table. That
 is what lets the debug inspector answer "why did she react like that" without re-running the world.
+The one contextual input to that derivation is `World/SocialPractices.cs`: what the room made of an
+act changes how much of the room's reaction lands, and never what the law made of it or what the act
+cost the person it happened to (decision D056).
 
 ## Layers
 
@@ -36,8 +39,11 @@ Integration     IVanillaState, VanillaStateBase, NarrativeMutationPolicy,
                 the only place that knows a game exists, and the one gate on changing it
 
 World           NarrativeNpc, Organization, NarrativeSite, EntityRegistry, NarrativeWorldState,
-                ActorAbsence, AbsenceLedger, AbsenceLifecycle
-                the procedural database; the aggregate root is NarrativeWorldState
+                ActorAbsence, AbsenceLedger, AbsenceLifecycle,
+                IdentityAffordances, ActorLocalInterpreter, SocialPractices
+                the procedural database; the aggregate root is NarrativeWorldState, and the three
+                derivations beside it say what an identity implies, what one observer makes of an
+                event, and what the place an act happened in makes of it
 
 Events          WorldEvent, EventLedger, EventTags
                 append-only history plus queued dispatch (a reaction may append, never recurse)

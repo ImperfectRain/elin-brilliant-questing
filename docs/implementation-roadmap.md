@@ -1791,6 +1791,39 @@ Shop, street, Home, guild, funeral, festival: context changes how an action is i
 - **Sources** CD §16; PM §5; VS §5.1.
 - **Note** vanilla activity context — what the people present were doing — is one input to interpretation, and a weak one. Use it to make a response sharper, never to make the player consult a schedule before acting. This step does **not** wait on BQ-135: practice is decided by place, occasion and who is present, and activity is later enrichment on top of it.
 - **Who is present is an identity read (BQ-144 through BQ-145), and it is the stronger input.** A guild meeting is a practice because guild members are here; a funeral changes what theft means partly because of who is standing in the room. Consume the derived affordances for that, not a private list of who counts as clergy, and let an unread facet simply not contribute — a practice is never asserted because BQ guessed somebody's role.
+- **Current implementation** `SocialPractices.Read` derives what norms are in force at one place
+  from three reads the world already holds — where this is, what has lately happened here, and who
+  is standing in it — and returns a `SocialPracticeReading` that is empty for most of the map. A
+  practice is never set by a caller, never attached to a zone by hand and never named after a town.
+  The five members of `SocialPracticeKind` are CD §16's five, named for the norm rather than the
+  ceremony, because the ceremony is not readable and the norm is: Elin has no funeral to ask about,
+  so `Mourning` asks the two questions a funeral is the answer to — a death recorded *here* inside a
+  decaying window, and somebody standing here who had a positive tie to whoever died. Both halves
+  are required, so a killing in an empty street is history and a room of strangers is not solemn
+  because somebody died two towns over. `Commerce` is BQ-145's `Service.AvailableNow`, so a build
+  that cannot see whether the counter is open derives nothing rather than assuming either way;
+  `Contest` is the ledger's own `CompetitionWon` in this zone; `Assembly` is several members of one
+  *registered* body, because identity eligibility says somebody answers to *an* organised body and
+  never to which one; `Household` is the player's Home with somebody who lives in it standing in it,
+  which is the only household this simulation can read and is stated as the limit rather than filled
+  in. Strength decays with the occasion and rises with how many people put the norm there.
+  The consumer is the consequence layer. `ConsequenceEngine` reads the practices once per event and
+  folds `SocialNormReading.Aggravation` into witness relevance: a norm in force is a reason for
+  somebody with **no** tie and **no** stake to mind at all — which is what "theft at a wake is not
+  theft from an unattended warehouse" amounts to mechanically, since a bystander with no personal
+  connection previously reacted to a theft not at all — and a norm that licenses the act takes the
+  edge off a reaction somebody already had. Two limits are load-bearing and tested. A practice
+  **modulates a reaction and never invents one**: an event type the consequence table gives the room
+  no reaction to is unchanged however solemn the room is. And a practice **is not a verdict**: karma
+  and fame stay BQ-046's answer and what the loss cost the person robbed is theirs, so the same
+  theft costs the victim the same in both rooms and differs only in what the room made of it.
+  Deferred: nothing here is persisted — it is a projection of live reads and of the ledger, on the
+  same terms as the identity affordances it consumes; the practice is not written onto the event, so
+  history records what happened and the reading is recomputed rather than carried; and `Disclosure`
+  still does not consume it (see `D056`), so CD §17.5's social-practice pressure remains the one
+  entry of that list without state behind it — the norms now exist, but which way each one presses a
+  speaker is its own done-when and not this step's.
+- **Note** vanilla activity context is still later enrichment and BQ-135 is still not a dependency: nothing here reads what anybody was doing.
 
 #### BQ-085 — Item provenance
 Notable objects carry structured history: crafted by, owned by, stolen from, recovered at, evidence in.
