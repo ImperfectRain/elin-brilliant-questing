@@ -1,0 +1,106 @@
+id: storylet.favor_comes_due
+kind: storylet
+payload:
+  situationTags:
+    - debt
+    - favour
+  toneTags:
+    - personal
+    - reluctant
+  requiredRoles:
+    - id: asker
+      source: AnyoneWhoKnowsFocus
+    - id: owing
+      source: FactSubject
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: owes
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: asker
+    - kind: RoleAlive
+      role: asker
+    - kind: RoleAlive
+      role: owing
+  resolutions:
+    - favour_answered
+    - favour_declined
+    - favour_released
+  beats:
+    - id: old_kindness_named
+      speaker: asker
+      listener: owing
+      intentions:
+        - act: request
+        - act: inform
+        - act: forgive
+          referent: owing
+          content: none
+      playerIntersections:
+        - call_favor
+        - rapport
+        - question
+      consequences:
+        - hook: favour_invoked
+          event: FavorRedeemed
+          actor: asker
+          target: owing
+          magnitude: 0.4
+          act: request
+        - hook: favour_let_go
+          act: forgive
+      routes:
+        - when: always
+          act: forgive
+          ends: favour_released
+        - when: spoke
+          to: old_kindness_answered
+        - when: always
+          ends: favour_declined
+
+    - id: old_kindness_answered
+      speaker: owing
+      listener: asker
+      intentions:
+        - act: promise
+        - act: offer
+        - act: refuse
+        - act: evade
+        - act: apologize
+      check:
+        profile: proc_persuasion
+        actor: asker
+        target: owing
+        question: does_the_old_kindness_still_weigh
+      playerIntersections:
+        - persuade
+        - call_favor
+        - pay_debt
+      consequences:
+        - hook: favour_honoured
+          event: PromiseMade
+          actor: owing
+          target: asker
+          magnitude: 0.5
+          act: promise
+        - hook: favour_turned_down
+          event: RequestDeclined
+          actor: owing
+          target: asker
+          magnitude: 0.4
+          act: refuse
+      routes:
+        - when: always
+          act: refuse
+          ends: favour_declined
+        - when: always
+          act: evade
+          ends: favour_declined
+        - when: spoke
+          ends: favour_answered
+        - when: always
+          ends: favour_declined
+  consequenceHooks:
+    - record_favour_pressure

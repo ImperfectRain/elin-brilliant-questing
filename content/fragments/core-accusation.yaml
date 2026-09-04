@@ -2,6 +2,7 @@ id: fragments.core.accusation
 kind: dialogueFragments
 payload:
   fragments:
+    # -- neutral cores. A charge is the same charge whether it is true; nothing here reads truth.
     - id: core.accuse.named
       position: core
       text: "{referent} did it."
@@ -23,3 +24,175 @@ payload:
         act: accuse
         claim_predicate: stole
       repetitionGroup: accuse
+    - id: core.accuse.ask.where
+      position: core
+      text: "Ask {referent} where the {matter} went."
+      requires:
+        act: accuse
+        claim_predicate: stole
+        referent: other
+      repetitionGroup: accuse
+      memorability: voiced
+    - id: core.accuse.stop.looking.past
+      position: core
+      text: "If you want the thief, stop looking past {referent}."
+      requires:
+        act: accuse
+        claim_predicate: stole
+        referent: other
+      repetitionGroup: accuse
+      memorability: signature
+    - id: core.accuse.pockets
+      position: core
+      text: "Ask {referent} to empty their pockets."
+      requires:
+        act: accuse
+        claim_predicate: stole
+        audience: several
+      repetitionGroup: accuse
+      memorability: voiced
+
+    # -- how sure they are, which is the difference between a charge and a suspicion aloud
+    - id: core.accuse.know.what.i.saw
+      position: core
+      text: "I know what I saw."
+      requires:
+        act: accuse
+        commitment: committed
+      repetitionGroup: accuse.standing
+    - id: core.accuse.name.beside.claim
+      position: core
+      text: "Put my name beside the claim."
+      requires:
+        act: accuse
+        commitment: committed
+      repetitionGroup: accuse.standing
+      memorability: voiced
+    - id: core.accuse.answer.for.it
+      position: core
+      text: "I will answer for the claim."
+      requires:
+        act: accuse
+        commitment: committed
+      repetitionGroup: accuse.standing
+    - id: core.accuse.think.it.was
+      position: core
+      text: "I think it was {referent}."
+      requires:
+        act: accuse
+        commitment: hedged
+      repetitionGroup: accuse.standing
+    - id: core.accuse.not.certain.waited
+      position: core
+      text: "If I am wrong I ruin them. If I am right I have already waited too long."
+      requires:
+        act: accuse
+        commitment: hedged
+      repetitionGroup: accuse.standing
+      memorability: protected
+
+    # -- evidence
+    - id: core.accuse.can.prove
+      position: core
+      text: "I can prove it, and it was {referent}."
+      requires:
+        act: accuse
+        depth:
+          - detail
+          - in_confidence
+        commitment: committed
+      repetitionGroup: accuse.evidence
+    - id: core.accuse.not.just.word
+      position: core
+      text: "There is evidence, not just my word."
+      requires:
+        act: accuse
+        depth:
+          - detail
+          - in_confidence
+        commitment: committed
+      repetitionGroup: accuse.evidence
+    - id: core.accuse.trust.the.evidence
+      position: core
+      text: "Do not trust my face. Trust what I can show you."
+      requires:
+        act: accuse
+        depth: in_confidence
+        commitment: committed
+      repetitionGroup: accuse.evidence
+      memorability: signature
+
+    # -- mood and audience
+    - id: core.accuse.anger.say.the.name
+      position: core
+      text: "Say their name again. I want to hear whether it still sounds harmless."
+      requires:
+        act: accuse
+        emotion: anger
+      repetitionGroup: accuse.mood
+      memorability: signature
+    - id: core.accuse.public.witnesses
+      position: core
+      text: "Good. We have witnesses. It was {referent}."
+      requires:
+        act: accuse
+        audience: several
+      repetitionGroup: accuse.mood
+      memorability: voiced
+    - id: core.accuse.public.carefully
+      position: core
+      text: "I will say this where it can be repeated. {referent} took it."
+      requires:
+        act: accuse
+        audience: several
+        claim_predicate: stole
+      repetitionGroup: accuse.mood
+    - id: core.accuse.private.did.not.want.audience
+      position: core
+      text: "I did not want to say this where people could hear."
+      requires:
+        act: accuse
+        audience: one
+      repetitionGroup: accuse.mood
+      memorability: voiced
+    - id: core.accuse.suspicion.learned.your.name
+      position: core
+      text: "That rumour learned your name very quickly."
+      requires:
+        act: accuse
+        emotion: suspicion
+        referent: listener
+      repetitionGroup: accuse.mood
+      memorability: signature
+
+    # -- tie
+    - id: core.accuse.family.hardest.thing
+      position: core
+      text: "You are the last person I wanted to be standing in front of."
+      requires:
+        act: accuse
+        relationship:
+          - family
+          - spouse
+          - friend
+      repetitionGroup: accuse.tie
+      memorability: protected
+    - id: core.accuse.rival.no.pretending
+      position: core
+      text: "We can skip the part where I pretend to doubt it."
+      requires:
+        act: accuse
+        relationship:
+          - rival
+          - enemy
+      tone:
+        - cold
+      repetitionGroup: accuse.tie
+      memorability: voiced
+    - id: core.accuse.creditor.mine
+      position: core
+      text: "That was mine, and you know it was mine."
+      requires:
+        act: accuse
+        relationship: creditor
+      repetitionGroup: accuse.tie

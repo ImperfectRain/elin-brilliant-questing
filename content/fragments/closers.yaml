@@ -37,3 +37,275 @@ payload:
           - ask
           - accuse
       repetitionGroup: closer.prompt
+    - id: close.we.are.done
+      position: closer
+      text: "We are done."
+      requires:
+        act:
+          - refuse
+          - evade
+          - forgive
+      tone:
+        - curt
+      repetitionGroup: closer.done
+    - id: close.all.i.have
+      position: closer
+      text: "That is all I have."
+      requires:
+        act:
+          - answer
+          - inform
+      repetitionGroup: closer.done
+    - id: close.return.to.my.day
+      position: closer
+      text: "Take the answer and let me return to my day."
+      requires:
+        act:
+          - answer
+          - inform
+          - refuse
+      repetitionGroup: closer.done
+      memorability: signature
+
+    # -- leaving a door open, which is how a scene becomes a later scene
+    - id: close.come.back.if.more
+      position: closer
+      text: "Come back if you learn more."
+      requires:
+        act:
+          - answer
+          - refuse
+          - evade
+          - inform
+      repetitionGroup: closer.return
+    - id: close.find.me.with.proof
+      position: closer
+      text: "Find me when you have proof."
+      requires:
+        act:
+          - refuse
+          - evade
+          - deny
+      repetitionGroup: closer.return
+      memorability: voiced
+    - id: close.sturdier.than.rumour
+      position: closer
+      text: "Bring me something sturdier than rumour and we will reopen the door."
+      requires:
+        act:
+          - refuse
+          - evade
+          - deny
+      repetitionGroup: closer.return
+      memorability: signature
+    - id: close.think.before.answering
+      position: closer
+      text: "Do not answer yet."
+      requires:
+        act:
+          - request
+          - offer
+      repetitionGroup: closer.return
+    - id: close.your.answer.today
+      position: closer
+      text: "Today, if you can manage it."
+      requires:
+        act:
+          - request
+          - threaten
+      tone:
+        - curt
+      repetitionGroup: closer.return
+
+    # -- gratitude and its refusal, as closers rather than as acts of their own
+    - id: close.thank.you
+      position: closer
+      text: "Thank you."
+      requires:
+        act:
+          - answer
+          - inform
+          - offer
+          - forgive
+      tone:
+        - warm
+      repetitionGroup: closer.thanks
+    - id: close.will.remember.this
+      position: closer
+      text: "I will remember this."
+      requires:
+        act:
+          - answer
+          - offer
+          - forgive
+          - promise
+      repetitionGroup: closer.thanks
+      memorability: voiced
+    - id: close.did.not.have.to
+      position: closer
+      text: "You did not have to. You did."
+      requires:
+        act:
+          - forgive
+          - offer
+      repetitionGroup: closer.thanks
+      memorability: protected
+    - id: close.mind.who.you.accuse
+      position: closer
+      text: "Mind who you are accusing."
+      requires:
+        act:
+          - deny
+          - refuse
+      repetitionGroup: closer.prompt
+      memorability: voiced
+    - id: close.threats.poor.evidence
+      position: closer
+      text: "Threats make poor evidence."
+      requires:
+        act:
+          - deny
+          - refuse
+        reply: threaten
+      repetitionGroup: closer.prompt
+      memorability: voiced
+    # -- BQ-133's report found four acts with no way to finish a line at all, and four more with
+    #    exactly one, which is a catchphrase rather than a choice. These are that list, closed.
+    - id: close.admit.there.it.is
+      position: closer
+      text: "There it is."
+      requires:
+        act:
+          - admit
+          - apologize
+      repetitionGroup: closer.done
+    - id: close.admit.do.what.you.like
+      position: closer
+      text: "Do what you like with that."
+      requires:
+        act:
+          - admit
+          - apologize
+          - deny
+      repetitionGroup: closer.done
+      memorability: voiced
+    - id: close.admit.said.it.now
+      position: closer
+      text: "It is said now."
+      requires:
+        act:
+          - admit
+          - apologize
+          - promise
+      repetitionGroup: closer.done
+      memorability: voiced
+    - id: close.apologize.not.asking.for.anything
+      position: closer
+      text: "I am not asking you for anything."
+      requires:
+        act: apologize
+      repetitionGroup: closer.done
+      memorability: voiced
+    - id: close.gossip.make.of.it
+      position: closer
+      text: "Make of that what you like."
+      requires:
+        act:
+          - gossip
+          - inform
+      repetitionGroup: closer.hedge
+    - id: close.gossip.not.from.me
+      position: closer
+      text: "You did not hear it here."
+      requires:
+        act:
+          - gossip
+          - inform
+      repetitionGroup: closer.hedge
+      memorability: voiced
+    - id: close.gossip.ask.around
+      position: closer
+      text: "Ask around. Somebody will have more."
+      requires:
+        act:
+          - gossip
+          - ask
+          - inform
+      repetitionGroup: closer.hedge
+    - id: close.warn.that.is.the.warning
+      position: closer
+      text: "That is the warning."
+      requires:
+        act:
+          - warn
+          - threaten
+      repetitionGroup: closer.warning
+    - id: close.warn.do.as.you.like
+      position: closer
+      text: "Go anyway, if you must."
+      requires:
+        act: warn
+      repetitionGroup: closer.warning
+      memorability: voiced
+    - id: close.warn.said.my.piece
+      position: closer
+      text: "I have said my piece."
+      requires:
+        act:
+          - warn
+          - threaten
+          - accuse
+          - promise
+      repetitionGroup: closer.warning
+    - id: close.threaten.your.move
+      position: closer
+      text: "Your move."
+      requires:
+        act:
+          - threaten
+          - accuse
+          - offer
+      tone:
+        - curt
+      repetitionGroup: closer.prompt
+      memorability: voiced
+    - id: close.promise.hold.me.to.it
+      position: closer
+      text: "Hold me to it."
+      requires:
+        act:
+          - promise
+          - offer
+      repetitionGroup: closer.prompt
+      memorability: voiced
+    - id: close.ask.take.your.time
+      position: closer
+      text: "Take your time."
+      requires:
+        act:
+          - ask
+          - request
+          - offer
+      tone:
+        - warm
+      repetitionGroup: closer.prompt
+    - id: close.ask.i.am.waiting
+      position: closer
+      text: "I am waiting."
+      requires:
+        act:
+          - ask
+          - request
+          - accuse
+      tone:
+        - curt
+      repetitionGroup: closer.prompt
+    - id: close.accuse.say.otherwise
+      position: closer
+      text: "Say otherwise, then."
+      requires:
+        act:
+          - accuse
+          - inform
+      repetitionGroup: closer.prompt
+      memorability: voiced

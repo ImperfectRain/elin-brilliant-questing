@@ -1,0 +1,100 @@
+id: storylet.damaged_property
+kind: storylet
+payload:
+  situationTags:
+    - damage
+    - restitution
+  toneTags:
+    - domestic
+    - aggrieved
+  requiredRoles:
+    - id: owner
+      source: AnyoneWhoKnowsFocus
+    - id: damaged_thing
+      source: FactSubject
+  optionalRoles:
+    - id: suspected
+      source: AnyoneWhoKnowsFocus
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: damaged
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: owner
+    - kind: RoleAlive
+      role: owner
+  resolutions:
+    - repair_undertaken
+    - blame_placed
+    - loss_absorbed
+  beats:
+    - id: damage_shown
+      speaker: owner
+      listener: suspected
+      intentions:
+        - act: inform
+        - act: ask
+        - act: accuse
+          referent: suspected
+      playerIntersections:
+        - inspect
+        - question
+        - repair
+      consequences:
+        - hook: damage_put_to_somebody
+          act: accuse
+          event: AccusationMade
+          actor: owner
+          target: suspected
+          magnitude: 0.3
+      routes:
+        - when: spoke
+          to: damage_answered
+        - when: always
+          ends: loss_absorbed
+
+    - id: damage_answered
+      speaker: suspected
+      listener: owner
+      intentions:
+        - act: deny
+        - act: admit
+        - act: offer
+        - act: evade
+      check:
+        profile: proc_repairs
+        actor: suspected
+        target: owner
+        question: can_this_be_put_right_at_all
+      playerIntersections:
+        - repair
+        - pay_debt
+        - persuade
+        - craft_to_property
+      consequences:
+        - hook: damage_owned
+          event: SecretRevealed
+          actor: suspected
+          target: owner
+          magnitude: 0.3
+          act: admit
+        - hook: repair_offered
+          act: offer
+        - hook: beyond_repair
+          when: check_fail
+      routes:
+        - when: always
+          act: deny
+          ends: blame_placed
+        - when: check_pass
+          act: offer
+          ends: repair_undertaken
+        - when: always
+          act: admit
+          ends: repair_undertaken
+        - when: always
+          ends: loss_absorbed
+  consequenceHooks:
+    - record_damage_pressure

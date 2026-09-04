@@ -2,6 +2,8 @@ id: fragments.core.denial
 kind: dialogueFragments
 payload:
   fragments:
+    # -- neutral cores. Identical pools for an honest denial and a lie: wording is never told which
+    #    this is, so a lie cannot be caught by ear.
     - id: core.deny.flat
       position: core
       text: "No. That is not what happened."
@@ -11,6 +13,12 @@ payload:
     - id: core.deny.wrong
       position: core
       text: "Whoever told you that has it wrong."
+      requires:
+        act: deny
+      repetitionGroup: deny
+    - id: core.deny.wrong.person
+      position: core
+      text: "You have the wrong person."
       requires:
         act: deny
       repetitionGroup: deny
@@ -29,10 +37,150 @@ payload:
         referent: speaker
         claim_predicate: stole
       repetitionGroup: deny
+    - id: core.deny.believe.what.you.like
+      position: core
+      text: "Believe what you like. It was not me."
+      requires:
+        act: deny
+        referent: speaker
+      repetitionGroup: deny
+      memorability: voiced
+    - id: core.deny.bad.information
+      position: core
+      text: "You have been given bad information."
+      requires:
+        act: deny
+      repetitionGroup: deny
+    - id: core.deny.more.interesting.person
+      position: core
+      text: "Whoever put me there has confused me with a more interesting person."
+      requires:
+        act: deny
+        referent: speaker
+      tone:
+        - wry
+      repetitionGroup: deny
+      memorability: signature
+
+    # -- denying on somebody else's behalf. Deny already permits a referent who is not the speaker,
+    #    so defending a third party needs no act of its own.
     - id: core.deny.other
       position: core
       text: "{referent} did no such thing."
       requires:
         act: deny
         referent: other
-      repetitionGroup: deny
+      repetitionGroup: deny.defend
+    - id: core.deny.was.with.me
+      position: core
+      text: "{referent} was with me."
+      requires:
+        act: deny
+        referent: other
+      repetitionGroup: deny.defend
+    - id: core.deny.two.places
+      position: core
+      text: "Find a better story. This one has {referent} in two places at once."
+      requires:
+        act: deny
+        referent: other
+      repetitionGroup: deny.defend
+      memorability: signature
+    - id: core.deny.could.not.have
+      position: core
+      text: "You are accusing somebody who could not have done it."
+      requires:
+        act: deny
+        referent: other
+      repetitionGroup: deny.defend
+    - id: core.deny.one.of.mine
+      position: core
+      text: "Bring me proof. Until then you are speaking about one of mine."
+      requires:
+        act: deny
+        referent: other
+        relationship:
+          - family
+          - spouse
+          - friend
+      repetitionGroup: deny.defend
+      memorability: signature
+
+    # -- denying a rumour, which is a denial that answers gossip
+    - id: core.deny.rumor.grew
+      position: core
+      text: "By breakfast there were two of them. By lunch one had wings."
+      requires:
+        act: deny
+        reply: gossip
+      tone:
+        - wry
+      repetitionGroup: deny.rumor
+      memorability: signature
+    - id: core.deny.rumor.told.one.person
+      position: core
+      text: "I told one person what I saw. Apparently I saw a great deal more by evening."
+      requires:
+        act: deny
+        reply: gossip
+      repetitionGroup: deny.rumor
+      memorability: signature
+    - id: core.deny.rumor.plain
+      position: core
+      text: "That is not what happened, and you can say so."
+      requires:
+        act: deny
+        reply: gossip
+      repetitionGroup: deny.rumor
+
+    # -- mood and audience
+    - id: core.deny.fear.never.there
+      position: core
+      text: "No. I was never there."
+      requires:
+        act: deny
+        emotion: fear
+        referent: speaker
+      repetitionGroup: deny.mood
+    - id: core.deny.anger.finish.the.sentence
+      position: core
+      text: "Finish that sentence and then leave."
+      requires:
+        act: deny
+        emotion: anger
+      tone:
+        - curt
+      repetitionGroup: deny.mood
+      memorability: voiced
+    - id: core.deny.public.everyone.will.remember
+      position: core
+      text: "Say it carefully. Everyone here will remember it."
+      requires:
+        act: deny
+        audience: several
+      repetitionGroup: deny.mood
+      memorability: signature
+    - id: core.deny.public.prove.it
+      position: core
+      text: "Prove it."
+      requires:
+        act: deny
+        audience: several
+      tone:
+        - curt
+      repetitionGroup: deny.mood
+    - id: core.deny.stranger.dont.know.you
+      position: core
+      text: "I do not know you, and I did not do it."
+      requires:
+        act: deny
+        relationship: none
+      repetitionGroup: deny.tie
+    - id: core.deny.pride.own.trade
+      position: core
+      text: "Do not explain my own trade to me. It was not me."
+      requires:
+        act: deny
+        referent: speaker
+      repetitionGroup: deny.tie
+      memorability: voiced

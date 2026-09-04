@@ -1248,4 +1248,104 @@ where the shipped content cannot say what the simulation can mean. Those are ans
 moving state systematically, and only worth answering if the instrument cannot author the answers it
 is measuring.
 
+## D051 — A storylet routes; it never speaks
+
+`StoryletBeat` carries who might speak, what they might be trying to communicate, what is in doubt,
+what history should record and where the scene goes next. Every one of those is a reference: a role
+id, a `SpeechActType`, a check profile the action library already ships, a `WorldEventType`, another
+beat's id. There is no field on the schema a line of dialogue could be written into, and
+`StoryletContent` refuses any string in a storylet payload containing whitespace or sentence
+punctuation, plus the keys somebody would reach for (`text`, `line`, `say`, `dialogue`, …).
+
+**The rule is structural rather than reviewed for.** "Storylets reference meaning, they do not
+contain wording" is the kind of rule that erodes one convenient exception at a time, and the
+convenient exception is always the scene where the generic line reads slightly worse. Making it a
+build error costs an author nothing they should have been doing and removes the argument.
+
+**A beat lists what could be said and never what is said.** `ActorIntent` chooses among a beat's
+declared intentions from the speaker's own personality, problem-solving preference, mood, tie to the
+listener, open obligations, conviction in the claim and exposure to the room, with a bounded jitter
+that separates genuine ties and never overturns a preference. That is what makes two castings of one
+storylet two scenes: a merciful creditor reaches for a release where a vindictive one reaches for a
+threat, and neither sentence is written anywhere.
+
+**Nothing in the runtime names a storylet.** `StoryletRouter` walks beats and delegates every
+decision inside the walk — casting, intent, act composition, checks, wording, consequences all stay
+where they already were. The moment the router mentions a storylet by name, the forty-first storylet
+has stopped being cheaper than the sixth, which is the whole reason the layer exists.
+
+Reason: the alternative to routed data is a bespoke C# class per scene or a script per scene, and
+both were reachable from a beat that was only an id.
+
+## D052 — One question has one decider
+
+A beat whose speaker has just been asked about the focus does not decide what to do about it in
+`ActorIntent`. `Disclosure` (BQ-071 … BQ-073) already weighs privacy, relationship, fear, loyalty,
+leverage and legal risk for exactly that question and already composes the answer, the refusal, the
+evasion or the falsehood; the router asks it first and takes its act when the beat offers that move.
+Everything else — what to open with, whether to accuse or ask, whether to forgive or press — is
+`ActorIntent`'s, because nothing else decides it.
+
+Two deciders for one question do not merely duplicate work. They disagree: a scene could route on an
+intent that said *answer* while the disclosure decision behind the wording said *refuse*, and the
+line would then be worded from a decision the act contradicts. Choosing one owner per question is
+cheaper than reconciling two.
+
+Reason: the failure is silent and looks like a content bug. It is not one.
+
+## D053 — A consequence records what happened, and records it as an event
+
+A beat's consequences carry a trigger in the same vocabulary its routes do, so a beat that offers a
+charge and a question files an accusation only when the charge was actually made. Without it the
+ledger fills with accusations nobody made, and every later reading of history — affinity, memory,
+rumour, thread tension — is downstream of that.
+
+**A consequence is a `WorldEventType` or it is a marker.** A hook that names an event is applied by
+appending to the event ledger through `NarrativeWorldState.Record`, which is where every consequence
+in this codebase already comes from: `ConsequenceEngine` then does what it already does. A hook that
+names no event is written onto the firing and nothing else happens, which is what every storylet hook
+was before this. There is no third shape, and in particular no way for a storylet to state an effect
+that is not an event — the vocabulary is `WorldEventType`'s, the arithmetic is `ConsequenceProfiles`'
+and the participants are roles the scene already cast.
+
+Reason: a second consequence system would be a second history, and the ledger's whole value is being
+the only one.
+
+## D054 — Wording may read a mood and a tie, and may still not read a lie
+
+`DialogueReadings` gains `emotion` and `relationship`, derived from `EmotionalState` and
+`RelationKind` rather than listed again. Both are authoritative state that already exists, already
+decays or persists on its own terms, and already biases decisions; what is new is only that a
+fragment may be conditioned on them. A `VoiceProfile` is a constant and a `DisclosureDecision` is
+about one claim, so neither could carry "the person answering is still angry" or "this is her
+brother", and both of those are audible in a way no depth or strategy stands in for.
+
+Only one emotion reads, and only above a floor: somebody faintly several things at once is not
+visibly any of them. `none` and `absent` stay apart on the relationship axis, because a stranger's
+line said to somebody's spouse because nobody looked would be wording asserting a tie the world never
+held — and a tie read against somebody the act does not address is refused rather than quietly used.
+
+What has not changed is the one thing that must not: wording is still never told that the speaker is
+lying, and a denial of something true draws from exactly the pool a denial of something false draws
+from.
+
+Reason: the axes a corpus is actually written along are act, mood and relationship. Two of the three
+had nowhere to land.
+
+## D055 — A memorable line is protected from repetition more strongly than a plain one
+
+`DialogueMemorability` is four values on a fragment — utility, voiced, signature, protected — and the
+only thing it changes is how quickly `DialogueExpressionHistory` considers that fragment stale, both
+on its own count and on its repetition group's. It is not a quality rating, not a selection weight
+and not a second weirdness axis: an absurd premise is `DialogueWeirdness`' to price, and the most
+memorable sentence in a library can be entirely mundane.
+
+A flat cap is right for "No." and wrong for a line somebody would quote, and the difference is not
+small: hearing a joke twice in one exchange does more damage than hearing a plain utility line five
+times. An unmarked fragment is utility, which is the behaviour every fragment had before the
+vocabulary existed, so it costs nothing to ignore — and the coverage report tracks the distribution,
+because a library that is mostly signature is a library of catchphrases however good each line is.
+
+Reason: the corpus this pass promoted is full of lines that are excellent once and irritating twice.
+
 Add a new entry only when the decision is both load-bearing and durable.

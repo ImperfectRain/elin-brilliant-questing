@@ -24,10 +24,128 @@ payload:
       role: listener
     - kind: RoleAlive
       role: confessor
+  resolutions:
+    - owned_and_settled
+    - owned_and_unresolved
+    - withdrawn
+    - carried_on
   beats:
-    - admit_act
-    - name_reason
-    - face_response
-    - leave_commitment
+    - id: admit_act
+      speaker: confessor
+      listener: listener
+      intentions:
+        - act: admit
+        - act: deny
+      playerIntersections:
+        - question
+        - rapport
+        - persuade
+      consequences:
+        - hook: owned_the_act
+          event: SecretRevealed
+          actor: confessor
+          target: listener
+          magnitude: 0.5
+          act: admit
+      routes:
+        - when: always
+          act: admit
+          to: name_reason
+        - when: always
+          ends: withdrawn
+
+    - id: name_reason
+      speaker: confessor
+      listener: listener
+      intentions:
+        - act: inform
+        - act: apologize
+      playerIntersections:
+        - question
+        - rapport
+      consequences:
+        - hook: reason_given
+          act: inform
+        - hook: apology_offered
+          act: apologize
+      routes:
+        - when: spoke
+          to: face_response
+        - when: always
+          ends: owned_and_unresolved
+
+    - id: face_response
+      speaker: listener
+      listener: confessor
+      intentions:
+        - act: forgive
+          referent: confessor
+          content: none
+        - act: refuse
+        - act: threaten
+        - act: request
+      check:
+        profile: proc_persuasion
+        actor: confessor
+        target: listener
+        question: does_owning_it_buy_anything
+      playerIntersections:
+        - persuade
+        - report
+        - pay_debt
+        - return_item
+      consequences:
+        - hook: confession_forgiven
+          event: DebtPaid
+          actor: confessor
+          target: listener
+          magnitude: 0.4
+          act: forgive
+        - hook: restitution_demanded
+          act: request
+        - hook: confession_answered_with_threat
+          event: Threatened
+          actor: listener
+          target: confessor
+          magnitude: 0.4
+          act: threaten
+      routes:
+        - when: always
+          act: forgive
+          to: leave_commitment
+        - when: always
+          act: request
+          to: leave_commitment
+        - when: always
+          ends: owned_and_unresolved
+
+    - id: leave_commitment
+      speaker: confessor
+      listener: listener
+      intentions:
+        - act: promise
+        - act: offer
+        - act: refuse
+      playerIntersections:
+        - return_item
+        - pay_debt
+        - persuade
+      consequences:
+        - hook: undertaking_after_confession
+          event: PromiseMade
+          actor: confessor
+          target: listener
+          magnitude: 0.5
+          act: promise
+        - hook: terms_after_confession
+          act: offer
+      routes:
+        - when: always
+          act: refuse
+          ends: carried_on
+        - when: spoke
+          ends: owned_and_settled
+        - when: always
+          ends: owned_and_unresolved
   consequenceHooks:
     - record_confession_pressure

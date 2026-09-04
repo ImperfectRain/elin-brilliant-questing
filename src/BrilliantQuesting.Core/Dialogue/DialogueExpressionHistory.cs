@@ -47,6 +47,14 @@ namespace BrilliantQuesting.Dialogue
         /// cadence as often as the cap allows. All-of, not any-of: a fragment sharing an overused
         /// group is exactly as stale as one repeating its own id, because both are the repetition
         /// CD §21 names.
+        ///
+        /// <b>The cap is the fragment's, not the conversation's</b> (BQ-146). A flat cap is right
+        /// for a plain line and wrong for a memorable one: the whole point of a line somebody would
+        /// quote is that hearing it twice is worse than hearing "No." five times.
+        /// <see cref="DialogueMemorability"/> is how a fragment says which it is, and the only
+        /// thing it can do here is make a candidate stale <em>sooner</em> - the counts, the keys
+        /// and the all-of rule are unchanged, so nothing this vocabulary says can make an
+        /// overused fragment fresh again.
         /// </summary>
         public bool IsFresh(DialogueFragment fragment)
         {
@@ -55,12 +63,13 @@ namespace BrilliantQuesting.Dialogue
                 return false;
             }
 
-            if (Uses(_fragments, fragment.Id) >= _cap)
+            if (Uses(_fragments, fragment.Id) >= DialogueMemorability.Allowance(fragment.Memorability, _cap))
             {
                 return false;
             }
 
-            if (fragment.RepetitionGroup.Length != 0 && Uses(_groups, fragment.RepetitionGroup) >= _cap)
+            if (fragment.RepetitionGroup.Length != 0
+                && Uses(_groups, fragment.RepetitionGroup) >= DialogueMemorability.GroupAllowance(fragment.Memorability, _cap))
             {
                 return false;
             }

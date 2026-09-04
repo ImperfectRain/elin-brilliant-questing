@@ -123,16 +123,87 @@ A fragment belongs to an act and a position, and is selected by tags, requiremen
 by whose file it was in. If a line can only ever be said by one named character, that is a signature
 line, and `CD §20` already defers those.
 
+### 5.1 What a fragment file says (BQ-132, BQ-146)
+
+```yaml
+- id: core.accuse.stop.looking.past      # globally unique; a long-term contract
+  position: core                          # opener | core | modifier | callback | context | closer
+  text: "If you want the thief, stop looking past {referent}."
+  requires:                               # a closed reading, any-of within a key, all-of across keys
+    act: accuse                           # every core fragment must declare one
+    claim_predicate: stole
+    referent: other
+  forbids: {}                             # the same vocabulary, negated
+  tone: [curt]                            # marked poles of four axes; unmarked fits every voice
+  tags: [trade]                           # lived-context vocabulary, manners, weirdness category/level/premise
+  repetitionGroup: accuse
+  memorability: signature                 # utility | voiced | signature | protected
+```
+
+The readings a fragment may be selected on are `DialogueReadings`', and every one of them is
+something the simulation already decided: the act and its stance, the disclosure decision behind it,
+the claim's predicate, who the referent is relative to the room, whether one person is being spoken
+to or several, what old business is to hand and how the speaker comes by it, what they are audibly
+feeling, and what they are to the listener. Adding a key means the simulation grew a distinction, not
+that an author wanted a label. Placeholders are `DialogueSlots`' six and no more; a placeholder that
+cannot be filled makes its fragment ineligible rather than resolving to "someone".
+
+`memorability` is the one axis that is purely about wear: it changes how quickly a fragment counts as
+stale, so a line somebody would quote is spent when it lands and "No." is not (`D055`).
+
+### 5.2 What a storylet file says (BQ-131, BQ-146)
+
+A storylet is a dramatic structure. **It contains no wording, and cannot** — every string in one is
+an id, a tag or a member of a closed vocabulary, and the compiler refuses anything with whitespace
+or sentence punctuation in it (`D051`).
+
+```yaml
+requiredRoles:  [{id: accuser, source: AnyoneWhoKnowsFocus}, {id: accused, source: FactSubject}]
+optionalRoles:  [{id: knower,  source: AnyoneWhoKnowsFocus}]
+preconditions:  [{kind: FocusPredicate, value: stole}, {kind: RoleKnowsFocus, role: accuser}]
+resolutions:    [charge_pressed, charge_dismissed, taken_aside, owned_in_public]
+beats:
+  - id: name_charge
+    speaker: accuser
+    listener: accused
+    intentions:                     # what could sensibly be said; the actor picks
+      - {act: accuse, referent: accused}
+      - {act: ask}
+    requires: []                    # the storylet precondition vocabulary, per beat
+    check:                          # an uncertainty, named, over a profile that exists
+      {profile: proc_credibility, actor: accuser, target: accused, question: does_the_room_take_the_charge}
+    playerIntersections: [compare_testimony, persuade, intimidate]
+    consequences:                   # applied only when the thing they record happened
+      - {hook: charge_named_in_public, event: AccusationMade, actor: accuser, target: accused, act: accuse}
+    routes:                         # first match wins, in authored order
+      - {when: check_pass, act: accuse, to: demand_answer}
+      - {when: check_fail, act: accuse, to: invite_witness}
+      - {when: always, ends: taken_aside}
+```
+
+**Adding a storylet needs no C# change**, and adding prose needs no storylet change. The two are
+authored against each other only through `SpeechActType`, which both already speak.
+
+Two rules an author will feel:
+
+- *List the moves the situation makes sensible, not the move you want.* `ActorIntent` picks from the
+  speaker's own state, so a beat offering only `accuse` is a beat where nobody may hesitate.
+- *A check answers a question.* `question` is required and is a slug, so a roll for atmosphere cannot
+  be written; if nothing is genuinely in doubt, leave the check out.
+
 ---
 
 ## 6. Coverage, not line count
 
 The measure of the library is **which cells are filled**, not how many lines exist.
 
-The compiler emits a coverage report over the axes that actually gate selection: semantic act ×
-position × tone × formality, with the personality and emotion ranges each cell covers. A cell with
-one fragment is a repetition bug waiting for a player to find. A cell with none is a hole the
-realizer will fall through at runtime.
+The compiler emits a coverage report over the axes that actually gate selection —
+`ContentCompiler --coverage [path]`. Act × position first, because an act with no core has no words
+at all whatever else the library holds; then act × commitment, disclosure depth, audience, audible
+emotion, relationship and requested tone over cores; then the distinctiveness distribution and a line
+per storylet (beats, whether it routes, how many endings, how many distinct acts, how many checks).
+A cell with one fragment is a repetition bug waiting for a player to find. A cell with none is a hole
+the realizer will fall through at runtime. The report ends with exactly those two lists.
 
 This is deliberately *not* a combinatorial argument. Multiplying axis sizes together to claim a
 large number of possible outputs measures nothing: most of the product is unreachable, and the

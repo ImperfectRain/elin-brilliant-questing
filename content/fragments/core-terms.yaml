@@ -1,0 +1,219 @@
+id: fragments.core.terms
+kind: dialogueFragments
+payload:
+  fragments:
+    # -- offer: terms on the table, binding nobody yet
+    - id: core.offer.i.can.help
+      position: core
+      text: "I can help."
+      requires:
+        act: offer
+      repetitionGroup: offer
+    - id: core.offer.leave.that.to.me
+      position: core
+      text: "Leave that part to me."
+      requires:
+        act: offer
+      repetitionGroup: offer
+    - id: core.offer.give.me.one
+      position: core
+      text: "You have enough problems. Give me one."
+      requires:
+        act: offer
+      repetitionGroup: offer
+      memorability: voiced
+    - id: core.offer.what.in.return
+      position: core
+      text: "What do I get in return?"
+      requires:
+        act: offer
+      repetitionGroup: offer.terms
+    - id: core.offer.change.the.terms
+      position: core
+      text: "Change the terms and I may agree."
+      requires:
+        act: offer
+      repetitionGroup: offer.terms
+    - id: core.offer.half.now
+      position: core
+      text: "Half now, half when it is done."
+      requires:
+        act: offer
+      repetitionGroup: offer.terms
+    - id: core.offer.conscience.flexible
+      position: core
+      text: "My conscience is flexible. My rate is not."
+      requires:
+        act: offer
+      tone:
+        - wry
+      repetitionGroup: offer.terms
+      memorability: signature
+    - id: core.offer.worth.to.you
+      position: core
+      text: "What is it worth to you?"
+      requires:
+        act: offer
+      repetitionGroup: offer.terms
+    - id: core.offer.concern.is.free
+      position: core
+      text: "Concern is free. Help has a price."
+      requires:
+        act: offer
+      repetitionGroup: offer.terms
+      memorability: voiced
+    - id: core.offer.return.the.matter
+      position: core
+      text: "I will bring the {matter} back."
+      requires:
+        act: offer
+        claim_predicate: stole
+      repetitionGroup: offer.restitution
+    - id: core.offer.pay.for.it
+      position: core
+      text: "I will pay for it. That is what I have."
+      requires:
+        act: offer
+        claim_predicate: stole
+      repetitionGroup: offer.restitution
+    - id: core.offer.make.it.right
+      position: core
+      text: "Tell me what makes this right and I will do it."
+      requires:
+        act: offer
+      repetitionGroup: offer.restitution
+      memorability: voiced
+    - id: core.offer.take.what.you.need
+      position: core
+      text: "Take what you need."
+      requires:
+        act: offer
+      repetitionGroup: offer.generous
+    - id: core.offer.pay.me.back.later
+      position: core
+      text: "Pay me back when it stops hurting."
+      requires:
+        act: offer
+      repetitionGroup: offer.generous
+      memorability: voiced
+    - id: core.offer.easy.problem
+      position: core
+      text: "If I can solve this by having less, we have found an easy problem."
+      requires:
+        act: offer
+      repetitionGroup: offer.generous
+      memorability: signature
+    - id: core.offer.debtor.owe.you.ask
+      position: core
+      text: "I owe you. Ask."
+      requires:
+        act: offer
+        relationship: creditor
+      repetitionGroup: offer.tie
+      memorability: voiced
+    - id: core.offer.rival.beating.you.alive
+      position: core
+      text: "I prefer beating you alive."
+      requires:
+        act: offer
+        relationship:
+          - rival
+          - enemy
+      tone:
+        - wry
+      repetitionGroup: offer.tie
+      memorability: voiced
+
+    # -- promise: the speaker is bound. Whether it survives the conversation is the caller's call.
+    - id: core.promise.i.will
+      position: core
+      text: "I will do it."
+      requires:
+        act: promise
+      repetitionGroup: promise
+    - id: core.promise.my.word
+      position: core
+      text: "You have my word."
+      requires:
+        act: promise
+      repetitionGroup: promise
+    - id: core.promise.remind.me.in.public
+      position: core
+      text: "If I fail, you may remind me in public."
+      requires:
+        act: promise
+      repetitionGroup: promise
+      memorability: voiced
+    - id: core.promise.before.the.week
+      position: core
+      text: "It will be done, and it will be done soon."
+      requires:
+        act: promise
+      repetitionGroup: promise
+    - id: core.promise.close.tie.involved.now
+      position: core
+      text: "If {subject} is in trouble, I am involved."
+      requires:
+        subject: other
+        act: promise
+        relationship:
+          - friend
+          - family
+          - spouse
+      repetitionGroup: promise.tie
+      memorability: signature
+    - id: core.promise.public.room.remembers
+      position: core
+      text: "Let the room remember who promised what."
+      requires:
+        act: promise
+        audience: several
+      tone:
+        - formal
+      repetitionGroup: promise.tie
+      memorability: signature
+
+    # BQ-133 reported promise as the thinnest core pool in the library; these are the three that
+    # close it, and they are three different kinds of undertaking rather than three phrasings.
+    - id: core.promise.by.the.time.you.return
+      position: core
+      text: "It will be waiting when you come back."
+      requires:
+        act: promise
+      repetitionGroup: promise
+    - id: core.promise.i.will.see.to.it
+      position: core
+      text: "I will see to it myself."
+      requires:
+        act: promise
+      repetitionGroup: promise
+    - id: core.promise.no.conditions
+      position: core
+      text: "No conditions. It is done."
+      requires:
+        act: promise
+      repetitionGroup: promise
+      memorability: voiced
+    - id: core.promise.shame.make.it.right
+      position: core
+      text: "I will put this right. However long it takes."
+      requires:
+        act: promise
+        emotion: shame
+      repetitionGroup: promise
+      memorability: voiced
+    - id: core.offer.name.your.terms
+      position: core
+      text: "Name your terms."
+      requires:
+        act: offer
+      repetitionGroup: offer.terms
+    - id: core.offer.i.can.be.persuaded
+      position: core
+      text: "I can be persuaded. Coin is unusually persuasive."
+      requires:
+        act: offer
+      tone:
+        - wry
+      repetitionGroup: offer.terms
+      memorability: signature

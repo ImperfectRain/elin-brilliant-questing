@@ -163,22 +163,57 @@ namespace BrilliantQuesting.Dialogue
             return Table.TryGetValue(type, out SpeechActProfile profile) ? profile : null;
         }
 
-        /// <summary>Every act in the vocabulary, so a caller can enumerate it without a literal list.</summary>
-        public static IReadOnlyList<SpeechActType> Vocabulary { get; } = new[]
+        /// <summary>
+        /// Every act in the vocabulary, so a caller can enumerate it without a literal list.
+        ///
+        /// Read off <see cref="Build"/> rather than written out again. A hand-kept copy is a copy
+        /// somebody has to remember to update, and this list is exactly the kind that goes stale
+        /// silently: an act with a profile but no entry here would be well formed everywhere and
+        /// invisible to every consumer that enumerates the vocabulary. Ordering is the enum's own,
+        /// so it stays stable and readable.
+        /// </summary>
+        public static IReadOnlyList<SpeechActType> Vocabulary { get; } = BuildVocabulary();
+
+        private static IReadOnlyList<SpeechActType> BuildVocabulary()
         {
-            SpeechActType.Ask,
-            SpeechActType.Answer,
-            SpeechActType.Accuse,
-            SpeechActType.Deny,
-            SpeechActType.Admit,
-            SpeechActType.Request,
-            SpeechActType.Refuse,
-            SpeechActType.Threaten,
-            SpeechActType.Apologize,
-            SpeechActType.Gossip,
-            SpeechActType.Evade,
-            SpeechActType.Promise
-        };
+            List<SpeechActType> vocabulary = new List<SpeechActType>();
+            foreach (SpeechActType type in System.Enum.GetValues(typeof(SpeechActType)))
+            {
+                if (Table.ContainsKey(type))
+                {
+                    vocabulary.Add(type);
+                }
+            }
+
+            return vocabulary;
+        }
+
+        /// <summary>
+        /// Every act except the ones named, as an antecedent list.
+        ///
+        /// The one way this file expresses "responds to anything but that", and it is derived so
+        /// that a later act joining the vocabulary is admitted automatically rather than being
+        /// silently excluded by a list written before it existed.
+        /// </summary>
+        private static SpeechActType[] AllExcept(params SpeechActType[] excluded)
+        {
+            List<SpeechActType> allowed = new List<SpeechActType>();
+            foreach (SpeechActType type in System.Enum.GetValues(typeof(SpeechActType)))
+            {
+                bool skip = false;
+                for (int i = 0; i < excluded.Length; i++)
+                {
+                    skip = skip || excluded[i] == type;
+                }
+
+                if (!skip)
+                {
+                    allowed.Add(type);
+                }
+            }
+
+            return allowed.ToArray();
+        }
 
         private static Dictionary<SpeechActType, SpeechActProfile> Build()
         {
@@ -217,9 +252,19 @@ namespace BrilliantQuesting.Dialogue
 
             // A refusal need carry no content of its own: what is being refused is the thing it
             // answers, which is why that antecedent is the one part it cannot do without.
+            //
+            // What may be refused is what asks something of you. BQ-146 adds two: an offer is a
+            // proposal and turning one down is the ordinary other half of it, and an apology can
+            // be refused - "keep the words, repair what you broke" is a real move with a real
+            // consequence, and before this the vocabulary could only express accepting one or
+            // saying nothing.
             Add(table, SpeechActType.Refuse, SpeechActStance.None, SpeechActDirection.WithholdsAction,
                 SpeechActContentRule.Optional, SpeechActReferentRule.Optional, false, true,
-                new[] { SpeechActType.Request, SpeechActType.Ask, SpeechActType.Threaten });
+                new[]
+                {
+                    SpeechActType.Request, SpeechActType.Ask, SpeechActType.Threaten,
+                    SpeechActType.Offer, SpeechActType.Apologize
+                });
 
             Add(table, SpeechActType.Threaten, SpeechActStance.None, SpeechActDirection.SeeksAction,
                 SpeechActContentRule.Required, SpeechActReferentRule.Optional, false, false, null);
@@ -255,6 +300,41 @@ namespace BrilliantQuesting.Dialogue
             // and one that answers a request are both ordinary.
             Add(table, SpeechActType.Promise, SpeechActStance.None, SpeechActDirection.CommitsToAction,
                 SpeechActContentRule.Required, SpeechActReferentRule.Optional, false, false, null);
+
+            // Telling somebody something nobody asked for (BQ-146). It affirms a claim, so
+            // Deception reads it exactly as it reads an answer and an unprompted falsehood is as
+            // catchable as a prompted one. A proposition is required because an informing with no
+            // claim in it is not information; the referent is optional because most claims are
+            // about a matter rather than about a person.
+            //
+            // The one antecedent it may not have is an Ask - responding to a question with a claim
+            // is an Answer, and letting both acts cover that would make "did anybody have to ask?"
+            // unanswerable from the record. Derived rather than listed, so an act added later is
+            // admitted without this row being touched.
+            Add(table, SpeechActType.Inform, SpeechActStance.Affirms, SpeechActDirection.GivesInformation,
+                SpeechActContentRule.PropositionRequired, SpeechActReferentRule.Optional, false, false,
+                AllExcept(SpeechActType.Ask));
+
+            // A caution the speaker is not the source of (BQ-146). Stance None and content
+            // Required, exactly as a threat: both are about what may happen rather than about
+            // whether a claim holds, and the whole difference between them is who the danger comes
+            // from - which is a fact about the world the consequence layer reads, not something
+            // readable off a stance.
+            Add(table, SpeechActType.Warn, SpeechActStance.None, SpeechActDirection.SeeksAction,
+                SpeechActContentRule.Required, SpeechActReferentRule.Optional, false, false, null);
+
+            // Terms, still open (BQ-146). CommitsToAction like a promise, because what is on the
+            // table is the speaker's own doing - but nothing here is binding, which is the line
+            // ConversationState.Commit already draws by taking promises and nothing else.
+            Add(table, SpeechActType.Offer, SpeechActStance.None, SpeechActDirection.CommitsToAction,
+                SpeechActContentRule.Required, SpeechActReferentRule.Optional, false, false, null);
+
+            // Releasing what is owed (BQ-146). Repairs, like an apology, and the mirror of it: the
+            // referent must not be the speaker, because forgiving yourself is not something said
+            // to anybody, and content is optional because what is being let go of is usually
+            // whatever was just apologised for or admitted.
+            Add(table, SpeechActType.Forgive, SpeechActStance.None, SpeechActDirection.Repairs,
+                SpeechActContentRule.Optional, SpeechActReferentRule.MustNotBeSpeaker, false, false, null);
 
             return table;
         }

@@ -892,6 +892,124 @@ namespace BrilliantQuesting.Diagnostics
         /// it reach a player?" - is not answerable from any of their dumps. A pressure that can
         /// reach nobody is printed exactly like one that can, because it is not a defect.
         /// </summary>
+        /// <summary>
+        /// A scene as it actually went (BQ-146): beat by beat, who spoke, what they weighed, what
+        /// they decided, how the check came out, what was said, what history recorded and where it
+        /// went next.
+        ///
+        /// The pipeline's own answer to "why did that happen". Every line of it is read back off
+        /// what the layers already produced - the intent scores are <c>ActorIntent</c>'s trace, the
+        /// check line is <c>CheckResult.Explain</c>, the words are the realizer's - so the report
+        /// cannot disagree with the scene and cannot be produced when the scene was not.
+        /// </summary>
+        public static string DescribeStoryletPlay(NarrativeWorldState world, StoryletPlay play)
+        {
+            if (play == null)
+            {
+                return "scene: none\n";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            if (!play.Played)
+            {
+                sb.Append("scene unplayed: ").Append(play.Refusal).Append('\n');
+                return sb.ToString();
+            }
+
+            sb.Append("scene ").Append(play.Firing.StoryletId).Append('\n');
+            for (int i = 0; i < play.Beats.Count; i++)
+            {
+                PlayedBeat beat = play.Beats[i];
+                sb.Append("  ").Append(i + 1).Append(". ").Append(beat.BeatId);
+                if (!beat.Played)
+                {
+                    sb.Append("  (skipped: ").Append(beat.Skipped).Append(")\n");
+                    continue;
+                }
+
+                sb.Append('\n');
+                if (!beat.Speaker.IsNone)
+                {
+                    sb.Append("     speaker: ").Append(Who(world, beat.Speaker))
+                      .Append(" -> ").Append(Who(world, beat.Listener)).Append('\n');
+                }
+
+                if (beat.Choice != null)
+                {
+                    sb.Append("     weighed:\n");
+                    for (int j = 0; j < beat.Choice.Considered.Count; j++)
+                    {
+                        IntentScore score = beat.Choice.Considered[j];
+                        sb.Append("       ")
+                          .Append(ReferenceEquals(score, beat.Choice.Chosen) ? "* " : "  ")
+                          .Append(score.Intention.Act).Append(' ');
+                        if (score.IsAvailable)
+                        {
+                            sb.Append(score.Total.ToString("0.00")).Append("  ").Append(Terms(score));
+                        }
+                        else
+                        {
+                            sb.Append("(unavailable: ").Append(score.Refusal).Append(')');
+                        }
+
+                        sb.Append('\n');
+                    }
+                }
+
+                if (beat.Decision != null)
+                {
+                    sb.Append("     disclosure: ").Append(beat.Decision.Strategy)
+                      .Append(", ").Append(beat.Decision.Depth).Append('\n');
+                }
+
+                sb.Append("     act: ").Append(beat.Act == null ? "none - nobody spoke" : beat.Act.Signature).Append('\n');
+
+                if (beat.Recalled != null)
+                {
+                    sb.Append("     recalled: ").Append(beat.Recalled.Hook.PrimaryKind)
+                      .Append(" (").Append(beat.Recalled.Hook.Route).Append(")\n");
+                }
+
+                if (beat.Check != null)
+                {
+                    sb.Append("     ").Append(beat.Check.Explain()).Append('\n');
+                }
+
+                if (beat.Line != null)
+                {
+                    sb.Append("     said: ")
+                      .Append(beat.Line.Rendered ? beat.Line.Text : "(unworded: " + beat.Line.Refusal + ")")
+                      .Append('\n');
+                }
+
+                if (beat.Consequences.Count > 0)
+                {
+                    sb.Append("     recorded: ").Append(string.Join(", ", beat.Consequences)).Append('\n');
+                }
+
+                if (beat.PlayerIntersections.Count > 0)
+                {
+                    sb.Append("     player could: ").Append(string.Join(", ", beat.PlayerIntersections)).Append('\n');
+                }
+
+                sb.Append("     next: ").Append(beat.Route == null ? "nothing routed" : beat.Route.ToString()).Append('\n');
+            }
+
+            sb.Append("  ended: ").Append(play.Resolution.Length == 0 ? "no declared resolution" : play.Resolution).Append('\n');
+            return sb.ToString();
+        }
+
+        private static string Terms(IntentScore score)
+        {
+            List<string> terms = new List<string>();
+            for (int i = 0; i < score.Reasons.Count; i++)
+            {
+                terms.Add(score.Reasons[i].ToString());
+            }
+
+            return string.Join(", ", terms);
+        }
+
         public static string DescribeDevelopments(NarrativeWorldState world)
         {
             IReadOnlyList<Development> developments = DevelopmentDetector.Detect(world);

@@ -8,9 +8,12 @@ namespace BrilliantQuesting.Dialogue
     /// <summary>
     /// The core communicative vocabulary (CD §17.1, §38 Phase B).
     ///
-    /// Twelve acts, deliberately: the design archive lists three dozen, and the ones missing here
+    /// Sixteen acts, deliberately: the design archive lists three dozen, and the ones missing here
     /// are missing because nothing consumes them yet. A vocabulary grows when a consumer needs a
-    /// distinction, not when somebody thinks of a verb.
+    /// distinction, not when somebody thinks of a verb - which is why thanking, praising, teasing,
+    /// comforting and flattering are still absent although an authoring corpus is full of them.
+    /// Each of those is a way of saying one of the acts below, or a modifier on it, and none of
+    /// them is a distinction anything in the simulation currently branches on.
     ///
     /// <see cref="Evade"/> is the addition BQ-070 named in advance and left to BQ-073: a
     /// deflection had no act, so a speaker who let a question go produced either nothing or a
@@ -24,6 +27,16 @@ namespace BrilliantQuesting.Dialogue
     /// rather than a claim. It takes no stance on any proposition - a promise is not true or
     /// false, it is kept or broken, and which of those it becomes is decided later by what its
     /// speaker does, not by anything readable at the moment of speaking.
+    ///
+    /// <see cref="Inform"/>, <see cref="Warn"/>, <see cref="Offer"/> and <see cref="Forgive"/> are
+    /// BQ-146's four, and each arrives with the consumer that could not be written without it.
+    /// Routed storylet beats let an actor decide what to communicate from their own state
+    /// (<c>ActorIntent</c>), and the four moves that decision most wanted to be able to reach were:
+    /// telling somebody something nobody asked for, cautioning them about a danger the speaker is
+    /// not the source of, putting terms on the table without yet being bound by them, and letting
+    /// go of what is owed. Every one of those was previously either impossible or expressible only
+    /// as an act that meant something materially different, and the last two are what make a
+    /// merciful actor and a vindictive actor route a restitution scene apart.
     /// </summary>
     public enum SpeechActType
     {
@@ -58,7 +71,70 @@ namespace BrilliantQuesting.Dialogue
         /// entering into the durable obligation ledger at all - is a judgement conversation state
         /// makes, not a fact carried on the act.
         /// </summary>
-        Promise
+        Promise,
+
+        /// <summary>
+        /// A claim put forward that nobody asked for.
+        ///
+        /// BQ-146's addition, and the hole it closes is the one routed storylets fell into first:
+        /// before it, an actor could only assert something in reply to a question
+        /// (<see cref="Answer"/>) or behind somebody's back (<see cref="Gossip"/>), so an NPC who
+        /// wanted to tell the person in front of them what had happened had no act to do it with.
+        /// A storylet in which nobody has asked anything yet could therefore never start with
+        /// somebody speaking, which made the player's question the only way a scene could begin.
+        ///
+        /// It is not a weaker <see cref="Answer"/>: an answer is owed to an antecedent and an
+        /// informing is volunteered, and the difference is exactly what a listener learns about
+        /// somebody who brings a thing up unprompted. It may not answer an
+        /// <see cref="Ask"/> - that act already exists - and <see cref="SpeechActProfile"/> says
+        /// so by deriving its permitted antecedents from the vocabulary minus that one member,
+        /// rather than by a list that would go stale.
+        /// </summary>
+        Inform,
+
+        /// <summary>
+        /// A caution about something the speaker is not themself threatening to do.
+        ///
+        /// The distinction from <see cref="Threaten"/> is the whole reason it exists, and it is a
+        /// distinction consequences already care about: being threatened is something done *to*
+        /// somebody and moves standing accordingly, while being warned is a kindness or at worst
+        /// an inconvenience. A layer that had to word both as <see cref="Threaten"/> would file
+        /// "do not go down that road alone" in the ledger beside extortion.
+        ///
+        /// Stance is <see cref="SpeechActStance.None"/> for the same reason a threat's is: a
+        /// warning is about what may happen, not about whether a claim already holds, so nothing
+        /// that reads stance can score one as an assertion and nobody can be caught lying by
+        /// warning.
+        /// </summary>
+        Warn,
+
+        /// <summary>
+        /// Terms put on the table: something the speaker will do, or give, if.
+        ///
+        /// Between <see cref="Request"/> (which seeks the addressee's action and commits the
+        /// speaker to nothing) and <see cref="Promise"/> (which binds the speaker outright). An
+        /// offer is neither: it is a proposal that is still open, which is why
+        /// <c>ConversationState.Commit</c> takes promises and not these - an offer nobody has
+        /// taken up is not an obligation, and recording it as one would fill the ledger with debts
+        /// nobody agreed to.
+        ///
+        /// It is what restitution, bargaining, hire and bribery all are before anybody says yes.
+        /// </summary>
+        Offer,
+
+        /// <summary>
+        /// What is owed is released.
+        ///
+        /// Repairs, like <see cref="Apologize"/>, and the other half of it: an apology is offered
+        /// by whoever did the thing, and this is granted by whoever it was done to. The act
+        /// cannot be about the speaker themself, because releasing your own debt to yourself is
+        /// not something said to anybody.
+        ///
+        /// Saying it is not the same as clearing the ledger. Whether a <c>SocialObligation</c>
+        /// actually closes is the obligation layer's to decide from what the speaker then does,
+        /// exactly as a promise's keeping is - this act carries the meaning and never the write.
+        /// </summary>
+        Forgive
     }
 
     /// <summary>

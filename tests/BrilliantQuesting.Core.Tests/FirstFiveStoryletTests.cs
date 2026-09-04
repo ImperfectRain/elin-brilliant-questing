@@ -54,7 +54,7 @@ namespace BrilliantQuesting.Tests
             TheftLaboratory lab = TheftLaboratory.Create();
             StoryletEngine engine = ShippedEngine();
 
-            IReadOnlyList<StoryletOpportunity> opportunities = engine.Find(Casting(lab));
+            List<StoryletOpportunity> opportunities = OnlyTheFive(engine.Find(Casting(lab)));
 
             Assert.Equal(
                 FirstFive.OrderBy(id => id, StringComparer.Ordinal),
@@ -159,7 +159,7 @@ namespace BrilliantQuesting.Tests
             StoryletEngine engine = ShippedEngine();
             lab.World.Knowledge.GetFact(lab.Situation.OwnershipFactId).Truth = TruthState.False;
 
-            IReadOnlyList<StoryletOpportunity> opportunities = engine.Find(Casting(lab));
+            List<StoryletOpportunity> opportunities = OnlyTheFive(engine.Find(Casting(lab)));
 
             Assert.Equal(
                 FirstFive.Except(NeedAnInjuredParty, StringComparer.Ordinal).OrderBy(id => id, StringComparer.Ordinal),
@@ -220,13 +220,13 @@ namespace BrilliantQuesting.Tests
             StoryletEngine engine = ShippedEngine();
             lab.Vanilla.SetZone(lab.Situation.WitnessId, lab.World.NewId("zone"));
 
-            Assert.Empty(engine.Find(Casting(lab)));
+            Assert.Empty(OnlyTheFive(engine.Find(Casting(lab))));
             AssertEveryoneRefuses(lab, "cannot be cast");
 
             // Bring her home and every one of them is playable again: the refusal was about the
             // world, not about the content.
             lab.Vanilla.SetZone(lab.Situation.WitnessId, lab.Zone);
-            Assert.Equal(5, engine.Find(Casting(lab)).Count);
+            Assert.Equal(5, OnlyTheFive(engine.Find(Casting(lab))).Count);
         }
 
         [Fact]
@@ -239,7 +239,7 @@ namespace BrilliantQuesting.Tests
             int eventsBefore = lab.World.Ledger.Events.Count;
             int knowersBefore = lab.World.Knowledge.Knowers(theft.Id).Count();
 
-            foreach (StoryletOpportunity opportunity in engine.Find(Casting(lab)))
+            foreach (StoryletOpportunity opportunity in OnlyTheFive(engine.Find(Casting(lab))))
             {
                 engine.Fire(opportunity, lab.Situation.Thread, lab.Vanilla.Now);
             }
@@ -255,6 +255,18 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(lab.Situation.ThiefId, theft.Subject);
             Assert.Equal(lab.Situation.ItemId, theft.Object);
             Assert.Equal(knowersBefore, lab.World.Knowledge.Knowers(theft.Id).Count());
+        }
+
+        /// <summary>
+        /// The five, out of whatever else the shipped library now offers on a theft.
+        ///
+        /// This file is BQ-066's proof about five particular scenes, and it used to enumerate the
+        /// whole result because five was all there was. Keeping that would make every future
+        /// storylet a failing test here while proving nothing about these five.
+        /// </summary>
+        private static List<StoryletOpportunity> OnlyTheFive(IReadOnlyList<StoryletOpportunity> opportunities)
+        {
+            return opportunities.Where(o => FirstFive.Contains(o.Definition.Id, StringComparer.Ordinal)).ToList();
         }
 
         private static void AssertEveryoneRefuses(TheftLaboratory lab, string reason)

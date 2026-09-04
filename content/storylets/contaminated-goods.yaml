@@ -1,0 +1,127 @@
+id: storylet.contaminated_goods
+kind: storylet
+payload:
+  situationTags:
+    - production
+    - harm
+  toneTags:
+    - technical
+    - defensive
+  requiredRoles:
+    - id: producer
+      source: AnyoneWhoKnowsFocus
+    - id: batch_owner
+      source: FactSubject
+  optionalRoles:
+    - id: expert
+      source: AnyoneWhoCanProveFocus
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: is_contaminated
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: producer
+    - kind: RoleAlive
+      role: producer
+  resolutions:
+    - fault_owned
+    - fault_denied
+    - cause_identified
+    - matter_dropped
+  beats:
+    - id: batch_questioned
+      speaker: producer
+      listener: expert
+      intentions:
+        - act: inform
+        - act: ask
+        - act: deny
+        - act: admit
+      playerIntersections:
+        - identify_substance
+        - inspect
+        - question
+      consequences:
+        - hook: producer_owned_the_batch
+          act: admit
+        - hook: producer_disputed_the_batch
+          act: deny
+      routes:
+        - when: always
+          act: deny
+          ends: fault_denied
+        - when: spoke
+          to: batch_examined
+        - when: always
+          ends: matter_dropped
+
+    - id: batch_examined
+      speaker: expert
+      listener: producer
+      intentions:
+        - act: inform
+        - act: refuse
+        - act: warn
+      check:
+        profile: proc_substance
+        actor: expert
+        target: batch_owner
+        question: what_actually_spoiled_it
+      playerIntersections:
+        - identify_substance
+        - search
+        - read
+        - inspect
+      consequences:
+        - hook: cause_found
+          event: EvidenceCreated
+          actor: expert
+          target: batch_owner
+          magnitude: 0.4
+          when: check_pass
+          act: inform
+        - hook: cause_unfound
+          when: check_fail
+      routes:
+        - when: check_pass
+          ends: cause_identified
+        - when: check_fail
+          to: batch_owned_or_not
+        - when: always
+          to: batch_owned_or_not
+
+    - id: batch_owned_or_not
+      speaker: producer
+      listener: expert
+      intentions:
+        - act: admit
+        - act: offer
+        - act: deny
+        - act: refuse
+      playerIntersections:
+        - pay_debt
+        - persuade
+        - repair
+        - destroy_evidence
+      consequences:
+        - hook: harm_owned_after_examination
+          event: SecretRevealed
+          actor: producer
+          target: batch_owner
+          magnitude: 0.4
+          act: admit
+        - hook: replacement_offered
+          act: offer
+      routes:
+        - when: always
+          act: deny
+          ends: fault_denied
+        - when: always
+          act: refuse
+          ends: matter_dropped
+        - when: always
+          ends: fault_owned
+  consequenceHooks:
+    - record_production_pressure

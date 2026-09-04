@@ -27,11 +27,161 @@ payload:
       role: accuser
     - kind: RoleAlive
       role: accused
+  resolutions:
+    - charge_pressed
+    - charge_dismissed
+    - taken_aside
+    - owned_in_public
   beats:
-    - gather_attention
-    - name_charge
-    - demand_answer
-    - invite_witness
-    - leave_pressure
+    - id: gather_attention
+      speaker: accuser
+      listener: accused
+      intentions:
+        - act: inform
+        - act: ask
+      playerIntersections:
+        - question
+        - persuade
+      routes:
+        - when: spoke
+          to: name_charge
+        - when: always
+          ends: taken_aside
+
+    - id: name_charge
+      speaker: accuser
+      listener: accused
+      intentions:
+        - act: accuse
+          referent: accused
+        - act: ask
+        - act: warn
+      check:
+        profile: proc_credibility
+        actor: accuser
+        target: accused
+        question: does_the_room_take_the_charge
+      playerIntersections:
+        - compare_testimony
+        - persuade
+        - intimidate
+      consequences:
+        - hook: charge_named_in_public
+          event: AccusationMade
+          actor: accuser
+          target: accused
+          magnitude: 0.5
+          act: accuse
+      routes:
+        - when: check_pass
+          act: accuse
+          to: demand_answer
+        - when: check_fail
+          act: accuse
+          to: invite_witness
+        - when: spoke
+          to: demand_answer
+        - when: always
+          ends: taken_aside
+
+    - id: demand_answer
+      speaker: accused
+      listener: accuser
+      intentions:
+        - act: deny
+        - act: admit
+        - act: evade
+        - act: refuse
+        - act: offer
+      playerIntersections:
+        - lie
+        - persuade
+        - intimidate
+        - report
+      consequences:
+        - hook: charge_answered_with_denial
+          act: deny
+        - hook: owned_before_witnesses
+          event: SecretRevealed
+          actor: accused
+          target: accuser
+          magnitude: 0.6
+          act: admit
+      routes:
+        - when: always
+          act: admit
+          ends: owned_in_public
+        - when: always
+          act: offer
+          ends: charge_pressed
+        - when: always
+          act: deny
+          to: invite_witness
+        - when: always
+          to: leave_pressure
+
+    - id: invite_witness
+      speaker: accuser
+      listener: accused
+      requires:
+        - kind: RoleAlive
+          role: accuser
+      intentions:
+        - act: inform
+        - act: threaten
+        - act: request
+      check:
+        profile: proc_corroboration
+        actor: accuser
+        target: accused
+        question: does_a_second_account_hold_up
+      playerIntersections:
+        - compare_testimony
+        - search
+        - report
+      consequences:
+        - hook: corroboration_offered
+          when: check_pass
+        - hook: charge_left_unsupported
+          event: AccusationRejected
+          actor: accused
+          target: accuser
+          magnitude: 0.4
+          when: check_fail
+      routes:
+        - when: check_pass
+          ends: charge_pressed
+        - when: check_fail
+          ends: charge_dismissed
+        - when: always
+          to: leave_pressure
+
+    - id: leave_pressure
+      speaker: accuser
+      listener: accused
+      intentions:
+        - act: warn
+        - act: threaten
+        - act: forgive
+          referent: accused
+          content: none
+      playerIntersections:
+        - report
+        - persuade
+      consequences:
+        - hook: pressure_left_standing
+          act: threaten
+          event: Threatened
+          actor: accuser
+          target: accused
+          magnitude: 0.4
+        - hook: matter_let_go
+          act: forgive
+      routes:
+        - when: always
+          act: forgive
+          ends: charge_dismissed
+        - when: always
+          ends: charge_pressed
   consequenceHooks:
     - record_public_pressure

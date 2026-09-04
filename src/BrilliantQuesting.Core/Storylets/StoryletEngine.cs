@@ -174,13 +174,37 @@ namespace BrilliantQuesting.Storylets
             return context;
         }
 
+        /// <summary>
+        /// Why one precondition does not hold, or null when it does.
+        ///
+        /// Shared with <see cref="StoryletRouter"/> (BQ-146) so that what an author may require of
+        /// a whole scene and what they may require of one beat are the same question answered by
+        /// the same code. A second copy of this switch is how the two vocabularies would start
+        /// disagreeing about what <c>RoleKnowsFocus</c> means.
+        /// </summary>
+        public static string WhyPreconditionFails(
+            StoryletPrecondition precondition,
+            NarrativeWorldState world,
+            IVanillaState vanilla,
+            NarrativeThread thread,
+            Fact focus,
+            IReadOnlyDictionary<string, EntityId> roles)
+        {
+            if (precondition == null || world == null || vanilla == null || thread == null || focus == null)
+            {
+                return "there is no live world context";
+            }
+
+            return CheckPrecondition(precondition, world, vanilla, thread, focus, roles);
+        }
+
         private static string CheckPrecondition(
             StoryletPrecondition precondition,
             NarrativeWorldState world,
             IVanillaState vanilla,
             NarrativeThread thread,
             Fact focus,
-            Dictionary<string, EntityId> roles)
+            IReadOnlyDictionary<string, EntityId> roles)
         {
             switch (precondition.Kind)
             {
@@ -214,7 +238,7 @@ namespace BrilliantQuesting.Storylets
             }
         }
 
-        private static bool TryGetRole(Dictionary<string, EntityId> roles, string roleId, out EntityId actor)
+        private static bool TryGetRole(IReadOnlyDictionary<string, EntityId> roles, string roleId, out EntityId actor)
         {
             actor = EntityId.None;
             return !string.IsNullOrEmpty(roleId) && roles.TryGetValue(roleId, out actor) && !actor.IsNone;

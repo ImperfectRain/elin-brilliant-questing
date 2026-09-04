@@ -27,10 +27,132 @@ payload:
       role: challenger
     - kind: RoleAlive
       role: accused
+  resolutions:
+    - settled_quietly
+    - denial_stands
+    - escalated_to_the_open
+    - nothing_said
   beats:
-    - close_distance
-    - state_suspicion
-    - offer_quiet_exit
-    - record_boundary
+    - id: close_distance
+      speaker: challenger
+      listener: accused
+      intentions:
+        - act: ask
+        - act: warn
+      playerIntersections:
+        - question
+        - rapport
+      routes:
+        - when: spoke
+          to: state_suspicion
+        - when: always
+          ends: nothing_said
+
+    - id: state_suspicion
+      speaker: challenger
+      listener: accused
+      intentions:
+        - act: accuse
+          referent: accused
+        - act: ask
+        - act: inform
+      check:
+        profile: proc_interrogation
+        actor: challenger
+        target: accused
+        question: does_the_accused_keep_their_nerve
+      playerIntersections:
+        - question
+        - persuade
+        - compare_testimony
+      consequences:
+        - hook: suspicion_named_privately
+          event: AccusationMade
+          actor: challenger
+          target: accused
+          magnitude: 0.3
+          act: accuse
+      routes:
+        - when: check_fail
+          to: offer_quiet_exit
+        - when: spoke
+          to: offer_quiet_exit
+        - when: always
+          ends: nothing_said
+
+    - id: offer_quiet_exit
+      speaker: accused
+      listener: challenger
+      intentions:
+        - act: admit
+        - act: offer
+        - act: deny
+        - act: evade
+        - act: refuse
+      playerIntersections:
+        - lie
+        - persuade
+        - return_item
+        - pay_debt
+      consequences:
+        - hook: quiet_admission
+          event: SecretLearned
+          actor: accused
+          target: challenger
+          magnitude: 0.4
+          act: admit
+        - hook: terms_put_forward
+          act: offer
+      routes:
+        - when: always
+          act: admit
+          to: record_boundary
+        - when: always
+          act: offer
+          to: record_boundary
+        - when: always
+          act: deny
+          ends: denial_stands
+        - when: always
+          ends: escalated_to_the_open
+
+    - id: record_boundary
+      speaker: challenger
+      listener: accused
+      intentions:
+        - act: forgive
+          referent: accused
+          content: none
+        - act: threaten
+        - act: request
+        - act: warn
+      playerIntersections:
+        - persuade
+        - report
+        - return_item
+      consequences:
+        - hook: matter_settled_between_them
+          event: DebtPaid
+          actor: accused
+          target: challenger
+          magnitude: 0.4
+          act: forgive
+        - hook: terms_demanded
+          act: request
+        - hook: threat_left_behind
+          event: Threatened
+          actor: challenger
+          target: accused
+          magnitude: 0.4
+          act: threaten
+      routes:
+        - when: always
+          act: forgive
+          ends: settled_quietly
+        - when: always
+          act: threaten
+          ends: escalated_to_the_open
+        - when: always
+          ends: settled_quietly
   consequenceHooks:
     - record_private_pressure

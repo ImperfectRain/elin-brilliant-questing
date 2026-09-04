@@ -1,0 +1,225 @@
+id: fragments.core.coercion
+kind: dialogueFragments
+payload:
+  fragments:
+    # -- threat: the speaker is the source of what is coming
+    - id: core.threaten.do.not.make.me.return
+      position: core
+      text: "Do not make me come back."
+      requires:
+        act: threaten
+      repetitionGroup: threaten
+    - id: core.threaten.different.conversation
+      position: core
+      text: "Return it before this becomes a different kind of conversation."
+      requires:
+        act: threaten
+        claim_predicate: stole
+      repetitionGroup: threaten
+      memorability: voiced
+    - id: core.threaten.inexpensive.ending
+      position: core
+      text: "You still have time to choose the inexpensive ending."
+      requires:
+        act: threaten
+      repetitionGroup: threaten
+      memorability: signature
+    - id: core.threaten.last.time.asking
+      position: core
+      text: "This is the last time I ask like this."
+      requires:
+        act: threaten
+      repetitionGroup: threaten
+    - id: core.threaten.stop.asking.politely
+      position: core
+      text: "One more missing detail and I stop asking politely."
+      requires:
+        act: threaten
+      repetitionGroup: threaten
+      memorability: signature
+    - id: core.threaten.told.once
+      position: core
+      text: "You were told once. Do not make me repeat it."
+      requires:
+        act: threaten
+      tone:
+        - cold
+      repetitionGroup: threaten
+      memorability: voiced
+    - id: core.threaten.quietly
+      position: core
+      text: "I am giving you a chance to solve this quietly."
+      requires:
+        act: threaten
+        audience: one
+      repetitionGroup: threaten
+      memorability: voiced
+    - id: core.threaten.anger.remember.why
+      position: core
+      text: "I want you to remember why this was a mistake."
+      requires:
+        act: threaten
+        emotion: anger
+      repetitionGroup: threaten.mood
+      memorability: signature
+    - id: core.threaten.public.audience
+      position: core
+      text: "Say it loudly. I want the back table to hear you too."
+      requires:
+        act: threaten
+        audience: several
+      repetitionGroup: threaten.mood
+      memorability: signature
+    - id: core.threaten.rival.remember.both
+      position: core
+      text: "Help, and I will remember it. Run, and I will remember that too."
+      requires:
+        act: threaten
+      repetitionGroup: threaten.mood
+      memorability: signature
+
+    # -- warning: the danger is not the speaker's doing, and history should not record a threat
+    - id: core.warn.plain
+      position: core
+      text: "Be careful."
+      requires:
+        act: warn
+      repetitionGroup: warn
+    - id: core.warn.not.alone
+      position: core
+      text: "Do not go alone."
+      requires:
+        act: warn
+      repetitionGroup: warn
+    - id: core.warn.if.they.see.you
+      position: core
+      text: "If {subject} sees you, leave."
+      requires:
+        subject: other
+        act: warn
+      repetitionGroup: warn
+    - id: core.warn.medical.problem
+      position: core
+      text: "There is a point on that road where curiosity becomes a medical problem."
+      requires:
+        act: warn
+      tone:
+        - wry
+      repetitionGroup: warn
+      memorability: signature
+    - id: core.warn.quiet.not.safe
+      position: core
+      text: "Quiet is not the same as safe."
+      requires:
+        act: warn
+      repetitionGroup: warn
+      memorability: voiced
+    - id: core.warn.beyond.words
+      position: core
+      text: "This has moved past words. Dress for that."
+      requires:
+        act: warn
+      repetitionGroup: warn
+      memorability: signature
+    - id: core.warn.name.damaged
+      position: core
+      text: "A name can be damaged faster than it can be repaired."
+      requires:
+        act: warn
+      repetitionGroup: warn.social
+      memorability: signature
+    - id: core.warn.town.remembers
+      position: core
+      text: "The town will remember the accusation longer than the correction."
+      requires:
+        act: warn
+        audience: several
+      repetitionGroup: warn.social
+      memorability: signature
+    - id: core.warn.money.at.stake
+      position: core
+      text: "Somebody loses money if this goes badly."
+      requires:
+        act: warn
+      repetitionGroup: warn.social
+    - id: core.warn.livelihood
+      position: core
+      text: "If this fails they lose the place."
+      requires:
+        act: warn
+      repetitionGroup: warn.social
+      memorability: voiced
+    - id: core.warn.fear.checked.the.door
+      position: core
+      text: "I have checked that door three times since you arrived."
+      requires:
+        act: warn
+        emotion: fear
+      repetitionGroup: warn.mood
+      memorability: signature
+    - id: core.warn.affection.come.back
+      position: core
+      text: "Come back safe."
+      requires:
+        act: warn
+        emotion: affection
+      repetitionGroup: warn.mood
+      memorability: protected
+    - id: core.warn.close.tie.take.the.coat
+      position: core
+      text: "Take the coat. We can argue about it when you return."
+      requires:
+        act: warn
+        relationship:
+          - spouse
+          - family
+      repetitionGroup: warn.tie
+      memorability: protected
+    - id: core.warn.rival.look.at.the.tracks
+      position: core
+      text: "You do not have to trust me. Look at the tracks before you choose."
+      requires:
+        act: warn
+        relationship:
+          - rival
+          - enemy
+      repetitionGroup: warn.tie
+      memorability: signature
+
+    # Threat was thin enough that a scene could hear the same one twice; these widen it without
+    # making every threat a speech.
+    - id: core.threaten.that.would.be.unwise
+      position: core
+      text: "That would be unwise."
+      requires:
+        act: threaten
+      tone:
+        - cold
+      repetitionGroup: threaten
+    - id: core.threaten.settle.it.now
+      position: core
+      text: "Settle it now or I settle it my way."
+      requires:
+        act: threaten
+      repetitionGroup: threaten
+      memorability: voiced
+    - id: core.threaten.i.know.where
+      position: core
+      text: "I know where you keep things."
+      requires:
+        act: threaten
+      repetitionGroup: threaten
+      memorability: signature
+    - id: core.warn.think.first
+      position: core
+      text: "Think before you do that."
+      requires:
+        act: warn
+      repetitionGroup: warn
+    - id: core.warn.not.what.it.looks
+      position: core
+      text: "It is not what it looks like from here."
+      requires:
+        act: warn
+      repetitionGroup: warn
+      memorability: voiced

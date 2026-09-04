@@ -2,6 +2,8 @@ id: fragments.context
 kind: dialogueFragments
 payload:
   fragments:
+    # What the surroundings do to the saying of it. Nothing here invents who is present - the act
+    # already says whether it is addressed to one person or several.
     - id: ctx.many.ears
       position: context
       text: "Not with this many ears about."
@@ -18,3 +20,107 @@ payload:
           - detail
           - in_confidence
       repetitionGroup: context.setting
+    - id: ctx.walk.with.me
+      position: context
+      text: "Not here. Walk with me."
+      requires:
+        audience: several
+      repetitionGroup: context.setting
+      memorability: voiced
+    - id: ctx.walls.have.neighbours
+      position: context
+      text: "I will tell you, but not where walls have neighbours."
+      requires:
+        audience: several
+        held_back: "yes"
+      repetitionGroup: context.setting
+      memorability: signature
+    - id: ctx.since.everyone.listening
+      position: context
+      text: "Since everyone is listening, let us be clear."
+      requires:
+        audience: several
+        act:
+          - accuse
+          - inform
+          - deny
+      repetitionGroup: context.setting
+      memorability: voiced
+    - id: ctx.we.have.witnesses
+      position: context
+      text: "Good. We have witnesses."
+      requires:
+        audience: several
+        act:
+          - accuse
+          - promise
+      repetitionGroup: context.setting
+      memorability: voiced
+    - id: ctx.somewhere.without.an.audience
+      position: context
+      text: "We can discuss this somewhere without an audience."
+      requires:
+        audience: several
+        act:
+          - deny
+          - refuse
+          - evade
+          - admit
+      repetitionGroup: context.setting
+      memorability: signature
+    - id: ctx.enjoy.the.show
+      position: context
+      text: "Enjoy the show. I am still not answering."
+      requires:
+        audience: several
+        act:
+          - refuse
+          - evade
+      tone:
+        - wry
+      repetitionGroup: context.setting
+      memorability: signature
+    - id: ctx.no.spare.ears
+      position: context
+      text: "At last, a room with no spare ears."
+      requires:
+        audience: one
+        depth: in_confidence
+      repetitionGroup: context.setting
+      memorability: voiced
+    - id: ctx.close.the.door
+      position: context
+      text: "Close the door. I am tired of sharing secrets with hallways."
+      requires:
+        audience: one
+        depth: in_confidence
+      repetitionGroup: context.setting
+      memorability: signature
+    - id: ctx.waiting.until.alone
+      position: context
+      text: "I was waiting until we were alone."
+      requires:
+        audience: one
+        depth:
+          - detail
+          - in_confidence
+      repetitionGroup: context.setting
+      memorability: voiced
+    - id: ctx.trust.the.room
+      position: context
+      text: "If this leaks, at least the suspect list is short."
+      requires:
+        audience: several
+        depth: in_confidence
+      tone:
+        - wry
+      repetitionGroup: context.setting
+      memorability: signature
+    - id: ctx.trusting.you.with.the.part
+      position: context
+      text: "I am trusting you with the part that can hurt me."
+      requires:
+        audience: one
+        depth: in_confidence
+      repetitionGroup: context.setting
+      memorability: protected

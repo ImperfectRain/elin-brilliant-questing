@@ -138,6 +138,7 @@ No system is allowed to disappear from this table.
 | Elin tone & weirdness budget | Absent | Playable | BQ-079, BQ-080 |
 | Callbacks & continuity | Absent | Playable | BQ-081, BQ-082 |
 | Conversation state & commitments | Absent | Playable | BQ-083 |
+| Routed storylets & actor decisions | Absent | Playable | BQ-146 |
 | Social practices | Absent | Playable | BQ-084 |
 | Home integration | Prototype | Playable | BQ-030, BQ-048, BQ-049 |
 | Economy & demand | Absent | Playable | BQ-050, BQ-051 |
@@ -1158,6 +1159,58 @@ storylet system cannot quietly become a quest generator.
   consumer — later steps add rules to the detector, not fields to `Development`.
 - **Sources** CD §36.5, §37.
 
+#### BQ-146 — Routed storylets: beats that name acts, actors that decide them *(stage S7, after BQ-069)*
+A beat carries who might speak, what they might be trying to communicate, what is in doubt, what
+history should record and where the scene goes next — all as references — and a runtime walks it.
+- **Depends** BQ-065 … BQ-069, BQ-070 … BQ-083, BQ-131, BQ-133.
+- **Done when** a storylet develops differently for two casts of the same definition without one word of authored dialogue in any storylet file; the difference is traceable to character state rather than to a die; every routed scene reaches a state it declared under every check outcome; a scene plays to a terminal state with no player in it; and every class of malformed routing fails the build with the field that caused it.
+- **Current implementation** the gap this closes is that a beat was an id. A scene could be found,
+  cast and fired, and firing wrote down a list of labels; anything that happened *inside* it had to
+  be supplied by a caller who already knew what the labels meant, which is the pressure that turns
+  storylets into scripts or into one C# class per scene.
+  `StoryletBeat` now carries a speaker role, a listener role, candidate `BeatIntention`s, its own
+  `requires` in the storylet precondition vocabulary (shared code, not a second one), an optional
+  `BeatCheck` naming a `ProceduralCheckProfiles` id and the uncertainty it settles, declared
+  `playerIntersections` validated against the action registry, `BeatConsequence`s and `BeatRoute`s.
+  `StoryletDefinition` gains `Resolutions`. Every field is optional, so the id-only storylets that
+  predate this keep loading and keep meaning what they meant, and `IsRouted` says which is which.
+  `ActorIntent` is the layer the model turns on: given a beat's declared intentions it composes each
+  as a `SpeechAct` (refusing rather than repairing), drops the ones the speaker is not entitled to
+  make — asserting the focus needs them to hold it, owning it needs them to be its subject — and
+  scores the rest from personality, problem-solving preference, current emotion, the directed tie to
+  the listener, open obligations, conviction in the claim and exposure to the room. Terms are signed
+  distances from the midpoint, so a wholly average character scores nothing anywhere and every move
+  stays open to them; a bounded jitter separates genuine ties and never overturns a preference.
+  **It reads no identity at all**, which is BQ-145's gate applied to the layer most tempted to break
+  it, and `EveryTermBehindADecisionIsCharacterStateAndNeverIdentity` pins it.
+  `StoryletRouter` walks the graph and delegates everything inside the walk. It threads the last
+  spoken act as an antecedent where the current speaker was addressed by it, so the acts that need
+  one (`Answer`, `Refuse`, `Evade`) are reachable; it asks `Disclosure` first when a speaker has just
+  been asked about the focus and the beat offers that move (`D052`); it resolves checks through the
+  existing `ICheckResolver`; it selects a callback through `CallbackDisclosure` so a memory is raised
+  only where both gates allow; and it words the result through `DialogueRealizer` with the cast,
+  mood, tie and decision read from the world *outside* the realizer, which holds no world. Nothing in
+  it names a storylet, and nothing may.
+  Consequences carry a trigger in the routes' own vocabulary, so a beat that offers a charge and a
+  question files an accusation only when the charge was made; a hook naming a `WorldEventType` is
+  applied by appending to the ledger through `NarrativeWorldState.Record`, and a hook naming none is
+  a marker exactly as before (`D053`). `ApplyConsequences: false` plays the same scene, the same
+  routes and the same words for inspection and writes nothing.
+  Four acts joined BQ-070's vocabulary with their consumers, and wording gained two derived readings
+  and a repetition tier — see `D054` and `D055`. Content: the five BQ-066 storylets are routed
+  (ids, beats and disjoint hooks unchanged, so saves are unaffected), fifteen more are authored over
+  `owes`, `needs`, `blocks_access_to`, `is_contaminated`, `extorted`, `lied_about`, `at_risk`,
+  `damaged`, `may_be_sabotaged` and further theft shapes, and the fragment library grew from 82 to
+  521, filed by meaning.
+  Deferred: no storylet re-enters after terminating, so a scene is one sitting rather than a
+  campaign; the player's intersections are *declared and validated* but nothing yet offers them —
+  that is presentation, and Core stops at a played beat; and a beat's `requires` reads only the
+  storylet precondition vocabulary, so questions the vocabulary cannot ask are answered by casting
+  or not at all rather than by growing a condition language (`D051`).
+- **Do not** solve a missing capability by writing C# for one storylet, or by giving a beat a field a
+  sentence could be written into. Both are how the layer stops paying for itself.
+- **Sources** CD §11, §12, §13, §17, §36.5, §38 Phase D; CP §2, §5, §6.
+
 #### BQ-134 — Project verbs through contextual affordances *(moved forward)*
 Moved forward to the playtest consolidation section before BQ-039 because live S4 testing showed
 raw verb projection would multiply defects during generative expansion. Do not implement a second
@@ -1189,6 +1242,12 @@ Ask, Answer, Accuse, Deny, Admit, Request, Refuse, Threaten, Apologize, Gossip �
   beats do not yet name acts, and `lie` maps to nothing, because a lie is a stance held against
   the speaker's own belief rather than an act type — BQ-073 decides which act carries one, and
   BQ-070 owes it only the fixed stance that makes the contradiction computable.
+  **Beats name acts as of BQ-146**, and four acts joined the vocabulary there with the consumers
+  that needed them: `Inform` (nothing could be said unprompted), `Warn` (a caution must not land in
+  the ledger as a threat), `Offer` (terms are not yet a promise) and `Forgive` (releasing what is
+  owed). `Refuse` also answers an `Apologize` and an `Offer` now. Still absent, and deliberately:
+  thanking, praising, teasing, comforting and flattering, each of which is a way of saying one of
+  the sixteen or a modifier on it rather than a distinction anything branches on.
 - **Sources** CD §17, §17.1, §38 Phase B.
 
 #### BQ-071 — Disclosure decisions
@@ -2365,6 +2424,27 @@ The compiler refuses dangling references, unknown semantic acts, duplicate or re
 unreachable content, and emits a coverage report over act × position × tone × formality.
 - **Depends** BQ-130, BQ-078.
 - **Done when** each malformed-content class fails the build with a located message, and the report names cells with zero and with exactly one fragment — the holes and the repetition bugs — without prescribing what to write next.
+- **Current implementation** validation is `StoryletContent` and `DialogueFragmentContent`, both run
+  by the compiler per file so a bad record fails with a path rather than at load with a diagnostic
+  nobody is watching. Refused, each with the field that caused it: unknown semantic acts, role
+  sources, check profiles, world event types, tone tags, memorability tiers, condition keys and
+  condition values; roles, beats, resolutions and actions referenced but never declared; duplicate
+  fragment, beat and record ids; routes and consequences that turn on a check their beat does not
+  make, or on an act nobody in their beat can decide to say; beats no route reaches; beats no path
+  from which ever ends the scene; a check with no stated uncertainty; and **any prose at all in a
+  storylet** — every string in a storylet payload is a reference, so whitespace or sentence
+  punctuation anywhere in one is a build error, as is a `text`/`line`/`say`/`dialogue` key (`D051`).
+  `ContentCompiler --coverage [path]` emits the report: act × position, and act × commitment, depth,
+  audience, audible emotion, relationship and requested tone over cores, plus the distinctiveness
+  distribution and a per-storylet line (beats, routed, endings, distinct acts, checks). Every cell
+  is read as a hole (0), a catchphrase (1), thin (2) or covered (3+), and the report ends with the
+  two lists an author acts on. It deliberately computes no product of the axes: a count of "possible
+  lines" is a statement about arithmetic rather than about anything anybody wrote. Its first run
+  found four acts that could not finish a line at all and four more with exactly one way to; those
+  were closed in content, and `StoryletRoutingTests.EveryActHasAtLeastThreeWaysToBeSaidAndThreeWaysToBeFinished`
+  is the floor underneath, so an act added without wording fails the build rather than the playtest.
+  Deferred: the report is a report and never a gate — nothing about a thin cell fails a build, per
+  §11's "coverage as mandate versus report".
 - **Sources** CP §6; PM §6; §11 "Coverage as mandate versus report".
 - **Why** a cell with one fragment is a repetition bug a player will find before we do. Counting cells measures the library; counting lines measures the effort.
 

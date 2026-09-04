@@ -36,6 +36,7 @@ namespace BrilliantQuesting.Lab.Cli
             return new LabCatalog(new LabScenario[]
             {
                 new TheftLaboratoryScenario(),
+                new SceneScenario(),
                 new QuestlineScenario(),
                 new QuestlineSweepScenario(),
                 new AmbientScenario(),

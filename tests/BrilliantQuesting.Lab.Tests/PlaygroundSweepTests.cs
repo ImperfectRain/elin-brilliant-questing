@@ -314,9 +314,12 @@ namespace BrilliantQuesting.Lab.Tests
             PlaygroundSweepRow cleared = Row(result, "it was done to them");
             PlaygroundSweepRow guarded = Row(result, "done to them, guarded");
 
+            // The claim is about permission, not about the coin the optional callback slot is
+            // drawn against: a cleared permit reaches the request and may be spoken, and whether
+            // this particular seed spoke it is the realizer's business.
             Assert.NotNull(cleared.Turn.Callback);
             Assert.True(cleared.Turn.Callback.Allowed);
-            Assert.Contains(cleared.Turn.Line.Fragments, id => id.StartsWith("call.history.", StringComparison.Ordinal));
+            Assert.NotNull(cleared.Turn.Request.Callback);
 
             Assert.Null(guarded.Turn.Callback);
             Assert.NotNull(guarded.Turn.WithheldCallback);
@@ -457,13 +460,18 @@ namespace BrilliantQuesting.Lab.Tests
                 optionalSlotsAtTheEnd < optionalSlotsAtTheStart,
                 "no optional slot ever went quiet, so the degrade was never reached");
 
-            bool reused = false;
+            // Nothing here exhausts any more: the library is deep enough that the required slot
+            // never has to fall back on a stale core over a sweep this long, which is the point of
+            // having authored it. That the fallback still works when a pool genuinely runs dry is
+            // `RepetitionControlTests.ExhaustingEveryValidCoreStillRendersCorrectlyRatherThanRefusing`,
+            // which builds a library small enough to exhaust rather than waiting for the shipped
+            // one to shrink.
             foreach (KeyValuePair<string, int> use in cores)
             {
-                reused |= use.Value > DialogueExpressionHistory.DefaultCap;
+                Assert.True(
+                    use.Value <= DialogueExpressionHistory.DefaultCap,
+                    use.Key + " was spoken " + use.Value + " times, past the freshness cap");
             }
-
-            Assert.True(reused, "no core was ever spoken past the freshness cap, so nothing exhausted");
         }
 
         [Fact]

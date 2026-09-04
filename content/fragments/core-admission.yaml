@@ -1,0 +1,142 @@
+id: fragments.core.admission
+kind: dialogueFragments
+payload:
+  fragments:
+    - id: core.admit.did.it
+      position: core
+      text: "Yes. I did it."
+      requires:
+        act: admit
+      repetitionGroup: admit
+    - id: core.admit.no.point
+      position: core
+      text: "There is no point denying it."
+      requires:
+        act: admit
+      repetitionGroup: admit
+    - id: core.admit.was.me
+      position: core
+      text: "It was me."
+      requires:
+        act: admit
+      repetitionGroup: admit
+    - id: core.admit.stop.looking
+      position: core
+      text: "Stop looking elsewhere. I did it."
+      requires:
+        act: admit
+      repetitionGroup: admit
+      memorability: voiced
+    - id: core.admit.right.door
+      position: core
+      text: "You found the right door. I am what is behind it."
+      requires:
+        act: admit
+      repetitionGroup: admit
+      memorability: signature
+    - id: core.admit.theft.took.it
+      position: core
+      text: "I took the {matter}."
+      requires:
+        act: admit
+        claim_predicate: stole
+      repetitionGroup: admit.theft
+    - id: core.admit.theft.have.it
+      position: core
+      text: "I have the {matter}. I have had it all along."
+      requires:
+        act: admit
+        claim_predicate: stole
+        depth:
+          - detail
+          - in_confidence
+      repetitionGroup: admit.theft
+
+    # -- the deeper version: owning more than was asked about
+    - id: core.admit.more.than.told
+      position: core
+      text: "I did more than I told you."
+      requires:
+        act: admit
+        depth:
+          - detail
+          - in_confidence
+      repetitionGroup: admit.deep
+      memorability: voiced
+    - id: core.admit.hid.part
+      position: core
+      text: "The part I hid was mine."
+      requires:
+        act: admit
+        depth:
+          - detail
+          - in_confidence
+      repetitionGroup: admit.deep
+      memorability: voiced
+    - id: core.admit.missing.piece
+      position: core
+      text: "You were looking for the missing piece. I removed it."
+      requires:
+        act: admit
+        depth:
+          - detail
+          - in_confidence
+      repetitionGroup: admit.deep
+      memorability: signature
+    - id: core.admit.no.better.version
+      position: core
+      text: "Yes. I have no better version."
+      requires:
+        act: admit
+        emotion: shame
+      repetitionGroup: admit.shame
+    - id: core.admit.rehearsed
+      position: core
+      text: "I rehearsed excuses. None survived seeing you."
+      requires:
+        act: admit
+        emotion: shame
+        audience: one
+      repetitionGroup: admit.shame
+      memorability: protected
+    - id: core.admit.public.rather.not
+      position: core
+      text: "Yes. I would rather this had not been said here."
+      requires:
+        act: admit
+        audience: several
+      repetitionGroup: admit.shame
+      memorability: voiced
+    - id: core.admit.let.it.be.me
+      position: core
+      text: "If someone has to pay for this, let it be me."
+      requires:
+        act: admit
+      repetitionGroup: admit.deep
+      memorability: protected
+
+    - id: core.admit.plainly
+      position: core
+      text: "It was my doing."
+      requires:
+        act: admit
+      repetitionGroup: admit
+    - id: core.admit.tired.of.carrying
+      position: core
+      text: "I am tired of carrying it. It was me."
+      requires:
+        act: admit
+        emotion: stress
+      repetitionGroup: admit.shame
+      memorability: voiced
+    - id: core.admit.you.knew
+      position: core
+      text: "You already knew. Yes."
+      requires:
+        act: admit
+        relationship:
+          - friend
+          - family
+          - spouse
+      repetitionGroup: admit
+      memorability: voiced

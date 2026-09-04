@@ -1,0 +1,114 @@
+id: storylet.extortion_pressure
+kind: storylet
+payload:
+  situationTags:
+    - coercion
+    - protection
+  toneTags:
+    - threatening
+    - quiet
+  requiredRoles:
+    - id: squeezed
+      source: FactSubject
+    - id: confidant
+      source: AnyoneWhoKnowsFocus
+  optionalRoles:
+    - id: officer
+      source: AnyoneWithStandingHere
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: extorted
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: confidant
+    - kind: RoleAlive
+      role: squeezed
+    - kind: RoleAlive
+      role: confidant
+  resolutions:
+    - reported_upward
+    - paid_quietly
+    - endured_alone
+  beats:
+    - id: pressure_disclosed
+      speaker: squeezed
+      listener: confidant
+      intentions:
+        - act: inform
+        - act: request
+      playerIntersections:
+        - question
+        - rapport
+        - eavesdrop
+      consequences:
+        - hook: squeeze_named_aloud
+          act: inform
+        - hook: help_sought_against_the_squeeze
+          act: request
+      check:
+        profile: proc_nerve
+        actor: squeezed
+        target: confidant
+        question: can_they_say_it_out_loud
+      routes:
+        - when: check_fail
+          ends: endured_alone
+        - when: spoke
+          to: pressure_weighed
+        - when: always
+          ends: endured_alone
+
+    - id: pressure_weighed
+      speaker: confidant
+      listener: squeezed
+      intentions:
+        - act: offer
+        - act: warn
+        - act: request
+        - act: refuse
+        - act: promise
+      check:
+        profile: proc_vigilance
+        actor: confidant
+        target: squeezed
+        question: is_there_a_safe_way_to_take_this_further
+      playerIntersections:
+        - report
+        - invoke_authority
+        - assign_protection
+        - pay_debt
+        - shelter
+      consequences:
+        - hook: matter_taken_to_authority
+          event: CrimeReported
+          actor: confidant
+          target: squeezed
+          magnitude: 0.5
+          when: check_pass
+          act: request
+        - hook: advised_to_pay
+          act: warn
+        - hook: left_to_handle_it
+          event: RequestDeclined
+          actor: confidant
+          target: squeezed
+          magnitude: 0.3
+          act: refuse
+      routes:
+        - when: check_pass
+          act: request
+          ends: reported_upward
+        - when: always
+          act: refuse
+          ends: endured_alone
+        - when: always
+          act: warn
+          ends: paid_quietly
+        - when: spoke
+          ends: paid_quietly
+        - when: always
+          ends: endured_alone
+  consequenceHooks:
+    - record_coercion_pressure

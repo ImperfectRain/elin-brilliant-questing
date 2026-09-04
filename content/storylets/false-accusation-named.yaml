@@ -1,0 +1,108 @@
+id: storylet.false_accusation_named
+kind: storylet
+payload:
+  situationTags:
+    - deception
+    - reputation
+  toneTags:
+    - contested
+    - exposed
+  requiredRoles:
+    - id: liar
+      source: FactSubject
+    - id: challenger
+      source: AnyoneWhoKnowsFocus
+  optionalRoles:
+    - id: wronged
+      source: AnyoneWhoCanProveFocus
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: lied_about
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: challenger
+    - kind: RoleAlive
+      role: liar
+    - kind: RoleAlive
+      role: challenger
+  resolutions:
+    - lie_exposed
+    - lie_held
+    - lie_withdrawn
+  beats:
+    - id: account_contradicted
+      speaker: challenger
+      listener: liar
+      intentions:
+        - act: accuse
+          referent: liar
+        - act: ask
+        - act: inform
+      check:
+        profile: proc_corroboration
+        actor: challenger
+        target: liar
+        question: do_the_two_accounts_come_apart
+      playerIntersections:
+        - compare_testimony
+        - question
+        - search_records
+      consequences:
+        - hook: contradiction_named
+          event: AccusationMade
+          actor: challenger
+          target: liar
+          magnitude: 0.4
+          act: accuse
+        - hook: contradiction_found
+          when: check_pass
+      routes:
+        - when: check_pass
+          to: account_defended
+        - when: spoke
+          to: account_defended
+        - when: always
+          ends: lie_held
+
+    - id: account_defended
+      speaker: liar
+      listener: challenger
+      intentions:
+        - act: deny
+        - act: admit
+        - act: evade
+        - act: apologize
+        - act: refuse
+      playerIntersections:
+        - persuade
+        - intimidate
+        - lie
+        - expose
+        - report
+      consequences:
+        - hook: falsehood_owned
+          event: DeceptionExposed
+          actor: liar
+          target: challenger
+          magnitude: 0.6
+          act: admit
+        - hook: falsehood_apologised_for
+          act: apologize
+        - hook: falsehood_maintained
+          act: deny
+      routes:
+        - when: always
+          act: admit
+          ends: lie_exposed
+        - when: always
+          act: apologize
+          ends: lie_withdrawn
+        - when: always
+          act: deny
+          ends: lie_held
+        - when: always
+          ends: lie_held
+  consequenceHooks:
+    - record_deception_pressure

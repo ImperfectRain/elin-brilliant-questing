@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 using BrilliantQuesting.Checks;
 using BrilliantQuesting.Integration;
 
@@ -106,6 +109,23 @@ namespace BrilliantQuesting.Actions.Library
             .WithActorSkill(VanillaSkill.Stealth, 0.4)
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.2)
             .WithTargetAttribute(VanillaAttribute.Perception, 0.35);
+
+        /// <summary>
+        /// Getting a hard thing out of your mouth at all (BQ-146).
+        ///
+        /// The one profile with nobody on the other side of it, because there is nobody: the
+        /// question is whether the speaker keeps their nerve, and the only opposition is their own.
+        /// It is the honest answer to the routed storylets' most common uncertainty - somebody who
+        /// has decided to raise a matter and may still not manage to - and without it that branch
+        /// would have to be faked with a persuasion roll against a person who has not yet been
+        /// spoken to.
+        ///
+        /// Will carries it, and Charisma helps a little in the way practice does; no skill, because
+        /// there is no skill in Elin for saying a thing you do not want to say.
+        /// </summary>
+        public static readonly CheckProfile Nerve = new CheckProfile("proc_nerve", 11)
+            .WithActorAttribute(VanillaAttribute.Will, 0.4)
+            .WithActorAttribute(VanillaAttribute.Charisma, 0.2);
 
         /// <summary>Holding two accounts side by side until one of them stops fitting.</summary>
         public static readonly CheckProfile Corroboration = new CheckProfile("proc_corroboration", 12)
@@ -487,6 +507,51 @@ namespace BrilliantQuesting.Actions.Library
                 case "impersonate": return Deception;
                 default: return null;
             }
+        }
+
+        private static readonly Dictionary<string, CheckProfile> ByProfileId = BuildById();
+
+        /// <summary>
+        /// Every profile this class declares, keyed by its own id (BQ-146).
+        ///
+        /// Derived by walking this type's own fields rather than written out a second time. The
+        /// list is forty-odd entries and the only thing a hand-kept copy could ever be is out of
+        /// date - a profile added without a matching line here would be unreachable to authored
+        /// content and nothing would say so.
+        ///
+        /// It exists so a storylet beat can name a check by id and have that name validated at
+        /// compile time. Naming a check nobody built is how a content layer starts inventing
+        /// mechanics, and this is the table that makes it a build error instead.
+        /// </summary>
+        public static CheckProfile ById(string profileId)
+        {
+            return profileId != null && ByProfileId.TryGetValue(profileId, out CheckProfile profile) ? profile : null;
+        }
+
+        /// <summary>Every declared profile id, in a stable order, for validation and reporting.</summary>
+        public static IReadOnlyList<string> ProfileIds { get; } = BuildIds();
+
+        private static Dictionary<string, CheckProfile> BuildById()
+        {
+            Dictionary<string, CheckProfile> table = new Dictionary<string, CheckProfile>(StringComparer.Ordinal);
+            FieldInfo[] fields = typeof(ProceduralCheckProfiles).GetFields(BindingFlags.Public | BindingFlags.Static);
+            for (int i = 0; i < fields.Length; i++)
+            {
+                CheckProfile profile = fields[i].GetValue(null) as CheckProfile;
+                if (profile != null && !string.IsNullOrEmpty(profile.Id))
+                {
+                    table[profile.Id] = profile;
+                }
+            }
+
+            return table;
+        }
+
+        private static IReadOnlyList<string> BuildIds()
+        {
+            List<string> ids = new List<string>(ByProfileId.Keys);
+            ids.Sort(StringComparer.Ordinal);
+            return ids;
         }
     }
 }

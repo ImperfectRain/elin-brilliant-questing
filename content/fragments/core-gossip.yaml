@@ -1,0 +1,100 @@
+id: fragments.core.gossip
+kind: dialogueFragments
+payload:
+  fragments:
+    - id: core.gossip.heard.something
+      position: core
+      text: "I heard something about {referent}."
+      requires:
+        act: gossip
+      repetitionGroup: gossip
+    - id: core.gossip.people.talking
+      position: core
+      text: "This may be nothing, but {referent} has people talking."
+      requires:
+        act: gossip
+      repetitionGroup: gossip
+    - id: core.gossip.not.the.only.one
+      position: core
+      text: "I cannot prove it, and I am not the only one who heard."
+      requires:
+        act: gossip
+        commitment: hedged
+      repetitionGroup: gossip
+    - id: core.gossip.smoke.not.fire
+      position: core
+      text: "Treat it as smoke rather than fire."
+      requires:
+        act: gossip
+        commitment: hedged
+      repetitionGroup: gossip
+      memorability: voiced
+    - id: core.gossip.better.clothes
+      position: core
+      text: "A rumour arrived before breakfast and already has better clothes."
+      requires:
+        act: gossip
+      tone:
+        - wry
+      repetitionGroup: gossip
+      memorability: signature
+    - id: core.gossip.theft.matter
+      position: core
+      text: "They are saying {referent} took the {matter}."
+      requires:
+        act: gossip
+        claim_predicate: stole
+      repetitionGroup: gossip.theft
+    - id: core.gossip.theft.pockets
+      position: core
+      text: "Word is the {matter} left in {referent}'s pocket."
+      requires:
+        act: gossip
+        claim_predicate: stole
+      repetitionGroup: gossip.theft
+      memorability: voiced
+    - id: core.gossip.public.everyone.knows
+      position: core
+      text: "Everyone knows it by now."
+      requires:
+        act: gossip
+        audience: several
+      repetitionGroup: gossip.spread
+    - id: core.gossip.private.between.us.two
+      position: core
+      text: "You did not hear this from me."
+      requires:
+        act: gossip
+        audience: one
+      repetitionGroup: gossip.spread
+      memorability: voiced
+    - id: core.gossip.suspicion.arrived.neatly
+      position: core
+      text: "It arrived very neatly, that story."
+      requires:
+        act: gossip
+        emotion: suspicion
+      repetitionGroup: gossip.spread
+      memorability: voiced
+
+    - id: core.gossip.small.town
+      position: core
+      text: "You will hear it soon enough. It is about {referent}."
+      requires:
+        act: gossip
+      repetitionGroup: gossip
+    - id: core.gossip.two.versions
+      position: core
+      text: "There are two versions going round about {referent}."
+      requires:
+        act: gossip
+        commitment: hedged
+      repetitionGroup: gossip
+      memorability: voiced
+    - id: core.gossip.would.not.repeat
+      position: core
+      text: "I would not repeat it if I thought it was nothing."
+      requires:
+        act: gossip
+      repetitionGroup: gossip
+      memorability: voiced

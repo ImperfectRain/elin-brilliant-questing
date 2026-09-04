@@ -1,0 +1,89 @@
+id: storylet.suspected_sabotage
+kind: storylet
+payload:
+  situationTags:
+    - sabotage
+    - suspicion
+  toneTags:
+    - wary
+    - unproven
+  requiredRoles:
+    - id: affected
+      source: FactSubject
+    - id: suspicious
+      source: AnyoneWhoKnowsFocus
+  optionalRoles:
+    - id: investigator
+      source: AnyoneWhoCanProveFocus
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: may_be_sabotaged
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: suspicious
+    - kind: RoleAlive
+      role: suspicious
+  resolutions:
+    - sabotage_substantiated
+    - suspicion_dropped
+    - suspicion_left_open
+  beats:
+    - id: suspicion_voiced
+      speaker: suspicious
+      listener: investigator
+      intentions:
+        - act: inform
+        - act: ask
+      playerIntersections:
+        - inspect
+        - question
+        - search
+      consequences:
+        - hook: suspicion_put_to_somebody
+          act: inform
+      routes:
+        - when: spoke
+          to: suspicion_tested
+        - when: always
+          ends: suspicion_left_open
+
+    - id: suspicion_tested
+      speaker: investigator
+      listener: suspicious
+      intentions:
+        - act: inform
+        - act: warn
+        - act: refuse
+        - act: ask
+      check:
+        profile: proc_investigation
+        actor: investigator
+        target: affected
+        question: does_the_damage_read_as_deliberate
+      playerIntersections:
+        - inspect
+        - search
+        - track
+        - identify_substance
+        - compare_testimony
+      consequences:
+        - hook: deliberate_hand_found
+          event: EvidenceCreated
+          actor: investigator
+          target: affected
+          magnitude: 0.5
+          when: check_pass
+          act: inform
+        - hook: nothing_deliberate_found
+          when: check_fail
+      routes:
+        - when: check_pass
+          ends: sabotage_substantiated
+        - when: check_fail
+          ends: suspicion_dropped
+        - when: always
+          ends: suspicion_left_open
+  consequenceHooks:
+    - record_sabotage_pressure

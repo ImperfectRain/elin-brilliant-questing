@@ -37,11 +37,12 @@ namespace BrilliantQuesting.Tests
             IReadOnlyList<StoryletOpportunity> here = engine.Find(first.Casting());
             IReadOnlyList<StoryletOpportunity> there = engine.Find(second.Casting());
 
-            // The same five definitions play in both places.
+            // The same definitions play in both places - however many the library has grown to.
+            // Counting them would be a test of how much content exists rather than of casting.
             Assert.Equal(
                 here.Select(o => o.Definition.Id).OrderBy(id => id, StringComparer.Ordinal),
                 there.Select(o => o.Definition.Id).OrderBy(id => id, StringComparer.Ordinal));
-            Assert.Equal(5, here.Count);
+            Assert.True(here.Count >= 5, "only " + here.Count + " scenes were available");
 
             foreach (StoryletOpportunity opportunity in here)
             {
@@ -225,7 +226,7 @@ namespace BrilliantQuesting.Tests
             StoryletEngine engine = ShippedEngine();
 
             IReadOnlyList<StoryletOpportunity> opportunities = engine.Find(Casting(lab));
-            Assert.Equal(5, opportunities.Count);
+            Assert.True(opportunities.Count >= 5, "only " + opportunities.Count + " scenes were available");
             foreach (StoryletOpportunity opportunity in opportunities)
             {
                 engine.Fire(opportunity, lab.Situation.Thread, lab.Vanilla.Now);
@@ -235,7 +236,7 @@ namespace BrilliantQuesting.Tests
             NarrativeThread thread = Assert.Single(reloaded.Threads);
 
             Assert.NotEqual(ThreadState.Quarantined, thread.State);
-            Assert.Equal(5, thread.StoryletFirings.Count);
+            Assert.Equal(opportunities.Count, thread.StoryletFirings.Count);
             foreach (StoryletFiring firing in thread.StoryletFirings)
             {
                 foreach (KeyValuePair<string, EntityId> role in firing.RoleBindings)

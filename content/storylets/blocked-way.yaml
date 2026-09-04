@@ -1,0 +1,92 @@
+id: storylet.blocked_way
+kind: storylet
+payload:
+  situationTags:
+    - obstruction
+    - practical
+  toneTags:
+    - mundane
+    - obstructed
+  requiredRoles:
+    - id: reporter
+      source: AnyoneWhoKnowsFocus
+    - id: blocked
+      source: FactSubject
+  optionalRoles:
+    - id: officer
+      source: AnyoneWithStandingHere
+  preconditions:
+    - kind: FactBelongsToThread
+    - kind: FocusPredicate
+      value: blocks_access_to
+    - kind: FocusTruth
+      value: "True"
+    - kind: RoleKnowsFocus
+      role: reporter
+    - kind: RoleAlive
+      role: reporter
+  resolutions:
+    - way_being_cleared
+    - way_left_shut
+    - matter_raised_upward
+  beats:
+    - id: obstruction_reported
+      speaker: reporter
+      listener: officer
+      intentions:
+        - act: inform
+        - act: warn
+        - act: request
+      playerIntersections:
+        - inspect
+        - report
+        - invoke_authority
+      consequences:
+        - hook: obstruction_reported_to_somebody
+          act: inform
+      routes:
+        - when: spoke
+          to: obstruction_answered
+        - when: always
+          ends: way_left_shut
+
+    - id: obstruction_answered
+      speaker: officer
+      listener: reporter
+      intentions:
+        - act: promise
+        - act: refuse
+        - act: request
+        - act: warn
+      check:
+        profile: proc_clearing
+        actor: officer
+        target: blocked
+        question: is_there_anybody_here_who_can_shift_it
+      playerIntersections:
+        - inspect
+        - transport
+        - invoke_authority
+        - provide_supplies
+      consequences:
+        - hook: clearance_undertaken
+          event: PromiseMade
+          actor: officer
+          target: reporter
+          magnitude: 0.4
+          act: promise
+        - hook: nobody_free_to_shift_it
+          when: check_fail
+      routes:
+        - when: check_fail
+          ends: way_left_shut
+        - when: always
+          act: promise
+          ends: way_being_cleared
+        - when: always
+          act: request
+          ends: matter_raised_upward
+        - when: always
+          ends: way_left_shut
+  consequenceHooks:
+    - record_obstruction_pressure

@@ -2,6 +2,7 @@ id: fragments.modifiers
 kind: dialogueFragments
 payload:
   fragments:
+    # -- how firmly the point is held
     - id: mod.answer.stand.behind
       position: modifier
       text: "I will stand behind that."
@@ -16,6 +17,65 @@ payload:
         act: answer
         commitment: hedged
       repetitionGroup: commitment
+    - id: mod.answer.would.swear
+      position: modifier
+      text: "I would swear to it."
+      requires:
+        act:
+          - answer
+          - accuse
+          - inform
+        commitment: committed
+      repetitionGroup: commitment
+    - id: mod.answer.not.the.house
+      position: modifier
+      text: "I would bet on it. I would not bet the house."
+      requires:
+        act:
+          - answer
+          - inform
+        commitment: hedged
+      repetitionGroup: commitment
+      memorability: signature
+    - id: mod.answer.best.explanation
+      position: modifier
+      text: "It is the best explanation I have."
+      requires:
+        act:
+          - answer
+          - inform
+        commitment: hedged
+      repetitionGroup: commitment
+      memorability: voiced
+    - id: mod.answer.leave.room
+      position: modifier
+      text: "My memory says yes. My caution says leave room."
+      requires:
+        act: answer
+        commitment: hedged
+      repetitionGroup: commitment
+      memorability: signature
+    - id: mod.answer.no.receipt
+      position: modifier
+      text: "The truth was careless enough to leave no receipt."
+      requires:
+        act:
+          - answer
+          - accuse
+        commitment: hedged
+      repetitionGroup: commitment
+      memorability: signature
+    - id: mod.answer.only.my.word
+      position: modifier
+      text: "All I have is my word."
+      requires:
+        act:
+          - answer
+          - accuse
+        commitment: hedged
+      repetitionGroup: commitment
+
+    # -- what is being kept back, still every word true
     - id: mod.answer.held.back
       position: modifier
       text: "That is as much as I will say."
@@ -23,27 +83,139 @@ payload:
         act: answer
         held_back: "yes"
       repetitionGroup: reserve
+    - id: mod.answer.know.more
+      position: modifier
+      text: "I know more than I am saying."
+      requires:
+        act:
+          - answer
+          - inform
+        held_back: "yes"
+      repetitionGroup: reserve
+      memorability: voiced
+    - id: mod.answer.would.cost.someone
+      position: modifier
+      text: "The rest would cost somebody."
+      requires:
+        act:
+          - answer
+          - refuse
+        held_back: "yes"
+      repetitionGroup: reserve
+      memorability: voiced
     - id: mod.refuse.cost
       position: modifier
       text: "It is not worth what it would cost me."
       requires:
         act: refuse
       repetitionGroup: reserve
-    - id: mod.deny.believe
-      position: modifier
-      text: "You can believe that or not."
-      requires:
-        act: deny
-      repetitionGroup: stubborn
     - id: mod.evade.said.enough
       position: modifier
       text: "I have said all I mean to."
       requires:
         act: evade
       repetitionGroup: reserve
+    - id: mod.answer.ask.carefully
+      position: modifier
+      text: "Ask carefully."
+      requires:
+        act:
+          - answer
+          - evade
+        held_back: "yes"
+      repetitionGroup: reserve
+      memorability: voiced
+
+    # -- how the speaker holds a hard line
+    - id: mod.deny.believe
+      position: modifier
+      text: "You can believe that or not."
+      requires:
+        act: deny
+      repetitionGroup: stubborn
     - id: mod.accuse.no.pretending
       position: modifier
       text: "I am not going to pretend otherwise."
       requires:
         act: accuse
       repetitionGroup: stubborn
+    - id: mod.accuse.title.no.difference
+      position: modifier
+      text: "A title does not change what happened."
+      requires:
+        act:
+          - accuse
+          - deny
+        audience: several
+      repetitionGroup: stubborn
+      memorability: voiced
+    - id: mod.deny.not.there.anyway
+      position: modifier
+      text: "You may outrank me. You were still not there."
+      requires:
+        act:
+          - deny
+          - answer
+      repetitionGroup: stubborn
+      memorability: signature
+    - id: mod.refuse.edge.of.willing
+      position: modifier
+      text: "That is the edge of what I am willing to become for this."
+      requires:
+        act:
+          - refuse
+          - deny
+      repetitionGroup: stubborn
+      memorability: signature
+    - id: mod.refuse.will.not.lie
+      position: modifier
+      text: "I will help, but I will not lie."
+      requires:
+        act:
+          - refuse
+          - offer
+      repetitionGroup: stubborn
+      memorability: voiced
+
+    # -- what the speaker will not have brought into it
+    - id: mod.boundary.leave.subject.out
+      position: modifier
+      text: "Leave {subject} out of this."
+      requires:
+        subject: other
+        act:
+          - refuse
+          - deny
+          - threaten
+      repetitionGroup: boundary
+      memorability: voiced
+    - id: mod.boundary.not.leverage
+      position: modifier
+      text: "You may ask about me. You do not get to use {subject} as leverage."
+      requires:
+        subject: other
+        act:
+          - refuse
+          - deny
+      repetitionGroup: boundary
+      memorability: signature
+    - id: mod.boundary.unreasonable.about.family
+      position: modifier
+      text: "I become unreasonable where family is concerned. Plan accordingly."
+      requires:
+        act:
+          - refuse
+          - threaten
+          - warn
+      repetitionGroup: boundary
+      memorability: signature
+    - id: mod.boundary.quarrel.not.inherited
+      position: modifier
+      text: "Leave our quarrel where it is. {subject} should not inherit it."
+      requires:
+        subject: other
+        act:
+          - request
+          - refuse
+      repetitionGroup: boundary
+      memorability: protected

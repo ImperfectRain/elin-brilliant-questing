@@ -2,6 +2,10 @@ id: fragments.openers
 kind: dialogueFragments
 payload:
   fragments:
+    # An opener is where a greeting lives. A greeting is not a semantic act - nothing about the
+    # world changes because somebody said hello - so it needs no act of its own; it needs a slot
+    # before the point, which this has always been, and a reading of who is being greeted, which
+    # BQ-146's relationship reading supplies.
     - id: open.address
       position: opener
       text: "{listener}."
@@ -38,3 +42,251 @@ payload:
       tone:
         - plain
       repetitionGroup: prompt
+    - id: open.well.then
+      position: opener
+      text: "Well, then."
+      repetitionGroup: filler
+    - id: open.listen
+      position: opener
+      text: "Listen."
+      requires:
+        act:
+          - inform
+          - warn
+      tone:
+        - curt
+      repetitionGroup: prompt
+    - id: open.sit.down
+      position: opener
+      text: "Sit down."
+      requires:
+        act:
+          - inform
+          - answer
+      tone:
+        - warm
+      repetitionGroup: prompt
+
+    # -- greetings, by what the speaker is to whoever they are greeting
+    - id: open.greet.stranger.plain
+      position: opener
+      text: "Yes?"
+      requires:
+        reply: none
+        relationship: none
+      repetitionGroup: greeting
+    - id: open.greet.stranger.state.need
+      position: opener
+      text: "State what you need."
+      requires:
+        reply: none
+        relationship: none
+      tone:
+        - cold
+      repetitionGroup: greeting
+    - id: open.greet.stranger.not.met
+      position: opener
+      text: "We have not met."
+      requires:
+        reply: none
+        relationship: none
+      repetitionGroup: greeting
+      memorability: voiced
+    - id: open.greet.acquaintance
+      position: opener
+      text: "You again."
+      requires:
+        reply: none
+        relationship: acquaintance
+      repetitionGroup: greeting
+    - id: open.greet.acquaintance.reliable
+      position: opener
+      text: "You have been reliable so far."
+      requires:
+        reply: none
+        relationship: acquaintance
+      tone:
+        - warm
+      repetitionGroup: greeting
+      memorability: voiced
+    - id: open.greet.friend.there.you.are
+      position: opener
+      text: "There you are."
+      requires:
+        reply: none
+        relationship: friend
+      tone:
+        - warm
+      repetitionGroup: greeting
+    - id: open.greet.friend.came.back
+      position: opener
+      text: "You came back. Good."
+      requires:
+        reply: none
+        relationship: friend
+      tone:
+        - warm
+      repetitionGroup: greeting
+      memorability: voiced
+    - id: open.greet.friend.that.face
+      position: opener
+      text: "I know that face."
+      requires:
+        reply: none
+        relationship:
+          - friend
+          - family
+          - spouse
+      repetitionGroup: greeting
+      memorability: voiced
+    - id: open.greet.family.sit.first
+      position: opener
+      text: "Sit first. Then talk."
+      requires:
+        reply: none
+        relationship:
+          - family
+          - spouse
+      tone:
+        - warm
+      repetitionGroup: greeting
+      memorability: voiced
+    - id: open.greet.spouse.empty.chair
+      position: opener
+      text: "I was beginning to resent the empty chair."
+      requires:
+        reply: none
+        relationship: spouse
+      repetitionGroup: greeting
+      memorability: protected
+    - id: open.greet.rival.you
+      position: opener
+      text: "You."
+      requires:
+        reply: none
+        relationship:
+          - rival
+          - enemy
+      tone:
+        - cold
+      repetitionGroup: greeting
+    - id: open.greet.rival.cooperation
+      position: opener
+      text: "Do not mistake this for surrender."
+      requires:
+        reply: none
+        relationship: rival
+      tone:
+        - wry
+      repetitionGroup: greeting
+      memorability: voiced
+    - id: open.greet.enemy.finish.quickly
+      position: opener
+      text: "Make it quick."
+      requires:
+        reply: none
+        relationship: enemy
+      tone:
+        - cold
+      repetitionGroup: greeting
+    - id: open.greet.creditor.at.last
+      position: opener
+      text: "At last."
+      requires:
+        reply: none
+        relationship: debtor
+      repetitionGroup: greeting
+    - id: open.greet.debtor.hoping.forgotten
+      position: opener
+      text: "I was hoping you had forgotten."
+      requires:
+        reply: none
+        relationship: creditor
+      tone:
+        - wry
+      repetitionGroup: greeting
+      memorability: voiced
+    - id: open.greet.debtor.favour.home
+      position: opener
+      text: "There it is. The favour coming home."
+      requires:
+        reply: none
+        relationship: creditor
+      repetitionGroup: greeting
+      memorability: voiced
+    - id: open.greet.guildmate
+      position: opener
+      text: "One of ours, then."
+      requires:
+        reply: none
+        relationship: guild_mate
+      repetitionGroup: greeting
+      memorability: voiced
+    - id: open.greet.employer
+      position: opener
+      text: "You are paying, so ask."
+      requires:
+        reply: none
+        relationship: employer
+      repetitionGroup: greeting
+      memorability: voiced
+
+    # -- mood shows before the point does
+    - id: open.mood.anger.short
+      position: opener
+      text: "Make it worth the interruption."
+      requires:
+        emotion: anger
+      tone:
+        - curt
+      repetitionGroup: greeting.mood
+      memorability: voiced
+    - id: open.mood.fear.quiet
+      position: opener
+      text: "Keep your voice down."
+      requires:
+        emotion: fear
+      repetitionGroup: greeting.mood
+    - id: open.mood.grief.today
+      position: opener
+      text: "Not a good day for it."
+      requires:
+        emotion: grief
+      repetitionGroup: greeting.mood
+      memorability: protected
+    - id: open.mood.stress.furniture
+      position: opener
+      text: "If another person asks me for something I may become furniture."
+      requires:
+        emotion: stress
+      tone:
+        - wry
+      repetitionGroup: greeting.mood
+      memorability: signature
+    - id: open.mood.relief.enough.for.now
+      position: opener
+      text: "Good. That is enough for now."
+      requires:
+        emotion: relief
+      repetitionGroup: greeting.mood
+    - id: open.mood.suspicion.interesting
+      position: opener
+      text: "Interesting."
+      requires:
+        emotion: suspicion
+      repetitionGroup: greeting.mood
+    - id: open.mood.affection.good.cup
+      position: opener
+      text: "I saved the good cup. Do not make that embarrassing."
+      requires:
+        emotion: affection
+        audience: one
+      repetitionGroup: greeting.mood
+      memorability: protected
+    - id: open.mood.shame.rather.not
+      position: opener
+      text: "I know why you are here."
+      requires:
+        emotion: shame
+      repetitionGroup: greeting.mood
+      memorability: voiced

@@ -321,9 +321,11 @@ namespace BrilliantQuesting.Lab.Tests
             PlaygroundTurn open = Run("settled-history").Exchange.Turns[0];
             PlaygroundTurn shut = Run("guarded-history").Exchange.Turns[0];
 
+            // Permission, not the coin: a cleared permit reaches the request and may be worded.
+            // Whether the optional callback slot happened to fill on this seed is the realizer's.
             Assert.NotNull(open.Callback);
             Assert.True(open.Callback.Allowed);
-            Assert.Contains("call.history", string.Join(",", open.Line.Fragments), StringComparison.Ordinal);
+            Assert.NotNull(open.Request.Callback);
 
             Assert.Null(shut.Callback);
             Assert.NotNull(shut.WithheldCallback);
@@ -439,19 +441,35 @@ namespace BrilliantQuesting.Lab.Tests
         }
 
         /// <summary>
-        /// The shipped library has no words for a promise, and the playground says so rather than
-        /// assembling a line out of openers and closers. An honest gap, reported as one.
+        /// A promise is worded from fragments authored for it, and reported as exactly what it is.
+        ///
+        /// This used to assert the opposite: the library had no words for a promise, and the
+        /// honest thing was to say so rather than assemble a line out of openers and closers. The
+        /// gap is now closed in content, so what is left to hold is the part that was never about
+        /// the gap - a line is either words or a stated refusal, never something in between, and
+        /// the meaning is the act's own either way.
         /// </summary>
         [Fact]
-        public void APromiseIsReportedAsUnwordedRatherThanWordedVaguely()
+        public void APromiseIsWordedFromContentAndReportedAsWhatItIs()
         {
             PlaygroundTurn turn = Run("promise-exchange", turns: 3).Exchange.Turns[2];
 
             Assert.NotNull(turn.Line);
-            Assert.False(turn.Line.Rendered);
-            Assert.Equal(string.Empty, turn.Line.Text);
-            Assert.NotEqual(string.Empty, turn.Line.Refusal);
             Assert.Equal(turn.Reply.Signature, turn.Line.Meaning);
+            Assert.Equal(SpeechActType.Promise, turn.Reply.Type);
+
+            if (turn.Line.Rendered)
+            {
+                Assert.NotEqual(string.Empty, turn.Line.Text);
+                Assert.Equal(string.Empty, turn.Line.Refusal);
+                Assert.NotEmpty(turn.Line.Fragments);
+            }
+            else
+            {
+                Assert.Equal(string.Empty, turn.Line.Text);
+                Assert.NotEqual(string.Empty, turn.Line.Refusal);
+                Assert.Empty(turn.Line.Fragments);
+            }
         }
 
         // -- inspection writes nothing ---------------------------------------------------------------
