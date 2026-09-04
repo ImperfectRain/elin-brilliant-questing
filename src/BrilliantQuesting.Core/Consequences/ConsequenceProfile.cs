@@ -78,6 +78,14 @@ namespace BrilliantQuesting.Consequences
                 { WorldEventType.InquiryOpened, new ConsequenceProfile("under_inquiry", MemoryWeight.Important, -8) },
                 { WorldEventType.EvidenceCreated, new ConsequenceProfile("created_evidence", MemoryWeight.Routine, 0) },
                 { WorldEventType.EvidenceDestroyed, new ConsequenceProfile("destroyed_evidence", MemoryWeight.Important, -12, -3, karma: -1) },
+                // Being shown a thing you already knew is information, not a kindness done to
+                // you: nobody's standing moves, and karma has nothing to judge. It is worth
+                // remembering, though - "you brought me his ring" is the sort of thing a person
+                // recalls for years - so the memory is Notable while every currency stays at
+                // zero. Handing the object over is `ItemReturned`, and that is where the credit
+                // for giving it back lives; paying for a look at it here would make showing the
+                // same ring twice a way to buy affinity.
+                { WorldEventType.ObjectRecognized, new ConsequenceProfile("was_shown_something_they_knew", MemoryWeight.Notable, 0) },
                 // Making something is ordinary life. It is on the record because provenance
                 // matters later, not because anybody's opinion of anybody moves.
                 { WorldEventType.GoodsProduced, new ConsequenceProfile("made_something", MemoryWeight.Trivial, 0) },

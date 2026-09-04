@@ -1382,6 +1382,91 @@ namespace BrilliantQuesting.Diagnostics
         }
 
         /// <summary>
+        /// BQ-085. What one object has been through, and how much of that the person in front of
+        /// the player can place it by.
+        ///
+        /// The same doctrine as <see cref="DescribeCallbacks"/>: a step whose content is a gate has
+        /// to be able to show the gate closing. "Why did showing her the ring do nothing" has three
+        /// possible answers - history recorded nothing about the object, she has no route to the
+        /// part it did record, or the matter it belongs to is over - and this separates them.
+        /// </summary>
+        public static string DescribeProvenance(
+            NarrativeWorldState world,
+            EntityId itemId,
+            EntityId viewer,
+            GameTime now)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("provenance of ").Append(itemId.IsNone ? "nothing" : itemId.Value);
+            sb.Append(" as ").Append(Who(world, viewer)).Append(" can place it\n");
+            if (world == null || itemId.IsNone)
+            {
+                sb.Append("  no object to trace\n");
+                return sb.ToString();
+            }
+
+            IReadOnlyList<ProvenanceEntry> all = ItemProvenance.Of(world, itemId, now);
+            if (all.Count == 0)
+            {
+                sb.Append("  history recorded nothing about it\n");
+                return sb.ToString();
+            }
+
+            IReadOnlyList<ProvenanceEntry> recognized = ItemProvenance.RecognizedBy(world, itemId, viewer, now);
+            for (int i = 0; i < all.Count; i++)
+            {
+                ProvenanceEntry entry = all[i];
+                bool theirs = Recognizes(recognized, entry.EventId);
+                sb.Append(theirs ? "  * " : "    ");
+                sb.Append(entry.Role.ToString().PadRight(10));
+                sb.Append(entry.EventType.ToString().PadRight(20));
+                sb.Append("day ").Append(entry.At.TotalDays).Append(" (").Append(entry.AgeInDays).Append("d ago)  ");
+                sb.Append(world.Registry.NameOf(entry.Actor));
+                sb.Append(" -> ").Append(entry.Other.IsNone ? "nobody" : world.Registry.NameOf(entry.Other));
+                sb.Append(theirs ? "  [" + RouteOf(recognized, entry.EventId) + "]" : "  [not theirs to know]");
+                sb.Append('\n');
+            }
+
+            IReadOnlyList<NarrativeThread> matters = ItemProvenance.OpenMatters(world, recognized);
+            sb.Append("  ").Append(recognized.Count).Append(" of ").Append(all.Count)
+              .Append(" entries are theirs to know; ").Append(matters.Count)
+              .Append(" still-open matter(s) hang on them\n");
+            for (int i = 0; i < matters.Count; i++)
+            {
+                sb.Append("    ").Append(matters[i].ArchetypeId).Append(' ').Append(matters[i].Id.Value)
+                  .Append(" [").Append(matters[i].State).Append("]\n");
+            }
+
+            return sb.ToString();
+        }
+
+        private static bool Recognizes(IReadOnlyList<ProvenanceEntry> recognized, EntityId eventId)
+        {
+            for (int i = 0; i < recognized.Count; i++)
+            {
+                if (recognized[i].EventId == eventId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string RouteOf(IReadOnlyList<ProvenanceEntry> recognized, EntityId eventId)
+        {
+            for (int i = 0; i < recognized.Count; i++)
+            {
+                if (recognized[i].EventId == eventId && recognized[i].RecognizedVia.HasValue)
+                {
+                    return recognized[i].RecognizedVia.Value.ToString();
+                }
+            }
+
+            return "unknown";
+        }
+
+        /// <summary>
         /// BQ-081 x BQ-071. Which of one person's callbacks they would actually raise in front of
         /// another, and which claim keeps the rest of them back.
         ///

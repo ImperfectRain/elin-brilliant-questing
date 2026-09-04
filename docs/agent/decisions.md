@@ -640,7 +640,7 @@ for a tone. `FitsVocabulary` cannot use that rule: a fragment carrying a `Dialog
 eligible only when the request names that tag, and an empty or null request excludes it. Reusing
 tone's "ask for nothing, get everything" semantics here would let a flavoured fragment through for
 every unread identity, which is the guessed vocabulary D017 and BQ-145 both already refuse. A
-fragment carrying no recognised vocabulary tag is unaffected either way, which is what keeps this
+fragment carrying no recognized vocabulary tag is unaffected either way, which is what keeps this
 free tags field — `DialogueFragment.Tags`, shared with BQ-077's future negative-space tags — usable
 by more than one consumer without either one having to know about the other's vocabulary.
 
@@ -1054,7 +1054,7 @@ BQ-071 — and a callback is the one place the simulation had them collapsed. Ke
 realization still reads no world state: the clearance is taken where the world is in hand and merely
 honoured where the words are chosen.
 
-## D045 — Elin's work column is an observation, and only a recognised trade is evidence of a livelihood
+## D045 — Elin's work column is an observation, and only a recognized trade is evidence of a livelihood
 
 `SourceChara.job` is a build column before it is an occupation. Live diagnostics have it reporting
 `predator` for shopkeeper-like NPCs *and* for horses, `tourist` for nuns, and combat job templates for
@@ -1063,14 +1063,14 @@ role eligibility were all gated on the domain vocabulary, but the livelihood sta
 known work id, so a horse acquired a trade to lose.
 
 **The observation is unchanged and stays verbatim.** The facet is named `Work` — the column — and
-never `Occupation`, and it says so where a consumer would otherwise assume. An unrecognised id is
+never `Occupation`, and it says so where a consumer would otherwise assume. An unrecognized id is
 still carried through as itself, because it is a stable discriminator and it is what Elin said.
 
 **A livelihood is derived only where the id reads as a lived trade**, under the same vocabulary the
 domains already use, so there is one answer to "does this read as work" rather than two that can
 disagree. Observed service derives a business independently and off the trait subclass, so a
 shopkeeper whose work column says `predator` is still a shopkeeper; an office derives standing
-independently, so a guard is still a guard. Unrecognised work costs the livelihood and nothing else.
+independently, so a guard is still a guard. Unrecognized work costs the livelihood and nothing else.
 
 Reason: the anti-stereotype gate is about not letting a label decide what somebody is, and asserting
 a livelihood from a job template is the same failure as asserting a temperament from a race. Race
@@ -1377,5 +1377,46 @@ happened, and what the place made of it is recomputed from the same reads next t
 Reason: the cheap versions of this step are a zone flag somebody sets, a severity multiplier that
 quietly doubles as a legal judgment, and a stereotype standing in for an unread role. All three
 survive a demo and none survives a save.
+
+## D057 — An object's history is the ledger read through the object, and a matter is reached only through a recorded link
+
+BQ-085. `ItemProvenance` derives what a thing has been through by reading the events that carry it
+as `WorldEvent.Evidence`. There is no provenance store, no field on the object and no save entry:
+`D039`'s reasoning about callbacks, applied to things instead of to people. An object's history
+therefore survives a reload because the ledger does, a corrected event corrects every reading of it,
+and `PM §21`'s "track only notable objects" needs no notable bit — nothing is tracked, so an object
+history never mentioned costs nothing and answers with an empty list.
+
+**One field means it.** Only `Evidence` says "this object was part of what happened". `Related` is a
+general list of ids whose meaning changes from verb to verb, so reading it as provenance would mean
+inventing the relationship it then reported.
+
+**A role exists only where something records it.** Made, given, returned, stolen, destroyed, kept,
+cited — and nothing else. "Found on the corpse of", "inherited by" and "recovered at" have no
+recorder and are absent rather than guessed from a death, a will nobody wrote, or the zone a search
+happened in. "Owned by" is absent for a different reason: who holds a thing now is Elin's inventory,
+read live, and a history that answered it would be a staler second claim about the same question.
+The vocabulary grows when a recorder appears, on `CallbackKind`'s terms.
+
+**Recognition is the callback route, not a second gate and not a roll.** Whether somebody knows an
+object on sight is `CallbackHooks.TryRoute`'s question — the same one that decides whether they may
+bring that history up at all — so nothing can hand somebody a past they were never part of, and
+asking twice cannot produce two answers. Showing a thing to a stranger tells them nothing, and there
+is no check to retry.
+
+**Producing an object asserts nothing.** `ObjectRecognized` names no claim, so the consequence layer
+has none to teach the room: a ring surfacing does not tell its owner who took it and does not tell
+the bystanders either. Nobody's standing moves for it — handing it back is `ItemReturned`, and that
+is where the credit for giving it back lives.
+
+**A matter is reopened only through a link something wrote down.** A thread is reached from an entry
+when the event names the thread, the thread names the event as its origin, or a claim the thread
+rests on was begun by it. Never by shared time, place or subject: a coincidence is not a connection,
+and reopening is `ThreadLifecycle.Reactivate` — the existing primitive — rather than a second way
+for a matter to come back.
+
+Reason: the cheap version is a `History` list on the item, written at each verb. It is a second copy
+of the ledger that can outlive it, disagree with it and need migrating, and the first thing it does
+is let anybody holding the object read a past they were never part of.
 
 Add a new entry only when the decision is both load-bearing and durable.

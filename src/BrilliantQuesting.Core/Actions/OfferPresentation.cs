@@ -52,6 +52,11 @@ namespace BrilliantQuesting.Actions
                 case "search_records":
                 case "compare_testimony":
                 case "track":
+                // Producing an object somebody knows is how a settled-looking matter becomes
+                // live again, which puts it with the verbs that earn the ground the resolutions
+                // stand on rather than with the ones that resolve. It is never itself an ending:
+                // handing the thing back is.
+                case "show_item":
                 // Criminal routes to the same two things. Breaking in is what makes a locked
                 // place searchable and having papers made is what makes an unprovable belief
                 // provable, so on the "earns the proof" tier they sit exactly where the honest

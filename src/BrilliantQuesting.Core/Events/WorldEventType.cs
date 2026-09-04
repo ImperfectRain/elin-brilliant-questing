@@ -59,6 +59,20 @@ namespace BrilliantQuesting.Events
         EvidenceDestroyed,
 
         /// <summary>
+        /// An object was produced in front of somebody who knew it (BQ-085).
+        ///
+        /// Named for the recognition rather than for the showing, the way `CrimeWitnessed` is:
+        /// holding a ring out to a stranger is not an event, and what makes this one is that the
+        /// person opposite could place it. The actor is whoever showed it, the target is whoever
+        /// knew it, and the object is carried as evidence.
+        ///
+        /// It asserts nothing about the past. Recognition is gated on history the recognizer
+        /// already had a route to, so this records that an object surfaced - not that anybody
+        /// learned anything from it. It names no claim for exactly that reason.
+        /// </summary>
+        ObjectRecognized,
+
+        /// <summary>
         /// The game finished making something, and the simulation noticed.
         ///
         /// Recorded from observation rather than from any procedural roll: Elin's own cooking,

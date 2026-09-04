@@ -72,6 +72,11 @@ Threads         NarrativeThread, EscalationStep, ThreadEngine
 Situations      PettyTheftSituation, PettyTheftEscalation, TheftLaboratory
                 one generated archetype, its escalation, and the harness that runs it headless
 
+Continuity      CallbackHook(s), CallbackRecurrence, ItemProvenance
+                history read back per person and per object; both are derivations over the ledger
+                with no store of their own, so old business cannot outlive or contradict what
+                happened, and neither can be produced for somebody who was never part of it
+
 Dialogue        SpeechAct, SpeechActProfile, Disclosure, Deception, DialogueFragment,
                 DialogueRealizer, VoiceProfile, ConversationState
                 what is meant, decided separately from how it is said; the realizer holds no

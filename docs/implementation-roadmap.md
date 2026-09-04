@@ -475,7 +475,7 @@ nothing about what any facet means.
   open-state member, never a claim that the shop is shut.
   `ElinCharacterIdentity` does the reading: the `SourceChara` row id and `aka` for the character
   archetype, `Chara.idRace` and the race row, source `job`/`idJob`, source `hobbies`, the service
-  trait subclasses (the trait type name carried through verbatim, so an unrecognised shop trait is
+  trait subclasses (the trait type name carried through verbatim, so an unrecognized shop trait is
   still a service) and `TraitGuard`/`TraitGuildPersonnel`/`TraitGuildDoorman` plus `Chara.faction`
   for the institutional facet. Every facet is read inside its own guard, so a member this build
   renamed costs that facet and leaves the other five standing. No Elin type name reaches Core, the
@@ -1053,7 +1053,7 @@ vocabulary.
   BQ-060 and the BQ-031 mutation policy for any member that takes, holds or exposes an identity
   type.
   Deferred: no domain arrives without a consumer, so the vocabulary is deliberately five domains
-  matched by substring over Elin's own ids — an unrecognised trade derives nothing rather than
+  matched by substring over Elin's own ids — an unrecognized trade derives nothing rather than
   being mapped onto the nearest familiar thing — and institutional rank, settlement-level facet
   distribution (`VS §5.2`) and identity deltas as events (`VS §5.3`) are not derived here.
 - **Out of scope** persisting anything derived, dialogue wording (BQ-076 consumes this, it is not this), and any new read of Elin — this step consumes BQ-144's observation and nothing else.
@@ -1061,7 +1061,7 @@ vocabulary.
 - **Unblocks** the identity slices of BQ-068, BQ-076, BQ-084, and the retrofits named in BQ-061, BQ-064 and BQ-067.
 - **Why its own step** the observation and its meaning fail differently. BQ-144 is wrong when the adapter reports the wrong facet; this is wrong when a facet is allowed to dictate a decision. Its done-when is the anti-stereotype test, which cannot be written against an adapter and must not be scattered across six consumers.
 - **This is the anti-stereotype gate.** Identity affects plausibility, eligibility and pressure; it never dictates personality. A Punk is not aggressive because they are a Punk. Any later step that reads a facet and concludes what somebody is *like* is wrong even if it works.
-- **Hardened after BQ-144's live diagnostics.** The work facet was the one place the gate leaked: knowledge, interest and role eligibility were all matched against the domain vocabulary, but the livelihood stake fired for *any* known work id. With Elin's work column reporting `predator` for horses and `tourist` for nuns, that made BQ assert a trade to lose on the strength of a job template. A livelihood is now derived only where the work id reads as a lived trade under the same vocabulary the domains use; an unrecognised work id is observable and derives nothing, as an unrecognised office already did. Observed service still derives a business independently, so a shopkeeper whose work column reads `predator` is still a shopkeeper (`D045`).
+- **Hardened after BQ-144's live diagnostics.** The work facet was the one place the gate leaked: knowledge, interest and role eligibility were all matched against the domain vocabulary, but the livelihood stake fired for *any* known work id. With Elin's work column reporting `predator` for horses and `tourist` for nuns, that made BQ assert a trade to lose on the strength of a job template. A livelihood is now derived only where the work id reads as a lived trade under the same vocabulary the domains use; an unrecognized work id is observable and derives nothing, as an unrecognized office already did. Observed service still derives a business independently, so a shopkeeper whose work column reads `predator` is still a shopkeeper (`D045`).
 
 #### BQ-068 — Role chemistry
 Score groups, not individuals: goal conflict, shared history, knowledge asymmetry, power asymmetry.
@@ -1830,6 +1830,38 @@ Notable objects carry structured history: crafted by, owned by, stolen from, rec
 - **Depends** BQ-017.
 - **Done when** showing a recovered object to the right NPC reopens a thread months later.
 - **Sources** PM §21, §51; LW §15.
+- **Current implementation** `ItemProvenance` reads an object's history off the event ledger -
+  every event carrying it as `Evidence` - and stores nothing: no field on the object, no index, no
+  save entry, on `D039`'s terms and for its reasons. So "track only notable objects" needs no
+  notable bit: nothing is tracked, and a berry nobody wrote anything down about answers with an
+  empty list. `Related` is deliberately not read, because its meaning changes from verb to verb and
+  taking it for provenance would invent the relationship it then reported. The seven roles are the
+  ones something actually records - made, given, returned, stolen, destroyed, kept, cited. `PM
+  §21`'s "found on the corpse of", "inherited by" and "recovered at" have no recorder and are
+  absent rather than guessed at; "owned by" is absent because who holds a thing *now* is Elin's own
+  inventory, read live, and a history that answered it would be a staler second claim. One role
+  covers every willing transfer, since the ledger records a gift, a payment and a fence's purchase
+  with the same verb.
+  Recognition - whether the person opposite can place the object - is `CallbackHooks.TryRoute`, the
+  same knowledge gate that decides whether they may bring that history up at all, so a stranger
+  learns nothing from being shown a ring and there is no second answer to disagree with the first.
+  The player-facing half is the verb `show_item`, the mirror of `expose`: telling somebody what you
+  know needs you to know it and lands on your credibility, while showing them a thing needs you to
+  be carrying it (`D011`) and lands on *their* history with it - a player can hand the daughter her
+  father's ring without ever having learned whose it was. There is no check, because recognition is
+  not a skill and a roll would make "show her the ring again" a way to reroll her memory. It records
+  `ObjectRecognized`, which names no claim, so witnesses are taught nothing and nobody's standing
+  moves; giving the object back is `ItemReturned` and that is where the credit lives. A matter
+  reopens through `ThreadLifecycle.Reactivate` and only where something recorded the link - the
+  event names the thread, the thread names the event as its origin, or a claim the thread rests on
+  was begun by it - never on shared time, place or subject. Resolved matters stay resolved.
+  `NarrativeInspector.DescribeProvenance` separates the three reasons showing an object can do
+  nothing: history recorded nothing about it, this person has no route to what it did record, or the
+  matter is over. See `D057`.
+  Deferred: the object's *current* holder stays a live vanilla read and is not part of provenance;
+  a forged document is recorded in `Related` rather than `Evidence` by `forge`, so it derives no
+  history, which is arguably what a forgery is; and nothing here feeds disclosure, wording or
+  storylet casting - what an object is worth mentioning is its own done-when.
 
 #### BQ-086 — Location history and legends
 Sites accumulate notable events; repeated or high-salience history compresses into local legend.

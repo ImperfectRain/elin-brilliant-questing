@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using BrilliantQuesting.Checks;
+using BrilliantQuesting.Continuity;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions.Library
@@ -262,6 +264,143 @@ namespace BrilliantQuesting.Actions.Library
             }
 
             return outcome;
+        }
+    }
+
+    /// <summary>
+    /// Put an object in front of somebody and let them place it (BQ-085).
+    ///
+    /// The mirror of <see cref="ExposeSecretAction"/>, and deliberately its opposite in every
+    /// respect. Telling someone what you know needs you to know it, and lands on how credible you
+    /// are. Showing them a thing needs you to be carrying it, and lands on whether *they* have a
+    /// history with it: the player who picks a silver ring out of a drain a year later can hand it
+    /// to the daughter without ever having learned whose it was.
+    ///
+    /// <b>There is no roll.</b> Recognition is not a skill - either the person opposite has a route
+    /// to the history the object carries or they have not - and a check here would make "show her
+    /// the ring again" a way to reroll her memory. What the verb costs is having found the thing
+    /// and having got it to her.
+    ///
+    /// <b>It teaches nobody anything.</b> The event it records names no claim, because recognition
+    /// is gated on history the recognizer already had a route to. A ring surfacing does not tell
+    /// its owner who took it, and it must not tell the bystanders either.
+    /// </summary>
+    public sealed class ShowItemAction : NarrativeAction
+    {
+        public ShowItemAction() : base("show_item", ActionFamily.Information, "Show it to them")
+        {
+        }
+
+        public override Availability GetAvailability(ActionContext context)
+        {
+            if (!ActionSupport.Present(context, context.Target))
+            {
+                return Availability.NotRelevant("nobody to show it to");
+            }
+
+            if (!context.Vanilla.Supports(VanillaCapability.ReadInventory))
+            {
+                return Availability.Impossible("this build cannot see what you are carrying");
+            }
+
+            // Nothing in the pack that this person has any history with. "Nothing at stake" rather
+            // than "unlikely to work": a matter that is settled, or an object they never had
+            // anything to do with, is not a long shot the player should be allowed to take.
+            return Subject(context) == null
+                ? Availability.NotRelevant("nothing you are carrying means anything to them")
+                : Availability.Available();
+        }
+
+        public override ActionOutcome Perform(ActionContext context)
+        {
+            ItemDescriptor item = Subject(context);
+            IReadOnlyList<ProvenanceEntry> recognized =
+                ItemProvenance.RecognizedBy(context.World, item.Id, context.Target, context.Now);
+            IReadOnlyList<NarrativeThread> matters = ItemProvenance.OpenMatters(context.World, recognized);
+
+            string who = context.NameOf(context.Target);
+            ActionOutcome outcome = new ActionOutcome(
+                Id, null, who + " knows the " + item.Name + " the moment they see it.");
+
+            // Recorded before anything is reopened, and with no claim on it: what happened is that
+            // an object surfaced in front of somebody who could place it. Whoever is standing about
+            // sees that much and no more, which is why the witness list is real and the related
+            // claims are empty - `ConsequenceEngine` teaches witnesses the claims an event names.
+            outcome.Events.Add(context.World.Record(
+                WorldEventType.ObjectRecognized,
+                context.Actor,
+                context.Target,
+                context.Now,
+                0.4,
+                context.Zone,
+                witnesses: ActionSupport.Bystanders(context, true),
+                evidence: new[] { item.Id }));
+
+            for (int i = 0; i < matters.Count; i++)
+            {
+                NarrativeThread matter = matters[i];
+                ProvenanceEntry link = LinkTo(context.World, recognized, matter);
+                string how = link == null
+                    ? matter.ArchetypeId
+                    : link.Role + " " + link.AgeInDays + "d ago, " + link.RecognizedVia;
+
+                outcome.Notes.Add(who + " places the " + item.Name + " in " + matter.ArchetypeId + " (" + how + ")");
+
+                if (ThreadLifecycle.Reactivate(
+                        context.World, matter, context.Now,
+                        who + " recognized the " + item.Name + " (" + how + ")"))
+                {
+                    outcome.Notes.Add("reopened " + matter.Id);
+                }
+            }
+
+            return outcome;
+        }
+
+        /// <summary>
+        /// The object the player means, and never one they are not holding (`D011`).
+        ///
+        /// A named <see cref="ActionContext.SubjectItem"/> wins when it qualifies; with nothing
+        /// named, the first thing in carry order that this person has an open matter with is taken,
+        /// so the same pack answers the same way twice.
+        /// </summary>
+        private static ItemDescriptor Subject(ActionContext context)
+        {
+            return ActionSupport.FindItem(context, context.Actor, item => Reopenable(context, item.Id));
+        }
+
+        private static bool Reopenable(ActionContext context, EntityId itemId)
+        {
+            IReadOnlyList<ProvenanceEntry> recognized =
+                ItemProvenance.RecognizedBy(context.World, itemId, context.Target, context.Now);
+            return recognized.Count > 0 && ItemProvenance.OpenMatters(context.World, recognized).Count > 0;
+        }
+
+        /// <summary>
+        /// The recognized entry that actually reaches this matter, so the reason recorded on the
+        /// reopening names the history it came from rather than whichever entry happened to be
+        /// first. Null where the link is one this action cannot attribute to a single entry.
+        /// </summary>
+        private static ProvenanceEntry LinkTo(
+            NarrativeWorldState world,
+            IReadOnlyList<ProvenanceEntry> recognized,
+            NarrativeThread matter)
+        {
+            ProvenanceEntry[] one = new ProvenanceEntry[1];
+            for (int i = 0; i < recognized.Count; i++)
+            {
+                one[0] = recognized[i];
+                IReadOnlyList<NarrativeThread> reached = ItemProvenance.OpenMatters(world, one);
+                for (int r = 0; r < reached.Count; r++)
+                {
+                    if (reached[r] == matter)
+                    {
+                        return recognized[i];
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }
