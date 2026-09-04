@@ -74,10 +74,12 @@ Threads         NarrativeThread, EscalationStep, ThreadEngine
 Situations      PettyTheftSituation, PettyTheftEscalation, TheftLaboratory
                 one generated archetype, its escalation, and the harness that runs it headless
 
-Continuity      CallbackHook(s), CallbackRecurrence, ItemProvenance
-                history read back per person and per object; both are derivations over the ledger
-                with no store of their own, so old business cannot outlive or contradict what
-                happened, and neither can be produced for somebody who was never part of it
+Continuity      CallbackHook(s), CallbackRecurrence, ItemProvenance, LocationHistory
+                history read back per person, per object and per place; all three are derivations
+                over the ledger with no store of their own, so old business cannot outlive or
+                contradict what happened, and none of them can be produced for somebody who was
+                never part of it. A place's legend is the same derivation compressed: what kept
+                happening there, grouped by the kind of story it left
 
 Dialogue        SpeechAct, SpeechActProfile, Disclosure, Deception, DialogueFragment,
                 DialogueRealizer, VoiceProfile, ConversationState

@@ -1460,4 +1460,47 @@ exactly the destructive regeneration `PP §6` forbids, and it is invisible until
 to a place they emptied and finds it staffed again.
 
 
+## D059 — A place's history is a rule about which events count, and a legend is that history compressed
+
+BQ-086. `LocationHistory` derives what has happened in a place from the ledger, on the terms `D039`
+and `D057` already set for people and things: no history store on a site, no index, no save entry.
+A place's past survives a reload because the events do, and a corrected event corrects every
+reading of it.
+
+**Notability had to become a rule, because every event records a zone.** An object's provenance can
+be defined by a field being populated at all — `Evidence` is sparse, and a berry nobody wrote
+anything about simply has none. A place cannot: everything that happens happens somewhere, so
+without a rule a mine's history would be its footfall. The rule is that the event either names the
+place — `SiteDiscovered` and `SiteCleared`, the only two verbs whose subject is somewhere rather
+than somebody — or left material somebody could bring up afterwards, which is
+`CallbackHooks.KindsOf`. That is why `PM §40`'s "track only notable events" needs no notable bit, no
+per-site budget and no pruning pass: meeting somebody in a mine and talking there are not the mine's
+history, and were never admitted to be discarded later.
+
+**Belonging is read off two recorded fields, because the ledger writes two shapes.** Most events say
+which zone they happened in, keyed on `SiteGenesis.ZoneOf` like every other read of a place. A
+place-naming event instead carries the site as its *target* and records whatever zone surrounds it,
+so clearing a cache under a boathouse is the cache's history even though the zone on the event is
+the town's. Nothing is matched on name, type or nearness in time: a coincidence is not a connection.
+
+**A legend's subject is a `CallbackKind`, not a new vocabulary.** That enum already says what sort of
+story an event leaves and already groups what a legend must group — three separate maulings in one
+place are one thing the place is known for, not three. Minting legend motifs here would mean
+maintaining two answers to "what kind of thing was that". Being found and being emptied stay history
+without becoming legend: nothing in the simulation calls either a kind of tale, and inventing one
+would be this layer minting the interpretation it then reports.
+
+**One compression answers both questions.** `Legends` takes entries rather than a world, the way
+`ItemProvenance.OpenMatters` does. Hand it the world's own history and it says what the place is;
+hand it one person's and it says what that person could tell you the place is — and a legend derived
+from what a settlement actually knows is what that settlement tells. There is no second
+implementation to fall out of step, and no separate publicity rule to forget: knowing what happened
+somewhere is gated on `CallbackHooks.TryRoute`, so standing in a place teaches nobody its past.
+
+Reason: the cheap version hangs a list of notable events on `NarrativeSite` and appends to it as
+things happen. It needs a notability flag, a cap, a pruning pass and a save migration; it can
+outlive, contradict and double-count the ledger it was copied from; and because it is written at
+dispatch time it cannot be gated per person afterwards, so the first consumer that asks what an NPC
+knows about a place gets the omniscient answer.
+
 Add a new entry only when the decision is both load-bearing and durable.

@@ -1638,9 +1638,129 @@ namespace BrilliantQuesting.Diagnostics
                 sb.Append("    ").Append(site.Approaches[i]).Append('\n');
             }
 
+            AppendSiteHistory(sb, world, site, vanilla == null ? GameTime.Zero : vanilla.Now);
+
             sb.Append(visit.Intact ? "  intact" : "  changed since genesis")
               .Append("; ledger holds ").Append(world.Ledger.Count).Append(" event(s)\n");
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// BQ-086. What the place has been through and what it is known for, as the world has it.
+        ///
+        /// A place is described by its history rather than by its plan, so a return visit's trace
+        /// carries it: a site somebody cleared a year ago says so, in the same block that says who
+        /// is still standing in it.
+        /// </summary>
+        private static void AppendSiteHistory(
+            StringBuilder sb,
+            NarrativeWorldState world,
+            NarrativeSite site,
+            GameTime now)
+        {
+            IReadOnlyList<SiteHistoryEntry> history = LocationHistory.Of(world, site.Id, now);
+            sb.Append("  history ").Append(history.Count).Append(" notable event(s)\n");
+            for (int i = 0; i < history.Count; i++)
+            {
+                SiteHistoryEntry entry = history[i];
+                sb.Append("    ").Append(entry.Role.ToString().PadRight(9));
+                sb.Append(entry.EventType.ToString().PadRight(20));
+                sb.Append("day ").Append(entry.At.TotalDays).Append(" (").Append(entry.AgeInDays).Append("d ago)  ");
+                sb.Append(world.Registry.NameOf(entry.Actor));
+                if (!entry.Other.IsNone)
+                {
+                    sb.Append(" -> ").Append(world.Registry.NameOf(entry.Other));
+                }
+
+                sb.Append('\n');
+            }
+
+            IReadOnlyList<SiteLegend> legends = LocationHistory.Legends(history);
+            if (legends.Count == 0)
+            {
+                sb.Append("  known for nothing yet\n");
+                return;
+            }
+
+            sb.Append("  known for\n");
+            for (int i = 0; i < legends.Count; i++)
+            {
+                SiteLegend legend = legends[i];
+                sb.Append("    ").Append(legend.Subject.ToString().PadRight(14));
+                sb.Append('x').Append(legend.Occurrences);
+                sb.Append(legend.Repeated ? " (repeated)" : " (severity " + legend.Salience.ToString("0.00") + ")");
+                sb.Append("  last day ").Append(legend.Last.TotalDays)
+                  .Append(" (").Append(legend.AgeInDays).Append("d ago)\n");
+            }
+        }
+
+        /// <summary>
+        /// BQ-086. The same history as one person could tell it, beside the world's own.
+        ///
+        /// The same doctrine as <see cref="DescribeProvenance"/>: a step whose content is a gate
+        /// has to be able to show the gate closing. "Why does she not know about the massacre" has
+        /// two possible answers - the ledger recorded nothing of the kind here, or she has no route
+        /// to what it did record - and this separates them.
+        /// </summary>
+        public static string DescribeSiteHistory(
+            NarrativeWorldState world,
+            EntityId siteId,
+            EntityId viewer,
+            GameTime now)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("history of ").Append(siteId.IsNone ? "nowhere" : siteId.Value);
+            sb.Append(" as ").Append(Who(world, viewer)).Append(" could tell it\n");
+            if (world == null || siteId.IsNone)
+            {
+                sb.Append("  no place to trace\n");
+                return sb.ToString();
+            }
+
+            IReadOnlyList<SiteHistoryEntry> all = LocationHistory.Of(world, siteId, now);
+            if (all.Count == 0)
+            {
+                sb.Append("  history recorded nothing here\n");
+                return sb.ToString();
+            }
+
+            IReadOnlyList<SiteHistoryEntry> known = LocationHistory.KnownTo(world, siteId, viewer, now);
+            for (int i = 0; i < all.Count; i++)
+            {
+                SiteHistoryEntry entry = all[i];
+                CallbackRoute? route = RouteTo(known, entry.EventId);
+                sb.Append(route.HasValue ? "  * " : "    ");
+                sb.Append(entry.Role.ToString().PadRight(9));
+                sb.Append(entry.EventType.ToString().PadRight(20));
+                sb.Append("day ").Append(entry.At.TotalDays).Append(" (").Append(entry.AgeInDays).Append("d ago)  ");
+                sb.Append(world.Registry.NameOf(entry.Actor));
+                sb.Append(route.HasValue ? "  [" + route.Value + "]" : "  [not theirs to know]");
+                sb.Append('\n');
+            }
+
+            IReadOnlyList<SiteLegend> legends = LocationHistory.Legends(known);
+            sb.Append("  ").Append(known.Count).Append(" of ").Append(all.Count)
+              .Append(" entries are theirs to know; ").Append(legends.Count)
+              .Append(" legend(s) follow from them\n");
+            for (int i = 0; i < legends.Count; i++)
+            {
+                sb.Append("    ").Append(legends[i].Subject).Append(" x").Append(legends[i].Occurrences).Append('\n');
+            }
+
+            return sb.ToString();
+        }
+
+        private static CallbackRoute? RouteTo(IReadOnlyList<SiteHistoryEntry> known, EntityId eventId)
+        {
+            for (int i = 0; i < known.Count; i++)
+            {
+                if (known[i].EventId == eventId)
+                {
+                    return known[i].KnownVia;
+                }
+            }
+
+            return null;
         }
 
         private static bool Contains(IReadOnlyList<EntityId> ids, EntityId id)

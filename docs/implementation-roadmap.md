@@ -1870,6 +1870,45 @@ or mutate places physically.
 - **Depends** BQ-034, BQ-087.
 - **Done when** a site the player cleared a year earlier is described by its history when reused.
 - **Sources** PM §40, §41; LW §7.7; PP §6.
+- **Current implementation** `Continuity.LocationHistory`, the third derivation over the ledger
+  after `CallbackHooks` and `ItemProvenance` and built on exactly their terms (`D039`, `D057`,
+  and now `D059`): a place has no history store, no index and no save entry, so its past survives a
+  reload because the events do and a corrected event corrects every reading of them. Genesis still
+  appends nothing, so a return visit is still a read.
+  `PM §40`'s "track only notable events" needed a rule rather than a flag, because every event
+  records a zone and a place's history would otherwise be its traffic. The rule is that the event
+  either *names* the place - `SiteDiscovered`, `SiteCleared`, the only two verbs in the ledger whose
+  subject is somewhere rather than somebody - or left material somebody could bring up afterwards,
+  which is `CallbackHooks.KindsOf` and not a second notability taxonomy. So meeting somebody in a
+  mine, talking there and the thread engine's bookkeeping are not the mine's history, and no
+  per-site budget or pruning pass is needed to keep them out.
+  Belonging is read off two recorded fields, because the ledger writes the two shapes differently:
+  most events say which zone they happened in, keyed on `SiteGenesis.ZoneOf` like every other read
+  of a place, while a place-naming event carries the site as its *target* and records whatever zone
+  surrounds it - so clearing a cache under a boathouse is the cache's history even though the zone
+  on the event is the town's. Nothing is matched on name, type or proximity in time.
+  `PM §41`'s legends are that same derivation compressed, and their subject is a `CallbackKind`
+  rather than a new motif vocabulary: that enum already says what sort of story an event leaves and
+  already groups what a legend has to group, so three separate maulings in one place are one thing
+  the place is known for instead of three. A legend needs repetition (twice, the smallest number
+  that is a pattern) or one event heavy enough on its own, and it holds the entries it compresses
+  rather than a sentence about them. `Legends` takes entries rather than a world, the way
+  `ItemProvenance.OpenMatters` does, so "what the place is" and "what this person could tell you
+  the place is" are one implementation: hand it `KnownTo` and the legend is what that witness can
+  actually tell.
+  Knowing what happened somewhere is gated on `CallbackHooks.TryRoute` rather than on a rule of its
+  own, so standing in a place teaches nobody its past and an unnoticed act stays history the world
+  has and the victim does not.
+- **Deferred, and not claimed** the state ladder in `LW §7.7` - occupied, ruined, repurposed,
+  forgotten, rediscovered - is absent, because nothing in the simulation records an occupancy
+  change and deriving one from who is standing there would invent the history it then reported; the
+  vocabulary grows when a recorder exists. `PM §41`'s legends on NPCs, groups and objects are not
+  here either: this step's done-when is a place. Nothing consumes a legend yet - influencing
+  rumour, fear, demand and generation weights belongs to the systems that own those, and reuse
+  before generation is BQ-088's decision with BQ-088's reasons. Presentation stops at
+  `NarrativeInspector.DescribeSite`/`DescribeSiteHistory`: the trace names the roles, ages and
+  legends, and the wording a player reads is the content pipeline's. Everything here is proven
+  headlessly in `LocationHistoryTests`; none of it has been run in a live Elin session.
 
 > **Checkpoint S7.** `CD §39`'s canonical test: generate the same objective theft one hundred times
 > with varied actors, personalities, relationships, knowledge and settings. The results must include
