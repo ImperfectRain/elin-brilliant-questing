@@ -1202,4 +1202,50 @@ Reason: a demonstration that could author its own answers would prove nothing, a
 filled a gap with a mock would prove something false. Making state the only input and labelling
 every choice the simulation does not yet make keeps the playground evidence rather than decoration.
 
+## D050 — A sweep moves one input and reports four differences; an invariant it breaks fails the run
+
+`tools/BrilliantQuesting.Lab/Playground/Sweep` turns the conversation playground from a set of
+hand-picked examples into a diagnostic instrument. A family holds a state still, moves one named
+piece of it, and prints four differences for every row: which authoritative or actor-local state
+changed, what the semantic layers decided, what constrained and produced the wording, and what the
+exchange left behind. The question it answers that a single run cannot is which input state a
+conversation is actually a function of.
+
+**A sweep manipulates input only, structurally.** A row is a preset plus a list of
+`PlaygroundInput`s, and an input is handed the `PlaygroundStage` - which exposes stores and not
+decisions - so it can reach a tie, a belief, a route, a confidence, a claim's truth or secrecy, a
+personality weight, an emotion, a personal line, an obligation, an identity facet, history in the
+ledger, the number of exchanges and the seed, and cannot reach a strategy, a depth, a tactic, a
+speech act, a permit, a fragment or a line. `--axis` is the only thing that selects anything, and
+tests assert both that no option names a derived outcome and that no input any shipped family
+declares does either.
+
+**Three answers, not two.** "Changed the outcome" and "changed nothing" are not exhaustive: an input
+that moved the weighing without carrying the answer anywhere is a pressure the model reads and this
+situation was not close enough to be turned by, and it is reported separately from an input nothing
+reads at all. A summary that collapsed the two would hide the more interesting one - and a row that
+observably changes nothing is a finding, not a failure.
+
+**An axis point current state cannot express is reported as unsupported.** Three exist today: a
+distorted rival claim needs a second `Fact` and minting one is a write no input makes; the `Heard`
+callback route reads `WorldEvent.Related` and no history this stage can produce puts a claim there;
+and a self-contradiction inside one conversation needs two assertions with opposite stances, which
+no state the playground can write reaches. Naming them costs nothing and approximating them would
+put a false row in a table people read to find gaps.
+
+**Invariants fail the process.** Meaning never moves with wording; depth never exceeds what is
+known; a speaker holding no belief composes no act; a withheld memory never reaches the realizer; a
+required core always finds words. Each family adds its own. A violation is printed with the row that
+broke it and exits with the laboratory's existing scenario-failure code, because a table nobody
+checks stops being read. Where a counter-example is constructible from real runs the check is
+mutation-tested against one; where it is not - `RealizedLine.Meaning` is defined as the act's own
+signature - the test asserts the check was not vacuous instead of doctoring a reading nobody could
+produce.
+
+Reason: proving each system in isolation and once in composition leaves the interesting questions
+unanswered - where two systems collapse to the same behaviour, where one has no observable effect,
+where the shipped content cannot say what the simulation can mean. Those are answerable only by
+moving state systematically, and only worth answering if the instrument cannot author the answers it
+is measuring.
+
 Add a new entry only when the decision is both load-bearing and durable.

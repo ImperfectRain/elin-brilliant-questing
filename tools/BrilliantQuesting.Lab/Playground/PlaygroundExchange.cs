@@ -59,6 +59,18 @@ namespace BrilliantQuesting.Lab.Playground
         /// <summary>The wording request, exactly as handed to the realizer.</summary>
         public RealizationRequest Request { get; internal set; }
 
+        /// <summary>
+        /// How many fragments each slot had to choose from, counted from the realizer's own
+        /// <see cref="DialogueRealizer.Candidates"/> at the moment the request was made.
+        ///
+        /// Taken before realization rather than after, because the scene's weirdness allowance is
+        /// spent during it: a count read afterwards would be the pool a second line would have had.
+        /// Null for an exchange that worded nothing. It is the eligible pool and not the chosen
+        /// one - repetition narrows this further, and what that narrowing did is read off
+        /// <see cref="PlaygroundExchange.History"/>.
+        /// </summary>
+        public PlaygroundEligibility Eligible { get; internal set; }
+
         public RealizedLine Line { get; internal set; }
 
         /// <summary>A self-contradiction this exchange produced, as conversation state caught it.</summary>
@@ -120,6 +132,9 @@ namespace BrilliantQuesting.Lab.Playground
         /// </summary>
         public const WeirdnessLevel Ceiling = WeirdnessLevel.DistinctlyElin;
 
+        /// <summary>Which exchange is the request and the promise, when the run has one at all.</summary>
+        public const int UndertakingTurn = 3;
+
         private readonly PlaygroundStage _stage;
         private readonly PlaygroundRun _run;
         private readonly ConversationState _conversation = new ConversationState();
@@ -135,26 +150,50 @@ namespace BrilliantQuesting.Lab.Playground
 
         public IReadOnlyList<PlaygroundTurn> Turns => _turns;
 
+        /// <summary>What the world held before anybody was asked anything. Zeroed until <see cref="Play"/>.</summary>
+        public PlaygroundWorldCounts Before { get; private set; }
+
+        /// <summary>What the world held once everything had been said.</summary>
+        public PlaygroundWorldCounts After { get; private set; }
+
         public ConversationState Conversation => _conversation;
 
         public DialogueExpressionHistory History => _history;
 
         public WeirdnessBudget Budget => _budget;
 
-        /// <summary>Plays the run's turns in order. Turn three only exists when the run asked for it.</summary>
+        /// <summary>
+        /// Plays the run's turns in order: the question, the question again, and - when the run
+        /// asked for one - the undertaking in third place. Every further exchange is the question
+        /// again, which is what a repetition sweep needs and what nothing else asks for.
+        ///
+        /// Days pass between exchanges only when the run said they should. A conversation is
+        /// normally one occasion, and the option exists so that a second answer can be taken from
+        /// state the first one was not taken from - affect decays, threads advance - rather than
+        /// from the conversation having somehow changed its own mind.
+        /// </summary>
         public void Play()
         {
+            Before = PlaygroundWorldCounts.Of(_stage, _run.Speaker);
+
             for (int turn = 1; turn <= _run.Turns; turn++)
             {
-                if (turn < 3)
+                if (turn > 1 && _run.DaysBetweenTurns > 0)
                 {
-                    Ask(turn);
+                    PlaygroundState.Wait(_stage, _run.DaysBetweenTurns);
                 }
-                else
+
+                if (turn == UndertakingTurn && _run.Undertaking)
                 {
                     Undertake(turn);
                 }
+                else
+                {
+                    Ask(turn);
+                }
             }
+
+            After = PlaygroundWorldCounts.Of(_stage, _run.Speaker);
         }
 
         /// <summary>
@@ -369,6 +408,7 @@ namespace BrilliantQuesting.Lab.Playground
             }
 
             turn.Request = request;
+            turn.Eligible = PlaygroundEligibility.Of(_stage.Realizer, request);
             turn.Line = _stage.Realizer.Realize(request);
         }
 

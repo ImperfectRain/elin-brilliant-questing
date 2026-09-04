@@ -44,7 +44,7 @@ namespace BrilliantQuesting.Lab.Cli.Scenarios
             new LabOption("right", "preset", "the state in the right column", DefaultRight),
             new LabOption("speaker", "role", "who answers, in both columns", "the preset's own"),
             new LabOption("listener", "role", "who asks, in both columns", "the preset's own"),
-            new LabOption("turns", "1-3", "how many exchanges to play", "the preset's own")
+            new LabOption("turns", "1-12", "how many exchanges to play", "the preset's own")
         };
 
         public override int Run(LabRunContext context)

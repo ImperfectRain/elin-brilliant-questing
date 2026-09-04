@@ -52,7 +52,7 @@ namespace BrilliantQuesting.Lab.Cli.Scenarios
             new LabOption("sentiment", "n", "how that tie is felt, -100 to 100", "the preset's own"),
             new LabOption("knowledge", "route", "how the speaker came by the claim", "the preset's own"),
             new LabOption("confidence", "0..1", "how firmly they hold it", "the preset's own"),
-            new LabOption("turns", "1-3", "how many exchanges to play", "the preset's own"),
+            new LabOption("turns", "1-12", "how many exchanges to play", "the preset's own"),
             new LabOption("no-commit", null, "leave a promise transient instead of promoting it")
         };
 

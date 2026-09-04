@@ -49,6 +49,35 @@ namespace BrilliantQuesting.Lab.Playground
 
         /// <summary>Whether a promise made in the third exchange is promoted into the ledger.</summary>
         public bool Commit { get; set; } = true;
+
+        /// <summary>
+        /// Whether the third exchange is the request-and-promise one. True is the historic rule and
+        /// the only thing a command line has ever asked for; the sweep turns it off so a repetition
+        /// family can put the same question enough times to exhaust a pool.
+        ///
+        /// An input rather than an outcome: it says whether the listener asks for a favour at all,
+        /// and settles nothing about what the speaker does with the request.
+        /// </summary>
+        public bool Undertaking { get; set; } = true;
+
+        /// <summary>
+        /// Days that pass between one exchange and the next. Zero is the historic rule, and the
+        /// only thing a single conversation should normally do.
+        ///
+        /// Above zero the world runs between the turns - affect decays, threads advance - which is
+        /// the only way a second answer can be taken from state the first one was not taken from.
+        /// Nothing about the conversation is what changes; the world is.
+        /// </summary>
+        public long DaysBetweenTurns { get; set; }
+
+        /// <summary>
+        /// Further authoritative writes, applied in order after the preset and the overrides above.
+        ///
+        /// The seam the sweep is built on. Each one names the state it changed and can reach no
+        /// outcome, for the same structural reason a preset cannot: what it is handed is the stage,
+        /// and the stage exposes stores rather than decisions.
+        /// </summary>
+        public IReadOnlyList<PlaygroundInput> Inputs { get; set; }
     }
 
     /// <summary>
@@ -63,6 +92,16 @@ namespace BrilliantQuesting.Lab.Playground
     /// </summary>
     public sealed class PlaygroundRun
     {
+        /// <summary>
+        /// The most exchanges one run will play.
+        ///
+        /// Three was the whole of what the playground needed - a question, the same question again,
+        /// and the undertaking - and the ceiling is higher only so a repetition family can ask often
+        /// enough to exhaust a fragment pool and watch the degrade. It is not an invitation to stage
+        /// a scene: every exchange past the first is still the same question about the same claim.
+        /// </summary>
+        public const int MaxTurns = 12;
+
         private readonly List<string> _overrides = new List<string>();
 
         private PlaygroundRun(PlaygroundStage stage, PlaygroundPreset preset)
@@ -86,6 +125,12 @@ namespace BrilliantQuesting.Lab.Playground
         public int Turns { get; private set; }
 
         public bool Commit { get; private set; }
+
+        /// <summary>Whether the third exchange is the request-and-promise one.</summary>
+        public bool Undertaking { get; private set; }
+
+        /// <summary>Days the world runs between one exchange and the next. Usually none.</summary>
+        public long DaysBetweenTurns { get; private set; }
 
         /// <summary>Every override that actually changed something, in the order it was applied.</summary>
         public IReadOnlyList<string> Overrides => _overrides;
@@ -122,6 +167,7 @@ namespace BrilliantQuesting.Lab.Playground
             PlaygroundRun run = new PlaygroundRun(stage, preset);
             run.Resolve(options);
             run.ApplyOverrides(options);
+            run.ApplyInputs(options);
 
             run.Exchange = new PlaygroundExchange(stage, run);
             run.Exchange.Play();
@@ -158,12 +204,14 @@ namespace BrilliantQuesting.Lab.Playground
                     "Unknown voice '" + VoiceName + "'. The laboratory ships: " + string.Join(", ", PlaygroundVoices.All) + ".");
 
             Turns = options.Turns ?? Preset.Turns;
-            if (Turns < 1 || Turns > 3)
+            if (Turns < 1 || Turns > MaxTurns)
             {
-                throw new LabArgumentException("--turns takes 1, 2 or 3.");
+                throw new LabArgumentException("--turns takes a whole number from 1 to " + MaxTurns + ".");
             }
 
             Commit = options.Commit;
+            Undertaking = options.Undertaking;
+            DaysBetweenTurns = options.DaysBetweenTurns;
 
             if (options.Speaker != null)
             {
@@ -220,6 +268,25 @@ namespace BrilliantQuesting.Lab.Playground
                   + ", and the speaker already believed it - the graph strengthens rather than re-sources, so it stands as "
                   + record.Source + " at " + record.Confidence.ToString("0.00")
                 : "knowledge: " + record.Source + " at " + record.Confidence.ToString("0.00"));
+        }
+
+        /// <summary>
+        /// The sweep's own writes, in the order it listed them, after everything a command line can
+        /// set. Each reports itself, so an input the world declined still reads as attempted.
+        /// </summary>
+        private void ApplyInputs(PlaygroundOptions options)
+        {
+            IReadOnlyList<PlaygroundInput> inputs = options.Inputs;
+            if (inputs == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < inputs.Count; i++)
+            {
+                inputs[i].Apply(Stage, Speaker, Listener);
+                _overrides.Add(inputs[i].Because);
+            }
         }
     }
 }

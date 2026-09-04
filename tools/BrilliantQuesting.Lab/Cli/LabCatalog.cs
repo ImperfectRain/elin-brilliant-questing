@@ -44,6 +44,7 @@ namespace BrilliantQuesting.Lab.Cli
                 new AuthorityScenario(),
                 new PlaygroundScenario(),
                 new PlaygroundContrastScenario(),
+                new PlaygroundSweepScenario(),
                 new PlaygroundSystemsScenario(),
                 new IntegrationScenario(),
                 new SeedProbeScenario()
