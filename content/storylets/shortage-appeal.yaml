@@ -35,7 +35,6 @@ payload:
       intentions:
         - act: request
         - act: inform
-        - act: refuse
       playerIntersections:
         - provide_supplies
         - question
@@ -43,9 +42,13 @@ payload:
       consequences:
         - hook: need_put_to_somebody
           act: request
+      check:
+        profile: proc_nerve
+        actor: short
+        target: neighbour
+        question: can_they_bring_themselves_to_ask
       routes:
-        - when: always
-          act: refuse
+        - when: check_fail
           ends: need_left_standing
         - when: spoke
           to: need_answered

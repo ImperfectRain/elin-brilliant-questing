@@ -38,8 +38,6 @@ payload:
       intentions:
         - act: gossip
           referent: subject
-        - act: evade
-        - act: refuse
       playerIntersections:
         - eavesdrop
         - question
@@ -114,7 +112,6 @@ payload:
       intentions:
         - act: promise
         - act: request
-        - act: refuse
       playerIntersections:
         - question
         - report
@@ -126,9 +123,6 @@ payload:
           magnitude: 0.2
           act: promise
       routes:
-        - when: always
-          act: refuse
-          ends: kept_quiet
         - when: always
           ends: passed_on
   consequenceHooks:

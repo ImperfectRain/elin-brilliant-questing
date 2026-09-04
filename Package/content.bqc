@@ -6322,9 +6322,6 @@
               },
               {
                 "act": "ask"
-              },
-              {
-                "act": "refuse"
               }
             ],
             "playerIntersections": [
@@ -6338,10 +6335,15 @@
                 "act": "inform"
               }
             ],
+            "check": {
+              "profile": "proc_nerve",
+              "actor": "claimant",
+              "target": "skeptic",
+              "question": "will_they_raise_something_nobody_will_credit"
+            },
             "routes": [
               {
-                "when": "always",
-                "act": "refuse",
+                "when": "check_fail",
                 "ends": "lead_kept_at_home"
               },
               {
@@ -6861,9 +6863,6 @@
                 "act": "admit"
               },
               {
-                "act": "evade"
-              },
-              {
                 "act": "deny"
               }
             ],
@@ -6904,9 +6903,6 @@
               },
               {
                 "act": "apologize"
-              },
-              {
-                "act": "refuse"
               }
             ],
             "playerIntersections": [
@@ -7521,9 +7517,6 @@
               },
               {
                 "act": "inform"
-              },
-              {
-                "act": "evade"
               }
             ],
             "playerIntersections": [
@@ -7538,11 +7531,6 @@
               }
             ],
             "routes": [
-              {
-                "when": "always",
-                "act": "evade",
-                "ends": "debt_deferred"
-              },
               {
                 "when": "spoke",
                 "to": "account_answered"
@@ -7985,12 +7973,6 @@
               },
               {
                 "act": "request"
-              },
-              {
-                "act": "evade"
-              },
-              {
-                "act": "refuse"
               }
             ],
             "playerIntersections": [
@@ -8008,15 +7990,15 @@
                 "act": "request"
               }
             ],
+            "check": {
+              "profile": "proc_nerve",
+              "actor": "squeezed",
+              "target": "confidant",
+              "question": "can_they_say_it_out_loud"
+            },
             "routes": [
               {
-                "when": "always",
-                "act": "evade",
-                "ends": "endured_alone"
-              },
-              {
-                "when": "always",
-                "act": "refuse",
+                "when": "check_fail",
                 "ends": "endured_alone"
               },
               {
@@ -8556,12 +8538,6 @@
               {
                 "act": "gossip",
                 "referent": "subject"
-              },
-              {
-                "act": "evade"
-              },
-              {
-                "act": "refuse"
               }
             ],
             "playerIntersections": [
@@ -8686,9 +8662,6 @@
               },
               {
                 "act": "request"
-              },
-              {
-                "act": "refuse"
               }
             ],
             "playerIntersections": [
@@ -8706,11 +8679,6 @@
               }
             ],
             "routes": [
-              {
-                "when": "always",
-                "act": "refuse",
-                "ends": "kept_quiet"
-              },
               {
                 "when": "always",
                 "ends": "passed_on"
@@ -9228,9 +9196,6 @@
               },
               {
                 "act": "ask"
-              },
-              {
-                "act": "refuse"
               }
             ],
             "playerIntersections": [
@@ -9245,11 +9210,6 @@
               }
             ],
             "routes": [
-              {
-                "when": "always",
-                "act": "refuse",
-                "ends": "evidence_kept"
-              },
               {
                 "when": "spoke",
                 "to": "evidence_weighed"
@@ -9655,6 +9615,345 @@
       }
     },
     {
+      "id": "storylet.reluctant_suspicion",
+      "kind": "storylet",
+      "payload": {
+        "situationTags": [
+          "theft",
+          "suspicion"
+        ],
+        "toneTags": [
+          "private",
+          "reluctant"
+        ],
+        "requiredRoles": [
+          {
+            "id": "suspicious",
+            "source": "AnyoneWhoKnowsFocus"
+          },
+          {
+            "id": "suspected",
+            "source": "FactSubject"
+          }
+        ],
+        "optionalRoles": [
+          {
+            "id": "confidant",
+            "source": "AnyoneWhoKnowsFocus"
+          }
+        ],
+        "preconditions": [
+          {
+            "kind": "FactBelongsToThread"
+          },
+          {
+            "kind": "FocusPredicate",
+            "value": "stole"
+          },
+          {
+            "kind": "FocusTruth",
+            "value": "True"
+          },
+          {
+            "kind": "RoleKnowsFocus",
+            "role": "suspicious"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "suspicious"
+          },
+          {
+            "kind": "RoleAlive",
+            "role": "suspected"
+          }
+        ],
+        "resolutions": [
+          "said_to_their_face",
+          "taken_to_somebody_else",
+          "swallowed",
+          "settled_between_them"
+        ],
+        "beats": [
+          {
+            "id": "circles_the_subject",
+            "speaker": "suspicious",
+            "listener": "suspected",
+            "intentions": [
+              {
+                "act": "ask"
+              },
+              {
+                "act": "inform"
+              },
+              {
+                "act": "warn"
+              }
+            ],
+            "playerIntersections": [
+              "question",
+              "rapport",
+              "inspect"
+            ],
+            "check": {
+              "profile": "proc_nerve",
+              "actor": "suspicious",
+              "target": "suspected",
+              "question": "can_they_bring_themselves_to_raise_it"
+            },
+            "routes": [
+              {
+                "when": "check_fail",
+                "ends": "swallowed"
+              },
+              {
+                "when": "spoke",
+                "to": "weighs_saying_it"
+              },
+              {
+                "when": "always",
+                "ends": "swallowed"
+              }
+            ]
+          },
+          {
+            "id": "weighs_saying_it",
+            "speaker": "suspicious",
+            "listener": "suspected",
+            "intentions": [
+              {
+                "act": "accuse",
+                "referent": "suspected"
+              },
+              {
+                "act": "ask"
+              },
+              {
+                "act": "request"
+              }
+            ],
+            "check": {
+              "profile": "proc_persuasion",
+              "actor": "suspicious",
+              "target": "suspected",
+              "question": "can_this_be_said_without_breaking_it"
+            },
+            "playerIntersections": [
+              "persuade",
+              "compare_testimony",
+              "question",
+              "search"
+            ],
+            "consequences": [
+              {
+                "hook": "suspicion_said_to_their_face",
+                "event": "AccusationMade",
+                "actor": "suspicious",
+                "target": "suspected",
+                "magnitude": 0.4,
+                "act": "accuse"
+              },
+              {
+                "hook": "asked_instead_of_accused",
+                "act": "ask"
+              }
+            ],
+            "routes": [
+              {
+                "when": "check_fail",
+                "act": "accuse",
+                "to": "takes_it_elsewhere"
+              },
+              {
+                "when": "always",
+                "act": "accuse",
+                "to": "hears_the_answer"
+              },
+              {
+                "when": "spoke",
+                "to": "hears_the_answer"
+              },
+              {
+                "when": "always",
+                "ends": "swallowed"
+              }
+            ]
+          },
+          {
+            "id": "hears_the_answer",
+            "speaker": "suspected",
+            "listener": "suspicious",
+            "intentions": [
+              {
+                "act": "deny"
+              },
+              {
+                "act": "admit"
+              },
+              {
+                "act": "offer"
+              },
+              {
+                "act": "evade"
+              },
+              {
+                "act": "apologize"
+              }
+            ],
+            "playerIntersections": [
+              "lie",
+              "persuade",
+              "return_item",
+              "pay_debt"
+            ],
+            "consequences": [
+              {
+                "hook": "suspicion_owned_privately",
+                "event": "SecretRevealed",
+                "actor": "suspected",
+                "target": "suspicious",
+                "magnitude": 0.4,
+                "act": "admit"
+              },
+              {
+                "hook": "suspicion_denied_privately",
+                "act": "deny"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "admit",
+                "to": "decides_what_it_costs"
+              },
+              {
+                "when": "always",
+                "act": "apologize",
+                "to": "decides_what_it_costs"
+              },
+              {
+                "when": "always",
+                "act": "offer",
+                "to": "decides_what_it_costs"
+              },
+              {
+                "when": "always",
+                "ends": "said_to_their_face"
+              }
+            ]
+          },
+          {
+            "id": "decides_what_it_costs",
+            "speaker": "suspicious",
+            "listener": "suspected",
+            "intentions": [
+              {
+                "act": "forgive",
+                "referent": "suspected",
+                "content": "none"
+              },
+              {
+                "act": "request"
+              },
+              {
+                "act": "threaten"
+              },
+              {
+                "act": "promise"
+              }
+            ],
+            "playerIntersections": [
+              "persuade",
+              "report",
+              "return_item",
+              "pay_debt"
+            ],
+            "consequences": [
+              {
+                "hook": "kept_between_them",
+                "event": "DebtPaid",
+                "actor": "suspected",
+                "target": "suspicious",
+                "magnitude": 0.3,
+                "act": "forgive"
+              },
+              {
+                "hook": "terms_between_them",
+                "act": "request"
+              },
+              {
+                "hook": "it_went_hard",
+                "event": "Threatened",
+                "actor": "suspicious",
+                "target": "suspected",
+                "magnitude": 0.4,
+                "act": "threaten"
+              }
+            ],
+            "routes": [
+              {
+                "when": "always",
+                "act": "threaten",
+                "ends": "said_to_their_face"
+              },
+              {
+                "when": "spoke",
+                "ends": "settled_between_them"
+              },
+              {
+                "when": "always",
+                "ends": "said_to_their_face"
+              }
+            ]
+          },
+          {
+            "id": "takes_it_elsewhere",
+            "speaker": "suspicious",
+            "listener": "confidant",
+            "intentions": [
+              {
+                "act": "inform"
+              },
+              {
+                "act": "ask"
+              },
+              {
+                "act": "request"
+              }
+            ],
+            "playerIntersections": [
+              "question",
+              "report",
+              "invoke_authority",
+              "rapport"
+            ],
+            "consequences": [
+              {
+                "hook": "suspicion_taken_to_a_third_party",
+                "event": "RumorSpread",
+                "actor": "suspicious",
+                "target": "confidant",
+                "magnitude": 0.2,
+                "act": "inform"
+              }
+            ],
+            "routes": [
+              {
+                "when": "spoke",
+                "ends": "taken_to_somebody_else"
+              },
+              {
+                "when": "always",
+                "ends": "swallowed"
+              }
+            ]
+          }
+        ],
+        "consequenceHooks": [
+          "record_private_suspicion"
+        ]
+      }
+    },
+    {
       "id": "storylet.request_for_help",
       "kind": "storylet",
       "payload": {
@@ -9749,9 +10048,6 @@
               },
               {
                 "act": "offer"
-              },
-              {
-                "act": "evade"
               }
             ],
             "playerIntersections": [
@@ -9769,10 +10065,15 @@
                 "act": "offer"
               }
             ],
+            "check": {
+              "profile": "proc_nerve",
+              "actor": "victim",
+              "target": "requester",
+              "question": "can_they_bring_themselves_to_ask"
+            },
             "routes": [
               {
-                "when": "always",
-                "act": "evade",
+                "when": "check_fail",
                 "ends": "loss_named_only"
               },
               {
@@ -9795,9 +10096,6 @@
               },
               {
                 "act": "inform"
-              },
-              {
-                "act": "refuse"
               },
               {
                 "act": "evade"
@@ -9828,11 +10126,6 @@
             "routes": [
               {
                 "when": "always",
-                "act": "refuse",
-                "ends": "help_refused"
-              },
-              {
-                "when": "always",
                 "act": "evade",
                 "ends": "help_refused"
               },
@@ -9852,9 +10145,6 @@
               },
               {
                 "act": "warn"
-              },
-              {
-                "act": "refuse"
               },
               {
                 "act": "request"
@@ -9878,14 +10168,6 @@
               {
                 "hook": "turned_the_matter_over",
                 "act": "request"
-              },
-              {
-                "hook": "help_declined",
-                "event": "RequestDeclined",
-                "actor": "requester",
-                "target": "victim",
-                "magnitude": 0.3,
-                "act": "refuse"
               }
             ],
             "routes": [
@@ -9898,11 +10180,6 @@
                 "when": "always",
                 "act": "request",
                 "ends": "handed_to_authority"
-              },
-              {
-                "when": "always",
-                "act": "refuse",
-                "ends": "help_refused"
               },
               {
                 "when": "always",
@@ -9985,9 +10262,6 @@
               },
               {
                 "act": "admit"
-              },
-              {
-                "act": "evade"
               }
             ],
             "playerIntersections": [
@@ -10007,11 +10281,6 @@
               }
             ],
             "routes": [
-              {
-                "when": "always",
-                "act": "evade",
-                "ends": "nothing_offered"
-              },
               {
                 "when": "spoke",
                 "to": "restitution_weighed"
@@ -10387,9 +10656,6 @@
               },
               {
                 "act": "inform"
-              },
-              {
-                "act": "refuse"
               }
             ],
             "playerIntersections": [
@@ -10403,10 +10669,15 @@
                 "act": "request"
               }
             ],
+            "check": {
+              "profile": "proc_nerve",
+              "actor": "short",
+              "target": "neighbour",
+              "question": "can_they_bring_themselves_to_ask"
+            },
             "routes": [
               {
-                "when": "always",
-                "act": "refuse",
+                "when": "check_fail",
                 "ends": "need_left_standing"
               },
               {
@@ -10574,9 +10845,6 @@
               },
               {
                 "act": "ask"
-              },
-              {
-                "act": "refuse"
               }
             ],
             "playerIntersections": [
@@ -10591,11 +10859,6 @@
               }
             ],
             "routes": [
-              {
-                "when": "always",
-                "act": "refuse",
-                "ends": "suspicion_left_open"
-              },
               {
                 "when": "spoke",
                 "to": "suspicion_tested"

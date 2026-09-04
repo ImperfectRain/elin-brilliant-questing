@@ -36,7 +36,6 @@ payload:
       intentions:
         - act: inform
         - act: ask
-        - act: refuse
       playerIntersections:
         - inspect
         - question
@@ -45,9 +44,6 @@ payload:
         - hook: suspicion_put_to_somebody
           act: inform
       routes:
-        - when: always
-          act: refuse
-          ends: suspicion_left_open
         - when: spoke
           to: suspicion_tested
         - when: always

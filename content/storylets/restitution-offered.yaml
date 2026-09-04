@@ -38,7 +38,6 @@ payload:
         - act: offer
         - act: apologize
         - act: admit
-        - act: evade
       playerIntersections:
         - return_item
         - pay_debt
@@ -50,9 +49,6 @@ payload:
         - hook: restitution_preceded_by_apology
           act: apologize
       routes:
-        - when: always
-          act: evade
-          ends: nothing_offered
         - when: spoke
           to: restitution_weighed
         - when: always

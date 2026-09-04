@@ -40,7 +40,6 @@ payload:
       intentions:
         - act: inform
         - act: ask
-        - act: refuse
       playerIntersections:
         - inspect
         - question
@@ -48,9 +47,13 @@ payload:
       consequences:
         - hook: household_observation_raised
           act: inform
+      check:
+        profile: proc_nerve
+        actor: claimant
+        target: skeptic
+        question: will_they_raise_something_nobody_will_credit
       routes:
-        - when: always
-          act: refuse
+        - when: check_fail
           ends: lead_kept_at_home
         - when: spoke
           to: creature_doubted

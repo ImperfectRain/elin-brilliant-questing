@@ -1026,6 +1026,7 @@ namespace BrilliantQuesting.Storylets
 
             HashSet<string> reachable = new HashSet<string>(StringComparer.Ordinal);
             HashSet<string> terminating = new HashSet<string>(StringComparer.Ordinal);
+            HashSet<string> reached = new HashSet<string>(StringComparer.Ordinal);
 
             for (int i = 0; i < definition.Beats.Count; i++)
             {
@@ -1043,6 +1044,7 @@ namespace BrilliantQuesting.Storylets
                         }
 
                         terminating.Add(beat.Id);
+                        reached.Add(route.Ends);
                         continue;
                     }
 
@@ -1104,6 +1106,77 @@ namespace BrilliantQuesting.Storylets
                 {
                     diagnostic = Invalid(record, "beats." + definition.Beats[i].Id,
                         "No path from this beat ever ends the scene.");
+                    return false;
+                }
+            }
+
+            // A resolution nothing routes to is a promise the storylet does not keep: it reads on the
+            // page as an outcome the scene supports, and no play can ever reach it.
+            for (int i = 0; i < definition.Resolutions.Count; i++)
+            {
+                if (!reached.Contains(definition.Resolutions[i].Id))
+                {
+                    diagnostic = Invalid(record, "resolutions",
+                        "No route ends in this state: " + definition.Resolutions[i].Id + ".");
+                    return false;
+                }
+            }
+
+            return AntecedentsAreReachable(record, definition, out diagnostic);
+        }
+
+        /// <summary>
+        /// Several acts are unintelligible without something to respond to - an evasion of nothing
+        /// is just talk, and a refusal of nothing is not a refusal. A beat that offers one must be
+        /// reachable from a beat whose speaker was addressing *this* beat's speaker, or the
+        /// intention can never be composed and the author has written a move nobody can make.
+        ///
+        /// Statically detectable, and worth detecting: the failure is silent at run time. The
+        /// intention is simply dropped, the beat falls back on whatever else it offered, and the
+        /// scene looks like it is working.
+        /// </summary>
+        private static bool AntecedentsAreReachable(ContentRecord record, StoryletDefinition definition, out ContentDiagnostic diagnostic)
+        {
+            diagnostic = null;
+            for (int i = 0; i < definition.Beats.Count; i++)
+            {
+                StoryletBeat beat = definition.Beats[i];
+                SpeechActType needs = default(SpeechActType);
+                bool needsAntecedent = false;
+                for (int j = 0; j < beat.Intentions.Count && !needsAntecedent; j++)
+                {
+                    SpeechActProfile profile = SpeechActProfile.Of(beat.Intentions[j].Act);
+                    needsAntecedent = profile != null && profile.AntecedentRequired;
+                    needs = beat.Intentions[j].Act;
+                }
+
+                if (!needsAntecedent || beat.SpeakerRole.Length == 0)
+                {
+                    continue;
+                }
+
+                bool answerable = false;
+                for (int j = 0; j < definition.Beats.Count && !answerable; j++)
+                {
+                    StoryletBeat earlier = definition.Beats[j];
+                    if (earlier == beat
+                        || !string.Equals(earlier.SpeakerRole, beat.ListenerRole, StringComparison.Ordinal)
+                        || !string.Equals(earlier.ListenerRole, beat.SpeakerRole, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    for (int k = 0; k < earlier.Routes.Count && !answerable; k++)
+                    {
+                        answerable = string.Equals(earlier.Routes[k].To, beat.Id, StringComparison.Ordinal);
+                    }
+                }
+
+                if (!answerable)
+                {
+                    diagnostic = Invalid(record, "beats." + beat.Id + ".intentions",
+                        needs + " responds to something, and no beat that routes here has anybody speaking to "
+                        + beat.SpeakerRole + ".");
                     return false;
                 }
             }

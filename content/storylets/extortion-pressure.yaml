@@ -38,8 +38,6 @@ payload:
       intentions:
         - act: inform
         - act: request
-        - act: evade
-        - act: refuse
       playerIntersections:
         - question
         - rapport
@@ -49,12 +47,13 @@ payload:
           act: inform
         - hook: help_sought_against_the_squeeze
           act: request
+      check:
+        profile: proc_nerve
+        actor: squeezed
+        target: confidant
+        question: can_they_say_it_out_loud
       routes:
-        - when: always
-          act: evade
-          ends: endured_alone
-        - when: always
-          act: refuse
+        - when: check_fail
           ends: endured_alone
         - when: spoke
           to: pressure_weighed

@@ -110,6 +110,23 @@ namespace BrilliantQuesting.Actions.Library
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.2)
             .WithTargetAttribute(VanillaAttribute.Perception, 0.35);
 
+        /// <summary>
+        /// Getting a hard thing out of your mouth at all (BQ-146).
+        ///
+        /// The one profile with nobody on the other side of it, because there is nobody: the
+        /// question is whether the speaker keeps their nerve, and the only opposition is their own.
+        /// It is the honest answer to the routed storylets' most common uncertainty - somebody who
+        /// has decided to raise a matter and may still not manage to - and without it that branch
+        /// would have to be faked with a persuasion roll against a person who has not yet been
+        /// spoken to.
+        ///
+        /// Will carries it, and Charisma helps a little in the way practice does; no skill, because
+        /// there is no skill in Elin for saying a thing you do not want to say.
+        /// </summary>
+        public static readonly CheckProfile Nerve = new CheckProfile("proc_nerve", 11)
+            .WithActorAttribute(VanillaAttribute.Will, 0.4)
+            .WithActorAttribute(VanillaAttribute.Charisma, 0.2);
+
         /// <summary>Holding two accounts side by side until one of them stops fitting.</summary>
         public static readonly CheckProfile Corroboration = new CheckProfile("proc_corroboration", 12)
             .WithActorSkill(VanillaSkill.Literacy, 0.15)

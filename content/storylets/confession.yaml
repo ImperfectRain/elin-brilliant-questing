@@ -35,7 +35,6 @@ payload:
       listener: listener
       intentions:
         - act: admit
-        - act: evade
         - act: deny
       playerIntersections:
         - question
@@ -61,7 +60,6 @@ payload:
       intentions:
         - act: inform
         - act: apologize
-        - act: refuse
       playerIntersections:
         - question
         - rapport

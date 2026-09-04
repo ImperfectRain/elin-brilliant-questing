@@ -36,7 +36,6 @@ payload:
       intentions:
         - act: request
         - act: inform
-        - act: evade
       playerIntersections:
         - question
         - pay_debt
@@ -45,9 +44,6 @@ payload:
         - hook: account_was_raised
           act: request
       routes:
-        - when: always
-          act: evade
-          ends: debt_deferred
         - when: spoke
           to: account_answered
         - when: always

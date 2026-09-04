@@ -53,7 +53,6 @@ payload:
       intentions:
         - act: request
         - act: offer
-        - act: evade
       playerIntersections:
         - rapport
         - persuade
@@ -63,9 +62,13 @@ payload:
           act: request
         - hook: payment_was_offered
           act: offer
+      check:
+        profile: proc_nerve
+        actor: victim
+        target: requester
+        question: can_they_bring_themselves_to_ask
       routes:
-        - when: always
-          act: evade
+        - when: check_fail
           ends: loss_named_only
         - when: spoke
           to: name_lead
@@ -78,7 +81,6 @@ payload:
       intentions:
         - act: answer
         - act: inform
-        - act: refuse
         - act: evade
       check:
         profile: proc_investigation
@@ -97,9 +99,6 @@ payload:
           when: check_fail
       routes:
         - when: always
-          act: refuse
-          ends: help_refused
-        - when: always
           act: evade
           ends: help_refused
         - when: always
@@ -111,7 +110,6 @@ payload:
       intentions:
         - act: promise
         - act: warn
-        - act: refuse
         - act: request
       playerIntersections:
         - report
@@ -127,12 +125,6 @@ payload:
           act: promise
         - hook: turned_the_matter_over
           act: request
-        - hook: help_declined
-          event: RequestDeclined
-          actor: requester
-          target: victim
-          magnitude: 0.3
-          act: refuse
       routes:
         - when: always
           act: promise
@@ -140,9 +132,6 @@ payload:
         - when: always
           act: request
           ends: handed_to_authority
-        - when: always
-          act: refuse
-          ends: help_refused
         - when: always
           ends: loss_named_only
   consequenceHooks:
