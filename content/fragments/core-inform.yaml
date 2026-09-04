@@ -12,7 +12,7 @@ payload:
       repetitionGroup: inform
     - id: core.inform.happened
       position: core
-      text: "Something happened, and you have not heard it yet."
+      text: "Something happened. I am telling you now."
       requires:
         act: inform
       repetitionGroup: inform
@@ -54,7 +54,7 @@ payload:
         subject: other
         act: inform
         claim_predicate: stole
-        commitment: committed
+        claim_source: witnessed
       repetitionGroup: inform.theft
 
     # -- consequence, observed. Nobody invents the event: the act already carries which claim.
@@ -63,19 +63,22 @@ payload:
       text: "People are talking about it."
       requires:
         act: inform
+        claim_source: hearsay
       repetitionGroup: inform.aftermath
     - id: core.inform.travelled
       position: core
       text: "That travelled farther than the person who did it."
       requires:
         act: inform
+        claim_source: hearsay
       repetitionGroup: inform.aftermath
       memorability: signature
     - id: core.inform.still.here
       position: core
-      text: "You left. Your name stayed to finish the conversation."
+      text: "Your name has been finishing conversations without you."
       requires:
         act: inform
+        claim_source: hearsay
         audience: one
       repetitionGroup: inform.aftermath
       memorability: signature
@@ -112,12 +115,14 @@ payload:
       text: "That story is wrong."
       requires:
         act: inform
+        reply: gossip
       repetitionGroup: inform.correction
     - id: core.inform.rumor.better.ending
       position: core
       text: "Somebody added a better ending than the truth had."
       requires:
         act: inform
+        reply: gossip
       repetitionGroup: inform.correction
       memorability: signature
     - id: core.inform.rumor.first.part
@@ -125,6 +130,7 @@ payload:
       text: "The first part is true. The rest grew afterward."
       requires:
         act: inform
+        reply: gossip
       repetitionGroup: inform.correction
       memorability: voiced
     - id: core.inform.rumor.horns
@@ -132,6 +138,7 @@ payload:
       text: "The story has grown horns since I last heard it."
       requires:
         act: inform
+        reply: gossip
       tone:
         - wry
       repetitionGroup: inform.correction
@@ -158,11 +165,15 @@ payload:
       requires:
         act: inform
         emotion: affection
+        relationship:
+          - friend
+          - family
+          - spouse
       repetitionGroup: inform.mood
       memorability: voiced
     - id: core.inform.close.tie.ugly.part
       position: core
-      text: "You already know the ugly part. Here is the rest."
+      text: "I will not soften the ugly part for you. Here it is."
       requires:
         act: inform
         relationship:

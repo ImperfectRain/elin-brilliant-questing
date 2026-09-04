@@ -55,7 +55,7 @@ payload:
       repetitionGroup: callback.reply
     - id: call.reply.inform
       position: callback
-      text: "You came to say that."
+      text: "So that was the news."
       requires:
         reply: inform
       repetitionGroup: callback.reply
@@ -134,6 +134,9 @@ payload:
         callback: injury
         callback_route: involved
         callback_party: listener
+        reply:
+          - ask
+          - request
       repetitionGroup: callback.history
       memorability: signature
     - id: call.history.injury.seen.other
@@ -150,6 +153,7 @@ payload:
       requires:
         callback: injury
         callback_route: involved
+        callback_party: listener
       repetitionGroup: callback.history
       memorability: signature
     - id: call.history.scandal.heard.other
@@ -179,7 +183,7 @@ payload:
       repetitionGroup: callback.history
     - id: call.history.promise.here.because
       position: callback
-      text: "I am here because you promised."
+      text: "I am here about what you promised."
       requires:
         callback: promise
         callback_route: involved
@@ -197,7 +201,7 @@ payload:
       memorability: signature
     - id: call.history.promise.spent.carelessly
       position: callback
-      text: "It was a small promise. Those are the ones people spend carelessly."
+      text: "A promise is a cheap thing to make. People spend them carelessly."
       requires:
         callback: promise
         callback_route: involved
@@ -246,7 +250,7 @@ payload:
       memorability: voiced
     - id: call.history.lost.object.other
       position: callback
-      text: "{recalled} never got theirs back either."
+      text: "{recalled} never got theirs back."
       requires:
         callback: lost_object
         callback_route: witnessed
@@ -255,7 +259,7 @@ payload:
       memorability: signature
     - id: call.history.this.again
       position: callback
-      text: "This again."
+      text: "Old business, then."
       requires:
         callback:
           - injury

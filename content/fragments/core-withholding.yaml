@@ -52,7 +52,7 @@ payload:
       memorability: voiced
     - id: core.refuse.belongs.to.someone
       position: core
-      text: "The rest of the answer belongs to someone who trusted me."
+      text: "The rest of the answer is not mine to spend."
       requires:
         act: refuse
       idiolect:
@@ -116,6 +116,7 @@ payload:
       text: "Ask again and get the same answer louder."
       requires:
         act: refuse
+        reply: ask
       tone:
         - curt
       idiolect:
@@ -127,6 +128,7 @@ payload:
       text: "We are done unless you have learned a new question."
       requires:
         act: refuse
+        reply: ask
       tone:
         - curt
       idiolect:
@@ -140,6 +142,8 @@ payload:
       requires:
         act: refuse
         relationship: none
+      forbids:
+        reply: offer
       idiolect:
         - expansive
         - flowing
@@ -238,7 +242,7 @@ payload:
       repetitionGroup: refuse.mood
     - id: core.refuse.anger.mistaken.patience
       position: core
-      text: "You have mistaken my patience for permission."
+      text: "Do not mistake my patience for permission."
       requires:
         act: refuse
         emotion: anger
@@ -312,7 +316,7 @@ payload:
       memorability: signature
     - id: core.evade.heard.enough
       position: core
-      text: "I heard enough to stop asking."
+      text: "I am not going to ask about that, and neither should you."
       requires:
         act: evade
       repetitionGroup: evade

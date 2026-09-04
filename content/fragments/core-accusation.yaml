@@ -8,6 +8,16 @@ payload:
       text: "{referent} did it."
       requires:
         act: accuse
+        referent: other
+      repetitionGroup: accuse
+    # Naming the accused in the third person needs them to be somebody else, so a charge made to
+    # the accused's face needs its own plainest wording rather than borrowing that one.
+    - id: core.accuse.direct.plain
+      position: core
+      text: "You did it."
+      requires:
+        act: accuse
+        referent: listener
       repetitionGroup: accuse
     - id: core.accuse.direct
       position: core
@@ -23,6 +33,7 @@ payload:
       requires:
         act: accuse
         claim_predicate: stole
+        referent: other
       repetitionGroup: accuse
     - id: core.accuse.ask.where
       position: core
@@ -48,6 +59,7 @@ payload:
       requires:
         act: accuse
         claim_predicate: stole
+        referent: other
         audience: several
       repetitionGroup: accuse
       memorability: voiced
@@ -59,6 +71,7 @@ payload:
       requires:
         act: accuse
         commitment: committed
+        claim_source: witnessed
       repetitionGroup: accuse.standing
     - id: core.accuse.name.beside.claim
       position: core
@@ -80,6 +93,7 @@ payload:
       text: "I think it was {referent}."
       requires:
         act: accuse
+        referent: other
         commitment: hedged
       repetitionGroup: accuse.standing
     - id: core.accuse.not.certain.waited
@@ -97,9 +111,8 @@ payload:
       text: "I can prove it, and it was {referent}."
       requires:
         act: accuse
-        depth:
-          - detail
-          - in_confidence
+        referent: other
+        claim_proof: "yes"
         commitment: committed
       repetitionGroup: accuse.evidence
     - id: core.accuse.not.just.word
@@ -107,9 +120,7 @@ payload:
       text: "There is evidence, not just my word."
       requires:
         act: accuse
-        depth:
-          - detail
-          - in_confidence
+        claim_proof: "yes"
         commitment: committed
       repetitionGroup: accuse.evidence
     - id: core.accuse.trust.the.evidence
@@ -117,7 +128,7 @@ payload:
       text: "Do not trust my face. Trust what I can show you."
       requires:
         act: accuse
-        depth: in_confidence
+        claim_proof: "yes"
         commitment: committed
       repetitionGroup: accuse.evidence
       memorability: signature
@@ -136,6 +147,7 @@ payload:
       text: "Good. We have witnesses. It was {referent}."
       requires:
         act: accuse
+        referent: other
         audience: several
       repetitionGroup: accuse.mood
       memorability: voiced
@@ -144,6 +156,7 @@ payload:
       text: "I will say this where it can be repeated. {referent} took it."
       requires:
         act: accuse
+        referent: other
         audience: several
         claim_predicate: stole
       repetitionGroup: accuse.mood
@@ -162,6 +175,7 @@ payload:
         act: accuse
         emotion: suspicion
         referent: listener
+        reply: gossip
       repetitionGroup: accuse.mood
       memorability: signature
 
@@ -191,8 +205,10 @@ payload:
       memorability: voiced
     - id: core.accuse.creditor.mine
       position: core
-      text: "That was mine, and you know it was mine."
+      text: "You already owed me. Now you have taken more."
       requires:
         act: accuse
+        referent: listener
+        claim_predicate: stole
         relationship: creditor
       repetitionGroup: accuse.tie

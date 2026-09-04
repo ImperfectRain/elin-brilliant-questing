@@ -134,7 +134,7 @@ No system is allowed to disappear from this table.
 | Emotion & interpretation | Absent | Playable | BQ-063, BQ-064 |
 | Storylets & casting | Absent | Playable | BQ-065 … BQ-069 |
 | Speech acts & disclosure | Absent | Playable | BQ-070 … BQ-073 |
-| Dialogue realization & voice | Absent | Playable | BQ-074 … BQ-078, BQ-142 |
+| Dialogue realization & voice | Absent | Playable | BQ-074 … BQ-078, BQ-142, BQ-147 |
 | Elin tone & weirdness budget | Absent | Playable | BQ-079, BQ-080 |
 | Callbacks & continuity | Absent | Playable | BQ-081, BQ-082 |
 | Conversation state & commitments | Absent | Playable | BQ-083 |
@@ -1210,6 +1210,68 @@ history should record and where the scene goes next — all as references — an
 - **Do not** solve a missing capability by writing C# for one storylet, or by giving a beat a field a
   sentence could be written into. Both are how the layer stops paying for itself.
 - **Sources** CD §11, §12, §13, §17, §36.5, §38 Phase D; CP §2, §5, §6.
+
+#### BQ-147 — Authored wording may not assert what its eligibility does not guarantee *(stage S7, immediately after BQ-146)*
+An English sentence asserts more than the proposition it carries, so the shipped fragment corpus is
+audited against its own conditions and the one reading it turned out to be missing is added.
+- **Depends** BQ-074 … BQ-081, BQ-142, BQ-146, BQ-133.
+- **Done when** no shipped fragment states a proposition its `requires` does not entail; every class
+  of hidden assertion the audit found has a data-driven regression test over the shipped corpus; a
+  fragment that names somebody without declaring where they are standing fails the build; and every
+  act still has a core sayable from the act alone.
+- **The gap.** BQ-074 made two things structural — a fragment carries no proposition, and it can name
+  nobody the act did not already involve — and every step since widened what a fragment may be
+  *chosen* on. Neither addressed the quiet half: "I saw it" claims a route to knowing, "you already
+  knew" claims something about another person's head, "you still owe me" claims a debt and claims it
+  in a direction. None of those is the act's meaning, all of them are heard as fact, and a line that
+  says one its conditions do not entail is the wording layer minting world state one sentence at a
+  time. The audit found seven classes of it across 521 fragments.
+- **Current implementation** one new input and one new load rule; everything else is content.
+  `SpeakerGrounds` is `SpeakerTie`'s shape applied to the claim rather than to the listener: read
+  from the `KnowledgeRecord` the graph already holds, passed into `RealizationRequest` rather than
+  read inside it, refused by `WhyNot` when it was measured against a different claim, and
+  `Absent` when nobody looked. It answers two readings — `claim_source` (a `KnowledgeSource`, derived
+  from the enum like every other closed value) and `claim_proof` (`CanProve`, yes/no). It is the
+  companion to BQ-081's `callback_route`: that one says how somebody may recall an event, this one
+  says how they came to hold a claim.
+  **Provenance was riding on commitment, which does not know.** Commitment is how firmly somebody
+  will stand behind what they say; a confident believer of a fence-side rumour reads `committed` and
+  a hesitant eyewitness reads `hedged`, so "I watched it happen" and "I have it secondhand" were
+  each available to exactly the wrong speaker. Twenty-five fragments moved onto the route, and five
+  onto proof, which `depth` had been standing in for just as badly.
+  **The other six classes needed no new state, and four of them needed no new reading.** Claims about
+  the listener's beliefs, memory and ignorance were reworded and never grounded — beliefs are the
+  knowledge graph's, held per person, and a reading that let wording assert one would be the second
+  belief system this layer exists not to be. Claims about who moved where, and about what has already
+  been said or told, went the same way. Backward-pointing lines ("ask again", "that story is wrong")
+  were tightened onto `reply`, which already existed. Feelings aimed at the listener were tightened
+  onto `relationship`, because `EmotionalStateProfile` holds one number per state and no target.
+  **Sixteen reciprocal-role lines were inverted.** A directed edge names the role of the party it runs
+  *from* — `ActorIntent` reads `Creditor` as "is owed" — so `relationship: creditor` is the speaker
+  who is owed. Every debt and employment line in the corpus read it as the listener's role, which
+  made "You still owe me" eligible only for the speaker who owes. The wording was right and the
+  eligibility was backwards, which is the hardest version of this to see and the easiest to
+  reintroduce, so the direction is pinned by test.
+  **One mechanical rule at load.** A fragment naming `{referent}`, `{subject}` or `{recalled}` must
+  declare the reading that places that person, because a name placeholder resolves to a name and a
+  name in the third person claims its owner is not the person being spoken to. It requires the
+  question to be answered and never dictates the answer — a line written to be said to the person it
+  names is a real line. Nothing else was made mechanical: an assertion is recognisable to a person
+  and not to a rule, and a heuristic over prose would refuse grounded sentences for containing a
+  word while missing the assertion carried by "either".
+  `FragmentSemanticHonestyTests` is data-driven per class over the shipped bundle, plus behavioural
+  tests that an eyewitness and a hearsay believer holding the identical claim at the identical
+  confidence draw different wordings, that an unprompted informing has no rumour to correct, and
+  that only the speaker who is owed may say so. The coverage report gains the two new axes.
+- **Deferred by design** the corpus did not grow: one core was added, and only because closing the
+  third-person hole on `core.accuse.named` left a charge made to the accused's face with no plain
+  wording. `CallbackHook.AgeInDays`, `Weight`, `Embarrassment` and `Publicity` stay unread — a
+  recalled event is past by construction, so "an old kindness" needs no age reading, and nothing in
+  the corpus turned out to need a magnitude once the lines claiming one were reworded. Two
+  reachability oddities were found and left alone as a different kind of bug: `held_back` is
+  `WillDisclose && Depth < KnownDepth`, so it never reads `yes` for a refusal, and the fragments
+  pairing `act: refuse` with `held_back: yes` are unreachable rather than dishonest.
+- **Sources** CD §17, §18, §19; `D061`, `D035`, `D043`, `D060`.
 
 #### BQ-134 — Project verbs through contextual affordances *(moved forward)*
 Moved forward to the playtest consolidation section before BQ-039 because live S4 testing showed

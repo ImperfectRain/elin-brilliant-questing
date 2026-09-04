@@ -151,7 +151,8 @@ namespace BrilliantQuesting.Dialogue
 
             SpeechAct act = request.Act;
             RealizationReading reading = RealizationReading.Of(
-                act, request.Decision, request.Claim, request.Cast, request.Recalled, request.Feeling, request.Tie);
+                act, request.Decision, request.Claim, request.Cast, request.Recalled, request.Feeling, request.Tie,
+                request.Grounds);
             DeterministicRng rng = request.Rng ?? Unseeded;
 
             List<DialogueFragment> cores = Candidates(FragmentPosition.Core, request, reading);
@@ -244,7 +245,7 @@ namespace BrilliantQuesting.Dialogue
                 request,
                 RealizationReading.Of(
                     request.Act, request.Decision, request.Claim, request.Cast, request.Recalled,
-                    request.Feeling, request.Tie));
+                    request.Feeling, request.Tie, request.Grounds));
         }
 
         private List<DialogueFragment> Candidates(FragmentPosition position, RealizationRequest request, RealizationReading reading)

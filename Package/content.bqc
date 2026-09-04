@@ -92,7 +92,7 @@
           {
             "id": "call.reply.inform",
             "position": "callback",
-            "text": "You came to say that.",
+            "text": "So that was the news.",
             "requires": {
               "reply": "inform"
             },
@@ -193,7 +193,11 @@
             "requires": {
               "callback": "injury",
               "callback_route": "involved",
-              "callback_party": "listener"
+              "callback_party": "listener",
+              "reply": [
+                "ask",
+                "request"
+              ]
             },
             "repetitionGroup": "callback.history",
             "memorability": "signature"
@@ -215,7 +219,8 @@
             "text": "We have tried this before. It ended badly.",
             "requires": {
               "callback": "injury",
-              "callback_route": "involved"
+              "callback_route": "involved",
+              "callback_party": "listener"
             },
             "repetitionGroup": "callback.history",
             "memorability": "signature"
@@ -257,7 +262,7 @@
           {
             "id": "call.history.promise.here.because",
             "position": "callback",
-            "text": "I am here because you promised.",
+            "text": "I am here about what you promised.",
             "requires": {
               "callback": "promise",
               "callback_route": "involved",
@@ -281,7 +286,7 @@
           {
             "id": "call.history.promise.spent.carelessly",
             "position": "callback",
-            "text": "It was a small promise. Those are the ones people spend carelessly.",
+            "text": "A promise is a cheap thing to make. People spend them carelessly.",
             "requires": {
               "callback": "promise",
               "callback_route": "involved"
@@ -348,7 +353,7 @@
           {
             "id": "call.history.lost.object.other",
             "position": "callback",
-            "text": "{recalled} never got theirs back either.",
+            "text": "{recalled} never got theirs back.",
             "requires": {
               "callback": "lost_object",
               "callback_route": "witnessed",
@@ -360,7 +365,7 @@
           {
             "id": "call.history.this.again",
             "position": "callback",
-            "text": "This again.",
+            "text": "Old business, then.",
             "requires": {
               "callback": [
                 "injury",
@@ -627,6 +632,11 @@
               "act": [
                 "forgive",
                 "offer"
+              ],
+              "reply": [
+                "offer",
+                "apologize",
+                "promise"
               ]
             },
             "repetitionGroup": "closer.thanks",
@@ -640,7 +650,8 @@
               "act": [
                 "deny",
                 "refuse"
-              ]
+              ],
+              "reply": "accuse"
             },
             "repetitionGroup": "closer.prompt",
             "memorability": "voiced"
@@ -1046,7 +1057,18 @@
             "position": "core",
             "text": "{referent} did it.",
             "requires": {
-              "act": "accuse"
+              "act": "accuse",
+              "referent": "other"
+            },
+            "repetitionGroup": "accuse"
+          },
+          {
+            "id": "core.accuse.direct.plain",
+            "position": "core",
+            "text": "You did it.",
+            "requires": {
+              "act": "accuse",
+              "referent": "listener"
             },
             "repetitionGroup": "accuse"
           },
@@ -1067,7 +1089,8 @@
             "text": "{referent} took the {matter}.",
             "requires": {
               "act": "accuse",
-              "claim_predicate": "stole"
+              "claim_predicate": "stole",
+              "referent": "other"
             },
             "repetitionGroup": "accuse"
           },
@@ -1102,6 +1125,7 @@
             "requires": {
               "act": "accuse",
               "claim_predicate": "stole",
+              "referent": "other",
               "audience": "several"
             },
             "repetitionGroup": "accuse",
@@ -1113,7 +1137,8 @@
             "text": "I know what I saw.",
             "requires": {
               "act": "accuse",
-              "commitment": "committed"
+              "commitment": "committed",
+              "claim_source": "witnessed"
             },
             "repetitionGroup": "accuse.standing"
           },
@@ -1144,6 +1169,7 @@
             "text": "I think it was {referent}.",
             "requires": {
               "act": "accuse",
+              "referent": "other",
               "commitment": "hedged"
             },
             "repetitionGroup": "accuse.standing"
@@ -1165,10 +1191,8 @@
             "text": "I can prove it, and it was {referent}.",
             "requires": {
               "act": "accuse",
-              "depth": [
-                "detail",
-                "in_confidence"
-              ],
+              "referent": "other",
+              "claim_proof": "yes",
               "commitment": "committed"
             },
             "repetitionGroup": "accuse.evidence"
@@ -1179,10 +1203,7 @@
             "text": "There is evidence, not just my word.",
             "requires": {
               "act": "accuse",
-              "depth": [
-                "detail",
-                "in_confidence"
-              ],
+              "claim_proof": "yes",
               "commitment": "committed"
             },
             "repetitionGroup": "accuse.evidence"
@@ -1193,7 +1214,7 @@
             "text": "Do not trust my face. Trust what I can show you.",
             "requires": {
               "act": "accuse",
-              "depth": "in_confidence",
+              "claim_proof": "yes",
               "commitment": "committed"
             },
             "repetitionGroup": "accuse.evidence",
@@ -1216,6 +1237,7 @@
             "text": "Good. We have witnesses. It was {referent}.",
             "requires": {
               "act": "accuse",
+              "referent": "other",
               "audience": "several"
             },
             "repetitionGroup": "accuse.mood",
@@ -1227,6 +1249,7 @@
             "text": "I will say this where it can be repeated. {referent} took it.",
             "requires": {
               "act": "accuse",
+              "referent": "other",
               "audience": "several",
               "claim_predicate": "stole"
             },
@@ -1250,7 +1273,8 @@
             "requires": {
               "act": "accuse",
               "emotion": "suspicion",
-              "referent": "listener"
+              "referent": "listener",
+              "reply": "gossip"
             },
             "repetitionGroup": "accuse.mood",
             "memorability": "signature"
@@ -1290,9 +1314,11 @@
           {
             "id": "core.accuse.creditor.mine",
             "position": "core",
-            "text": "That was mine, and you know it was mine.",
+            "text": "You already owed me. Now you have taken more.",
             "requires": {
               "act": "accuse",
+              "referent": "listener",
+              "claim_predicate": "stole",
               "relationship": "creditor"
             },
             "repetitionGroup": "accuse.tie"
@@ -1379,7 +1405,7 @@
           {
             "id": "core.admit.more.than.told",
             "position": "core",
-            "text": "I did more than I told you.",
+            "text": "There is more of it, and it is all mine.",
             "requires": {
               "act": "admit",
               "depth": [
@@ -1393,7 +1419,7 @@
           {
             "id": "core.admit.hid.part",
             "position": "core",
-            "text": "The part I hid was mine.",
+            "text": "The worst of it is mine too.",
             "requires": {
               "act": "admit",
               "depth": [
@@ -1407,7 +1433,7 @@
           {
             "id": "core.admit.missing.piece",
             "position": "core",
-            "text": "You were looking for the missing piece. I removed it.",
+            "text": "There was a missing piece. I removed it.",
             "requires": {
               "act": "admit",
               "depth": [
@@ -1484,7 +1510,7 @@
           {
             "id": "core.admit.you.knew",
             "position": "core",
-            "text": "You already knew. Yes.",
+            "text": "I am not going to make you drag it out of me. Yes.",
             "requires": {
               "act": "admit",
               "relationship": [
@@ -1547,7 +1573,11 @@
             "text": "I saw it.",
             "requires": {
               "act": "answer",
-              "commitment": "committed"
+              "commitment": "committed",
+              "claim_source": [
+                "witnessed",
+                "participant"
+              ]
             },
             "repetitionGroup": "answer.provenance"
           },
@@ -1557,7 +1587,11 @@
             "text": "I was there when it happened.",
             "requires": {
               "act": "answer",
-              "commitment": "committed"
+              "commitment": "committed",
+              "claim_source": [
+                "witnessed",
+                "participant"
+              ]
             },
             "repetitionGroup": "answer.provenance"
           },
@@ -1568,6 +1602,7 @@
             "requires": {
               "act": "answer",
               "commitment": "committed",
+              "claim_source": "witnessed",
               "depth": [
                 "detail",
                 "in_confidence"
@@ -1582,7 +1617,7 @@
             "text": "I have it secondhand.",
             "requires": {
               "act": "answer",
-              "commitment": "hedged"
+              "claim_source": "hearsay"
             },
             "repetitionGroup": "answer.provenance"
           },
@@ -1592,7 +1627,7 @@
             "text": "It came to me with somebody else's fingerprints on it.",
             "requires": {
               "act": "answer",
-              "commitment": "hedged"
+              "claim_source": "hearsay"
             },
             "repetitionGroup": "answer.provenance",
             "memorability": "signature"
@@ -1603,7 +1638,7 @@
             "text": "Nobody told me. The pieces point that way.",
             "requires": {
               "act": "answer",
-              "commitment": "hedged",
+              "claim_source": "inference",
               "depth": [
                 "detail",
                 "in_confidence"
@@ -1617,7 +1652,8 @@
             "position": "core",
             "text": "It is in the record.",
             "requires": {
-              "act": "answer"
+              "act": "answer",
+              "claim_source": "document"
             },
             "repetitionGroup": "answer.provenance"
           },
@@ -1627,7 +1663,7 @@
             "text": "The fact stayed. Its source did not.",
             "requires": {
               "act": "answer",
-              "commitment": "hedged"
+              "claim_source": "hearsay"
             },
             "repetitionGroup": "answer.provenance",
             "memorability": "voiced"
@@ -1677,7 +1713,7 @@
               "subject": "other",
               "act": "answer",
               "claim_predicate": "stole",
-              "commitment": "committed"
+              "claim_source": "witnessed"
             },
             "repetitionGroup": "answer.theft"
           },
@@ -1689,7 +1725,7 @@
               "subject": "other",
               "act": "answer",
               "claim_predicate": "stole",
-              "commitment": "committed",
+              "claim_source": "witnessed",
               "depth": [
                 "detail",
                 "in_confidence"
@@ -1701,7 +1737,7 @@
           {
             "id": "core.answer.dont.know",
             "position": "core",
-            "text": "I do not know.",
+            "text": "Not with any certainty.",
             "requires": {
               "act": "answer",
               "commitment": "hedged"
@@ -1788,6 +1824,7 @@
             "text": "The detail I left out is the one you are going to care about.",
             "requires": {
               "act": "answer",
+              "held_back": "yes",
               "depth": [
                 "detail",
                 "in_confidence"
@@ -1799,7 +1836,7 @@
           {
             "id": "core.answer.before.sunset",
             "position": "core",
-            "text": "If the time matters, it was before sunset.",
+            "text": "If the time matters, I have it.",
             "requires": {
               "act": "answer",
               "depth": [
@@ -1872,7 +1909,7 @@
           {
             "id": "core.answer.trusted.kept.from.everyone",
             "position": "core",
-            "text": "I kept this from everyone else.",
+            "text": "I am not in the habit of saying this part.",
             "requires": {
               "act": "answer",
               "depth": "in_confidence"
@@ -1949,7 +1986,7 @@
           {
             "id": "core.threaten.last.time.asking",
             "position": "core",
-            "text": "This is the last time I ask like this.",
+            "text": "I would rather not ask twice.",
             "requires": {
               "act": "threaten"
             },
@@ -1958,7 +1995,7 @@
           {
             "id": "core.threaten.stop.asking.politely",
             "position": "core",
-            "text": "One more missing detail and I stop asking politely.",
+            "text": "If anything is missing from that, I stop asking politely.",
             "requires": {
               "act": "threaten"
             },
@@ -1968,7 +2005,7 @@
           {
             "id": "core.threaten.told.once",
             "position": "core",
-            "text": "You were told once. Do not make me repeat it.",
+            "text": "You are being told once. Do not make me repeat it.",
             "requires": {
               "act": "threaten"
             },
@@ -2139,7 +2176,12 @@
             "text": "Come back safe.",
             "requires": {
               "act": "warn",
-              "emotion": "affection"
+              "emotion": "affection",
+              "relationship": [
+                "friend",
+                "family",
+                "spouse"
+              ]
             },
             "repetitionGroup": "warn.mood",
             "memorability": "protected"
@@ -2197,7 +2239,7 @@
           {
             "id": "core.threaten.i.know.where",
             "position": "core",
-            "text": "I know where you keep things.",
+            "text": "You have more to lose than this conversation.",
             "requires": {
               "act": "threaten"
             },
@@ -2247,7 +2289,7 @@
           {
             "id": "core.deny.wrong",
             "position": "core",
-            "text": "Whoever told you that has it wrong.",
+            "text": "That is wrong, wherever it came from.",
             "requires": {
               "act": "deny"
             },
@@ -2305,7 +2347,7 @@
           {
             "id": "core.deny.bad.information",
             "position": "core",
-            "text": "You have been given bad information.",
+            "text": "You have bad information.",
             "requires": {
               "act": "deny"
             },
@@ -2342,7 +2384,7 @@
           {
             "id": "core.deny.was.with.me",
             "position": "core",
-            "text": "{referent} was with me.",
+            "text": "I will speak for {referent}.",
             "requires": {
               "act": "deny",
               "referent": "other"
@@ -2352,7 +2394,7 @@
           {
             "id": "core.deny.two.places",
             "position": "core",
-            "text": "Find a better story. This one has {referent} in two places at once.",
+            "text": "Find a better story. That one falls apart the moment it reaches {referent}.",
             "requires": {
               "act": "deny",
               "referent": "other"
@@ -2367,25 +2409,21 @@
           {
             "id": "core.deny.could.not.have",
             "position": "core",
-            "text": "You are accusing somebody who could not have done it.",
+            "text": "You are naming somebody who did not do it.",
             "requires": {
               "act": "deny",
-              "referent": "other"
+              "referent": "other",
+              "reply": "accuse"
             },
             "repetitionGroup": "deny.defend"
           },
           {
             "id": "core.deny.one.of.mine",
             "position": "core",
-            "text": "Bring me proof. Until then you are speaking about one of mine.",
+            "text": "Bring me proof. Until then you are only saying a name.",
             "requires": {
               "act": "deny",
-              "referent": "other",
-              "relationship": [
-                "family",
-                "spouse",
-                "friend"
-              ]
+              "referent": "other"
             },
             "idiolect": [
               "clipped"
@@ -2414,10 +2452,11 @@
           {
             "id": "core.deny.rumor.told.one.person",
             "position": "core",
-            "text": "I told one person what I saw. Apparently I saw a great deal more by evening.",
+            "text": "I said what I saw. Apparently I saw a great deal more by evening.",
             "requires": {
               "act": "deny",
-              "reply": "gossip"
+              "reply": "gossip",
+              "claim_source": "witnessed"
             },
             "idiolect": [
               "expansive",
@@ -2439,7 +2478,7 @@
           {
             "id": "core.deny.fear.never.there",
             "position": "core",
-            "text": "No. I was never there.",
+            "text": "No. Do not put my name in this.",
             "requires": {
               "act": "deny",
               "emotion": "fear",
@@ -2503,7 +2542,7 @@
           {
             "id": "core.deny.pride.own.trade",
             "position": "core",
-            "text": "Do not explain my own trade to me. It was not me.",
+            "text": "I know my own trade. It was not me.",
             "requires": {
               "act": "deny",
               "referent": "speaker"
@@ -2524,7 +2563,9 @@
             "position": "core",
             "text": "I heard something about {referent}.",
             "requires": {
-              "act": "gossip"
+              "act": "gossip",
+              "referent": "other",
+              "claim_source": "hearsay"
             },
             "repetitionGroup": "gossip"
           },
@@ -2533,17 +2574,20 @@
             "position": "core",
             "text": "This may be nothing, but {referent} has people talking.",
             "requires": {
-              "act": "gossip"
+              "act": "gossip",
+              "referent": "other",
+              "claim_source": "hearsay"
             },
             "repetitionGroup": "gossip"
           },
           {
             "id": "core.gossip.not.the.only.one",
             "position": "core",
-            "text": "I cannot prove it, and I am not the only one who heard.",
+            "text": "I cannot prove it. It did not start with me.",
             "requires": {
               "act": "gossip",
-              "commitment": "hedged"
+              "claim_proof": "no",
+              "claim_source": "hearsay"
             },
             "repetitionGroup": "gossip"
           },
@@ -2561,9 +2605,10 @@
           {
             "id": "core.gossip.better.clothes",
             "position": "core",
-            "text": "A rumour arrived before breakfast and already has better clothes.",
+            "text": "This reached me secondhand, and secondhand things arrive well dressed.",
             "requires": {
-              "act": "gossip"
+              "act": "gossip",
+              "claim_source": "hearsay"
             },
             "tone": [
               "wry"
@@ -2577,7 +2622,9 @@
             "text": "They are saying {referent} took the {matter}.",
             "requires": {
               "act": "gossip",
-              "claim_predicate": "stole"
+              "referent": "other",
+              "claim_predicate": "stole",
+              "claim_source": "hearsay"
             },
             "repetitionGroup": "gossip.theft"
           },
@@ -2587,7 +2634,9 @@
             "text": "Word is the {matter} left in {referent}'s pocket.",
             "requires": {
               "act": "gossip",
-              "claim_predicate": "stole"
+              "referent": "other",
+              "claim_predicate": "stole",
+              "claim_source": "hearsay"
             },
             "repetitionGroup": "gossip.theft",
             "memorability": "voiced"
@@ -2595,7 +2644,7 @@
           {
             "id": "core.gossip.public.everyone.knows",
             "position": "core",
-            "text": "Everyone knows it by now.",
+            "text": "I am not going to pretend this is a secret.",
             "requires": {
               "act": "gossip",
               "audience": "several"
@@ -2619,6 +2668,7 @@
             "text": "It arrived very neatly, that story.",
             "requires": {
               "act": "gossip",
+              "claim_source": "hearsay",
               "emotion": "suspicion"
             },
             "repetitionGroup": "gossip.spread",
@@ -2627,18 +2677,20 @@
           {
             "id": "core.gossip.small.town",
             "position": "core",
-            "text": "You will hear it soon enough. It is about {referent}.",
+            "text": "It is about {referent}, and you may as well hear it now.",
             "requires": {
-              "act": "gossip"
+              "act": "gossip",
+              "referent": "other"
             },
             "repetitionGroup": "gossip"
           },
           {
             "id": "core.gossip.two.versions",
             "position": "core",
-            "text": "There are two versions going round about {referent}.",
+            "text": "That is one version of {referent}. I would not swear it is the only one.",
             "requires": {
               "act": "gossip",
+              "referent": "other",
               "commitment": "hedged"
             },
             "repetitionGroup": "gossip",
@@ -2649,7 +2701,8 @@
             "position": "core",
             "text": "I would not repeat it if I thought it was nothing.",
             "requires": {
-              "act": "gossip"
+              "act": "gossip",
+              "claim_source": "hearsay"
             },
             "repetitionGroup": "gossip",
             "memorability": "voiced"
@@ -2674,7 +2727,7 @@
           {
             "id": "core.inform.happened",
             "position": "core",
-            "text": "Something happened, and you have not heard it yet.",
+            "text": "Something happened. I am telling you now.",
             "requires": {
               "act": "inform"
             },
@@ -2731,7 +2784,7 @@
               "subject": "other",
               "act": "inform",
               "claim_predicate": "stole",
-              "commitment": "committed"
+              "claim_source": "witnessed"
             },
             "repetitionGroup": "inform.theft"
           },
@@ -2740,7 +2793,8 @@
             "position": "core",
             "text": "People are talking about it.",
             "requires": {
-              "act": "inform"
+              "act": "inform",
+              "claim_source": "hearsay"
             },
             "repetitionGroup": "inform.aftermath"
           },
@@ -2749,7 +2803,8 @@
             "position": "core",
             "text": "That travelled farther than the person who did it.",
             "requires": {
-              "act": "inform"
+              "act": "inform",
+              "claim_source": "hearsay"
             },
             "repetitionGroup": "inform.aftermath",
             "memorability": "signature"
@@ -2757,9 +2812,10 @@
           {
             "id": "core.inform.still.here",
             "position": "core",
-            "text": "You left. Your name stayed to finish the conversation.",
+            "text": "Your name has been finishing conversations without you.",
             "requires": {
               "act": "inform",
+              "claim_source": "hearsay",
               "audience": "one"
             },
             "repetitionGroup": "inform.aftermath",
@@ -2802,7 +2858,8 @@
             "position": "core",
             "text": "That story is wrong.",
             "requires": {
-              "act": "inform"
+              "act": "inform",
+              "reply": "gossip"
             },
             "repetitionGroup": "inform.correction"
           },
@@ -2811,7 +2868,8 @@
             "position": "core",
             "text": "Somebody added a better ending than the truth had.",
             "requires": {
-              "act": "inform"
+              "act": "inform",
+              "reply": "gossip"
             },
             "repetitionGroup": "inform.correction",
             "memorability": "signature"
@@ -2821,7 +2879,8 @@
             "position": "core",
             "text": "The first part is true. The rest grew afterward.",
             "requires": {
-              "act": "inform"
+              "act": "inform",
+              "reply": "gossip"
             },
             "repetitionGroup": "inform.correction",
             "memorability": "voiced"
@@ -2831,7 +2890,8 @@
             "position": "core",
             "text": "The story has grown horns since I last heard it.",
             "requires": {
-              "act": "inform"
+              "act": "inform",
+              "reply": "gossip"
             },
             "tone": [
               "wry"
@@ -2865,7 +2925,12 @@
             "text": "I came to tell you myself.",
             "requires": {
               "act": "inform",
-              "emotion": "affection"
+              "emotion": "affection",
+              "relationship": [
+                "friend",
+                "family",
+                "spouse"
+              ]
             },
             "repetitionGroup": "inform.mood",
             "memorability": "voiced"
@@ -2873,7 +2938,7 @@
           {
             "id": "core.inform.close.tie.ugly.part",
             "position": "core",
-            "text": "You already know the ugly part. Here is the rest.",
+            "text": "I will not soften the ugly part for you. Here it is.",
             "requires": {
               "act": "inform",
               "relationship": [
@@ -2948,7 +3013,7 @@
           {
             "id": "core.ask.tell.me.saw",
             "position": "core",
-            "text": "Tell me what you saw.",
+            "text": "Tell me what you know.",
             "requires": {
               "act": "ask"
             },
@@ -2978,14 +3043,18 @@
             "position": "core",
             "text": "What happened next?",
             "requires": {
-              "act": "ask"
+              "act": "ask",
+              "reply": [
+                "answer",
+                "inform"
+              ]
             },
             "repetitionGroup": "ask.detail"
           },
           {
             "id": "core.ask.show.me",
             "position": "core",
-            "text": "Show me where you found it.",
+            "text": "Show me what you can.",
             "requires": {
               "act": "ask"
             },
@@ -3124,7 +3193,7 @@
           {
             "id": "core.ask.angry.exactly",
             "position": "core",
-            "text": "Say exactly what you saw.",
+            "text": "Say exactly what you know.",
             "requires": {
               "act": "ask",
               "emotion": "anger"
@@ -3140,7 +3209,11 @@
             "text": "Start again, and leave nothing convenient out.",
             "requires": {
               "act": "ask",
-              "emotion": "anger"
+              "emotion": "anger",
+              "reply": [
+                "answer",
+                "inform"
+              ]
             },
             "repetitionGroup": "ask.pressed",
             "memorability": "signature"
@@ -3657,7 +3730,7 @@
             "text": "You still owe me.",
             "requires": {
               "act": "request",
-              "relationship": "debtor"
+              "relationship": "creditor"
             },
             "repetitionGroup": "request.debt"
           },
@@ -3667,7 +3740,7 @@
             "text": "Our friendship is lovely. The ledger remains unconvinced.",
             "requires": {
               "act": "request",
-              "relationship": "debtor"
+              "relationship": "creditor"
             },
             "tone": [
               "wry"
@@ -3681,7 +3754,7 @@
             "text": "I am willing to count this against the debt.",
             "requires": {
               "act": "request",
-              "relationship": "debtor"
+              "relationship": "creditor"
             },
             "repetitionGroup": "request.debt",
             "memorability": "voiced"
@@ -3802,7 +3875,7 @@
           {
             "id": "core.request.family.did.nothing",
             "position": "core",
-            "text": "Whatever you think of me, {subject} did nothing.",
+            "text": "Whatever you think of me, leave {subject} out of it.",
             "requires": {
               "subject": "other",
               "act": "request"
@@ -4062,7 +4135,7 @@
             "text": "I owe you. Ask.",
             "requires": {
               "act": "offer",
-              "relationship": "creditor"
+              "relationship": "debtor"
             },
             "repetitionGroup": "offer.tie",
             "memorability": "voiced"
@@ -4290,7 +4363,7 @@
           {
             "id": "core.refuse.belongs.to.someone",
             "position": "core",
-            "text": "The rest of the answer belongs to someone who trusted me.",
+            "text": "The rest of the answer is not mine to spend.",
             "requires": {
               "act": "refuse"
             },
@@ -4379,7 +4452,8 @@
             "position": "core",
             "text": "Ask again and get the same answer louder.",
             "requires": {
-              "act": "refuse"
+              "act": "refuse",
+              "reply": "ask"
             },
             "tone": [
               "curt"
@@ -4395,7 +4469,8 @@
             "position": "core",
             "text": "We are done unless you have learned a new question.",
             "requires": {
-              "act": "refuse"
+              "act": "refuse",
+              "reply": "ask"
             },
             "tone": [
               "curt"
@@ -4414,6 +4489,9 @@
             "requires": {
               "act": "refuse",
               "relationship": "none"
+            },
+            "forbids": {
+              "reply": "offer"
             },
             "idiolect": [
               "expansive",
@@ -4544,7 +4622,7 @@
           {
             "id": "core.refuse.anger.mistaken.patience",
             "position": "core",
-            "text": "You have mistaken my patience for permission.",
+            "text": "Do not mistake my patience for permission.",
             "requires": {
               "act": "refuse",
               "emotion": "anger"
@@ -4648,7 +4726,7 @@
           {
             "id": "core.evade.heard.enough",
             "position": "core",
-            "text": "I heard enough to stop asking.",
+            "text": "I am not going to ask about that, and neither should you.",
             "requires": {
               "act": "evade"
             },
@@ -4916,7 +4994,7 @@
           {
             "id": "mod.emotion.relief.too.late",
             "position": "modifier",
-            "text": "I thought we were too late.",
+            "text": "I thought it was too late.",
             "requires": {
               "emotion": "relief"
             },
@@ -4967,7 +5045,12 @@
             "text": "Come back before I start inventing reasons you have not.",
             "requires": {
               "emotion": "affection",
-              "audience": "one"
+              "audience": "one",
+              "relationship": [
+                "friend",
+                "family",
+                "spouse"
+              ]
             },
             "repetitionGroup": "mood",
             "memorability": "protected"
@@ -4978,7 +5061,12 @@
             "text": "You make this place feel less temporary.",
             "requires": {
               "emotion": "affection",
-              "audience": "one"
+              "audience": "one",
+              "relationship": [
+                "friend",
+                "family",
+                "spouse"
+              ]
             },
             "repetitionGroup": "mood",
             "memorability": "protected"
@@ -5123,7 +5211,7 @@
           {
             "id": "mod.tie.friend.came.on.purpose",
             "position": "modifier",
-            "text": "Do not give me that look. You came here on purpose.",
+            "text": "Do not give me that look. I have known you too long for it.",
             "requires": {
               "act": [
                 "ask",
@@ -5142,7 +5230,7 @@
           {
             "id": "mod.tie.family.already.dislike",
             "position": "modifier",
-            "text": "Whatever you are about to ask, I already dislike who made you ask it.",
+            "text": "Whatever you are about to ask, I already dislike the reason for it.",
             "requires": {
               "act": [
                 "ask",
@@ -5233,7 +5321,7 @@
           {
             "id": "mod.tie.enemy.remember.what.you.did",
             "position": "modifier",
-            "text": "I remember what you did. Apparently you do not.",
+            "text": "I remember what you did.",
             "requires": {
               "act": [
                 "refuse",
@@ -5241,7 +5329,10 @@
                 "threaten",
                 "deny"
               ],
-              "relationship": "enemy"
+              "relationship": "enemy",
+              "callback": "injury",
+              "callback_route": "involved",
+              "callback_party": "listener"
             },
             "repetitionGroup": "tie",
             "memorability": "signature"
@@ -5249,14 +5340,14 @@
           {
             "id": "mod.tie.creditor.not.disappeared",
             "position": "modifier",
-            "text": "The debt between us did not disappear because you became desperate.",
+            "text": "The debt between us did not disappear because today is inconvenient.",
             "requires": {
               "act": [
                 "refuse",
                 "request",
                 "threaten"
               ],
-              "relationship": "debtor"
+              "relationship": "creditor"
             },
             "repetitionGroup": "tie",
             "memorability": "signature"
@@ -5271,7 +5362,7 @@
                 "offer",
                 "threaten"
               ],
-              "relationship": "debtor"
+              "relationship": "creditor"
             },
             "tone": [
               "wry"
@@ -5290,7 +5381,7 @@
                 "apologize",
                 "answer"
               ],
-              "relationship": "creditor"
+              "relationship": "debtor"
             },
             "repetitionGroup": "tie"
           },
@@ -5305,7 +5396,7 @@
                 "refuse",
                 "apologize"
               ],
-              "relationship": "creditor"
+              "relationship": "debtor"
             },
             "repetitionGroup": "tie",
             "memorability": "signature"
@@ -5320,7 +5411,7 @@
                 "refuse",
                 "warn"
               ],
-              "relationship": "employee"
+              "relationship": "employer"
             },
             "repetitionGroup": "tie",
             "memorability": "voiced"
@@ -5336,7 +5427,7 @@
                 "answer",
                 "inform"
               ],
-              "relationship": "employer"
+              "relationship": "employee"
             },
             "tone": [
               "formal"
@@ -5481,7 +5572,7 @@
                 "answer",
                 "accuse"
               ],
-              "commitment": "hedged"
+              "claim_proof": "no"
             },
             "idiolect": [
               "expansive",
@@ -5500,7 +5591,7 @@
                 "answer",
                 "accuse"
               ],
-              "commitment": "hedged"
+              "claim_proof": "no"
             },
             "repetitionGroup": "commitment"
           },
@@ -5618,11 +5709,15 @@
           {
             "id": "mod.deny.not.there.anyway",
             "position": "modifier",
-            "text": "You may outrank me. You were still not there.",
+            "text": "You may outrank me. I am the one who was there.",
             "requires": {
               "act": [
                 "deny",
                 "answer"
+              ],
+              "claim_source": [
+                "witnessed",
+                "participant"
               ]
             },
             "idiolect": [
@@ -5715,6 +5810,10 @@
               "act": [
                 "request",
                 "refuse"
+              ],
+              "relationship": [
+                "rival",
+                "enemy"
               ]
             },
             "repetitionGroup": "boundary",
@@ -5959,7 +6058,7 @@
           {
             "id": "open.greet.acquaintance.reliable",
             "position": "opener",
-            "text": "You have been reliable so far.",
+            "text": "I know your face, at least.",
             "requires": {
               "reply": "none",
               "relationship": "acquaintance"
@@ -5986,7 +6085,7 @@
           {
             "id": "open.greet.friend.came.back",
             "position": "opener",
-            "text": "You came back. Good.",
+            "text": "Good. I was hoping it would be you.",
             "requires": {
               "reply": "none",
               "relationship": "friend"
@@ -6106,7 +6205,7 @@
             "text": "At last.",
             "requires": {
               "reply": "none",
-              "relationship": "debtor"
+              "relationship": "creditor"
             },
             "repetitionGroup": "greeting"
           },
@@ -6116,7 +6215,7 @@
             "text": "I was hoping you had forgotten.",
             "requires": {
               "reply": "none",
-              "relationship": "creditor"
+              "relationship": "debtor"
             },
             "tone": [
               "wry"
@@ -6130,7 +6229,7 @@
             "text": "There it is. The favour coming home.",
             "requires": {
               "reply": "none",
-              "relationship": "creditor"
+              "relationship": "debtor"
             },
             "idiolect": [
               "clipped",
@@ -6156,7 +6255,7 @@
             "text": "You are paying, so ask.",
             "requires": {
               "reply": "none",
-              "relationship": "employer"
+              "relationship": "employee"
             },
             "repetitionGroup": "greeting",
             "memorability": "voiced"
@@ -6230,7 +6329,12 @@
             "text": "I saved the good cup. Do not make that embarrassing.",
             "requires": {
               "emotion": "affection",
-              "audience": "one"
+              "audience": "one",
+              "relationship": [
+                "friend",
+                "family",
+                "spouse"
+              ]
             },
             "repetitionGroup": "greeting.mood",
             "memorability": "protected"
@@ -6238,7 +6342,7 @@
           {
             "id": "open.mood.shame.rather.not",
             "position": "opener",
-            "text": "I know why you are here.",
+            "text": "I would rather this conversation had not found me.",
             "requires": {
               "emotion": "shame"
             },

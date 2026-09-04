@@ -193,6 +193,89 @@ namespace BrilliantQuesting.Dialogue
     }
 
     /// <summary>
+    /// How the speaker comes to hold the claim they are speaking about, and whether they could
+    /// show it to anybody (BQ-147).
+    ///
+    /// The companion to <see cref="CallbackRoute"/>, for the claim rather than for the recalled
+    /// event, and it exists for exactly the reason that one does. "I saw it", "I have it
+    /// secondhand" and "nobody told me, the pieces point that way" are three different assertions
+    /// about the world, and until this existed the only thing a fragment could be chosen on near
+    /// them was <see cref="DialogueReadings.Commitment"/> - how firmly the speaker would stand
+    /// behind the claim, which is a different question with a different answer. A confident
+    /// hearsay believer and a hesitant eyewitness both read <c>committed</c> and <c>hedged</c>
+    /// respectively at the wrong times, so a witnessed-provenance line said by somebody who was
+    /// told over a fence was wording asserting a route the world never granted.
+    ///
+    /// <b>It invents nothing.</b> Both readings come off the one
+    /// <see cref="KnowledgeRecord"/> the knowledge graph already holds for this speaker and this
+    /// claim - its <see cref="KnowledgeSource"/> and its <see cref="KnowledgeRecord.CanProve"/> -
+    /// which is saved state that <c>Disclosure</c>, <c>WitnessDisclosure</c> and the investigation
+    /// layer already read. There is no second provenance model here and nothing that could
+    /// disagree with the first.
+    ///
+    /// <b>It is passed rather than read.</b> Like <see cref="SpeakerTie"/> and
+    /// <see cref="SpeakerFeeling"/>, the graph is consulted here and never inside realization, so
+    /// "wording holds nothing it could write to" stays a fact about the realizer's signature.
+    ///
+    /// Three states, not two, for the reason a tie has three. <see cref="Unread"/> is a caller who
+    /// did not look, and reads <see cref="DialogueReadings.Absent"/>; a speaker the graph holds no
+    /// belief for is also unread, because "they hold nothing about this" is
+    /// <see cref="DisclosureStrategy.NothingToDisclose"/>'s answer and not a route.
+    /// </summary>
+    public readonly struct SpeakerGrounds
+    {
+        /// <summary>Nobody looked, or the speaker holds no belief. Reads as <see cref="DialogueReadings.Absent"/>.</summary>
+        public static readonly SpeakerGrounds Unread =
+            new SpeakerGrounds(false, default(KnowledgeSource), false, EntityId.None);
+
+        private SpeakerGrounds(bool read, KnowledgeSource source, bool canProve, EntityId claim)
+        {
+            IsRead = read;
+            Source = source;
+            CanProve = canProve;
+            Claim = claim;
+        }
+
+        public bool IsRead { get; }
+
+        /// <summary>How they came by it, as the knowledge graph recorded it.</summary>
+        public KnowledgeSource Source { get; }
+
+        /// <summary>Whether they hold something they could show a third party.</summary>
+        public bool CanProve { get; }
+
+        /// <summary>
+        /// Which claim these are the grounds for. The act has to be about it, or the request is
+        /// refused: grounds measured against one fact and worded about another would be provenance
+        /// borrowed from a claim nobody asked about.
+        /// </summary>
+        public EntityId Claim { get; }
+
+        /// <summary>Grounds named directly, for a caller that has them without a graph.</summary>
+        public static SpeakerGrounds Held(KnowledgeSource source, bool canProve, EntityId claim)
+        {
+            return claim.IsNone ? Unread : new SpeakerGrounds(true, source, canProve, claim);
+        }
+
+        /// <summary>
+        /// What the graph records about this speaker and this claim, or <see cref="Unread"/> when
+        /// it records nothing. Reading the graph here rather than inside realization keeps the
+        /// realizer world-free.
+        /// </summary>
+        public static SpeakerGrounds Of(KnowledgeGraph graph, EntityId speaker, EntityId claim)
+        {
+            if (graph == null || speaker.IsNone || claim.IsNone)
+            {
+                return Unread;
+            }
+
+            return graph.TryGetBelief(speaker, claim, out KnowledgeRecord record)
+                ? Held(record.Source, record.CanProve, claim)
+                : Unread;
+        }
+    }
+
+    /// <summary>
     /// Everything the wording layer is allowed to know, computed once from the semantic layer.
     ///
     /// Two halves, and neither of them is new information: <see cref="Value"/> answers the
@@ -279,6 +362,28 @@ namespace BrilliantQuesting.Dialogue
             SpeakerFeeling feeling,
             SpeakerTie tie)
         {
+            return Of(act, decision, claim, cast, callback, feeling, tie, SpeakerGrounds.Unread);
+        }
+
+        /// <summary>
+        /// The same reading, plus how the speaker comes to hold the claim (BQ-147).
+        ///
+        /// The eighth input, and of exactly the kind the other seven are: it is read off the
+        /// knowledge record the graph already holds, it cannot be composed here, and it reads as
+        /// <see cref="DialogueReadings.Absent"/> when nothing was supplied - so a fragment authored
+        /// for an eyewitness is not eligible in a scene where nobody looked at how the speaker
+        /// knows.
+        /// </summary>
+        public static RealizationReading Of(
+            SpeechAct act,
+            DisclosureDecision decision,
+            Fact claim,
+            DialogueCast cast,
+            CallbackHook callback,
+            SpeakerFeeling feeling,
+            SpeakerTie tie,
+            SpeakerGrounds grounds)
+        {
             RealizationReading reading = new RealizationReading();
             if (act == null)
             {
@@ -298,6 +403,7 @@ namespace BrilliantQuesting.Dialogue
             ReadCallback(reading, act, callback);
             ReadFeeling(reading, feeling);
             ReadTie(reading, act, tie);
+            ReadGrounds(reading, act, claim, grounds);
             ReadSlots(reading, act, claim, cast ?? DialogueCast.Anonymous, callback);
             return reading;
         }
@@ -331,6 +437,29 @@ namespace BrilliantQuesting.Dialogue
 
             reading._readings[DialogueReadings.Relationship] =
                 tie.IsTied ? Snake(tie.Kind.ToString()) : "none";
+        }
+
+        /// <summary>
+        /// How the speaker comes by the claim, and whether they could show it.
+        ///
+        /// Grounds read for a claim this line is not about are read as no grounds at all rather
+        /// than refused, exactly as a tie read against the wrong listener is:
+        /// <see cref="RealizationRequest.WhyNot"/> has already turned the request down by the time
+        /// wording runs, and this keeps the reading honest for a caller that built one by hand.
+        /// Borrowing one claim's provenance for another would be the whole failure in miniature.
+        /// </summary>
+        private static void ReadGrounds(RealizationReading reading, SpeechAct act, Fact claim, SpeakerGrounds grounds)
+        {
+            EntityId about = claim != null ? claim.Id : act.About;
+            if (!grounds.IsRead || about.IsNone || grounds.Claim != about)
+            {
+                reading._readings[DialogueReadings.ClaimSource] = DialogueReadings.Absent;
+                reading._readings[DialogueReadings.ClaimProof] = DialogueReadings.Absent;
+                return;
+            }
+
+            reading._readings[DialogueReadings.ClaimSource] = Snake(grounds.Source.ToString());
+            reading._readings[DialogueReadings.ClaimProof] = grounds.CanProve ? "yes" : "no";
         }
 
         /// <summary>
@@ -611,6 +740,19 @@ namespace BrilliantQuesting.Dialogue
         public SpeakerTie Tie { get; set; } = SpeakerTie.Unread;
 
         /// <summary>
+        /// How the speaker comes to hold the claim this act is about (BQ-147), when the caller read
+        /// the knowledge graph. <see cref="SpeakerGrounds.Unread"/> asks for no constraint on
+        /// provenance, which is what an unread caller and a speaker who holds no belief both
+        /// produce.
+        ///
+        /// <see cref="WhyNot"/> refuses grounds read for a different claim, for the reason it
+        /// refuses a tie read against the wrong listener: an eyewitness line said about a fact the
+        /// speaker was only told, because provenance was measured against a neighbouring claim, is
+        /// wording asserting a route the world never granted.
+        /// </summary>
+        public SpeakerGrounds Grounds { get; set; } = SpeakerGrounds.Unread;
+
+        /// <summary>
         /// The hook wording may actually read, or null when there is none it may.
         ///
         /// Every path into the fragment pool goes through this rather than through
@@ -720,6 +862,14 @@ namespace BrilliantQuesting.Dialogue
             if (Tie.IsRead && !Act.IsAddressedTo(Tie.Listener))
             {
                 return "the relationship was read against somebody the act does not address";
+            }
+
+            // BQ-147's refusal, and the same refusal again: grounds are held per claim, so wording
+            // one claim's provenance onto another would let "I saw it" be said about a fact the
+            // speaker was told.
+            if (Grounds.IsRead && Grounds.Claim != (Claim != null ? Claim.Id : Act.About))
+            {
+                return "the grounds were read for a claim other than the one being spoken about";
             }
 
             return string.Empty;

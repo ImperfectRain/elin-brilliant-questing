@@ -25,7 +25,7 @@ payload:
       repetitionGroup: ask
     - id: core.ask.tell.me.saw
       position: core
-      text: "Tell me what you saw."
+      text: "Tell me what you know."
       requires:
         act: ask
       repetitionGroup: ask
@@ -47,10 +47,13 @@ payload:
       text: "What happened next?"
       requires:
         act: ask
+        reply:
+          - answer
+          - inform
       repetitionGroup: ask.detail
     - id: core.ask.show.me
       position: core
-      text: "Show me where you found it."
+      text: "Show me what you can."
       requires:
         act: ask
       repetitionGroup: ask.detail
@@ -157,7 +160,7 @@ payload:
     # -- mood. An angry question is a different question, and the world already knows who is angry.
     - id: core.ask.angry.exactly
       position: core
-      text: "Say exactly what you saw."
+      text: "Say exactly what you know."
       requires:
         act: ask
         emotion: anger
@@ -170,6 +173,9 @@ payload:
       requires:
         act: ask
         emotion: anger
+        reply:
+          - answer
+          - inform
       repetitionGroup: ask.pressed
       memorability: signature
     - id: core.ask.suspicion.doesnt.fit

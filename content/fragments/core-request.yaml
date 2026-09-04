@@ -81,14 +81,14 @@ payload:
       text: "You still owe me."
       requires:
         act: request
-        relationship: debtor
+        relationship: creditor
       repetitionGroup: request.debt
     - id: core.request.ledger.unconvinced
       position: core
       text: "Our friendship is lovely. The ledger remains unconvinced."
       requires:
         act: request
-        relationship: debtor
+        relationship: creditor
       tone:
         - wry
       repetitionGroup: request.debt
@@ -98,7 +98,7 @@ payload:
       text: "I am willing to count this against the debt."
       requires:
         act: request
-        relationship: debtor
+        relationship: creditor
       repetitionGroup: request.debt
       memorability: voiced
 
@@ -190,7 +190,7 @@ payload:
       memorability: signature
     - id: core.request.family.did.nothing
       position: core
-      text: "Whatever you think of me, {subject} did nothing."
+      text: "Whatever you think of me, leave {subject} out of it."
       requires:
         subject: other
         act: request

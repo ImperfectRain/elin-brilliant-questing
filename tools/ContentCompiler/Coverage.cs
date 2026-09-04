@@ -54,6 +54,12 @@ namespace BrilliantQuesting.ContentCompiler
             Axis(report, fragments, DialogueReadings.Audience, "audience");
             Axis(report, fragments, DialogueReadings.Emotion, "audible emotion");
             Axis(report, fragments, DialogueReadings.Relationship, "relationship to the listener");
+
+            // BQ-147's two, and the reason to count them is the reason to count the rest: a route
+            // no fragment answers is a speaker the library falls silent for, and an eyewitness who
+            // cannot be worded is exactly the hole this axis was added to close.
+            Axis(report, fragments, DialogueReadings.ClaimSource, "how the speaker knows");
+            Axis(report, fragments, DialogueReadings.ClaimProof, "whether it can be shown");
             Tone(report, fragments);
             Idiolect(report, fragments);
             Memorability(report, fragments);

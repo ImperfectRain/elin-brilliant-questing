@@ -170,6 +170,41 @@ namespace BrilliantQuesting.Dialogue
         /// </summary>
         public const string ClaimPredicate = "claim_predicate";
 
+        /// <summary>
+        /// How the speaker comes to hold the claim, as a <see cref="Knowledge.KnowledgeSource"/>
+        /// (BQ-147).
+        ///
+        /// The claim's answer to the question <see cref="CallbackRoute"/> answers for a recalled
+        /// event, and it is here for the same reason that one is. "I saw it", "I have it
+        /// secondhand" and "nobody told me - the pieces point that way" are three different
+        /// assertions about the world, and a pool that admitted all three would let the words
+        /// decide which of them was true.
+        ///
+        /// It is not <see cref="Commitment"/> wearing another name. Commitment is how firmly
+        /// somebody will stand behind what they say, which a witness may do weakly and a confident
+        /// hearsay believer strongly; this is where the belief came from, which the knowledge
+        /// graph recorded when it was taught. Before this existed, provenance wording was chosen
+        /// on commitment, which is why the library could put "I watched it happen" in the mouth of
+        /// somebody who was told over a fence.
+        ///
+        /// <c>absent</c> when nobody looked, and also when the speaker holds no belief about the
+        /// claim - that second case is <see cref="Strategy"/>'s <c>nothing_to_disclose</c> and is
+        /// not a route.
+        /// </summary>
+        public const string ClaimSource = "claim_source";
+
+        /// <summary>
+        /// Whether the speaker holds something they could show a third party (BQ-147), as
+        /// <c>KnowledgeRecord.CanProve</c> already answers it.
+        ///
+        /// Separate from <see cref="ClaimSource"/> because believing and being able to demonstrate
+        /// come apart in both directions - a witness with nothing in their hands cannot prove what
+        /// they saw, and somebody handed a signed note can prove a thing they never watched
+        /// happen. "I can prove it" and "all I have is my word" are opposite claims about the same
+        /// belief, and neither of them is a degree of confidence.
+        /// </summary>
+        public const string ClaimProof = "claim_proof";
+
         /// <summary>Which act this one responds to, or <c>none</c>.</summary>
         public const string Reply = "reply";
 
@@ -346,6 +381,13 @@ namespace BrilliantQuesting.Dialogue
             allowed[Subject] = Set(Absent, "speaker", "listener", "other");
             allowed[Claim] = Set("present", "absent");
             allowed[ClaimPredicate] = null;
+
+            // Derived, for the reason the rest are: the vocabulary of ways of knowing is
+            // `KnowledgeSource`'s, and a copy kept here would be a second opinion about how
+            // anybody comes to believe anything. Proof is a yes/no on the same record rather than
+            // an enum, so it is written out beside `held_back`, which has the identical shape.
+            allowed[ClaimSource] = DialogueSlug.Every<Knowledge.KnowledgeSource>(Absent);
+            allowed[ClaimProof] = Set(Absent, "yes", "no");
 
             // `none` on top of the act vocabulary: an act that responds to nothing still reads.
             allowed[Reply] = DialogueSlug.Every<SpeechActType>("none");

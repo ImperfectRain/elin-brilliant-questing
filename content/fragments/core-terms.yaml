@@ -108,7 +108,7 @@ payload:
       text: "I owe you. Ask."
       requires:
         act: offer
-        relationship: creditor
+        relationship: debtor
       repetitionGroup: offer.tie
       memorability: voiced
     - id: core.offer.rival.beating.you.alive

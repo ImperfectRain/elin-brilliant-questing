@@ -55,7 +55,7 @@ payload:
     # -- the deeper version: owning more than was asked about
     - id: core.admit.more.than.told
       position: core
-      text: "I did more than I told you."
+      text: "There is more of it, and it is all mine."
       requires:
         act: admit
         depth:
@@ -65,7 +65,7 @@ payload:
       memorability: voiced
     - id: core.admit.hid.part
       position: core
-      text: "The part I hid was mine."
+      text: "The worst of it is mine too."
       requires:
         act: admit
         depth:
@@ -75,7 +75,7 @@ payload:
       memorability: voiced
     - id: core.admit.missing.piece
       position: core
-      text: "You were looking for the missing piece. I removed it."
+      text: "There was a missing piece. I removed it."
       requires:
         act: admit
         depth:
@@ -131,7 +131,7 @@ payload:
       memorability: voiced
     - id: core.admit.you.knew
       position: core
-      text: "You already knew. Yes."
+      text: "I am not going to make you drag it out of me. Yes."
       requires:
         act: admit
         relationship:

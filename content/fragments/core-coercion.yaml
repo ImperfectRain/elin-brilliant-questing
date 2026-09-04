@@ -26,20 +26,20 @@ payload:
       memorability: signature
     - id: core.threaten.last.time.asking
       position: core
-      text: "This is the last time I ask like this."
+      text: "I would rather not ask twice."
       requires:
         act: threaten
       repetitionGroup: threaten
     - id: core.threaten.stop.asking.politely
       position: core
-      text: "One more missing detail and I stop asking politely."
+      text: "If anything is missing from that, I stop asking politely."
       requires:
         act: threaten
       repetitionGroup: threaten
       memorability: signature
     - id: core.threaten.told.once
       position: core
-      text: "You were told once. Do not make me repeat it."
+      text: "You are being told once. Do not make me repeat it."
       requires:
         act: threaten
       tone:
@@ -163,6 +163,10 @@ payload:
       requires:
         act: warn
         emotion: affection
+        relationship:
+          - friend
+          - family
+          - spouse
       repetitionGroup: warn.mood
       memorability: protected
     - id: core.warn.close.tie.take.the.coat
@@ -205,7 +209,7 @@ payload:
       memorability: voiced
     - id: core.threaten.i.know.where
       position: core
-      text: "I know where you keep things."
+      text: "You have more to lose than this conversation."
       requires:
         act: threaten
       repetitionGroup: threaten

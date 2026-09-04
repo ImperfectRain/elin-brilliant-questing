@@ -163,6 +163,23 @@ namespace BrilliantQuesting.Dialogue
                 return false;
             }
 
+            // BQ-147. A fragment that names somebody has to say where they are standing, because
+            // the placeholder resolves to a name and a name said in the third person is a claim
+            // about who is not in the conversation. "{referent} took it" with no `referent`
+            // condition is eligible when the referent is the person being spoken to, and then the
+            // line says the listener's name to their face about a third party who is them - not a
+            // wording preference, a sentence that is false about the room. The same holds for the
+            // claim's subject and for the other side of a callback.
+            //
+            // Mechanical on purpose, and deliberately not a check on the English: this asks only
+            // whether the author declared the reading that decides who the name belongs to. Which
+            // values they declared is theirs - a line may be written for a listener - but leaving
+            // the question unanswered is the one thing that cannot be right.
+            if (!NamesArePlaced(where, slots, requires, record, out diagnostic))
+            {
+                return false;
+            }
+
             List<string> tones = new List<string>();
             if (!TryTones(record, where, json["tone"], tones, out diagnostic))
             {
@@ -420,6 +437,63 @@ namespace BrilliantQuesting.Dialogue
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Every placeholder that names a person, and the reading that says where that person is
+        /// standing. Nothing else in <see cref="DialogueSlots"/> names anybody:
+        /// <c>{speaker}</c> and <c>{listener}</c> are the two people the act already places, and
+        /// <c>{matter}</c> is a label rather than a person.
+        /// </summary>
+        private static readonly KeyValuePair<string, string>[] NamedPeople = new[]
+        {
+            new KeyValuePair<string, string>(DialogueSlots.Referent, DialogueReadings.Referent),
+            new KeyValuePair<string, string>(DialogueSlots.Subject, DialogueReadings.Subject),
+            new KeyValuePair<string, string>(DialogueSlots.Recalled, DialogueReadings.CallbackParty)
+        };
+
+        /// <summary>
+        /// Whether every person this text names has a declared position in the conversation.
+        /// </summary>
+        private static bool NamesArePlaced(
+            string where,
+            IReadOnlyList<string> slots,
+            List<FragmentRequirement> requires,
+            ContentRecord record,
+            out ContentDiagnostic diagnostic)
+        {
+            diagnostic = null;
+            for (int i = 0; i < NamedPeople.Length; i++)
+            {
+                string slot = NamedPeople[i].Key;
+                string reading = NamedPeople[i].Value;
+                if (!Contains(slots, slot) || Declares(requires, reading))
+                {
+                    continue;
+                }
+
+                diagnostic = Invalid(
+                    record,
+                    where,
+                    "A fragment that names {" + slot + "} must declare " + reading
+                        + ", so it cannot be said in the third person to the person it names.");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool Contains(IReadOnlyList<string> slots, string slot)
+        {
+            for (int i = 0; i < slots.Count; i++)
+            {
+                if (string.Equals(slots[i], slot, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool Declares(List<FragmentRequirement> requires, string key)

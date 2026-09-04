@@ -97,7 +97,7 @@ payload:
       memorability: signature
     - id: mod.emotion.relief.too.late
       position: modifier
-      text: "I thought we were too late."
+      text: "I thought it was too late."
       requires:
         emotion: relief
       repetitionGroup: mood
@@ -134,6 +134,10 @@ payload:
       requires:
         emotion: affection
         audience: one
+        relationship:
+          - friend
+          - family
+          - spouse
       repetitionGroup: mood
       memorability: protected
     - id: mod.emotion.affection.less.temporary
@@ -142,6 +146,10 @@ payload:
       requires:
         emotion: affection
         audience: one
+        relationship:
+          - friend
+          - family
+          - spouse
       repetitionGroup: mood
       memorability: protected
     - id: mod.emotion.stress.one.thing

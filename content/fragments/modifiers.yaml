@@ -71,7 +71,7 @@ payload:
         act:
           - answer
           - accuse
-        commitment: hedged
+        claim_proof: "no"
       idiolect:
         - expansive
         - flowing
@@ -85,7 +85,7 @@ payload:
         act:
           - answer
           - accuse
-        commitment: hedged
+        claim_proof: "no"
       repetitionGroup: commitment
 
     # -- what is being kept back, still every word true
@@ -171,11 +171,14 @@ payload:
       memorability: voiced
     - id: mod.deny.not.there.anyway
       position: modifier
-      text: "You may outrank me. You were still not there."
+      text: "You may outrank me. I am the one who was there."
       requires:
         act:
           - deny
           - answer
+        claim_source:
+          - witnessed
+          - participant
       idiolect:
         - clipped
         - literal
@@ -244,5 +247,8 @@ payload:
         act:
           - request
           - refuse
+        relationship:
+          - rival
+          - enemy
       repetitionGroup: boundary
       memorability: protected

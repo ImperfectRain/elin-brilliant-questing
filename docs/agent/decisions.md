@@ -1553,4 +1553,70 @@ costs nothing on the day and takes the meaning of "the caller asked for a tone" 
 `Opposite` a partial function over a vocabulary that now mixes affect with habit, and gives the
 coverage report no way to say which of the two a hole is in.
 
+## D061 — Wording may express a meaning and may never assert one, and provenance is a reading rather than a rewrite
+
+BQ-147 audits the shipped fragment corpus against its own eligibility, and the decision is about
+what to do when an authored line asserts something its conditions do not entail. Three answers, and
+which one applies is not a judgement call.
+
+**Where authoritative state already answers the question, add the reading.** How somebody came to
+hold a claim is `KnowledgeRecord.Source`. It is saved, it is already read by disclosure, by witness
+disclosure and by the investigation layer, and it is the exact thing "I saw it" asserts. So
+`claim_source` and `claim_proof` are derived from that one record the way `callback_route` is derived
+from a hook and `relationship` from an edge: passed into the request rather than read inside
+realization, absent when nobody looked, and refused when measured against a different claim. This is
+the same arrow BQ-146 drew — wording is *told* what the simulation holds, in the vocabulary the
+simulation holds it in — and it points one way only.
+
+The alternative was to delete the provenance wording, and it was worse than it looks. "I watched it
+happen", "I have it secondhand" and "nobody told me, the pieces point that way" are the sentences
+that make an investigation an investigation; a library that cannot say them can only say the claim.
+And the wording was not the broken part. What was broken is that it was being chosen on
+`commitment` — how firmly somebody will stand behind what they say — which is a different question
+with a different answer: a confident believer of a fence-side rumour reads `committed` and a
+hesitant eyewitness reads `hedged`, so each sentence was available to precisely the wrong speaker.
+
+**Where the proposition is about another person's mind, reword and never ground.** "You already
+knew", "you have not heard it yet", "whoever told you that" and "apparently you do not [remember]"
+are claims about somebody else's beliefs, and there is no reading to reach for because there must
+not be one. Beliefs are the knowledge graph's, they are held per person with a source and a
+confidence, and a wording layer that could assert one would be a second belief system with no ledger
+behind it — the duplicate-history failure the whole event-sourced model is arranged to prevent. The
+same holds for who moved where and for what has already been said to whom. A line that needs one of
+those says less instead.
+
+**Where an existing reading already answers it, tighten rather than invent.** Every backward-pointing
+line — "ask again", "that story is wrong", "mind who you are accusing" — is grounded by `reply`,
+which has existed since BQ-074. Every line that aims a feeling at the person opposite is grounded by
+`relationship`, because `EmotionalStateProfile` holds one number per state and no target: it says
+somebody is feeling affection and cannot say who for. Reaching for new state where an existing
+reading answers the question is how a vocabulary stops being closed.
+
+**A directed tie names the role of the party the edge runs from.** `ActorIntent` reads
+`RelationKind.Creditor` as "is owed" and `Debtor` as "owes"; `StoryletChemistry` gives the creditor
+the leverage. So `relationship: creditor` is the *speaker* who is owed, and sixteen shipped lines had
+it the other way round — "You still owe me" eligible only for the speaker who owes, "I owe you. Ask."
+only for the one who is owed. Nothing about the wording was wrong and nothing about the graph was
+wrong; the axis was read backwards, silently, in the one place nothing else looks. It is pinned by
+test rather than by comment, because a comment is what it had.
+
+**One rule is mechanical, and only one.** A fragment that names `{referent}`, `{subject}` or
+`{recalled}` must declare the reading that places that person, refused at load beside "a core
+fragment must declare which act it says". A name placeholder resolves to a name, and a name in the
+third person claims its owner is not the person being spoken to, so an unplaced one is eligible for
+the conversation it is nonsense in. It requires the question to be answered and never dictates the
+answer: a line written to be said to the person it names is a real line.
+
+Nothing further was made mechanical, and that is the decision rather than an omission. Whether a
+sentence asserts something is recognisable to a person and not to a rule: a checker over English
+would refuse a perfectly grounded line for containing "saw" and would still miss the assertion
+carried by "either" in "{recalled} never got theirs back either". So the rest of the audit lives in
+data-driven tests over the shipped corpus, which say "these exact claims came back" and claim nothing
+about sentences nobody has written yet.
+
+Reason: the cheap version reworded the twenty-five provenance lines into vagueness and shipped. It
+costs nothing on the day, deletes the register that makes a witness sound like a witness, and leaves
+the actual defect in place — provenance chosen on confidence — for the next author to walk into with
+the next sentence.
+
 Add a new entry only when the decision is both load-bearing and durable.

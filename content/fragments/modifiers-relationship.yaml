@@ -87,7 +87,7 @@ payload:
       memorability: signature
     - id: mod.tie.friend.came.on.purpose
       position: modifier
-      text: "Do not give me that look. You came here on purpose."
+      text: "Do not give me that look. I have known you too long for it."
       requires:
         act:
           - ask
@@ -101,7 +101,7 @@ payload:
       memorability: signature
     - id: mod.tie.family.already.dislike
       position: modifier
-      text: "Whatever you are about to ask, I already dislike who made you ask it."
+      text: "Whatever you are about to ask, I already dislike the reason for it."
       requires:
         act:
           - ask
@@ -168,7 +168,7 @@ payload:
       memorability: voiced
     - id: mod.tie.enemy.remember.what.you.did
       position: modifier
-      text: "I remember what you did. Apparently you do not."
+      text: "I remember what you did."
       requires:
         act:
           - refuse
@@ -176,17 +176,20 @@ payload:
           - threaten
           - deny
         relationship: enemy
+        callback: injury
+        callback_route: involved
+        callback_party: listener
       repetitionGroup: tie
       memorability: signature
     - id: mod.tie.creditor.not.disappeared
       position: modifier
-      text: "The debt between us did not disappear because you became desperate."
+      text: "The debt between us did not disappear because today is inconvenient."
       requires:
         act:
           - refuse
           - request
           - threaten
-        relationship: debtor
+        relationship: creditor
       repetitionGroup: tie
       memorability: signature
     - id: mod.tie.creditor.something.useful
@@ -197,7 +200,7 @@ payload:
           - request
           - offer
           - threaten
-        relationship: debtor
+        relationship: creditor
       tone:
         - wry
       repetitionGroup: tie
@@ -211,7 +214,7 @@ payload:
           - promise
           - apologize
           - answer
-        relationship: creditor
+        relationship: debtor
       repetitionGroup: tie
     - id: mod.tie.debtor.inconvenient
       position: modifier
@@ -222,7 +225,7 @@ payload:
           - promise
           - refuse
           - apologize
-        relationship: creditor
+        relationship: debtor
       repetitionGroup: tie
       memorability: signature
     - id: mod.tie.employer.do.the.work
@@ -233,7 +236,7 @@ payload:
           - request
           - refuse
           - warn
-        relationship: employee
+        relationship: employer
       repetitionGroup: tie
       memorability: voiced
     - id: mod.tie.employee.your.position
@@ -245,7 +248,7 @@ payload:
           - refuse
           - answer
           - inform
-        relationship: employer
+        relationship: employee
       tone:
         - formal
       repetitionGroup: tie

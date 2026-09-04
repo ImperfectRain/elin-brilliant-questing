@@ -109,7 +109,7 @@ payload:
       repetitionGroup: greeting
     - id: open.greet.acquaintance.reliable
       position: opener
-      text: "You have been reliable so far."
+      text: "I know your face, at least."
       requires:
         reply: none
         relationship: acquaintance
@@ -128,7 +128,7 @@ payload:
       repetitionGroup: greeting
     - id: open.greet.friend.came.back
       position: opener
-      text: "You came back. Good."
+      text: "Good. I was hoping it would be you."
       requires:
         reply: none
         relationship: friend
@@ -215,14 +215,14 @@ payload:
       text: "At last."
       requires:
         reply: none
-        relationship: debtor
+        relationship: creditor
       repetitionGroup: greeting
     - id: open.greet.debtor.hoping.forgotten
       position: opener
       text: "I was hoping you had forgotten."
       requires:
         reply: none
-        relationship: creditor
+        relationship: debtor
       tone:
         - wry
       repetitionGroup: greeting
@@ -232,7 +232,7 @@ payload:
       text: "There it is. The favour coming home."
       requires:
         reply: none
-        relationship: creditor
+        relationship: debtor
       idiolect:
         - clipped
         - figurative
@@ -251,7 +251,7 @@ payload:
       text: "You are paying, so ask."
       requires:
         reply: none
-        relationship: employer
+        relationship: employee
       repetitionGroup: greeting
       memorability: voiced
 
@@ -305,11 +305,15 @@ payload:
       requires:
         emotion: affection
         audience: one
+        relationship:
+          - friend
+          - family
+          - spouse
       repetitionGroup: greeting.mood
       memorability: protected
     - id: open.mood.shame.rather.not
       position: opener
-      text: "I know why you are here."
+      text: "I would rather this conversation had not found me."
       requires:
         emotion: shame
       repetitionGroup: greeting.mood

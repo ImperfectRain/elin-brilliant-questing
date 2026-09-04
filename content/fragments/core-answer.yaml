@@ -34,6 +34,9 @@ payload:
       requires:
         act: answer
         commitment: committed
+        claim_source:
+          - witnessed
+          - participant
       repetitionGroup: answer.provenance
     - id: core.answer.was.there
       position: core
@@ -41,6 +44,9 @@ payload:
       requires:
         act: answer
         commitment: committed
+        claim_source:
+          - witnessed
+          - participant
       repetitionGroup: answer.provenance
     - id: core.answer.not.a.story
       position: core
@@ -48,6 +54,7 @@ payload:
       requires:
         act: answer
         commitment: committed
+        claim_source: witnessed
         depth:
           - detail
           - in_confidence
@@ -58,14 +65,14 @@ payload:
       text: "I have it secondhand."
       requires:
         act: answer
-        commitment: hedged
+        claim_source: hearsay
       repetitionGroup: answer.provenance
     - id: core.answer.fingerprints
       position: core
       text: "It came to me with somebody else's fingerprints on it."
       requires:
         act: answer
-        commitment: hedged
+        claim_source: hearsay
       repetitionGroup: answer.provenance
       memorability: signature
     - id: core.answer.worked.it.out
@@ -73,7 +80,7 @@ payload:
       text: "Nobody told me. The pieces point that way."
       requires:
         act: answer
-        commitment: hedged
+        claim_source: inference
         depth:
           - detail
           - in_confidence
@@ -84,13 +91,14 @@ payload:
       text: "It is in the record."
       requires:
         act: answer
+        claim_source: document
       repetitionGroup: answer.provenance
     - id: core.answer.source.gone
       position: core
       text: "The fact stayed. Its source did not."
       requires:
         act: answer
-        commitment: hedged
+        claim_source: hearsay
       repetitionGroup: answer.provenance
       memorability: voiced
 
@@ -129,7 +137,7 @@ payload:
         subject: other
         act: answer
         claim_predicate: stole
-        commitment: committed
+        claim_source: witnessed
       repetitionGroup: answer.theft
     - id: core.answer.theft.hurry
       position: core
@@ -138,7 +146,7 @@ payload:
         subject: other
         act: answer
         claim_predicate: stole
-        commitment: committed
+        claim_source: witnessed
         depth:
           - detail
           - in_confidence
@@ -148,7 +156,7 @@ payload:
     # -- the unhelpful truthful answer, which is most of them
     - id: core.answer.dont.know
       position: core
-      text: "I do not know."
+      text: "Not with any certainty."
       requires:
         act: answer
         commitment: hedged
@@ -213,6 +221,7 @@ payload:
       text: "The detail I left out is the one you are going to care about."
       requires:
         act: answer
+        held_back: "yes"
         depth:
           - detail
           - in_confidence
@@ -220,7 +229,7 @@ payload:
       memorability: signature
     - id: core.answer.before.sunset
       position: core
-      text: "If the time matters, it was before sunset."
+      text: "If the time matters, I have it."
       requires:
         act: answer
         depth:
@@ -275,7 +284,7 @@ payload:
       repetitionGroup: answer.tie
     - id: core.answer.trusted.kept.from.everyone
       position: core
-      text: "I kept this from everyone else."
+      text: "I am not in the habit of saying this part."
       requires:
         act: answer
         depth: in_confidence

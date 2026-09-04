@@ -84,7 +84,8 @@ Continuity      CallbackHook(s), CallbackRecurrence, ItemProvenance, LocationHis
 Dialogue        SpeechAct, SpeechActProfile, Disclosure, Deception, DialogueFragment,
                 DialogueRealizer, VoiceProfile, ConversationState
                 what is meant, decided separately from how it is said; the realizer holds no
-                world and can only choose among authored phrases
+                world and can only choose among authored phrases, and an authored phrase may
+                assert nothing its own eligibility does not already guarantee (`D061`)
 
 Storylets       StoryletDefinition, StoryletCasting, StoryletChemistry, StoryletEngine,
                 ActorIntent, StoryletRouter

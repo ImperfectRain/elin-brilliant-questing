@@ -170,6 +170,10 @@ payload:
         act:
           - forgive
           - offer
+        reply:
+          - offer
+          - apologize
+          - promise
       repetitionGroup: closer.thanks
       memorability: protected
     - id: close.mind.who.you.accuse
@@ -179,6 +183,7 @@ payload:
         act:
           - deny
           - refuse
+        reply: accuse
       repetitionGroup: closer.prompt
       memorability: voiced
     - id: close.threats.poor.evidence
