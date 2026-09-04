@@ -9,6 +9,9 @@ payload:
       text: "No. That is not what happened."
       requires:
         act: deny
+      idiolect:
+        - clipped
+        - literal
       repetitionGroup: deny
     - id: core.deny.wrong
       position: core
@@ -21,6 +24,9 @@ payload:
       text: "You have the wrong person."
       requires:
         act: deny
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: deny
     - id: core.deny.not.me
       position: core
@@ -28,6 +34,9 @@ payload:
       requires:
         act: deny
         referent: speaker
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: deny
     - id: core.deny.took.nothing
       position: core
@@ -59,6 +68,9 @@ payload:
         referent: speaker
       tone:
         - wry
+      idiolect:
+        - expansive
+        - flowing
       repetitionGroup: deny
       memorability: signature
 
@@ -84,6 +96,9 @@ payload:
       requires:
         act: deny
         referent: other
+      idiolect:
+        - clipped
+        - figurative
       repetitionGroup: deny.defend
       memorability: signature
     - id: core.deny.could.not.have
@@ -103,6 +118,8 @@ payload:
           - family
           - spouse
           - friend
+      idiolect:
+        - clipped
       repetitionGroup: deny.defend
       memorability: signature
 
@@ -115,6 +132,9 @@ payload:
         reply: gossip
       tone:
         - wry
+      idiolect:
+        - clipped
+        - figurative
       repetitionGroup: deny.rumor
       memorability: signature
     - id: core.deny.rumor.told.one.person
@@ -123,6 +143,9 @@ payload:
       requires:
         act: deny
         reply: gossip
+      idiolect:
+        - expansive
+        - clipped
       repetitionGroup: deny.rumor
       memorability: signature
     - id: core.deny.rumor.plain
@@ -168,6 +191,10 @@ payload:
         audience: several
       tone:
         - curt
+      idiolect:
+        - terse
+        - clipped
+        - literal
       repetitionGroup: deny.mood
     - id: core.deny.stranger.dont.know.you
       position: core

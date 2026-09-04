@@ -388,6 +388,56 @@ namespace BrilliantQuesting.Lab.Tests
             }
         }
 
+        /// <summary>
+        /// BQ-142 in the laboratory. The last two voice rows hold all four tonal axes still and
+        /// differ from each other in nothing but length, cadence and figuration, so a difference
+        /// between their lines has exactly one cause - and the meaning across both is the meaning
+        /// every other row in the family carries.
+        /// </summary>
+        [Fact]
+        public void TwoVoicesDifferingOnlyInIdiolectSayTheSameThingDifferently()
+        {
+            PlaygroundSweepResult result = Evaluate("voice");
+
+            PlaygroundSweepRow terse = Row(result, PlaygroundVoices.TerseLiteral);
+            PlaygroundSweepRow expansive = Row(result, PlaygroundVoices.ExpansiveFigurative);
+
+            Assert.Empty(terse.Turn.Request.Tone);
+            Assert.Empty(expansive.Turn.Request.Tone);
+            Assert.NotEmpty(terse.Turn.Request.Idiolect);
+            Assert.NotEmpty(expansive.Turn.Request.Idiolect);
+
+            Assert.Equal(terse.Turn.Line.Meaning, expansive.Turn.Line.Meaning);
+            Assert.NotEqual(terse.Turn.Line.Text, expansive.Turn.Line.Text);
+        }
+
+        [Fact]
+        public void ARequestedIdiolectNeverWidensTheChoice()
+        {
+            PlaygroundSweepResult result = Evaluate("voice");
+            PlaygroundEligibility free = Row(result, PlaygroundVoices.Neutral).Turn.Eligible;
+
+            bool measured = false;
+            foreach (PlaygroundSweepRow row in result.Rows)
+            {
+                if (row.Turn.Request.Idiolect.Count == 0)
+                {
+                    continue;
+                }
+
+                foreach (FragmentPosition slot in PlaygroundEligibility.Slots)
+                {
+                    Assert.True(
+                        row.Turn.Eligible.CountAt(slot) <= free.CountAt(slot),
+                        row.Label + " widened the " + slot + " pool");
+                }
+
+                measured |= row.Turn.Eligible.CountAt(FragmentPosition.Core) < free.CountAt(FragmentPosition.Core);
+            }
+
+            Assert.True(measured, "no idiolect row narrowed the core pool, so nothing was measured");
+        }
+
         [Fact]
         public void NoIdentityEverChangesWhatIsMeantOrWhatIsDecided()
         {

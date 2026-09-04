@@ -707,6 +707,22 @@ namespace BrilliantQuesting.Dialogue
             string repetitionGroup,
             IReadOnlyList<string> slots,
             string memorability)
+            : this(id, position, text, requires, forbids, toneTags, null, tags, repetitionGroup, slots, memorability)
+        {
+        }
+
+        public DialogueFragment(
+            string id,
+            FragmentPosition position,
+            string text,
+            IReadOnlyList<FragmentRequirement> requires,
+            IReadOnlyList<FragmentRequirement> forbids,
+            IReadOnlyList<string> toneTags,
+            IReadOnlyList<string> idiolectTags,
+            IReadOnlyList<string> tags,
+            string repetitionGroup,
+            IReadOnlyList<string> slots,
+            string memorability)
         {
             Id = id ?? string.Empty;
             Position = position;
@@ -714,6 +730,7 @@ namespace BrilliantQuesting.Dialogue
             Requires = requires ?? NoConditions;
             Forbids = forbids ?? NoConditions;
             ToneTags = toneTags ?? NoTags;
+            IdiolectTags = idiolectTags ?? NoTags;
             Tags = tags ?? NoTags;
             RepetitionGroup = repetitionGroup ?? string.Empty;
             Slots = slots ?? NoTags;
@@ -742,6 +759,18 @@ namespace BrilliantQuesting.Dialogue
         /// stays available while the tonal vocabulary grows around it.
         /// </summary>
         public IReadOnlyList<string> ToneTags { get; }
+
+        /// <summary>
+        /// The linguistic habits this phrase is an instance of (BQ-142). Empty means it says
+        /// nothing about length, cadence or figuration and is therefore safe wording for every
+        /// speaker - the same floor <see cref="ToneTags"/> keeps, and the reason a corpus can be
+        /// migrated a few fragments at a time instead of all at once.
+        ///
+        /// A separate list from <see cref="Tags"/> because it is a closed vocabulary checked at
+        /// load, and a separate list from <see cref="ToneTags"/> because it answers a different
+        /// question: tone is the pitch of one line, and this is the habit behind it.
+        /// </summary>
+        public IReadOnlyList<string> IdiolectTags { get; }
 
         /// <summary>
         /// Free tags for the layers that constrain selection beyond tone. BQ-075's voice reached
@@ -831,6 +860,52 @@ namespace BrilliantQuesting.Dialogue
             for (int i = 0; i < ToneTags.Count; i++)
             {
                 string opposite = DialogueTones.Opposite(ToneTags[i]);
+                if (opposite == null)
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < requested.Count; j++)
+                {
+                    if (string.Equals(opposite, requested[j], StringComparison.Ordinal))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Whether it suits a speaker's habitual way of building a sentence (BQ-142).
+        ///
+        /// <see cref="FitsTone"/>'s rule, applied to <see cref="DialogueIdiolect"/>'s three axes,
+        /// and deliberately that rule rather than <see cref="FitsVocabulary"/>'s inversion. An
+        /// unmarked fragment suits every voice; a caller who asks for nothing is asking for no
+        /// constraint at all; and a marked fragment is refused exactly when one of its marks takes
+        /// the opposite pole on an axis the voice took a position on, so naming another axis can
+        /// only ever remove candidates.
+        ///
+        /// The inversion would have been wrong here for the reason it is right there. D035 makes an
+        /// unrequested vocabulary tag <em>exclude</em> because an occupational flavour let through
+        /// by an unread identity is a claim about somebody's life that nobody derived. A length or
+        /// a cadence claims nothing about anybody: it is a property of the sentence, visible in the
+        /// sentence, and true whether or not a voice was ever supplied. Inverting it would make
+        /// every untagged fragment in the corpus - which is nearly all of them - unspeakable by any
+        /// specified voice, which is a migration that has to land in one commit rather than a
+        /// vocabulary that can grow.
+        /// </summary>
+        public bool FitsIdiolect(IReadOnlyList<string> requested)
+        {
+            if (IdiolectTags.Count == 0 || requested == null || requested.Count == 0)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < IdiolectTags.Count; i++)
+            {
+                string opposite = DialogueIdiolect.Opposite(IdiolectTags[i]);
                 if (opposite == null)
                 {
                     continue;

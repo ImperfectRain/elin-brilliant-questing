@@ -10,6 +10,10 @@ payload:
           - answer
           - refuse
           - evade
+      idiolect:
+        - terse
+        - clipped
+        - literal
       repetitionGroup: closer.done
     - id: close.let.me.be
       position: closer
@@ -20,6 +24,9 @@ payload:
           - evade
       tone:
         - curt
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: closer.done
     - id: close.if.any.use
       position: closer
@@ -47,6 +54,10 @@ payload:
           - forgive
       tone:
         - curt
+      idiolect:
+        - terse
+        - clipped
+        - literal
       repetitionGroup: closer.done
     - id: close.all.i.have
       position: closer
@@ -64,6 +75,9 @@ payload:
           - answer
           - inform
           - refuse
+      idiolect:
+        - expansive
+        - flowing
       repetitionGroup: closer.done
       memorability: signature
 
@@ -77,6 +91,8 @@ payload:
           - refuse
           - evade
           - inform
+      idiolect:
+        - literal
       repetitionGroup: closer.return
     - id: close.find.me.with.proof
       position: closer
@@ -86,6 +102,8 @@ payload:
           - refuse
           - evade
           - deny
+      idiolect:
+        - literal
       repetitionGroup: closer.return
       memorability: voiced
     - id: close.sturdier.than.rumour
@@ -96,6 +114,10 @@ payload:
           - refuse
           - evade
           - deny
+      idiolect:
+        - expansive
+        - flowing
+        - figurative
       repetitionGroup: closer.return
       memorability: signature
     - id: close.think.before.answering

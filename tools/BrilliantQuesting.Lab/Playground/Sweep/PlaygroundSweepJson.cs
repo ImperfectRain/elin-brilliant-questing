@@ -101,6 +101,7 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
             sb.Append(", \"recurrence\": ").Append(Text(row.Recurrence));
             sb.Append(", \"veracity\": ").Append(Text(row.Veracity));
             sb.Append(", \"tone\": ").Append(Text(row.Tone));
+            sb.Append(", \"idiolect\": ").Append(Text(row.Idiolect));
             sb.Append(", \"vocabulary\": ").Append(Text(row.Vocabulary));
             sb.Append(", \"forbidden\": ").Append(Text(row.Forbidden));
             sb.Append(", \"eligible\": ").Append(Text(row.EligibleBySlot));

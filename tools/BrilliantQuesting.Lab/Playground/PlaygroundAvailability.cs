@@ -134,7 +134,7 @@ namespace BrilliantQuesting.Lab.Playground
                 PlaygroundSupport.SyntheticInput,
                 "a preset that needs history scripts the outcome; no exchange resolves a check"),
 
-            new PlaygroundSystem("voice profiles", "BQ-075",
+            new PlaygroundSystem("voice profiles and idiolect", "BQ-075, BQ-142",
                 PlaygroundSupport.LaboratoryAuthored,
                 "nothing in Core assigns a VoiceProfile; --voice names one, and deriving it from a job or a race is the stereotype BQ-145 refuses"),
             new PlaygroundSystem("choosing to promise", "BQ-083",

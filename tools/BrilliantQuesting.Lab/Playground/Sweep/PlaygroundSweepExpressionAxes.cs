@@ -18,9 +18,16 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
     /// exactly as it was, which is what makes "no tonal constraint" an honest description rather
     /// than a hidden default.
     ///
-    /// Run over a state that refuses, because that is where the shipped library's tone tags are:
-    /// a curt core, a curt closer and a warm one. A tone axis measured over a state with no tonal
-    /// fragments in its pool would measure nothing and look like a pass.
+    /// All four hold twice over as of BQ-142, because a voice now asks for two things and the
+    /// second is checked separately rather than folded into the first. The last two rows request no
+    /// tone at all and differ from each other only in length, cadence and figuration, so the
+    /// difference between their lines has exactly one possible cause - which is the whole reason
+    /// they were added rather than idiolect being bolted onto the existing four.
+    ///
+    /// Run over a state that refuses, because that is where the shipped library's tone tags are -
+    /// a curt core, a curt closer and a warm one - and where BQ-142's migrated cross-section is
+    /// thickest. An axis measured over a state with no marked fragments in its pool would measure
+    /// nothing and look like a pass.
     /// </summary>
     internal sealed class VoiceAxis : PlaygroundSweepAxis
     {
@@ -130,6 +137,83 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
                     }
 
                     return null;
+                })),
+
+            // BQ-142's two, and deliberately separate checks rather than a generalisation of the
+            // two above. A request now carries tone and idiolect, and a combined check would pass
+            // a row whose idiolect widened a pool its tone had narrowed further - which is exactly
+            // the arithmetic a sweep exists to refuse to average away.
+            new PlaygroundSweepInvariant(
+                "a requested idiolect never widens a slot's pool",
+                rows =>
+                {
+                    List<string> broken = new List<string>();
+                    PlaygroundSweepRow neutral = HonestyAxis.Find(rows, PlaygroundVoices.Neutral);
+                    if (neutral?.Turn?.Eligible == null)
+                    {
+                        return broken;
+                    }
+
+                    for (int i = 0; i < rows.Count; i++)
+                    {
+                        PlaygroundSweepRow row = rows[i];
+                        if (row.Turn?.Eligible == null || row.Turn.Request.Idiolect.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        for (int slot = 0; slot < PlaygroundEligibility.Slots.Length; slot++)
+                        {
+                            FragmentPosition position = PlaygroundEligibility.Slots[slot];
+                            int constrained = row.Turn.Eligible.CountAt(position);
+                            int free = neutral.Turn.Eligible.CountAt(position);
+                            if (constrained > free)
+                            {
+                                broken.Add(row.Label + " had " + constrained + " " + PlaygroundEligibility.Name(position)
+                                           + "(s) where an unconstrained voice had " + free);
+                            }
+                        }
+                    }
+
+                    return broken;
+                }),
+
+            new PlaygroundSweepInvariant(
+                "opposite idiolect poles do not leak through",
+                rows => PlaygroundSweepInvariant.Each(rows, row =>
+                {
+                    if (row.Turn?.Request == null || row.Turn.Eligible == null || row.Run == null)
+                    {
+                        return null;
+                    }
+
+                    DialogueFragmentLibrary library = row.Run.Stage.Realizer.Library;
+                    IReadOnlyList<string> idiolect = row.Turn.Request.Idiolect;
+
+                    for (int t = 0; t < idiolect.Count; t++)
+                    {
+                        string opposite = DialogueIdiolect.Opposite(idiolect[t]);
+                        if (opposite == null)
+                        {
+                            continue;
+                        }
+
+                        for (int slot = 0; slot < PlaygroundEligibility.Slots.Length; slot++)
+                        {
+                            IReadOnlyList<string> ids = row.Turn.Eligible.At(PlaygroundEligibility.Slots[slot]);
+                            for (int i = 0; i < ids.Count; i++)
+                            {
+                                if (library.TryGet(ids[i], out DialogueFragment fragment)
+                                    && Asks(fragment.IdiolectTags, opposite))
+                                {
+                                    return "asked for " + idiolect[t] + " and left " + ids[i]
+                                           + ", which is marked " + opposite + ", eligible";
+                                }
+                            }
+                        }
+                    }
+
+                    return null;
                 }))
         };
 
@@ -137,6 +221,8 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
         {
             output.WriteLine();
             output.WriteLine("what each voice actually asked for, and what it left to choose from");
+            output.WriteLine("  " + LabText.Column("voice", 22) + LabText.Column("tone", 26)
+                + LabText.Column("idiolect", 30) + "eligible");
             for (int i = 0; i < result.Rows.Count; i++)
             {
                 PlaygroundSweepRow row = result.Rows[i];
@@ -145,8 +231,9 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
                     continue;
                 }
 
-                output.WriteLine("  " + LabText.Column(row.Label, 14)
+                output.WriteLine("  " + LabText.Column(row.Label, 22)
                     + LabText.Column(PlaygroundText.Join(row.Turn.Request.Tone, "no tonal constraint"), 26)
+                    + LabText.Column(PlaygroundText.Join(row.Turn.Request.Idiolect, "no habit requested"), 30)
                     + row.EligibleBySlot);
             }
 

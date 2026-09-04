@@ -85,7 +85,8 @@ namespace BrilliantQuesting.Lab.Playground
                 + Occupation(stage.Npc(run.Listener)));
             output.WriteLine(Field("subject") + PlaygroundText.Claim(stage, stage.SubjectFactId));
             output.WriteLine(Field("voice") + run.VoiceName + " -> "
-                + PlaygroundVoices.Describe(run.Voice) + "   (laboratory-authored: nothing in Core assigns one)");
+                + PlaygroundVoices.Describe(run.Voice) + ", " + PlaygroundVoices.DescribeIdiolect(run.Voice)
+                + "   (laboratory-authored: nothing in Core assigns one)");
 
             output.WriteLine(Field("overrides") + (run.Overrides.Count == 0 ? "none" : run.Overrides[0]));
             for (int i = 1; i < run.Overrides.Count; i++)
@@ -139,6 +140,7 @@ namespace BrilliantQuesting.Lab.Playground
             output.WriteLine("  vocabulary: " + PlaygroundText.Join(
                 OccupationalVocabulary.RequestedVocabulary(identity), "none - no facet implies a domain"));
             output.WriteLine("  tone:       " + PlaygroundVoices.Describe(run.Voice));
+            output.WriteLine("  idiolect:   " + PlaygroundVoices.DescribeIdiolect(run.Voice));
 
             output.WriteLine();
             output.WriteLine("old business this speaker may recall about the listener");
@@ -351,6 +353,7 @@ namespace BrilliantQuesting.Lab.Playground
             }
 
             output.WriteLine("  tone:       " + PlaygroundText.Join(turn.Request.Tone, "none requested"));
+            output.WriteLine("  idiolect:   " + PlaygroundText.Join(turn.Request.Idiolect, "none requested"));
             output.WriteLine("  vocabulary: " + PlaygroundText.Join(turn.Request.Vocabulary, "none requested"));
             output.WriteLine("  forbidden:  " + PlaygroundText.Join(turn.Request.Forbidden, "nothing ruled out"));
             output.WriteLine("  weirdness:  ceiling " + run.Exchange.Budget.Ceiling

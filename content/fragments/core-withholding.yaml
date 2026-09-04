@@ -10,6 +10,10 @@ payload:
         act: refuse
       tone:
         - curt
+      idiolect:
+        - terse
+        - clipped
+        - literal
       repetitionGroup: refuse
     - id: core.refuse.not.mine
       position: core
@@ -22,12 +26,17 @@ payload:
       text: "I would rather not say."
       requires:
         act: refuse
+      idiolect:
+        - literal
       repetitionGroup: refuse
     - id: core.refuse.will.not
       position: core
       text: "I will not do that."
       requires:
         act: refuse
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: refuse
     - id: core.refuse.another.pair.of.hands
       position: core
@@ -35,6 +44,10 @@ payload:
       requires:
         act: refuse
         reply: request
+      idiolect:
+        - terse
+        - clipped
+        - figurative
       repetitionGroup: refuse
       memorability: voiced
     - id: core.refuse.belongs.to.someone
@@ -42,6 +55,9 @@ payload:
       text: "The rest of the answer belongs to someone who trusted me."
       requires:
         act: refuse
+      idiolect:
+        - expansive
+        - flowing
       repetitionGroup: refuse
       memorability: signature
     - id: core.refuse.not.for.you
@@ -49,12 +65,19 @@ payload:
       text: "That part is not for you."
       requires:
         act: refuse
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: refuse
     - id: core.refuse.doors.not.opening
       position: core
       text: "There are doors in this conversation I am not opening."
       requires:
         act: refuse
+      idiolect:
+        - expansive
+        - flowing
+        - figurative
       repetitionGroup: refuse
       memorability: signature
     - id: core.refuse.polite.ask.someone.else
@@ -72,6 +95,9 @@ payload:
         act: refuse
       tone:
         - formal
+      idiolect:
+        - flowing
+        - literal
       repetitionGroup: refuse.polite
     - id: core.refuse.abrasive.another.ear
       position: core
@@ -80,6 +106,10 @@ payload:
         act: refuse
       tone:
         - curt
+      idiolect:
+        - terse
+        - clipped
+        - figurative
       repetitionGroup: refuse.abrasive
     - id: core.refuse.abrasive.same.answer.louder
       position: core
@@ -88,6 +118,8 @@ payload:
         act: refuse
       tone:
         - curt
+      idiolect:
+        - clipped
       repetitionGroup: refuse.abrasive
       memorability: signature
     - id: core.refuse.abrasive.new.question
@@ -97,6 +129,9 @@ payload:
         act: refuse
       tone:
         - curt
+      idiolect:
+        - flowing
+        - literal
       repetitionGroup: refuse.abrasive
       memorability: signature
     - id: core.refuse.bringing.nothing
@@ -105,6 +140,10 @@ payload:
       requires:
         act: refuse
         relationship: none
+      idiolect:
+        - expansive
+        - flowing
+        - literal
       repetitionGroup: refuse.abrasive
       memorability: signature
 

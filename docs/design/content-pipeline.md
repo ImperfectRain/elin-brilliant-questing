@@ -123,7 +123,7 @@ A fragment belongs to an act and a position, and is selected by tags, requiremen
 by whose file it was in. If a line can only ever be said by one named character, that is a signature
 line, and `CD §20` already defers those.
 
-### 5.1 What a fragment file says (BQ-132, BQ-146)
+### 5.1 What a fragment file says (BQ-132, BQ-146, BQ-142)
 
 ```yaml
 - id: core.accuse.stop.looking.past      # globally unique; a long-term contract
@@ -135,6 +135,7 @@ line, and `CD §20` already defers those.
     referent: other
   forbids: {}                             # the same vocabulary, negated
   tone: [curt]                            # marked poles of four axes; unmarked fits every voice
+  idiolect: [terse, literal]              # marked poles of three habit axes; unmarked fits every voice
   tags: [trade]                           # lived-context vocabulary, manners, weirdness category/level/premise
   repetitionGroup: accuse
   memorability: signature                 # utility | voiced | signature | protected
@@ -147,6 +148,14 @@ to or several, what old business is to hand and how the speaker comes by it, wha
 feeling, and what they are to the listener. Adding a key means the simulation grew a distinction, not
 that an author wanted a label. Placeholders are `DialogueSlots`' six and no more; a placeholder that
 cannot be filled makes its fragment ineligible rather than resolving to "someone".
+
+`idiolect` is the second closed vocabulary a voice narrows on (`BQ-142`, `D060`), and it is separate
+from `tone` because it answers a separate question: `tone` is the pitch this line is taken at, and
+`idiolect` is the habit that holds across every line a speaker says — length (`terse`/`expansive`),
+cadence (`clipped`/`flowing`) and figuration (`literal`/`figurative`). Register is not among them
+because `tone`'s `formal`/`plain` axis already is register. Marking is optional and most of the
+library is unmarked; an unmarked fragment is wording every voice can still reach, so the corpus is
+migrated a cross-section at a time. Both poles of one axis on one fragment is rejected at load.
 
 `memorability` is the one axis that is purely about wear: it changes how quickly a fragment counts as
 stale, so a line somebody would quote is spent when it lands and "No." is not (`D055`).

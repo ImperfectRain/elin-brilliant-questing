@@ -98,6 +98,7 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
                 Field(output, "veracity", row.Veracity);
                 Field(output, "reaction", row.Reaction);
                 Field(output, "tone", row.Tone);
+                Field(output, "idiolect", row.Idiolect);
                 Field(output, "vocabulary", row.Vocabulary);
                 Field(output, "forbidden", row.Forbidden);
                 Field(output, "eligible", row.EligibleBySlot);

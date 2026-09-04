@@ -256,6 +256,8 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
 
         public string Tone => PlaygroundText.Join(Turn?.Request?.Tone, "none requested");
 
+        public string Idiolect => PlaygroundText.Join(Turn?.Request?.Idiolect, "none requested");
+
         public string Vocabulary => PlaygroundText.Join(Turn?.Request?.Vocabulary, "none requested");
 
         public string Forbidden => PlaygroundText.Join(Turn?.Request?.Forbidden, "nothing ruled out");
@@ -365,7 +367,7 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
 
         /// <summary>Everything a row could observe, for deciding whether an input changed the outcome.</summary>
         public string ObservedSignature =>
-            SemanticSignature + "|" + Tone + "|" + Vocabulary + "|" + Forbidden + "|" + EligibleBySlot
+            SemanticSignature + "|" + Tone + "|" + Idiolect + "|" + Vocabulary + "|" + Forbidden + "|" + EligibleBySlot
             + "|" + Line + "|" + World + "|" + Conversation;
 
         /// <summary>

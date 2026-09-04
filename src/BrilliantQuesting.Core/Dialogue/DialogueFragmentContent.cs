@@ -17,8 +17,9 @@ namespace BrilliantQuesting.Dialogue
     /// Loading is strict for the same reason composing an act is. A fragment with a misspelt
     /// condition is not a fragment that says a bit less - it is one that says the wrong thing in
     /// the wrong situation forever, and nobody would find it. So every condition key, every
-    /// condition value, every tone tag and every placeholder is checked against the closed
-    /// vocabularies here, and a record that fails is reported rather than partially loaded.
+    /// condition value, every tone tag, every idiolect mark and every placeholder is checked
+    /// against the closed vocabularies here, and a record that fails is reported rather than
+    /// partially loaded.
     /// </summary>
     public static class DialogueFragmentContent
     {
@@ -168,6 +169,12 @@ namespace BrilliantQuesting.Dialogue
                 return false;
             }
 
+            List<string> idiolect = new List<string>();
+            if (!TryIdiolect(record, where, json["idiolect"], idiolect, out diagnostic))
+            {
+                return false;
+            }
+
             List<string> tags = new List<string>();
             if (!TryTags(record, where, json["tags"], tags, out diagnostic))
             {
@@ -192,6 +199,7 @@ namespace BrilliantQuesting.Dialogue
                 requires.ToArray(),
                 forbids.ToArray(),
                 tones.ToArray(),
+                idiolect.ToArray(),
                 tags.ToArray(),
                 json.GetString("repetitionGroup", string.Empty),
                 slots,
@@ -325,6 +333,57 @@ namespace BrilliantQuesting.Dialogue
                 if (item.Kind != JsonKind.String || !DialogueTones.IsTone(item.StringValue))
                 {
                     diagnostic = Invalid(record, where, "Unknown tone tag.");
+                    return false;
+                }
+
+                into.Add(item.StringValue);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// The habits a phrase declares (BQ-142), against a closed vocabulary and against itself.
+        ///
+        /// Two refusals, and the second is the one worth having. An unknown tag is the ordinary
+        /// typo refusal every other vocabulary here makes: a misspelt <c>figurative</c> would be a
+        /// mark no voice can ever ask for and no author would find. Both poles of one axis is a
+        /// contradiction rather than a refinement - the same reading <see cref="FragmentRequirement"/>
+        /// already takes of two conditions on one key - and it is worse than useless: a fragment
+        /// marked terse <em>and</em> expansive is refused by every voice with an opinion about
+        /// length and admitted only by voices that were never going to narrow on it, so it would
+        /// quietly disappear from exactly the pools it was written for.
+        /// </summary>
+        private static bool TryIdiolect(ContentRecord record, string where, JsonValue json, List<string> into, out ContentDiagnostic diagnostic)
+        {
+            diagnostic = null;
+            if (json == null)
+            {
+                return true;
+            }
+
+            if (json.Kind != JsonKind.Array)
+            {
+                diagnostic = Invalid(record, where, "idiolect must be an array.");
+                return false;
+            }
+
+            for (int i = 0; i < json.Items.Count; i++)
+            {
+                JsonValue item = json.Items[i];
+                if (item.Kind != JsonKind.String || !DialogueIdiolect.IsIdiolect(item.StringValue))
+                {
+                    diagnostic = Invalid(record, where, "Unknown idiolect tag.");
+                    return false;
+                }
+
+                if (into.Contains(DialogueIdiolect.Opposite(item.StringValue)))
+                {
+                    diagnostic = Invalid(
+                        record,
+                        where,
+                        "A fragment cannot be both " + DialogueIdiolect.Opposite(item.StringValue)
+                            + " and " + item.StringValue + ".");
                     return false;
                 }
 

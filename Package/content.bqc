@@ -406,6 +406,11 @@
                 "evade"
               ]
             },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "closer.done"
           },
           {
@@ -420,6 +425,10 @@
             },
             "tone": [
               "curt"
+            ],
+            "idiolect": [
+              "terse",
+              "literal"
             ],
             "repetitionGroup": "closer.done"
           },
@@ -461,6 +470,11 @@
             "tone": [
               "curt"
             ],
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "closer.done"
           },
           {
@@ -486,6 +500,10 @@
                 "refuse"
               ]
             },
+            "idiolect": [
+              "expansive",
+              "flowing"
+            ],
             "repetitionGroup": "closer.done",
             "memorability": "signature"
           },
@@ -501,6 +519,9 @@
                 "inform"
               ]
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "closer.return"
           },
           {
@@ -514,6 +535,9 @@
                 "deny"
               ]
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "closer.return",
             "memorability": "voiced"
           },
@@ -528,6 +552,11 @@
                 "deny"
               ]
             },
+            "idiolect": [
+              "expansive",
+              "flowing",
+              "figurative"
+            ],
             "repetitionGroup": "closer.return",
             "memorability": "signature"
           },
@@ -2209,6 +2238,10 @@
             "requires": {
               "act": "deny"
             },
+            "idiolect": [
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "deny"
           },
           {
@@ -2227,6 +2260,10 @@
             "requires": {
               "act": "deny"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "deny"
           },
           {
@@ -2237,6 +2274,10 @@
               "act": "deny",
               "referent": "speaker"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "deny"
           },
           {
@@ -2281,6 +2322,10 @@
             "tone": [
               "wry"
             ],
+            "idiolect": [
+              "expansive",
+              "flowing"
+            ],
             "repetitionGroup": "deny",
             "memorability": "signature"
           },
@@ -2312,6 +2357,10 @@
               "act": "deny",
               "referent": "other"
             },
+            "idiolect": [
+              "clipped",
+              "figurative"
+            ],
             "repetitionGroup": "deny.defend",
             "memorability": "signature"
           },
@@ -2338,6 +2387,9 @@
                 "friend"
               ]
             },
+            "idiolect": [
+              "clipped"
+            ],
             "repetitionGroup": "deny.defend",
             "memorability": "signature"
           },
@@ -2352,6 +2404,10 @@
             "tone": [
               "wry"
             ],
+            "idiolect": [
+              "clipped",
+              "figurative"
+            ],
             "repetitionGroup": "deny.rumor",
             "memorability": "signature"
           },
@@ -2363,6 +2419,10 @@
               "act": "deny",
               "reply": "gossip"
             },
+            "idiolect": [
+              "expansive",
+              "clipped"
+            ],
             "repetitionGroup": "deny.rumor",
             "memorability": "signature"
           },
@@ -2422,6 +2482,11 @@
             },
             "tone": [
               "curt"
+            ],
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
             ],
             "repetitionGroup": "deny.mood"
           },
@@ -4165,6 +4230,11 @@
             "tone": [
               "curt"
             ],
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "refuse"
           },
           {
@@ -4183,6 +4253,9 @@
             "requires": {
               "act": "refuse"
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "refuse"
           },
           {
@@ -4192,6 +4265,10 @@
             "requires": {
               "act": "refuse"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "refuse"
           },
           {
@@ -4202,6 +4279,11 @@
               "act": "refuse",
               "reply": "request"
             },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "figurative"
+            ],
             "repetitionGroup": "refuse",
             "memorability": "voiced"
           },
@@ -4212,6 +4294,10 @@
             "requires": {
               "act": "refuse"
             },
+            "idiolect": [
+              "expansive",
+              "flowing"
+            ],
             "repetitionGroup": "refuse",
             "memorability": "signature"
           },
@@ -4222,6 +4308,10 @@
             "requires": {
               "act": "refuse"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "refuse"
           },
           {
@@ -4231,6 +4321,11 @@
             "requires": {
               "act": "refuse"
             },
+            "idiolect": [
+              "expansive",
+              "flowing",
+              "figurative"
+            ],
             "repetitionGroup": "refuse",
             "memorability": "signature"
           },
@@ -4256,6 +4351,10 @@
             "tone": [
               "formal"
             ],
+            "idiolect": [
+              "flowing",
+              "literal"
+            ],
             "repetitionGroup": "refuse.polite"
           },
           {
@@ -4268,6 +4367,11 @@
             "tone": [
               "curt"
             ],
+            "idiolect": [
+              "terse",
+              "clipped",
+              "figurative"
+            ],
             "repetitionGroup": "refuse.abrasive"
           },
           {
@@ -4279,6 +4383,9 @@
             },
             "tone": [
               "curt"
+            ],
+            "idiolect": [
+              "clipped"
             ],
             "repetitionGroup": "refuse.abrasive",
             "memorability": "signature"
@@ -4293,6 +4400,10 @@
             "tone": [
               "curt"
             ],
+            "idiolect": [
+              "flowing",
+              "literal"
+            ],
             "repetitionGroup": "refuse.abrasive",
             "memorability": "signature"
           },
@@ -4304,6 +4415,11 @@
               "act": "refuse",
               "relationship": "none"
             },
+            "idiolect": [
+              "expansive",
+              "flowing",
+              "literal"
+            ],
             "repetitionGroup": "refuse.abrasive",
             "memorability": "signature"
           },
@@ -5303,6 +5419,10 @@
               ],
               "commitment": "committed"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "commitment"
           },
           {
@@ -5316,6 +5436,10 @@
               ],
               "commitment": "hedged"
             },
+            "idiolect": [
+              "clipped",
+              "figurative"
+            ],
             "repetitionGroup": "commitment",
             "memorability": "signature"
           },
@@ -5341,6 +5465,10 @@
               "act": "answer",
               "commitment": "hedged"
             },
+            "idiolect": [
+              "clipped",
+              "figurative"
+            ],
             "repetitionGroup": "commitment",
             "memorability": "signature"
           },
@@ -5355,6 +5483,11 @@
               ],
               "commitment": "hedged"
             },
+            "idiolect": [
+              "expansive",
+              "flowing",
+              "figurative"
+            ],
             "repetitionGroup": "commitment",
             "memorability": "signature"
           },
@@ -5416,6 +5549,10 @@
             "requires": {
               "act": "refuse"
             },
+            "idiolect": [
+              "flowing",
+              "literal"
+            ],
             "repetitionGroup": "reserve"
           },
           {
@@ -5438,6 +5575,11 @@
               ],
               "held_back": "yes"
             },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "reserve",
             "memorability": "voiced"
           },
@@ -5483,6 +5625,10 @@
                 "answer"
               ]
             },
+            "idiolect": [
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "stubborn",
             "memorability": "signature"
           },
@@ -5496,6 +5642,11 @@
                 "deny"
               ]
             },
+            "idiolect": [
+              "expansive",
+              "flowing",
+              "figurative"
+            ],
             "repetitionGroup": "stubborn",
             "memorability": "signature"
           },
@@ -5685,6 +5836,10 @@
             "tone": [
               "curt"
             ],
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
             "repetitionGroup": "filler"
           },
           {
@@ -5718,6 +5873,9 @@
             "id": "open.well.then",
             "position": "opener",
             "text": "Well, then.",
+            "idiolect": [
+              "terse"
+            ],
             "repetitionGroup": "filler"
           },
           {
@@ -5781,6 +5939,10 @@
               "reply": "none",
               "relationship": "none"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "greeting",
             "memorability": "voiced"
           },
@@ -5832,6 +5994,10 @@
             "tone": [
               "warm"
             ],
+            "idiolect": [
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "greeting",
             "memorability": "voiced"
           },
@@ -5864,6 +6030,10 @@
             "tone": [
               "warm"
             ],
+            "idiolect": [
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "greeting",
             "memorability": "voiced"
           },
@@ -5875,6 +6045,11 @@
               "reply": "none",
               "relationship": "spouse"
             },
+            "idiolect": [
+              "expansive",
+              "flowing",
+              "figurative"
+            ],
             "repetitionGroup": "greeting",
             "memorability": "protected"
           },
@@ -5891,6 +6066,10 @@
             },
             "tone": [
               "cold"
+            ],
+            "idiolect": [
+              "terse",
+              "clipped"
             ],
             "repetitionGroup": "greeting"
           },
@@ -5953,6 +6132,10 @@
               "reply": "none",
               "relationship": "creditor"
             },
+            "idiolect": [
+              "clipped",
+              "figurative"
+            ],
             "repetitionGroup": "greeting",
             "memorability": "voiced"
           },

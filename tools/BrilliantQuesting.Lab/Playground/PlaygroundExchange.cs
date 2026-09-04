@@ -391,6 +391,7 @@ namespace BrilliantQuesting.Lab.Playground
                 Claim = turn.Reply.About == _stage.SubjectFactId ? _stage.Subject : null,
                 Cast = _stage.Cast,
                 Tone = _run.Voice.RequestedTone(),
+                Idiolect = _run.Voice.RequestedIdiolect(),
                 Vocabulary = OccupationalVocabulary.RequestedVocabulary(identity),
                 Forbidden = NegativeSpaceVoice.ForbiddenManners(
                     turn.Decision == null ? null : turn.Decision.Prohibitions),

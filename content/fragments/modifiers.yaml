@@ -26,6 +26,9 @@ payload:
           - accuse
           - inform
         commitment: committed
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: commitment
     - id: mod.answer.not.the.house
       position: modifier
@@ -35,6 +38,9 @@ payload:
           - answer
           - inform
         commitment: hedged
+      idiolect:
+        - clipped
+        - figurative
       repetitionGroup: commitment
       memorability: signature
     - id: mod.answer.best.explanation
@@ -53,6 +59,9 @@ payload:
       requires:
         act: answer
         commitment: hedged
+      idiolect:
+        - clipped
+        - figurative
       repetitionGroup: commitment
       memorability: signature
     - id: mod.answer.no.receipt
@@ -63,6 +72,10 @@ payload:
           - answer
           - accuse
         commitment: hedged
+      idiolect:
+        - expansive
+        - flowing
+        - figurative
       repetitionGroup: commitment
       memorability: signature
     - id: mod.answer.only.my.word
@@ -108,6 +121,9 @@ payload:
       text: "It is not worth what it would cost me."
       requires:
         act: refuse
+      idiolect:
+        - flowing
+        - literal
       repetitionGroup: reserve
     - id: mod.evade.said.enough
       position: modifier
@@ -123,6 +139,10 @@ payload:
           - answer
           - evade
         held_back: "yes"
+      idiolect:
+        - terse
+        - clipped
+        - literal
       repetitionGroup: reserve
       memorability: voiced
 
@@ -156,6 +176,9 @@ payload:
         act:
           - deny
           - answer
+      idiolect:
+        - clipped
+        - literal
       repetitionGroup: stubborn
       memorability: signature
     - id: mod.refuse.edge.of.willing
@@ -165,6 +188,10 @@ payload:
         act:
           - refuse
           - deny
+      idiolect:
+        - expansive
+        - flowing
+        - figurative
       repetitionGroup: stubborn
       memorability: signature
     - id: mod.refuse.will.not.lie

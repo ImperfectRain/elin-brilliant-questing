@@ -23,6 +23,9 @@ payload:
       text: "Look."
       tone:
         - curt
+      idiolect:
+        - terse
+        - clipped
       repetitionGroup: filler
     - id: open.reluctant
       position: opener
@@ -45,6 +48,8 @@ payload:
     - id: open.well.then
       position: opener
       text: "Well, then."
+      idiolect:
+        - terse
       repetitionGroup: filler
     - id: open.listen
       position: opener
@@ -90,6 +95,9 @@ payload:
       requires:
         reply: none
         relationship: none
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: greeting
       memorability: voiced
     - id: open.greet.acquaintance
@@ -126,6 +134,9 @@ payload:
         relationship: friend
       tone:
         - warm
+      idiolect:
+        - clipped
+        - literal
       repetitionGroup: greeting
       memorability: voiced
     - id: open.greet.friend.that.face
@@ -149,6 +160,9 @@ payload:
           - spouse
       tone:
         - warm
+      idiolect:
+        - clipped
+        - literal
       repetitionGroup: greeting
       memorability: voiced
     - id: open.greet.spouse.empty.chair
@@ -157,6 +171,10 @@ payload:
       requires:
         reply: none
         relationship: spouse
+      idiolect:
+        - expansive
+        - flowing
+        - figurative
       repetitionGroup: greeting
       memorability: protected
     - id: open.greet.rival.you
@@ -169,6 +187,9 @@ payload:
           - enemy
       tone:
         - cold
+      idiolect:
+        - terse
+        - clipped
       repetitionGroup: greeting
     - id: open.greet.rival.cooperation
       position: opener
@@ -212,6 +233,9 @@ payload:
       requires:
         reply: none
         relationship: creditor
+      idiolect:
+        - clipped
+        - figurative
       repetitionGroup: greeting
       memorability: voiced
     - id: open.greet.guildmate

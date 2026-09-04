@@ -134,7 +134,7 @@ No system is allowed to disappear from this table.
 | Emotion & interpretation | Absent | Playable | BQ-063, BQ-064 |
 | Storylets & casting | Absent | Playable | BQ-065 … BQ-069 |
 | Speech acts & disclosure | Absent | Playable | BQ-070 … BQ-073 |
-| Dialogue realization & voice | Absent | Playable | BQ-074 … BQ-078 |
+| Dialogue realization & voice | Absent | Playable | BQ-074 … BQ-078, BQ-142 |
 | Elin tone & weirdness budget | Absent | Playable | BQ-079, BQ-080 |
 | Callbacks & continuity | Absent | Playable | BQ-081, BQ-082 |
 | Conversation state & commitments | Absent | Playable | BQ-083 |
@@ -1441,14 +1441,60 @@ selection without creating meaning.
   no constructor from race, archetype, occupation or hobby — a profile is simply given to whoever
   is speaking, and nothing here reads identity to build one.
 - **Deferred by design** sentence length and metaphor use are named in this step's own line and in
-  CD §19's struct, but no shipped fragment carries a length or figuration marker to select on;
-  adding tags nothing uses would be authoring a vocabulary for a system that does not exist, which
-  is exactly what BQ-074 declined to do with tone itself. `TopicFixations`, `AvoidedTopics` and
-  `WeirdnessTolerance` are BQ-076's, BQ-077's and BQ-079's respectively. Attaching a profile to a
-  persisted `NarrativeNpc` — the way `PersonalityWeights` is — is left to whichever later step
-  first needs a voice to outlive a single request; this step proves the mechanism with profiles
-  built at the call site.
+  CD §19's struct, but no shipped fragment carried a length or figuration marker to select on when
+  this step landed; adding tags nothing uses would be authoring a vocabulary for a system that does
+  not exist, which is exactly what BQ-074 declined to do with tone itself. **BQ-142 closes that
+  deferral** — length, cadence and figuration are `DialogueIdiolect`, and the corpus carries them.
+  `TopicFixations`, `AvoidedTopics` and `WeirdnessTolerance` are BQ-076's, BQ-077's and BQ-079's
+  respectively. Attaching a profile to a persisted `NarrativeNpc` — the way `PersonalityWeights` is
+  — is left to whichever later step first needs a voice to outlive a single request; this step
+  proves the mechanism with profiles built at the call site.
 - **Sources** CD §19, §5.2.
+
+#### BQ-142 — Persistent idiolect: habits a voice keeps across every line *(stage S7, immediately after BQ-075)*
+Length, cadence and figuration as a second closed voice vocabulary, so two speakers at the identical
+semantic state sound like two people.
+- **Depends** BQ-074, BQ-075, BQ-132.
+- **Done when** two speakers whose tone requests are identical, and who have reached the identical
+  `SpeechAct` and `DisclosureDecision`, realize it in perceptibly different words, with
+  `RealizedLine.Meaning` unchanged across both.
+- **Current implementation** `DialogueIdiolect`, a closed vocabulary of three axes — `terse`/
+  `expansive`, `clipped`/`flowing`, `literal`/`figurative` — declared beside `VoiceProfile`, the one
+  thing that requests it. `VoiceProfile` gains `Verbosity`, `Cadence` and `Figuration` and
+  `RequestedIdiolect()`, the exact shape of `RequestedTone()`; `RealizationRequest.Idiolect` is the
+  second half of BQ-075's own seam; `DialogueFragment.IdiolectTags` is a closed, load-validated
+  field beside `tone` rather than a third reader of the free `Tags`; and
+  `DialogueFragment.FitsIdiolect` is `FitsTone`'s rule applied to the new axes, read in the one
+  place `Candidates` already narrows. Nothing else in the pipeline moved.
+  **Register is not one of the three, because `Formality` already is it.** CD §19's list is sentence
+  length, formality, directness, hedging, sarcasm and metaphor use; formality is register and has
+  requested `formal` against `plain` since BQ-075, so a second word-stock axis would be two names
+  for one question and the start of a parallel voice system. What this step adds is what BQ-075
+  named as its own deferral — length and figuration — plus cadence, which the corpus visibly
+  separates from length: "No. Find another ear." is terse and clipped, "You ask a great deal for
+  somebody bringing nothing." is expansive and carried, and a line may be terse and figurative at
+  once.
+  Two properties are inherited rather than re-argued, and one is deliberately not. A request is a
+  set of positions on axes, so naming another axis can only remove candidates (`D043`, now holding
+  over two vocabularies rather than one). An unmarked fragment fits every voice — the tone rule, not
+  `FitsVocabulary`'s inversion (`D035`): a length or a cadence is a property of the sentence and
+  claims nothing about anybody, so inverting it would make the untagged majority of the corpus
+  unspeakable and force the migration into one commit. And a voice no core can satisfy **refuses**,
+  with a reason and no text, rather than dropping the constraint: a habit that quietly stopped
+  applying when it was inconvenient would not be a habit.
+  **Migration is a cross-section, not a pass over the corpus.** 44 of 521 shipped fragments carry a
+  mark, across five files and four positions, chosen so every pole is authored somewhere and so the
+  refusal pool the laboratory sweeps is thick enough to measure. The rest stay unmarked and
+  reachable by every voice. The coverage report gains one table, counting marks rather than
+  eligibility, because the failure this vocabulary can have is the opposite of a content hole: an
+  axis nobody has taken a side on is a dimension a voice can request and the corpus cannot answer.
+- **Deferred by design** no shipped fragment is marked on all three axes at once and nothing derives
+  a profile from a character — attaching a voice to a persisted `NarrativeNpc` is still whichever
+  later step first needs one to outlive a request, exactly as BQ-075 left it. The full prose audit
+  of the migrated lines is not this step's; what is proved here is the mechanism and that the corpus
+  supports it. `DialogueTones` is untouched: sincerity still has no pole, and this vocabulary does
+  not lend it one.
+- **Sources** CD §19, §5.2; `D043`, `D035`, `D060`.
 
 #### BQ-076 — Occupational vocabulary
 Metaphors and nouns drawn from lived context — farmers speak of weather, thieves of heat and marks.
@@ -2899,7 +2945,7 @@ the audit artifact: if an idea is not here, it was missed.
 | Occupational vocabulary | BQ-076 |
 | Negative-space personality | BQ-077 |
 | Dialogue realization and fragments | BQ-074; authored as data at BQ-132 |
-| Voice profiles | BQ-075 |
+| Voice profiles | BQ-075; persistent idiolect at BQ-142 |
 | Four dialogue scales | BQ-074; signature lines §8 |
 | Repetition control | BQ-078 |
 | Weirdness taxonomy, budget, reactions, tone bible | BQ-079, BQ-080 |

@@ -1503,4 +1503,54 @@ outlive, contradict and double-count the ledger it was copied from; and because 
 dispatch time it cannot be gated per person afterwards, so the first consumer that asks what an NPC
 knows about a place gets the omniscient answer.
 
+## D060 — Idiolect is a second closed voice vocabulary, and an unmarked line is wording every voice can reach
+
+BQ-142 gives a speaker habits that hold across every line they say — length, cadence, figuration —
+and the whole decision is about where they live and what an unmarked fragment means once they exist.
+
+**A second vocabulary beside tone, not more tags in it.** `DialogueTones` is affect: warm on Tuesday
+and cold on Wednesday without becoming a different person. Idiolect is habit, which is what makes two
+speakers who have reached the identical `SpeechAct`, the identical `DisclosureDecision` and the
+identical tone still sound like two people. Folding the new poles into `DialogueTones` would have
+been fewer moving parts and would have silently changed what every existing reader of
+`RealizationRequest.Tone` — the sweep's invariants, the coverage report, the plugin — was asking for.
+Two lists, requested separately by `VoiceProfile.RequestedTone` and `RequestedIdiolect`, read
+separately by `FitsTone` and `FitsIdiolect`, keep both questions answerable and let a caller supply
+either, both or neither. It is a second vocabulary and not a second system: the seam, the request,
+the narrowing and the guarantee are all BQ-075's, used twice.
+
+**Register is not one of the axes, because `Formality` already is.** CD §19's list names formality
+and metaphor use in one breath, and formality *is* register — it has requested `formal` against
+`plain` since BQ-075. A word-stock axis beside it would be two names for one question, and the
+second one would be the beginning of the parallel personality system this layer is written to avoid.
+So the three are the two BQ-075 named as its own deferral, plus cadence, which the corpus separates
+from length on its own: a terse line can be figurative, and an expansive one can be clipped.
+
+**An unmarked fragment fits every voice — the tone rule, not the vocabulary rule.** `D035` inverts
+the default for occupational tags, so an unrequested flavour *excludes*, because a lived-context line
+let through by an unread identity is a claim about somebody's life nobody derived. That reasoning
+does not transfer. A length or a cadence is a property of the sentence, visible in the sentence, and
+true whether or not a voice was ever supplied — it asserts nothing about the speaker that the words
+do not already assert. Inverting the default here would make the untagged majority of a 521-fragment
+library unspeakable by any specified voice, which forces the migration into a single commit and makes
+every future tag a breaking change rather than an addition.
+
+**A voice no core can satisfy refuses.** The narrowing can empty a required slot, and when it does
+the line comes back unrealized with a reason and no text, exactly as BQ-074 refuses an act nothing
+has words for. Dropping the constraint to get a sentence out would make a habit a suggestion, and
+would produce the one failure this layer exists to prevent: words the simulation's own constraints
+had ruled out, said anyway. An optional slot narrowed to nothing simply falls silent, which is what
+an optional slot has always done.
+
+**Both poles of one axis on one fragment is rejected at load.** It is a contradiction rather than a
+refinement — the reading `FragmentRequirement` already takes of two conditions on one key — and it
+fails quietly rather than loudly: such a fragment is refused by every voice with an opinion about
+that axis and admitted only by voices that were never going to narrow on it, so it disappears from
+exactly the pools it was written for and nobody notices.
+
+Reason: the cheap version is three more strings in `DialogueTones` and a `tags` entry for each. It
+costs nothing on the day and takes the meaning of "the caller asked for a tone" with it, leaves
+`Opposite` a partial function over a vocabulary that now mixes affect with habit, and gives the
+coverage report no way to say which of the two a hole is in.
+
 Add a new entry only when the decision is both load-bearing and durable.

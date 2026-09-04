@@ -475,6 +475,7 @@ namespace BrilliantQuesting.Dialogue
     public sealed class RealizationRequest
     {
         private static readonly string[] NoTone = new string[0];
+        private static readonly string[] NoIdiolect = new string[0];
         private static readonly string[] NoVocabulary = new string[0];
         private static readonly string[] NoManners = new string[0];
 
@@ -504,10 +505,24 @@ namespace BrilliantQuesting.Dialogue
 
         /// <summary>
         /// The tone wanted, as <see cref="DialogueTones"/> tags. Empty asks for no tonal
-        /// constraint. This is the seam BQ-075's voice profiles will fill; it constrains choice
-        /// among ways of saying the same thing and can never change which thing is said.
+        /// constraint. This is the seam BQ-075's voice profiles fill; it constrains choice among
+        /// ways of saying the same thing and can never change which thing is said.
         /// </summary>
         public IReadOnlyList<string> Tone { get; set; } = NoTone;
+
+        /// <summary>
+        /// The speaker's habitual way of building a sentence, as <see cref="DialogueIdiolect"/>
+        /// tags (BQ-142). Empty asks for no constraint, which is what a voice that has no marked
+        /// habits and no voice at all both produce.
+        ///
+        /// The second half of the same seam as <see cref="Tone"/> and read the same way, by
+        /// <see cref="DialogueFragment.FitsIdiolect"/> and nowhere else: it narrows which fragment
+        /// says the point and can never change which point is said. It is separate from
+        /// <see cref="Tone"/> because it answers a separate question - tone is the pitch this line
+        /// is taken at, and this is the habit that holds across every line the speaker says - and a
+        /// caller may supply either, both or neither.
+        /// </summary>
+        public IReadOnlyList<string> Idiolect { get; set; } = NoIdiolect;
 
         /// <summary>
         /// The lived-context vocabulary wanted, as <see cref="DialogueVocabulary"/> tags (BQ-076).

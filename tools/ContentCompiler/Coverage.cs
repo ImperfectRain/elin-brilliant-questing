@@ -55,6 +55,7 @@ namespace BrilliantQuesting.ContentCompiler
             Axis(report, fragments, DialogueReadings.Emotion, "audible emotion");
             Axis(report, fragments, DialogueReadings.Relationship, "relationship to the listener");
             Tone(report, fragments);
+            Idiolect(report, fragments);
             Memorability(report, fragments);
             Storylets(report, storylets);
             Holes(report, fragments);
@@ -162,6 +163,79 @@ namespace BrilliantQuesting.ContentCompiler
             }
 
             report.AppendLine();
+        }
+
+        /// <summary>
+        /// How far BQ-142's habits actually reach into the corpus, counted where they were marked
+        /// rather than where they would be eligible.
+        ///
+        /// The other tables count eligibility, because a hole there is a situation nobody can speak
+        /// in. This one counts marks, because the failure it exists to catch is the opposite: an
+        /// axis a voice can request and no authored line has taken a side on is a dimension the
+        /// corpus does not support, and a speaker specified on it sounds exactly like a speaker who
+        /// was not. A zero column is that dimension; a pole marked far more often than its opposite
+        /// is a voice that can only ever be narrowed in one direction.
+        ///
+        /// Unmarked is reported beside them and is expected to be most of the library. It is the
+        /// wording every voice can still reach, so a small marked count is a young vocabulary
+        /// rather than a broken one.
+        /// </summary>
+        private static void Idiolect(StringBuilder report, IReadOnlyList<DialogueFragment> fragments)
+        {
+            Header(report, "idiolect mark x position");
+            report.Append(Pad("mark", 12));
+            foreach (FragmentPosition position in Positions())
+            {
+                report.Append(Pad(position.ToString().ToLowerInvariant(), 10));
+            }
+
+            report.AppendLine();
+
+            foreach (string tag in DialogueIdiolect.Vocabulary)
+            {
+                report.Append(Pad(tag, 12));
+                foreach (FragmentPosition position in Positions())
+                {
+                    int count = 0;
+                    for (int i = 0; i < fragments.Count; i++)
+                    {
+                        if (fragments[i].Position == position && Marks(fragments[i], tag))
+                        {
+                            count++;
+                        }
+                    }
+
+                    report.Append(Pad(count.ToString(), 10));
+                }
+
+                report.AppendLine();
+            }
+
+            int unmarked = 0;
+            for (int i = 0; i < fragments.Count; i++)
+            {
+                if (fragments[i].IdiolectTags.Count == 0)
+                {
+                    unmarked++;
+                }
+            }
+
+            report.AppendLine();
+            report.Append("unmarked: ").Append(unmarked).Append(" of ").Append(fragments.Count)
+                .AppendLine(" - wording every voice can still reach").AppendLine();
+        }
+
+        private static bool Marks(DialogueFragment fragment, string tag)
+        {
+            for (int i = 0; i < fragment.IdiolectTags.Count; i++)
+            {
+                if (string.Equals(fragment.IdiolectTags[i], tag, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void Memorability(StringBuilder report, IReadOnlyList<DialogueFragment> fragments)
