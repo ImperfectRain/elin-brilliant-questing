@@ -184,7 +184,7 @@
               "callback_party": "listener"
             },
             "repetitionGroup": "callback.history",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "call.history.injury.same.stove",
@@ -628,7 +628,206 @@
               "reply": "threaten"
             },
             "repetitionGroup": "closer.prompt",
-            "memorability": "signature"
+            "memorability": "voiced"
+          },
+          {
+            "id": "close.admit.there.it.is",
+            "position": "closer",
+            "text": "There it is.",
+            "requires": {
+              "act": [
+                "admit",
+                "apologize"
+              ]
+            },
+            "repetitionGroup": "closer.done"
+          },
+          {
+            "id": "close.admit.do.what.you.like",
+            "position": "closer",
+            "text": "Do what you like with that.",
+            "requires": {
+              "act": [
+                "admit",
+                "apologize",
+                "deny"
+              ]
+            },
+            "repetitionGroup": "closer.done",
+            "memorability": "voiced"
+          },
+          {
+            "id": "close.admit.said.it.now",
+            "position": "closer",
+            "text": "It is said now.",
+            "requires": {
+              "act": [
+                "admit",
+                "apologize",
+                "promise"
+              ]
+            },
+            "repetitionGroup": "closer.done",
+            "memorability": "voiced"
+          },
+          {
+            "id": "close.apologize.not.asking.for.anything",
+            "position": "closer",
+            "text": "I am not asking you for anything.",
+            "requires": {
+              "act": "apologize"
+            },
+            "repetitionGroup": "closer.done",
+            "memorability": "voiced"
+          },
+          {
+            "id": "close.gossip.make.of.it",
+            "position": "closer",
+            "text": "Make of that what you like.",
+            "requires": {
+              "act": [
+                "gossip",
+                "inform"
+              ]
+            },
+            "repetitionGroup": "closer.hedge"
+          },
+          {
+            "id": "close.gossip.not.from.me",
+            "position": "closer",
+            "text": "You did not hear it here.",
+            "requires": {
+              "act": [
+                "gossip",
+                "inform"
+              ]
+            },
+            "repetitionGroup": "closer.hedge",
+            "memorability": "voiced"
+          },
+          {
+            "id": "close.gossip.ask.around",
+            "position": "closer",
+            "text": "Ask around. Somebody will have more.",
+            "requires": {
+              "act": [
+                "gossip",
+                "ask",
+                "inform"
+              ]
+            },
+            "repetitionGroup": "closer.hedge"
+          },
+          {
+            "id": "close.warn.that.is.the.warning",
+            "position": "closer",
+            "text": "That is the warning.",
+            "requires": {
+              "act": [
+                "warn",
+                "threaten"
+              ]
+            },
+            "repetitionGroup": "closer.warning"
+          },
+          {
+            "id": "close.warn.do.as.you.like",
+            "position": "closer",
+            "text": "Go anyway, if you must.",
+            "requires": {
+              "act": "warn"
+            },
+            "repetitionGroup": "closer.warning",
+            "memorability": "voiced"
+          },
+          {
+            "id": "close.warn.said.my.piece",
+            "position": "closer",
+            "text": "I have said my piece.",
+            "requires": {
+              "act": [
+                "warn",
+                "threaten",
+                "accuse",
+                "promise"
+              ]
+            },
+            "repetitionGroup": "closer.warning"
+          },
+          {
+            "id": "close.threaten.your.move",
+            "position": "closer",
+            "text": "Your move.",
+            "requires": {
+              "act": [
+                "threaten",
+                "accuse",
+                "offer"
+              ]
+            },
+            "tone": [
+              "curt"
+            ],
+            "repetitionGroup": "closer.prompt",
+            "memorability": "voiced"
+          },
+          {
+            "id": "close.promise.hold.me.to.it",
+            "position": "closer",
+            "text": "Hold me to it.",
+            "requires": {
+              "act": [
+                "promise",
+                "offer"
+              ]
+            },
+            "repetitionGroup": "closer.prompt",
+            "memorability": "voiced"
+          },
+          {
+            "id": "close.ask.take.your.time",
+            "position": "closer",
+            "text": "Take your time.",
+            "requires": {
+              "act": [
+                "ask",
+                "request",
+                "offer"
+              ]
+            },
+            "tone": [
+              "warm"
+            ],
+            "repetitionGroup": "closer.prompt"
+          },
+          {
+            "id": "close.ask.i.am.waiting",
+            "position": "closer",
+            "text": "I am waiting.",
+            "requires": {
+              "act": [
+                "ask",
+                "request",
+                "accuse"
+              ]
+            },
+            "tone": [
+              "curt"
+            ],
+            "repetitionGroup": "closer.prompt"
+          },
+          {
+            "id": "close.accuse.say.otherwise",
+            "position": "closer",
+            "text": "Say otherwise, then.",
+            "requires": {
+              "act": [
+                "accuse",
+                "inform"
+              ]
+            },
+            "repetitionGroup": "closer.prompt",
+            "memorability": "voiced"
           }
         ]
       }
@@ -709,7 +908,7 @@
               ]
             },
             "repetitionGroup": "context.setting",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "ctx.somewhere.without.an.audience",
@@ -753,7 +952,7 @@
               "depth": "in_confidence"
             },
             "repetitionGroup": "context.setting",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "ctx.close.the.door",
@@ -877,7 +1076,7 @@
               "audience": "several"
             },
             "repetitionGroup": "accuse",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.accuse.know.what.i.saw",
@@ -1174,7 +1373,7 @@
               ]
             },
             "repetitionGroup": "admit.deep",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.admit.missing.piece",
@@ -1232,6 +1431,41 @@
             },
             "repetitionGroup": "admit.deep",
             "memorability": "protected"
+          },
+          {
+            "id": "core.admit.plainly",
+            "position": "core",
+            "text": "It was my doing.",
+            "requires": {
+              "act": "admit"
+            },
+            "repetitionGroup": "admit"
+          },
+          {
+            "id": "core.admit.tired.of.carrying",
+            "position": "core",
+            "text": "I am tired of carrying it. It was me.",
+            "requires": {
+              "act": "admit",
+              "emotion": "stress"
+            },
+            "repetitionGroup": "admit.shame",
+            "memorability": "voiced"
+          },
+          {
+            "id": "core.admit.you.knew",
+            "position": "core",
+            "text": "You already knew. Yes.",
+            "requires": {
+              "act": "admit",
+              "relationship": [
+                "friend",
+                "family",
+                "spouse"
+              ]
+            },
+            "repetitionGroup": "admit",
+            "memorability": "voiced"
           }
         ]
       }
@@ -1367,7 +1601,7 @@
               "commitment": "hedged"
             },
             "repetitionGroup": "answer.provenance",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.answer.theft.plain",
@@ -1460,7 +1694,7 @@
               "commitment": "hedged"
             },
             "repetitionGroup": "answer.thin",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.answer.nothing.unusual",
@@ -1484,7 +1718,7 @@
               "wry"
             ],
             "repetitionGroup": "answer.thin",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.answer.bad.part",
@@ -1609,7 +1843,7 @@
               "depth": "in_confidence"
             },
             "repetitionGroup": "answer.tie",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.answer.stranger.what.you.need",
@@ -1637,7 +1871,7 @@
               "cold"
             ],
             "repetitionGroup": "answer.tie",
-            "memorability": "signature"
+            "memorability": "voiced"
           }
         ]
       }
@@ -1800,7 +2034,7 @@
               "act": "warn"
             },
             "repetitionGroup": "warn",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.warn.beyond.words",
@@ -1901,6 +2135,57 @@
             },
             "repetitionGroup": "warn.tie",
             "memorability": "signature"
+          },
+          {
+            "id": "core.threaten.that.would.be.unwise",
+            "position": "core",
+            "text": "That would be unwise.",
+            "requires": {
+              "act": "threaten"
+            },
+            "tone": [
+              "cold"
+            ],
+            "repetitionGroup": "threaten"
+          },
+          {
+            "id": "core.threaten.settle.it.now",
+            "position": "core",
+            "text": "Settle it now or I settle it my way.",
+            "requires": {
+              "act": "threaten"
+            },
+            "repetitionGroup": "threaten",
+            "memorability": "voiced"
+          },
+          {
+            "id": "core.threaten.i.know.where",
+            "position": "core",
+            "text": "I know where you keep things.",
+            "requires": {
+              "act": "threaten"
+            },
+            "repetitionGroup": "threaten",
+            "memorability": "signature"
+          },
+          {
+            "id": "core.warn.think.first",
+            "position": "core",
+            "text": "Think before you do that.",
+            "requires": {
+              "act": "warn"
+            },
+            "repetitionGroup": "warn"
+          },
+          {
+            "id": "core.warn.not.what.it.looks",
+            "position": "core",
+            "text": "It is not what it looks like from here.",
+            "requires": {
+              "act": "warn"
+            },
+            "repetitionGroup": "warn",
+            "memorability": "voiced"
           }
         ]
       }
@@ -2107,7 +2392,7 @@
               "curt"
             ],
             "repetitionGroup": "deny.mood",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.deny.public.everyone.will.remember",
@@ -2265,7 +2550,37 @@
               "emotion": "suspicion"
             },
             "repetitionGroup": "gossip.spread",
-            "memorability": "signature"
+            "memorability": "voiced"
+          },
+          {
+            "id": "core.gossip.small.town",
+            "position": "core",
+            "text": "You will hear it soon enough. It is about {referent}.",
+            "requires": {
+              "act": "gossip"
+            },
+            "repetitionGroup": "gossip"
+          },
+          {
+            "id": "core.gossip.two.versions",
+            "position": "core",
+            "text": "There are two versions going round about {referent}.",
+            "requires": {
+              "act": "gossip",
+              "commitment": "hedged"
+            },
+            "repetitionGroup": "gossip",
+            "memorability": "voiced"
+          },
+          {
+            "id": "core.gossip.would.not.repeat",
+            "position": "core",
+            "text": "I would not repeat it if I thought it was nothing.",
+            "requires": {
+              "act": "gossip"
+            },
+            "repetitionGroup": "gossip",
+            "memorability": "voiced"
           }
         ]
       }
@@ -2517,7 +2832,7 @@
               "wry"
             ],
             "repetitionGroup": "inform.tie",
-            "memorability": "signature"
+            "memorability": "voiced"
           }
         ]
       }
@@ -3002,7 +3317,7 @@
               "emotion": "anger"
             },
             "repetitionGroup": "forgive",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.forgive.not.farther.than.today",
@@ -3034,7 +3349,7 @@
               "claim_predicate": "stole"
             },
             "repetitionGroup": "forgive.restitution",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.forgive.replace.and.done",
@@ -3103,6 +3418,53 @@
             },
             "repetitionGroup": "forgive.tie",
             "memorability": "signature"
+          },
+          {
+            "id": "core.apologize.should.not.have",
+            "position": "core",
+            "text": "I should not have done it.",
+            "requires": {
+              "act": "apologize"
+            },
+            "repetitionGroup": "apologize"
+          },
+          {
+            "id": "core.apologize.my.doing",
+            "position": "core",
+            "text": "That was my doing, and I am sorry for it.",
+            "requires": {
+              "act": "apologize"
+            },
+            "repetitionGroup": "apologize"
+          },
+          {
+            "id": "core.apologize.no.excuse",
+            "position": "core",
+            "text": "There is no version of this where I come off well.",
+            "requires": {
+              "act": "apologize"
+            },
+            "repetitionGroup": "apologize",
+            "memorability": "signature"
+          },
+          {
+            "id": "core.forgive.enough.of.it",
+            "position": "core",
+            "text": "Enough. It is finished.",
+            "requires": {
+              "act": "forgive"
+            },
+            "repetitionGroup": "forgive"
+          },
+          {
+            "id": "core.forgive.no.more.of.this",
+            "position": "core",
+            "text": "I am not spending another day on this.",
+            "requires": {
+              "act": "forgive"
+            },
+            "repetitionGroup": "forgive",
+            "memorability": "voiced"
           }
         ]
       }
@@ -3423,7 +3785,7 @@
               "cold"
             ],
             "repetitionGroup": "request.tie",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.request.leave",
@@ -3496,7 +3858,7 @@
               "act": "offer"
             },
             "repetitionGroup": "offer",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.offer.what.in.return",
@@ -3555,7 +3917,7 @@
               "act": "offer"
             },
             "repetitionGroup": "offer.terms",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.offer.return.the.matter",
@@ -3604,7 +3966,7 @@
               "act": "offer"
             },
             "repetitionGroup": "offer.generous",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.offer.easy.problem",
@@ -3642,7 +4004,7 @@
               "wry"
             ],
             "repetitionGroup": "offer.tie",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.promise.i.will",
@@ -3670,7 +4032,7 @@
               "act": "promise"
             },
             "repetitionGroup": "promise",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.promise.before.the.week",
@@ -3708,6 +4070,67 @@
               "formal"
             ],
             "repetitionGroup": "promise.tie",
+            "memorability": "signature"
+          },
+          {
+            "id": "core.promise.by.the.time.you.return",
+            "position": "core",
+            "text": "It will be waiting when you come back.",
+            "requires": {
+              "act": "promise"
+            },
+            "repetitionGroup": "promise"
+          },
+          {
+            "id": "core.promise.i.will.see.to.it",
+            "position": "core",
+            "text": "I will see to it myself.",
+            "requires": {
+              "act": "promise"
+            },
+            "repetitionGroup": "promise"
+          },
+          {
+            "id": "core.promise.no.conditions",
+            "position": "core",
+            "text": "No conditions. It is done.",
+            "requires": {
+              "act": "promise"
+            },
+            "repetitionGroup": "promise",
+            "memorability": "voiced"
+          },
+          {
+            "id": "core.promise.shame.make.it.right",
+            "position": "core",
+            "text": "I will put this right. However long it takes.",
+            "requires": {
+              "act": "promise",
+              "emotion": "shame"
+            },
+            "repetitionGroup": "promise",
+            "memorability": "voiced"
+          },
+          {
+            "id": "core.offer.name.your.terms",
+            "position": "core",
+            "text": "Name your terms.",
+            "requires": {
+              "act": "offer"
+            },
+            "repetitionGroup": "offer.terms"
+          },
+          {
+            "id": "core.offer.i.can.be.persuaded",
+            "position": "core",
+            "text": "I can be persuaded. Coin is unusually persuasive.",
+            "requires": {
+              "act": "offer"
+            },
+            "tone": [
+              "wry"
+            ],
+            "repetitionGroup": "offer.terms",
             "memorability": "signature"
           }
         ]
@@ -3899,7 +4322,7 @@
               "reply": "apologize"
             },
             "repetitionGroup": "refuse.apology",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.refuse.offer.not.a.bargain",
@@ -4142,7 +4565,7 @@
               "tactic": "change_subject"
             },
             "repetitionGroup": "evade",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.evade.deflect.ask.elsewhere",
@@ -4207,7 +4630,7 @@
               "audience": "several"
             },
             "repetitionGroup": "evade.mood",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "core.evade.public.half.the.town",
@@ -4387,7 +4810,7 @@
               "emotion": "suspicion"
             },
             "repetitionGroup": "mood",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "mod.emotion.suspicion.fits.too.easily",
@@ -4513,7 +4936,7 @@
               "relationship": "friend"
             },
             "repetitionGroup": "tie",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "mod.tie.friend.saves.us.finding.some",
@@ -4845,7 +5268,7 @@
               "held_back": "yes"
             },
             "repetitionGroup": "reserve",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "mod.refuse.cost",
@@ -4909,7 +5332,7 @@
               "audience": "several"
             },
             "repetitionGroup": "stubborn",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "mod.deny.not.there.anyway",
@@ -4948,7 +5371,7 @@
               ]
             },
             "repetitionGroup": "stubborn",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "mod.boundary.leave.subject.out",
@@ -5275,7 +5698,7 @@
               ]
             },
             "repetitionGroup": "greeting",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "open.greet.family.sit.first",
@@ -5329,7 +5752,7 @@
               "wry"
             ],
             "repetitionGroup": "greeting",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "open.greet.enemy.finish.quickly",
@@ -5363,7 +5786,7 @@
               "wry"
             ],
             "repetitionGroup": "greeting",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "open.greet.debtor.favour.home",
@@ -5373,7 +5796,7 @@
               "relationship": "creditor"
             },
             "repetitionGroup": "greeting",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "open.greet.guildmate",
@@ -5564,7 +5987,7 @@
               "cultivation"
             ],
             "repetitionGroup": "flavour",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "mod.answer.alchemy.measures",
@@ -5614,7 +6037,7 @@
               "trade"
             ],
             "repetitionGroup": "flavour",
-            "memorability": "signature"
+            "memorability": "voiced"
           },
           {
             "id": "mod.answer.public_order.seen.it.before",

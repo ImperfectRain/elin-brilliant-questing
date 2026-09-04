@@ -83,7 +83,7 @@ payload:
         act: forgive
         emotion: anger
       repetitionGroup: forgive
-      memorability: signature
+      memorability: voiced
     - id: core.forgive.not.farther.than.today
       position: core
       text: "I will not carry this farther than today."
@@ -106,7 +106,7 @@ payload:
         act: forgive
         claim_predicate: stole
       repetitionGroup: forgive.restitution
-      memorability: signature
+      memorability: voiced
     - id: core.forgive.replace.and.done
       position: core
       text: "Replace it and we are done."
@@ -156,3 +156,37 @@ payload:
         emotion: relief
       repetitionGroup: forgive.tie
       memorability: signature
+
+    # Apology was the second-thinnest core pool the coverage report named.
+    - id: core.apologize.should.not.have
+      position: core
+      text: "I should not have done it."
+      requires:
+        act: apologize
+      repetitionGroup: apologize
+    - id: core.apologize.my.doing
+      position: core
+      text: "That was my doing, and I am sorry for it."
+      requires:
+        act: apologize
+      repetitionGroup: apologize
+    - id: core.apologize.no.excuse
+      position: core
+      text: "There is no version of this where I come off well."
+      requires:
+        act: apologize
+      repetitionGroup: apologize
+      memorability: signature
+    - id: core.forgive.enough.of.it
+      position: core
+      text: "Enough. It is finished."
+      requires:
+        act: forgive
+      repetitionGroup: forgive
+    - id: core.forgive.no.more.of.this
+      position: core
+      text: "I am not spending another day on this."
+      requires:
+        act: forgive
+      repetitionGroup: forgive
+      memorability: voiced

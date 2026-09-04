@@ -75,4 +75,26 @@ payload:
         act: gossip
         emotion: suspicion
       repetitionGroup: gossip.spread
-      memorability: signature
+      memorability: voiced
+
+    - id: core.gossip.small.town
+      position: core
+      text: "You will hear it soon enough. It is about {referent}."
+      requires:
+        act: gossip
+      repetitionGroup: gossip
+    - id: core.gossip.two.versions
+      position: core
+      text: "There are two versions going round about {referent}."
+      requires:
+        act: gossip
+        commitment: hedged
+      repetitionGroup: gossip
+      memorability: voiced
+    - id: core.gossip.would.not.repeat
+      position: core
+      text: "I would not repeat it if I thought it was nothing."
+      requires:
+        act: gossip
+      repetitionGroup: gossip
+      memorability: voiced

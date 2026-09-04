@@ -58,7 +58,7 @@ payload:
       tags:
         - cultivation
       repetitionGroup: flavour
-      memorability: signature
+      memorability: voiced
     - id: mod.answer.alchemy.measures
       position: modifier
       text: "I measure things for a living. I noticed."
@@ -93,7 +93,7 @@ payload:
       tags:
         - trade
       repetitionGroup: flavour
-      memorability: signature
+      memorability: voiced
     - id: mod.answer.public_order.seen.it.before
       position: modifier
       text: "I have seen this shape of trouble before."

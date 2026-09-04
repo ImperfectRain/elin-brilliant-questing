@@ -53,6 +53,31 @@ namespace BrilliantQuesting.ContentCompiler
                     return 1;
                 }
 
+                if (!string.IsNullOrEmpty(options.CoveragePath))
+                {
+                    string report = Coverage.Report(loaded.Bundle);
+                    if (string.Equals(options.CoveragePath, "-", StringComparison.Ordinal))
+                    {
+                        Console.Write(report);
+                    }
+                    else
+                    {
+                        string reportDirectory = Path.GetDirectoryName(Path.GetFullPath(options.CoveragePath));
+                        if (!string.IsNullOrEmpty(reportDirectory))
+                        {
+                            Directory.CreateDirectory(reportDirectory);
+                        }
+
+                        File.WriteAllText(options.CoveragePath, report);
+                        Console.WriteLine("Wrote the content coverage report to " + options.CoveragePath + ".");
+                    }
+
+                    if (options.CoverageOnly)
+                    {
+                        return 0;
+                    }
+                }
+
                 if (options.Check)
                 {
                     if (!File.Exists(options.OutputPath))
@@ -232,6 +257,12 @@ namespace BrilliantQuesting.ContentCompiler
 
             public bool Check { get; private set; }
 
+            /// <summary>Where the BQ-133 coverage report goes, or "-" for standard output.</summary>
+            public string CoveragePath { get; private set; }
+
+            /// <summary>Whether the run is only the report, leaving the bundle on disk alone.</summary>
+            public bool CoverageOnly { get; private set; }
+
             public string Error { get; private set; }
 
             public static CompilerOptions Parse(string[] args)
@@ -251,8 +282,16 @@ namespace BrilliantQuesting.ContentCompiler
                         case "--check":
                             options.Check = true;
                             break;
+                        case "--coverage":
+                            options.CoveragePath = i + 1 < args.Length && !args[i + 1].StartsWith("--", StringComparison.Ordinal)
+                                ? RequireValue(args, ref i, arg, options)
+                                : "-";
+                            options.CoverageOnly = true;
+                            break;
                         case "--help":
-                            options.Error = "Usage: ContentCompiler [--content content] [--output Package/content.bqc] [--check]";
+                            options.Error =
+                                "Usage: ContentCompiler [--content content] [--output Package/content.bqc] [--check]\n"
+                                + "                       [--coverage [path]]";
                             return options;
                         default:
                             options.Error = "Unknown option: " + arg;

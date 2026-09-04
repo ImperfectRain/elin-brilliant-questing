@@ -253,6 +253,27 @@ namespace BrilliantQuesting.Dialogue
         public static bool IsKey(string key) => key != null && Allowed.ContainsKey(key);
 
         /// <summary>
+        /// Every value this key can read as, in a stable order, or null for the open keys whose
+        /// vocabulary belongs to another layer.
+        ///
+        /// Exposed for content reporting (BQ-133): counting how many fragments answer each cell of
+        /// act by position by tone by commitment needs the cells, and a report that listed them
+        /// again would be a second copy of a vocabulary this class exists to be the only copy of.
+        /// Reading is all it permits - nothing here can add a value or admit one.
+        /// </summary>
+        public static IReadOnlyList<string> ValuesOf(string key)
+        {
+            if (key == null || !Allowed.TryGetValue(key, out HashSet<string> values) || values == null)
+            {
+                return null;
+            }
+
+            List<string> ordered = new List<string>(values);
+            ordered.Sort(StringComparer.Ordinal);
+            return ordered;
+        }
+
+        /// <summary>
         /// Whether a value is one this key can ever read. True for any non-empty value on the open
         /// keys, so the predicate ontology stays <c>FactPredicates</c>'.
         /// </summary>

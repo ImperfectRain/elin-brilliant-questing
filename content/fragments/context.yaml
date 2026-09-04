@@ -55,7 +55,7 @@ payload:
           - accuse
           - promise
       repetitionGroup: context.setting
-      memorability: signature
+      memorability: voiced
     - id: ctx.somewhere.without.an.audience
       position: context
       text: "We can discuss this somewhere without an audience."
@@ -87,7 +87,7 @@ payload:
         audience: one
         depth: in_confidence
       repetitionGroup: context.setting
-      memorability: signature
+      memorability: voiced
     - id: ctx.close.the.door
       position: context
       text: "Close the door. I am tired of sharing secrets with hallways."

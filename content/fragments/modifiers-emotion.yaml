@@ -114,7 +114,7 @@ payload:
       requires:
         emotion: suspicion
       repetitionGroup: mood
-      memorability: signature
+      memorability: voiced
     - id: mod.emotion.suspicion.fits.too.easily
       position: modifier
       text: "The story fits. I do not trust stories that fit this easily."

@@ -72,7 +72,7 @@ payload:
           - detail
           - in_confidence
       repetitionGroup: admit.deep
-      memorability: signature
+      memorability: voiced
     - id: core.admit.missing.piece
       position: core
       text: "You were looking for the missing piece. I removed it."
@@ -114,3 +114,29 @@ payload:
         act: admit
       repetitionGroup: admit.deep
       memorability: protected
+
+    - id: core.admit.plainly
+      position: core
+      text: "It was my doing."
+      requires:
+        act: admit
+      repetitionGroup: admit
+    - id: core.admit.tired.of.carrying
+      position: core
+      text: "I am tired of carrying it. It was me."
+      requires:
+        act: admit
+        emotion: stress
+      repetitionGroup: admit.shame
+      memorability: voiced
+    - id: core.admit.you.knew
+      position: core
+      text: "You already knew. Yes."
+      requires:
+        act: admit
+        relationship:
+          - friend
+          - family
+          - spouse
+      repetitionGroup: admit
+      memorability: voiced

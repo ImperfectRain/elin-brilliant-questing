@@ -43,7 +43,7 @@ payload:
       requires:
         relationship: friend
       repetitionGroup: tie
-      memorability: signature
+      memorability: voiced
     - id: mod.tie.friend.saves.us.finding.some
       position: modifier
       text: "This sounds like trouble. I suppose that saves us finding some."

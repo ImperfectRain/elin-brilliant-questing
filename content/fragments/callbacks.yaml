@@ -126,7 +126,7 @@ payload:
         callback_route: involved
         callback_party: listener
       repetitionGroup: callback.history
-      memorability: signature
+      memorability: voiced
     - id: call.history.injury.same.stove
       position: callback
       text: "You are asking me to put my hand on the same stove twice."

@@ -107,6 +107,83 @@ namespace BrilliantQuesting.Tests
             AssertRefused(Storylet("\"resolutions\": [\"done\"], \"beats\": [{\"id\": \"opens\", \"routes\": [{\"when\": \"check_pass\", \"ends\": \"done\"}]}]"), "routes on a check it does not make");
         }
 
+        /// <summary>
+        /// The three-realization rule, over the shipped library: every act the simulation can
+        /// produce has at least three genuinely different cores, and at least three ways to finish
+        /// a line, with no voice, no mood and no tie narrowing anything.
+        ///
+        /// One fragment in a cell is worse than none: none is a refusal the player never sees, and
+        /// one is a catchphrase they hear every time. The compiler's coverage report
+        /// (<c>--coverage</c>) is where the whole grid lives; this is the floor under it, held here
+        /// so that authoring an act without wording it fails the build rather than the playtest.
+        /// </summary>
+        [Fact]
+        public void EveryActHasAtLeastThreeWaysToBeSaidAndThreeWaysToBeFinished()
+        {
+            IReadOnlyList<ContentDiagnostic> problems;
+            IReadOnlyList<DialogueFragment> fragments = DialogueFragmentContent.LoadFragments(Bundle(), out problems);
+            Assert.Empty(problems);
+
+            foreach (SpeechActType act in SpeechActProfile.Vocabulary)
+            {
+                string slug = Slug(act.ToString());
+                Assert.True(
+                    Eligible(fragments, FragmentPosition.Core, slug) >= 3,
+                    slug + " has fewer than three cores");
+                Assert.True(
+                    Eligible(fragments, FragmentPosition.Closer, slug) >= 3,
+                    slug + " has fewer than three closers");
+            }
+
+            // And the library is mostly plain. A library whose lines are mostly memorable is a
+            // library of catchphrases, however good each one is on its own.
+            int quotable = fragments.Count(f =>
+                f.Memorability == DialogueMemorability.Signature || f.Memorability == DialogueMemorability.Protected);
+            Assert.True(quotable * 2 < fragments.Count, "most of the library is trying to be memorable");
+        }
+
+        private static int Eligible(IReadOnlyList<DialogueFragment> fragments, FragmentPosition position, string act)
+        {
+            return fragments.Count(f => f.Position == position && Answers(f, DialogueReadings.Act, act));
+        }
+
+        private static bool Answers(DialogueFragment fragment, string key, string value)
+        {
+            foreach (FragmentRequirement forbid in fragment.Forbids)
+            {
+                if (forbid.Key == key && forbid.IsMetBy(value))
+                {
+                    return false;
+                }
+            }
+
+            foreach (FragmentRequirement require in fragment.Requires)
+            {
+                if (require.Key == key)
+                {
+                    return require.IsMetBy(value);
+                }
+            }
+
+            return true;
+        }
+
+        private static string Slug(string name)
+        {
+            System.Text.StringBuilder slug = new System.Text.StringBuilder();
+            for (int i = 0; i < name.Length; i++)
+            {
+                if (i > 0 && char.IsUpper(name[i]))
+                {
+                    slug.Append('_');
+                }
+
+                slug.Append(char.ToLowerInvariant(name[i]));
+            }
+
+            return slug.ToString();
+        }
+
         // -- the same scene, different people ------------------------------------------------------
 
         /// <summary>

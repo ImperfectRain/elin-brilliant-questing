@@ -151,7 +151,7 @@ payload:
       tone:
         - curt
       repetitionGroup: deny.mood
-      memorability: signature
+      memorability: voiced
     - id: core.deny.public.everyone.will.remember
       position: core
       text: "Say it carefully. Everyone here will remember it."

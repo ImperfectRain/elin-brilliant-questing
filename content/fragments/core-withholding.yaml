@@ -130,7 +130,7 @@ payload:
         act: refuse
         reply: apologize
       repetitionGroup: refuse.apology
-      memorability: signature
+      memorability: voiced
 
     # -- refusing terms
     - id: core.refuse.offer.not.a.bargain
@@ -307,7 +307,7 @@ payload:
         act: evade
         tactic: change_subject
       repetitionGroup: evade
-      memorability: signature
+      memorability: voiced
     # An evasion asserts nothing, and no wording of one may name the claim's subject: a shrug
     # that says the thief's name has answered the question after all. So a deflection points
     # somewhere without naming who.
@@ -357,7 +357,7 @@ payload:
         act: evade
         audience: several
       repetitionGroup: evade.mood
-      memorability: signature
+      memorability: voiced
     - id: core.evade.public.half.the.town
       position: core
       text: "Ask me again when half the town is not pretending to shop."

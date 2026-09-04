@@ -130,7 +130,7 @@ payload:
           - family
           - spouse
       repetitionGroup: greeting
-      memorability: signature
+      memorability: voiced
     - id: open.greet.family.sit.first
       position: opener
       text: "Sit first. Then talk."
@@ -167,7 +167,7 @@ payload:
       tone:
         - wry
       repetitionGroup: greeting
-      memorability: signature
+      memorability: voiced
     - id: open.greet.enemy.finish.quickly
       position: opener
       text: "Make it quick."
@@ -190,14 +190,14 @@ payload:
       tone:
         - wry
       repetitionGroup: greeting
-      memorability: signature
+      memorability: voiced
     - id: open.greet.debtor.favour.home
       position: opener
       text: "There it is. The favour coming home."
       requires:
         relationship: creditor
       repetitionGroup: greeting
-      memorability: signature
+      memorability: voiced
     - id: open.greet.guildmate
       position: opener
       text: "One of ours, then."

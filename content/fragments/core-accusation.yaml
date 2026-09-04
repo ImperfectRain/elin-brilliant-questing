@@ -50,7 +50,7 @@ payload:
         claim_predicate: stole
         audience: several
       repetitionGroup: accuse
-      memorability: signature
+      memorability: voiced
 
     # -- how sure they are, which is the difference between a charge and a suspicion aloud
     - id: core.accuse.know.what.i.saw

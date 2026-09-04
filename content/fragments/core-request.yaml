@@ -235,7 +235,7 @@ payload:
       tone:
         - cold
       repetitionGroup: request.tie
-      memorability: signature
+      memorability: voiced
 
     # -- being asked to leave. A request whose matter is the listener's going.
     - id: core.request.leave

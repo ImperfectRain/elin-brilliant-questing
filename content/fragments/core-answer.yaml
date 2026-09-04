@@ -92,7 +92,7 @@ payload:
         act: answer
         commitment: hedged
       repetitionGroup: answer.provenance
-      memorability: signature
+      memorability: voiced
 
     # -- theft
     - id: core.answer.theft.plain
@@ -163,7 +163,7 @@ payload:
         act: answer
         commitment: hedged
       repetitionGroup: answer.thin
-      memorability: signature
+      memorability: voiced
     - id: core.answer.nothing.unusual
       position: core
       text: "Nothing unusual."
@@ -180,7 +180,7 @@ payload:
       tone:
         - wry
       repetitionGroup: answer.thin
-      memorability: signature
+      memorability: voiced
 
     # -- the answer that costs the speaker something
     - id: core.answer.bad.part
@@ -274,7 +274,7 @@ payload:
         act: answer
         depth: in_confidence
       repetitionGroup: answer.tie
-      memorability: signature
+      memorability: voiced
     - id: core.answer.stranger.what.you.need
       position: core
       text: "You will get the answer you need, not the one you want."
@@ -294,4 +294,4 @@ payload:
       tone:
         - cold
       repetitionGroup: answer.tie
-      memorability: signature
+      memorability: voiced

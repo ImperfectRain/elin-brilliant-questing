@@ -112,7 +112,7 @@ payload:
       requires:
         act: warn
       repetitionGroup: warn
-      memorability: signature
+      memorability: voiced
     - id: core.warn.beyond.words
       position: core
       text: "This has moved past words. Dress for that."
@@ -184,3 +184,41 @@ payload:
           - enemy
       repetitionGroup: warn.tie
       memorability: signature
+
+    # Threat was thin enough that a scene could hear the same one twice; these widen it without
+    # making every threat a speech.
+    - id: core.threaten.that.would.be.unwise
+      position: core
+      text: "That would be unwise."
+      requires:
+        act: threaten
+      tone:
+        - cold
+      repetitionGroup: threaten
+    - id: core.threaten.settle.it.now
+      position: core
+      text: "Settle it now or I settle it my way."
+      requires:
+        act: threaten
+      repetitionGroup: threaten
+      memorability: voiced
+    - id: core.threaten.i.know.where
+      position: core
+      text: "I know where you keep things."
+      requires:
+        act: threaten
+      repetitionGroup: threaten
+      memorability: signature
+    - id: core.warn.think.first
+      position: core
+      text: "Think before you do that."
+      requires:
+        act: warn
+      repetitionGroup: warn
+    - id: core.warn.not.what.it.looks
+      position: core
+      text: "It is not what it looks like from here."
+      requires:
+        act: warn
+      repetitionGroup: warn
+      memorability: voiced

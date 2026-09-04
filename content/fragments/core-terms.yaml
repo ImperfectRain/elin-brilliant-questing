@@ -21,7 +21,7 @@ payload:
       requires:
         act: offer
       repetitionGroup: offer
-      memorability: signature
+      memorability: voiced
     - id: core.offer.what.in.return
       position: core
       text: "What do I get in return?"
@@ -61,7 +61,7 @@ payload:
       requires:
         act: offer
       repetitionGroup: offer.terms
-      memorability: signature
+      memorability: voiced
     - id: core.offer.return.the.matter
       position: core
       text: "I will bring the {matter} back."
@@ -95,7 +95,7 @@ payload:
       requires:
         act: offer
       repetitionGroup: offer.generous
-      memorability: signature
+      memorability: voiced
     - id: core.offer.easy.problem
       position: core
       text: "If I can solve this by having less, we have found an easy problem."
@@ -122,7 +122,7 @@ payload:
       tone:
         - wry
       repetitionGroup: offer.tie
-      memorability: signature
+      memorability: voiced
 
     # -- promise: the speaker is bound. Whether it survives the conversation is the caller's call.
     - id: core.promise.i.will
@@ -143,7 +143,7 @@ payload:
       requires:
         act: promise
       repetitionGroup: promise
-      memorability: signature
+      memorability: voiced
     - id: core.promise.before.the.week
       position: core
       text: "It will be done, and it will be done soon."
@@ -170,4 +170,49 @@ payload:
       tone:
         - formal
       repetitionGroup: promise.tie
+      memorability: signature
+
+    # BQ-133 reported promise as the thinnest core pool in the library; these are the three that
+    # close it, and they are three different kinds of undertaking rather than three phrasings.
+    - id: core.promise.by.the.time.you.return
+      position: core
+      text: "It will be waiting when you come back."
+      requires:
+        act: promise
+      repetitionGroup: promise
+    - id: core.promise.i.will.see.to.it
+      position: core
+      text: "I will see to it myself."
+      requires:
+        act: promise
+      repetitionGroup: promise
+    - id: core.promise.no.conditions
+      position: core
+      text: "No conditions. It is done."
+      requires:
+        act: promise
+      repetitionGroup: promise
+      memorability: voiced
+    - id: core.promise.shame.make.it.right
+      position: core
+      text: "I will put this right. However long it takes."
+      requires:
+        act: promise
+        emotion: shame
+      repetitionGroup: promise
+      memorability: voiced
+    - id: core.offer.name.your.terms
+      position: core
+      text: "Name your terms."
+      requires:
+        act: offer
+      repetitionGroup: offer.terms
+    - id: core.offer.i.can.be.persuaded
+      position: core
+      text: "I can be persuaded. Coin is unusually persuasive."
+      requires:
+        act: offer
+      tone:
+        - wry
+      repetitionGroup: offer.terms
       memorability: signature
