@@ -182,6 +182,7 @@ payload:
       position: modifier
       text: "Leave {subject} out of this."
       requires:
+        subject: other
         act:
           - refuse
           - deny
@@ -192,6 +193,7 @@ payload:
       position: modifier
       text: "You may ask about me. You do not get to use {subject} as leverage."
       requires:
+        subject: other
         act:
           - refuse
           - deny
@@ -211,6 +213,7 @@ payload:
       position: modifier
       text: "Leave our quarrel where it is. {subject} should not inherit it."
       requires:
+        subject: other
         act:
           - request
           - refuse

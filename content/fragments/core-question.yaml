@@ -14,6 +14,7 @@ payload:
       position: core
       text: "What do you know about {subject}?"
       requires:
+        subject: other
         act: ask
       repetitionGroup: ask
     - id: core.ask.what.happened
@@ -66,6 +67,7 @@ payload:
       position: core
       text: "Was it {subject} who took the {matter}?"
       requires:
+        subject: other
         act: ask
         claim_predicate: stole
       repetitionGroup: ask

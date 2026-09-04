@@ -1608,6 +1608,7 @@
             "position": "core",
             "text": "It was {subject}.",
             "requires": {
+              "subject": "other",
               "act": "answer",
               "claim_predicate": "stole"
             },
@@ -1618,6 +1619,7 @@
             "position": "core",
             "text": "{subject} took it.",
             "requires": {
+              "subject": "other",
               "act": "answer",
               "claim_predicate": "stole"
             },
@@ -1628,6 +1630,7 @@
             "position": "core",
             "text": "{subject} took the {matter}.",
             "requires": {
+              "subject": "other",
               "act": "answer",
               "claim_predicate": "stole",
               "depth": [
@@ -1642,6 +1645,7 @@
             "position": "core",
             "text": "I saw {subject} leave with it.",
             "requires": {
+              "subject": "other",
               "act": "answer",
               "claim_predicate": "stole",
               "commitment": "committed"
@@ -1653,6 +1657,7 @@
             "position": "core",
             "text": "I saw {subject} leave. In a hurry.",
             "requires": {
+              "subject": "other",
               "act": "answer",
               "claim_predicate": "stole",
               "commitment": "committed",
@@ -1780,6 +1785,7 @@
             "position": "core",
             "text": "Do not ask me to be fair while I am still angry. It was {subject}.",
             "requires": {
+              "subject": "other",
               "act": "answer",
               "emotion": "anger",
               "claim_predicate": "stole"
@@ -2009,6 +2015,7 @@
             "position": "core",
             "text": "If {subject} sees you, leave.",
             "requires": {
+              "subject": "other",
               "act": "warn"
             },
             "repetitionGroup": "warn"
@@ -2623,6 +2630,7 @@
             "position": "core",
             "text": "It is about {subject}.",
             "requires": {
+              "subject": "other",
               "act": "inform"
             },
             "repetitionGroup": "inform"
@@ -2632,6 +2640,7 @@
             "position": "core",
             "text": "{subject} took the {matter}.",
             "requires": {
+              "subject": "other",
               "act": "inform",
               "claim_predicate": "stole"
             },
@@ -2654,6 +2663,7 @@
             "position": "core",
             "text": "I saw {subject} with the {matter}.",
             "requires": {
+              "subject": "other",
               "act": "inform",
               "claim_predicate": "stole",
               "commitment": "committed"
@@ -2856,6 +2866,7 @@
             "position": "core",
             "text": "What do you know about {subject}?",
             "requires": {
+              "subject": "other",
               "act": "ask"
             },
             "repetitionGroup": "ask"
@@ -2930,6 +2941,7 @@
             "position": "core",
             "text": "Was it {subject} who took the {matter}?",
             "requires": {
+              "subject": "other",
               "act": "ask",
               "claim_predicate": "stole"
             },
@@ -3727,6 +3739,7 @@
             "position": "core",
             "text": "Whatever you think of me, {subject} did nothing.",
             "requires": {
+              "subject": "other",
               "act": "request"
             },
             "tags": [
@@ -4048,6 +4061,7 @@
             "position": "core",
             "text": "If {subject} is in trouble, I am involved.",
             "requires": {
+              "subject": "other",
               "act": "promise",
               "relationship": [
                 "friend",
@@ -4885,6 +4899,12 @@
             "position": "modifier",
             "text": "You are asking for trust before introducing a reason.",
             "requires": {
+              "act": [
+                "refuse",
+                "evade",
+                "deny",
+                "ask"
+              ],
               "relationship": "none"
             },
             "repetitionGroup": "tie",
@@ -4895,6 +4915,11 @@
             "position": "modifier",
             "text": "I do not know you well enough for that answer.",
             "requires": {
+              "act": [
+                "refuse",
+                "evade",
+                "answer"
+              ],
               "relationship": "none"
             },
             "repetitionGroup": "tie"
@@ -4904,6 +4929,11 @@
             "position": "modifier",
             "text": "Start with your name. Then earn the second question.",
             "requires": {
+              "act": [
+                "refuse",
+                "evade",
+                "ask"
+              ],
               "relationship": "none"
             },
             "repetitionGroup": "tie",
@@ -4914,6 +4944,12 @@
             "position": "modifier",
             "text": "We are past introductions, not yet at confessions.",
             "requires": {
+              "act": [
+                "refuse",
+                "evade",
+                "answer",
+                "ask"
+              ],
               "relationship": "acquaintance"
             },
             "repetitionGroup": "tie",
@@ -4924,6 +4960,12 @@
             "position": "modifier",
             "text": "I know you well enough to listen.",
             "requires": {
+              "act": [
+                "ask",
+                "answer",
+                "inform",
+                "offer"
+              ],
               "relationship": "acquaintance"
             },
             "repetitionGroup": "tie"
@@ -4933,6 +4975,12 @@
             "position": "modifier",
             "text": "I can disagree with you after I help.",
             "requires": {
+              "act": [
+                "offer",
+                "promise",
+                "request",
+                "forgive"
+              ],
               "relationship": "friend"
             },
             "repetitionGroup": "tie",
@@ -4943,6 +4991,11 @@
             "position": "modifier",
             "text": "This sounds like trouble. I suppose that saves us finding some.",
             "requires": {
+              "act": [
+                "offer",
+                "promise",
+                "request"
+              ],
               "relationship": "friend"
             },
             "tone": [
@@ -4956,6 +5009,12 @@
             "position": "modifier",
             "text": "Do not give me that look. You came here on purpose.",
             "requires": {
+              "act": [
+                "ask",
+                "answer",
+                "offer",
+                "forgive"
+              ],
               "relationship": [
                 "friend",
                 "family"
@@ -4969,6 +5028,12 @@
             "position": "modifier",
             "text": "Whatever you are about to ask, I already dislike who made you ask it.",
             "requires": {
+              "act": [
+                "ask",
+                "offer",
+                "forgive",
+                "warn"
+              ],
               "relationship": [
                 "family",
                 "spouse"
@@ -4982,6 +5047,12 @@
             "position": "modifier",
             "text": "Do not make me pretend we are strangers.",
             "requires": {
+              "act": [
+                "ask",
+                "request",
+                "accuse",
+                "inform"
+              ],
               "relationship": [
                 "family",
                 "spouse",
@@ -4996,6 +5067,12 @@
             "position": "modifier",
             "text": "I can do this without liking you.",
             "requires": {
+              "act": [
+                "offer",
+                "answer",
+                "inform",
+                "promise"
+              ],
               "relationship": "rival"
             },
             "repetitionGroup": "tie"
@@ -5005,6 +5082,11 @@
             "position": "modifier",
             "text": "If anyone ruins you, I would prefer it be me.",
             "requires": {
+              "act": [
+                "warn",
+                "offer",
+                "threaten"
+              ],
               "relationship": "rival"
             },
             "tone": [
@@ -5018,6 +5100,12 @@
             "position": "modifier",
             "text": "I am watching what I say around you.",
             "requires": {
+              "act": [
+                "answer",
+                "evade",
+                "refuse",
+                "deny"
+              ],
               "relationship": "enemy"
             },
             "tone": [
@@ -5031,6 +5119,12 @@
             "position": "modifier",
             "text": "I remember what you did. Apparently you do not.",
             "requires": {
+              "act": [
+                "refuse",
+                "accuse",
+                "threaten",
+                "deny"
+              ],
               "relationship": "enemy"
             },
             "repetitionGroup": "tie",
@@ -5041,6 +5135,11 @@
             "position": "modifier",
             "text": "The debt between us did not disappear because you became desperate.",
             "requires": {
+              "act": [
+                "refuse",
+                "request",
+                "threaten"
+              ],
               "relationship": "debtor"
             },
             "repetitionGroup": "tie",
@@ -5051,6 +5150,11 @@
             "position": "modifier",
             "text": "At last, something useful to do with your obligation.",
             "requires": {
+              "act": [
+                "request",
+                "offer",
+                "threaten"
+              ],
               "relationship": "debtor"
             },
             "tone": [
@@ -5064,6 +5168,12 @@
             "position": "modifier",
             "text": "I have not forgotten what you did for me.",
             "requires": {
+              "act": [
+                "offer",
+                "promise",
+                "apologize",
+                "answer"
+              ],
               "relationship": "creditor"
             },
             "repetitionGroup": "tie"
@@ -5073,6 +5183,12 @@
             "position": "modifier",
             "text": "This is the part where an old favour becomes inconvenient.",
             "requires": {
+              "act": [
+                "offer",
+                "promise",
+                "refuse",
+                "apologize"
+              ],
               "relationship": "creditor"
             },
             "repetitionGroup": "tie",
@@ -5083,6 +5199,11 @@
             "position": "modifier",
             "text": "Do the work and we will discuss the rest afterward.",
             "requires": {
+              "act": [
+                "request",
+                "refuse",
+                "warn"
+              ],
               "relationship": "employee"
             },
             "repetitionGroup": "tie",
@@ -5093,6 +5214,12 @@
             "position": "modifier",
             "text": "I understand your position. The facts remain inconvenient.",
             "requires": {
+              "act": [
+                "deny",
+                "refuse",
+                "answer",
+                "inform"
+              ],
               "relationship": "employer"
             },
             "tone": [
@@ -5106,6 +5233,12 @@
             "position": "modifier",
             "text": "There are answers one gives differently in a hall like this.",
             "requires": {
+              "act": [
+                "refuse",
+                "evade",
+                "answer",
+                "inform"
+              ],
               "relationship": "guild_mate"
             },
             "tone": [
@@ -5119,6 +5252,12 @@
             "position": "modifier",
             "text": "Whatever lands on you lands on me. Remember that.",
             "requires": {
+              "act": [
+                "warn",
+                "threaten",
+                "request",
+                "deny"
+              ],
               "relationship": "accomplice"
             },
             "repetitionGroup": "tie",
@@ -5378,6 +5517,7 @@
             "position": "modifier",
             "text": "Leave {subject} out of this.",
             "requires": {
+              "subject": "other",
               "act": [
                 "refuse",
                 "deny",
@@ -5392,6 +5532,7 @@
             "position": "modifier",
             "text": "You may ask about me. You do not get to use {subject} as leverage.",
             "requires": {
+              "subject": "other",
               "act": [
                 "refuse",
                 "deny"
@@ -5419,6 +5560,7 @@
             "position": "modifier",
             "text": "Leave our quarrel where it is. {subject} should not inherit it.",
             "requires": {
+              "subject": "other",
               "act": [
                 "request",
                 "refuse"
@@ -5613,6 +5755,7 @@
             "position": "opener",
             "text": "Yes?",
             "requires": {
+              "reply": "none",
               "relationship": "none"
             },
             "repetitionGroup": "greeting"
@@ -5622,6 +5765,7 @@
             "position": "opener",
             "text": "State what you need.",
             "requires": {
+              "reply": "none",
               "relationship": "none"
             },
             "tone": [
@@ -5634,6 +5778,7 @@
             "position": "opener",
             "text": "We have not met.",
             "requires": {
+              "reply": "none",
               "relationship": "none"
             },
             "repetitionGroup": "greeting",
@@ -5644,6 +5789,7 @@
             "position": "opener",
             "text": "You again.",
             "requires": {
+              "reply": "none",
               "relationship": "acquaintance"
             },
             "repetitionGroup": "greeting"
@@ -5653,6 +5799,7 @@
             "position": "opener",
             "text": "You have been reliable so far.",
             "requires": {
+              "reply": "none",
               "relationship": "acquaintance"
             },
             "tone": [
@@ -5666,6 +5813,7 @@
             "position": "opener",
             "text": "There you are.",
             "requires": {
+              "reply": "none",
               "relationship": "friend"
             },
             "tone": [
@@ -5678,6 +5826,7 @@
             "position": "opener",
             "text": "You came back. Good.",
             "requires": {
+              "reply": "none",
               "relationship": "friend"
             },
             "tone": [
@@ -5691,6 +5840,7 @@
             "position": "opener",
             "text": "I know that face.",
             "requires": {
+              "reply": "none",
               "relationship": [
                 "friend",
                 "family",
@@ -5705,6 +5855,7 @@
             "position": "opener",
             "text": "Sit first. Then talk.",
             "requires": {
+              "reply": "none",
               "relationship": [
                 "family",
                 "spouse"
@@ -5721,6 +5872,7 @@
             "position": "opener",
             "text": "I was beginning to resent the empty chair.",
             "requires": {
+              "reply": "none",
               "relationship": "spouse"
             },
             "repetitionGroup": "greeting",
@@ -5731,6 +5883,7 @@
             "position": "opener",
             "text": "You.",
             "requires": {
+              "reply": "none",
               "relationship": [
                 "rival",
                 "enemy"
@@ -5746,6 +5899,7 @@
             "position": "opener",
             "text": "Do not mistake this for surrender.",
             "requires": {
+              "reply": "none",
               "relationship": "rival"
             },
             "tone": [
@@ -5759,6 +5913,7 @@
             "position": "opener",
             "text": "Make it quick.",
             "requires": {
+              "reply": "none",
               "relationship": "enemy"
             },
             "tone": [
@@ -5771,6 +5926,7 @@
             "position": "opener",
             "text": "At last.",
             "requires": {
+              "reply": "none",
               "relationship": "debtor"
             },
             "repetitionGroup": "greeting"
@@ -5780,6 +5936,7 @@
             "position": "opener",
             "text": "I was hoping you had forgotten.",
             "requires": {
+              "reply": "none",
               "relationship": "creditor"
             },
             "tone": [
@@ -5793,6 +5950,7 @@
             "position": "opener",
             "text": "There it is. The favour coming home.",
             "requires": {
+              "reply": "none",
               "relationship": "creditor"
             },
             "repetitionGroup": "greeting",
@@ -5803,6 +5961,7 @@
             "position": "opener",
             "text": "One of ours, then.",
             "requires": {
+              "reply": "none",
               "relationship": "guild_mate"
             },
             "repetitionGroup": "greeting",
@@ -5813,6 +5972,7 @@
             "position": "opener",
             "text": "You are paying, so ask.",
             "requires": {
+              "reply": "none",
               "relationship": "employer"
             },
             "repetitionGroup": "greeting",

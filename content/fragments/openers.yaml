@@ -72,12 +72,14 @@ payload:
       position: opener
       text: "Yes?"
       requires:
+        reply: none
         relationship: none
       repetitionGroup: greeting
     - id: open.greet.stranger.state.need
       position: opener
       text: "State what you need."
       requires:
+        reply: none
         relationship: none
       tone:
         - cold
@@ -86,6 +88,7 @@ payload:
       position: opener
       text: "We have not met."
       requires:
+        reply: none
         relationship: none
       repetitionGroup: greeting
       memorability: voiced
@@ -93,12 +96,14 @@ payload:
       position: opener
       text: "You again."
       requires:
+        reply: none
         relationship: acquaintance
       repetitionGroup: greeting
     - id: open.greet.acquaintance.reliable
       position: opener
       text: "You have been reliable so far."
       requires:
+        reply: none
         relationship: acquaintance
       tone:
         - warm
@@ -108,6 +113,7 @@ payload:
       position: opener
       text: "There you are."
       requires:
+        reply: none
         relationship: friend
       tone:
         - warm
@@ -116,6 +122,7 @@ payload:
       position: opener
       text: "You came back. Good."
       requires:
+        reply: none
         relationship: friend
       tone:
         - warm
@@ -125,6 +132,7 @@ payload:
       position: opener
       text: "I know that face."
       requires:
+        reply: none
         relationship:
           - friend
           - family
@@ -135,6 +143,7 @@ payload:
       position: opener
       text: "Sit first. Then talk."
       requires:
+        reply: none
         relationship:
           - family
           - spouse
@@ -146,6 +155,7 @@ payload:
       position: opener
       text: "I was beginning to resent the empty chair."
       requires:
+        reply: none
         relationship: spouse
       repetitionGroup: greeting
       memorability: protected
@@ -153,6 +163,7 @@ payload:
       position: opener
       text: "You."
       requires:
+        reply: none
         relationship:
           - rival
           - enemy
@@ -163,6 +174,7 @@ payload:
       position: opener
       text: "Do not mistake this for surrender."
       requires:
+        reply: none
         relationship: rival
       tone:
         - wry
@@ -172,6 +184,7 @@ payload:
       position: opener
       text: "Make it quick."
       requires:
+        reply: none
         relationship: enemy
       tone:
         - cold
@@ -180,12 +193,14 @@ payload:
       position: opener
       text: "At last."
       requires:
+        reply: none
         relationship: debtor
       repetitionGroup: greeting
     - id: open.greet.debtor.hoping.forgotten
       position: opener
       text: "I was hoping you had forgotten."
       requires:
+        reply: none
         relationship: creditor
       tone:
         - wry
@@ -195,6 +210,7 @@ payload:
       position: opener
       text: "There it is. The favour coming home."
       requires:
+        reply: none
         relationship: creditor
       repetitionGroup: greeting
       memorability: voiced
@@ -202,6 +218,7 @@ payload:
       position: opener
       text: "One of ours, then."
       requires:
+        reply: none
         relationship: guild_mate
       repetitionGroup: greeting
       memorability: voiced
@@ -209,6 +226,7 @@ payload:
       position: opener
       text: "You are paying, so ask."
       requires:
+        reply: none
         relationship: employer
       repetitionGroup: greeting
       memorability: voiced

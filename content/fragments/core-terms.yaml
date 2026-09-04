@@ -154,6 +154,7 @@ payload:
       position: core
       text: "If {subject} is in trouble, I am involved."
       requires:
+        subject: other
         act: promise
         relationship:
           - friend

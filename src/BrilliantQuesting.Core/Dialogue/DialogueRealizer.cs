@@ -105,6 +105,22 @@ namespace BrilliantQuesting.Dialogue
 
         private static readonly DeterministicRng Unseeded = new DeterministicRng(0UL);
 
+        /// <summary>
+        /// How much heavier saying nothing is than saying any one particular thing, at an optional
+        /// slot.
+        ///
+        /// The draw used to be one of <c>candidates + 1</c>, with silence as the extra option -
+        /// which meant a slot with three ways to fill it went quiet a quarter of the time and a
+        /// slot with thirty went quiet almost never. Growing the library therefore made every
+        /// speaker more ornate, which is exactly backwards: a bigger vocabulary should widen the
+        /// choice of what to say, not raise how much is said. Weighting silence against the pool
+        /// rather than against one member of it makes the texture independent of the library's
+        /// size, so a line stays mostly a core with an occasional flourish however much is
+        /// authored around it (CD §21, and the pack's own "most lines should survive removal from
+        /// a funny game").
+        /// </summary>
+        private const int Reticence = 2;
+
         public DialogueRealizer(DialogueFragmentLibrary library)
         {
             Library = library ?? new DialogueFragmentLibrary();
@@ -172,8 +188,8 @@ namespace BrilliantQuesting.Dialogue
                     }
 
                     DeterministicRng stream = rng.Fork("bq074|" + position + "|" + act.Signature);
-                    int pick = stream.NextInt(candidates.Count + 1);
-                    if (pick == candidates.Count)
+                    int pick = stream.NextInt(candidates.Count * (Reticence + 1));
+                    if (pick >= candidates.Count)
                     {
                         continue;
                     }

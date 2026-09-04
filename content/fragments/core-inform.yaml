@@ -27,12 +27,14 @@ payload:
       position: core
       text: "It is about {subject}."
       requires:
+        subject: other
         act: inform
       repetitionGroup: inform
     - id: core.inform.theft.plain
       position: core
       text: "{subject} took the {matter}."
       requires:
+        subject: other
         act: inform
         claim_predicate: stole
       repetitionGroup: inform.theft
@@ -49,6 +51,7 @@ payload:
       position: core
       text: "I saw {subject} with the {matter}."
       requires:
+        subject: other
         act: inform
         claim_predicate: stole
         commitment: committed

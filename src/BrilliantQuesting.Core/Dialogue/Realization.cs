@@ -291,6 +291,7 @@ namespace BrilliantQuesting.Dialogue
             reading._readings[DialogueReadings.Referent] = ReadReferent(act);
             reading._readings[DialogueReadings.Claim] = act.Content.HasProposition ? "present" : "absent";
             reading._readings[DialogueReadings.ClaimPredicate] = claim == null ? DialogueReadings.Absent : claim.Predicate;
+            reading._readings[DialogueReadings.Subject] = ReadSubject(act, claim);
             reading._readings[DialogueReadings.Reply] = act.InReplyTo == null ? "none" : Snake(act.InReplyTo.Type.ToString());
             reading._readings[DialogueReadings.Audience] = act.Addressees.Count > 1 ? "several" : "one";
             ReadDecision(reading, decision);
@@ -417,6 +418,26 @@ namespace BrilliantQuesting.Dialogue
             {
                 reading._slots[slot] = value.Trim();
             }
+        }
+
+        /// <summary>
+        /// Where the claim's subject is standing. Distinct from the referent because the act names
+        /// one and the claim is about the other, and a line that talks about somebody in the third
+        /// person must not be said to their face.
+        /// </summary>
+        private static string ReadSubject(SpeechAct act, Fact claim)
+        {
+            if (claim == null || claim.Subject.IsNone)
+            {
+                return DialogueReadings.Absent;
+            }
+
+            if (claim.Subject == act.Speaker)
+            {
+                return "speaker";
+            }
+
+            return act.IsAddressedTo(claim.Subject) ? "listener" : "other";
         }
 
         private static string ReadReferent(SpeechAct act)

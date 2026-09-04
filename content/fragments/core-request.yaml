@@ -192,6 +192,7 @@ payload:
       position: core
       text: "Whatever you think of me, {subject} did nothing."
       requires:
+        subject: other
         act: request
       tags:
         - pleading

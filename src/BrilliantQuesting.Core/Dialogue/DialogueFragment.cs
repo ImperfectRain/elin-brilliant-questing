@@ -149,6 +149,21 @@ namespace BrilliantQuesting.Dialogue
         public const string Claim = "claim";
 
         /// <summary>
+        /// Where the person the <em>claim</em> is about is standing, relative to the people in the
+        /// act (BQ-146).
+        ///
+        /// The companion to <see cref="Referent"/>, and not the same question. A referent is who
+        /// the act names; a subject is who the claim is about, and the two come apart constantly -
+        /// a warning about a thief, given to the thief, has no referent and a subject who is the
+        /// listener. Without this reading, a line that names <c>{subject}</c> in the third person
+        /// could be said straight to them, which is nonsense rather than a wording preference.
+        ///
+        /// <c>absent</c> when the caller supplied no claim, so a fragment written about somebody
+        /// else is simply not eligible in a scene with nobody to be about.
+        /// </summary>
+        public const string Subject = "subject";
+
+        /// <summary>
         /// Which predicate the claim uses, when the caller supplied the fact. Open rather than
         /// enumerated, because the predicate ontology is <c>FactPredicates</c>' to grow and a
         /// second copy of it here would be a second opinion about what claims exist.
@@ -328,6 +343,7 @@ namespace BrilliantQuesting.Dialogue
             allowed[Commitment] = Set(Absent, "unspoken", "hedged", "committed");
             allowed[HeldBack] = Set(Absent, "yes", "no");
             allowed[Referent] = Set("none", "speaker", "listener", "other");
+            allowed[Subject] = Set(Absent, "speaker", "listener", "other");
             allowed[Claim] = Set("present", "absent");
             allowed[ClaimPredicate] = null;
 

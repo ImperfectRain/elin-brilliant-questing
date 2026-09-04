@@ -8,6 +8,11 @@ payload:
       position: modifier
       text: "You are asking for trust before introducing a reason."
       requires:
+        act:
+          - refuse
+          - evade
+          - deny
+          - ask
         relationship: none
       repetitionGroup: tie
       memorability: signature
@@ -15,12 +20,20 @@ payload:
       position: modifier
       text: "I do not know you well enough for that answer."
       requires:
+        act:
+          - refuse
+          - evade
+          - answer
         relationship: none
       repetitionGroup: tie
     - id: mod.tie.stranger.earn.the.second
       position: modifier
       text: "Start with your name. Then earn the second question."
       requires:
+        act:
+          - refuse
+          - evade
+          - ask
         relationship: none
       repetitionGroup: tie
       memorability: signature
@@ -28,6 +41,11 @@ payload:
       position: modifier
       text: "We are past introductions, not yet at confessions."
       requires:
+        act:
+          - refuse
+          - evade
+          - answer
+          - ask
         relationship: acquaintance
       repetitionGroup: tie
       memorability: signature
@@ -35,12 +53,22 @@ payload:
       position: modifier
       text: "I know you well enough to listen."
       requires:
+        act:
+          - ask
+          - answer
+          - inform
+          - offer
         relationship: acquaintance
       repetitionGroup: tie
     - id: mod.tie.friend.disagree.after
       position: modifier
       text: "I can disagree with you after I help."
       requires:
+        act:
+          - offer
+          - promise
+          - request
+          - forgive
         relationship: friend
       repetitionGroup: tie
       memorability: voiced
@@ -48,6 +76,10 @@ payload:
       position: modifier
       text: "This sounds like trouble. I suppose that saves us finding some."
       requires:
+        act:
+          - offer
+          - promise
+          - request
         relationship: friend
       tone:
         - wry
@@ -57,6 +89,11 @@ payload:
       position: modifier
       text: "Do not give me that look. You came here on purpose."
       requires:
+        act:
+          - ask
+          - answer
+          - offer
+          - forgive
         relationship:
           - friend
           - family
@@ -66,6 +103,11 @@ payload:
       position: modifier
       text: "Whatever you are about to ask, I already dislike who made you ask it."
       requires:
+        act:
+          - ask
+          - offer
+          - forgive
+          - warn
         relationship:
           - family
           - spouse
@@ -75,6 +117,11 @@ payload:
       position: modifier
       text: "Do not make me pretend we are strangers."
       requires:
+        act:
+          - ask
+          - request
+          - accuse
+          - inform
         relationship:
           - family
           - spouse
@@ -85,12 +132,21 @@ payload:
       position: modifier
       text: "I can do this without liking you."
       requires:
+        act:
+          - offer
+          - answer
+          - inform
+          - promise
         relationship: rival
       repetitionGroup: tie
     - id: mod.tie.rival.prefer.it.be.me
       position: modifier
       text: "If anyone ruins you, I would prefer it be me."
       requires:
+        act:
+          - warn
+          - offer
+          - threaten
         relationship: rival
       tone:
         - wry
@@ -100,6 +156,11 @@ payload:
       position: modifier
       text: "I am watching what I say around you."
       requires:
+        act:
+          - answer
+          - evade
+          - refuse
+          - deny
         relationship: enemy
       tone:
         - cold
@@ -109,6 +170,11 @@ payload:
       position: modifier
       text: "I remember what you did. Apparently you do not."
       requires:
+        act:
+          - refuse
+          - accuse
+          - threaten
+          - deny
         relationship: enemy
       repetitionGroup: tie
       memorability: signature
@@ -116,6 +182,10 @@ payload:
       position: modifier
       text: "The debt between us did not disappear because you became desperate."
       requires:
+        act:
+          - refuse
+          - request
+          - threaten
         relationship: debtor
       repetitionGroup: tie
       memorability: signature
@@ -123,6 +193,10 @@ payload:
       position: modifier
       text: "At last, something useful to do with your obligation."
       requires:
+        act:
+          - request
+          - offer
+          - threaten
         relationship: debtor
       tone:
         - wry
@@ -132,12 +206,22 @@ payload:
       position: modifier
       text: "I have not forgotten what you did for me."
       requires:
+        act:
+          - offer
+          - promise
+          - apologize
+          - answer
         relationship: creditor
       repetitionGroup: tie
     - id: mod.tie.debtor.inconvenient
       position: modifier
       text: "This is the part where an old favour becomes inconvenient."
       requires:
+        act:
+          - offer
+          - promise
+          - refuse
+          - apologize
         relationship: creditor
       repetitionGroup: tie
       memorability: signature
@@ -145,6 +229,10 @@ payload:
       position: modifier
       text: "Do the work and we will discuss the rest afterward."
       requires:
+        act:
+          - request
+          - refuse
+          - warn
         relationship: employee
       repetitionGroup: tie
       memorability: voiced
@@ -152,6 +240,11 @@ payload:
       position: modifier
       text: "I understand your position. The facts remain inconvenient."
       requires:
+        act:
+          - deny
+          - refuse
+          - answer
+          - inform
         relationship: employer
       tone:
         - formal
@@ -161,6 +254,11 @@ payload:
       position: modifier
       text: "There are answers one gives differently in a hall like this."
       requires:
+        act:
+          - refuse
+          - evade
+          - answer
+          - inform
         relationship: guild_mate
       tone:
         - formal
@@ -170,6 +268,11 @@ payload:
       position: modifier
       text: "Whatever lands on you lands on me. Remember that."
       requires:
+        act:
+          - warn
+          - threaten
+          - request
+          - deny
         relationship: accomplice
       repetitionGroup: tie
       memorability: signature

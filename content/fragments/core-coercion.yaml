@@ -95,6 +95,7 @@ payload:
       position: core
       text: "If {subject} sees you, leave."
       requires:
+        subject: other
         act: warn
       repetitionGroup: warn
     - id: core.warn.medical.problem
