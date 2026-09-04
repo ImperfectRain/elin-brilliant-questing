@@ -299,9 +299,25 @@ namespace BrilliantQuesting.Persistence
                     .Set("persistence", (int)site.Persistence)
                     .Set("seed", site.GenerationSeed.ToString())
                     .Set("restricted", site.Restricted)
+                    .Set("established", site.Established)
+                    .Set("establishedAt", site.EstablishedAt.TotalMinutes)
+                    .Set("approaches", ApproachesToJson(site))
                     .Set("occupants", Ids(site.OccupantIds))
                     .Set("objects", Ids(site.ImportantObjectIds))
                     .Set("admitted", Ids(site.AdmittedIds)));
+            }
+
+            return array;
+        }
+
+        private static JsonValue ApproachesToJson(NarrativeSite site)
+        {
+            JsonValue array = JsonValue.Array();
+            foreach (SiteApproach approach in site.Approaches)
+            {
+                array.Add(JsonValue.Object()
+                    .Set("action", approach.ActionId)
+                    .Set("admitted", approach.NeedsAdmission));
             }
 
             return array;
@@ -719,8 +735,21 @@ namespace BrilliantQuesting.Persistence
 
                     // Additive and optional: a save written before locked places existed has no
                     // node here, reads back as an open site, and behaves exactly as it did.
-                    Restricted = json.GetBool("restricted")
+                    Restricted = json.GetBool("restricted"),
+
+                    // Likewise for genesis (BQ-087). A site an archetype wrote down directly was
+                    // never generated, so reading back as not-established is the truth about it,
+                    // and the only thing the flag gates is generating a second place over one.
+                    Established = json.GetBool("established"),
+                    EstablishedAt = new GameTime(json.GetLong("establishedAt"))
                 };
+
+                foreach (JsonValue approach in json.GetArray("approaches"))
+                {
+                    site.Approaches.Add(new SiteApproach(
+                        approach.GetString("action"),
+                        approach.GetBool("admitted")));
+                }
 
                 foreach (JsonValue occupant in json.GetArray("occupants"))
                 {

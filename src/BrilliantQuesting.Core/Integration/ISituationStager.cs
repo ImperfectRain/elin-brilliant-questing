@@ -62,6 +62,41 @@ namespace BrilliantQuesting.Integration
     }
 
     /// <summary>
+    /// The place a generated site needs in the actual game.
+    ///
+    /// The mirror of <see cref="CharacterBlueprint"/>, and deliberately physical rather than
+    /// semantic: why the place exists, who is in it and how it can be reached stay in the plan the
+    /// simulation owns, and what crosses the seam is only what an adapter has to build or bind.
+    /// </summary>
+    public sealed class SiteBlueprint
+    {
+        public SiteBlueprint(EntityId siteId, string name, string siteType)
+        {
+            SiteId = siteId;
+            Name = name ?? string.Empty;
+            SiteType = siteType ?? string.Empty;
+        }
+
+        public EntityId SiteId { get; }
+
+        public string Name { get; }
+
+        /// <summary>Ontology term: "hideout", "ruin", "camp", "workshop", "shrine", "estate".</summary>
+        public string SiteType { get; }
+
+        /// <summary>The place is expected to stay on the map rather than being thrown away.</summary>
+        public bool Persistent { get; set; }
+
+        /// <summary>What the place keeps is behind something somebody else holds the key to.</summary>
+        public bool Restricted { get; set; }
+
+        public int DangerLevel { get; set; }
+
+        /// <summary>Recorded so the same place can be rebuilt identically if it ever has to be.</summary>
+        public ulong Seed { get; set; }
+    }
+
+    /// <summary>
     /// Turns generated descriptions into things that exist in the running game.
     ///
     /// Keeping this separate from <see cref="IVanillaState"/> matters: reading the world and
@@ -73,6 +108,17 @@ namespace BrilliantQuesting.Integration
         void StageCharacter(EntityId id, CharacterBlueprint blueprint, EntityId zone);
 
         void StageItem(EntityId owner, ItemDescriptor item);
+
+        /// <summary>
+        /// Gives a generated place a body and returns the adapter's handle for it, or an empty
+        /// string where this build cannot embody one.
+        ///
+        /// Called once per place, by genesis, before anything is staged into it - so an adapter
+        /// that answers with nothing costs the simulation an unmade site rather than a half-made
+        /// one. The handle is opaque to Core in the same way every other external ref is: what is
+        /// on the other side is not Core's business.
+        /// </summary>
+        string StageSite(SiteBlueprint blueprint);
     }
 
     /// <summary>Headless staging, for the laboratory and the tests.</summary>
@@ -114,6 +160,16 @@ namespace BrilliantQuesting.Integration
         public void StageItem(EntityId owner, ItemDescriptor item)
         {
             _vanilla.GiveItem(owner, item);
+        }
+
+        /// <summary>
+        /// The laboratory has no map, so a place is real here as soon as somebody can stand in it -
+        /// which is what the site's own zone id already is. Headless, the handle and the id are the
+        /// same string; on a live build they are not, and everything downstream reads the handle.
+        /// </summary>
+        public string StageSite(SiteBlueprint blueprint)
+        {
+            return blueprint == null || blueprint.SiteId.IsNone ? string.Empty : blueprint.SiteId.Value;
         }
     }
 }

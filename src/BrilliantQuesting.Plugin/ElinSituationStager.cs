@@ -93,6 +93,39 @@ namespace BrilliantQuesting.Plugin
             _log.LogInfo("Staged " + blueprint.Name + " as " + archetype + " (uid " + chara.uid + ", " + id + ")");
         }
 
+        /// <summary>
+        /// Gives a generated place a body by binding it to the zone the player is standing in, and
+        /// answers with the handle every other read is already keyed on.
+        ///
+        /// It does not create a zone. Native site creation - `Region.CreateRandomSite`, `addMap`
+        /// for a predeclared mod zone, and whether a created site's map survives a save at all -
+        /// is unverified on this build (`ELIN-Q-0032`, `PP §7`), and guessing at it would put a
+        /// place in the save that the game might not agree exists. Binding is the one embodiment
+        /// this repository's evidence supports: the zone uid is read, not invented, and it is the
+        /// same id <see cref="ElinPresence.IdOf"/> mints everywhere else, so occupants staged
+        /// afterwards land in the place the site names. Reusing a location deliberately before
+        /// generating one is also BQ-088's rule arriving early rather than a shortcut around it.
+        /// </summary>
+        public string StageSite(SiteBlueprint blueprint)
+        {
+            if (blueprint == null)
+            {
+                return string.Empty;
+            }
+
+            Zone target = EClass._zone;
+            if (target == null)
+            {
+                _log.LogWarning("Cannot place " + blueprint.Name + ": no zone loaded.");
+                return string.Empty;
+            }
+
+            EntityId zone = ElinPresence.IdOf(target);
+            _log.LogInfo("Site " + blueprint.Name + " [" + blueprint.SiteType + "] bound to " + zone.Value
+                         + " as " + blueprint.SiteId + "; no zone was created.");
+            return zone.Value;
+        }
+
         public void StageItem(EntityId owner, ItemDescriptor item)
         {
             if (string.IsNullOrEmpty(item.SourceId))

@@ -78,8 +78,34 @@ namespace BrilliantQuesting.World
 
         public SitePersistence Persistence { get; set; } = SitePersistence.Ephemeral;
 
-        /// <summary>Recorded so a site can be regenerated identically after unload.</summary>
+        /// <summary>
+        /// The seed the place was planned from, so the same plan rebuilds the same place.
+        ///
+        /// Not a licence to run genesis again: <see cref="Established"/> refuses that outright. It
+        /// is here for reproducing a plan under inspection, and for the day an ephemeral interior
+        /// has to be rebuilt from nothing after unload.
+        /// </summary>
         public ulong GenerationSeed { get; set; }
+
+        /// <summary>
+        /// Genesis has run for this place (BQ-087).
+        ///
+        /// The flag is what makes "a visited place is never destructively regenerated" enforceable
+        /// rather than a convention: <see cref="SiteGenesis"/> hands an established site straight
+        /// back instead of building a second one over it, and the flag persists, so a reload cannot
+        /// turn a place the player has been into a fresh one. False on every site an archetype
+        /// wrote down directly, which is correct - those were never generated.
+        /// </summary>
+        public bool Established { get; set; }
+
+        /// <summary>When genesis ran. Meaningless while <see cref="Established"/> is false.</summary>
+        public GameTime EstablishedAt { get; set; }
+
+        /// <summary>
+        /// The ways in this place was made with. At least one that goes through somebody and at
+        /// least one that does not - see <see cref="SiteApproach"/>.
+        /// </summary>
+        public List<SiteApproach> Approaches { get; } = new List<SiteApproach>();
 
         public override string ToString() => Name + " [" + SiteType + "]";
     }

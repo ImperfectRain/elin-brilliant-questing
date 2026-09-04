@@ -1900,6 +1900,40 @@ not prove later physical development. Unload, save, reload, return, verify exact
 - **Done when** the return visit finds the same site, same actors, same cargo, and the log proves nothing regenerated or redispatched historical events.
 - **Sources** MD §15; PM §72 stage 5; LW §7.9; PP §6, §7.
 - **Do not generalize until this passes.**
+- **Current implementation** `SiteGenesis` makes one BQ-owned place, once, from a `SitePlan` that
+  carries meaning and no geometry (`PP §3`): the one thread it belongs to, three to five occupants,
+  cargo each held by one of them, and the ways in. The plan is refused rather than trimmed - a
+  place with nobody in it, nothing kept, cargo nobody there holds, proof of a fact the world does
+  not have, or no matter behind it, each with the field that caused it. "Two meaningful approaches"
+  is one rule: at least one route that waits on somebody letting you in and at least one that does
+  not, because two verbs that both need the keeper's permission are one approach spelled twice.
+  That distinction is `NarrativeSite.Restricted`/`Admits`, which already gated searching a
+  restricted place, rather than a new taxonomy; scoring how different two routes really are is
+  BQ-092's question over generated candidates.
+  Genesis writes nothing to the event ledger, and that is the point rather than an omission: a
+  place existing is not something that happened to anybody - the in-world events about a site are
+  somebody finding it and somebody clearing it, and both already existed - so a return visit
+  provably redispatches nothing, because there was never anything to dispatch. What makes
+  regeneration impossible is `NarrativeSite.Established`, which persists: a plan whose site id the
+  world already knows is refused outright, and an established place is handed straight back with
+  nobody staged and its establishment time untouched, across a reload as well as within a session
+  (`D058`, `PP §6`). There is no manifest store either - `OccupantIds` and `ImportantObjectIds`
+  already persisted, and `SiteGenesis.Visit` is a read over them against
+  `GetCharactersInZone`/`GetInventory`, reporting which occupant and which object is missing.
+  Cargo that changed hands between two people who are both still there has not moved.
+  The seam gained `ISituationStager.StageSite`, the mirror of `StageCharacter`: it hands back the
+  adapter's handle for the place or an empty string, and genesis fails closed on the empty string -
+  nothing registered, nobody staged, no half-made site in the save.
+- **Deferred, and not claimed** the live adapter *binds* the place to the zone the player is
+  standing in and reads its uid; it does not create one. Native site creation -
+  `Region.CreateRandomSite`, `addMap` for a predeclared mod zone, and whether a created site's map
+  survives a save - is unverified on this build (`ELIN-Q-0032`, `PP §7`), so it was not written
+  blind. Everything above is proven headlessly in `SiteGenesisTests`, including the save/reload
+  return; none of it has been run in a live Elin session, and `ElinVanillaState.GetCharactersInZone`
+  still reads the loaded map rather than an arbitrary saved zone (`ELIN-Q-0008`), so a live return
+  visit means the player standing in the place. Projecting a site's approaches as player-facing
+  options is BQ-090's, reuse-before-generate as a decision with reasons is BQ-088's, and additive
+  change to an established place is BQ-143's.
 
 #### BQ-088 — Location reuse policy
 Before generating anything: can a vanilla location host it, can an existing procedural site be

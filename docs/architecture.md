@@ -35,15 +35,17 @@ Foundation      EntityId, deterministic RNG, GameTime
                 stable identity and reproducible seeds; everything else depends on these
 
 Integration     IVanillaState, VanillaStateBase, NarrativeMutationPolicy,
-                ISituationStager, SandboxVanillaState, SandboxStager
+                ISituationStager, CharacterBlueprint, SiteBlueprint,
+                SandboxVanillaState, SandboxStager
                 the only place that knows a game exists, and the one gate on changing it
 
-World           NarrativeNpc, Organization, NarrativeSite, EntityRegistry, NarrativeWorldState,
-                ActorAbsence, AbsenceLedger, AbsenceLifecycle,
+World           NarrativeNpc, Organization, NarrativeSite, SiteGenesis, EntityRegistry,
+                NarrativeWorldState, ActorAbsence, AbsenceLedger, AbsenceLifecycle,
                 IdentityAffordances, ActorLocalInterpreter, SocialPractices
                 the procedural database; the aggregate root is NarrativeWorldState, and the three
                 derivations beside it say what an identity implies, what one observer makes of an
-                event, and what the place an act happened in makes of it
+                event, and what the place an act happened in makes of it. SiteGenesis is the one
+                way a place the mod owns comes into existence, and it runs once per place
 
 Events          WorldEvent, EventLedger, EventTags
                 append-only history plus queued dispatch (a reaction may append, never recurse)

@@ -1579,6 +1579,83 @@ namespace BrilliantQuesting.Diagnostics
             return eventId + " (no longer in the ledger)";
         }
 
+        /// <summary>
+        /// BQ-087. What a return visit found, and if something is missing, which thing.
+        ///
+        /// The done-when of the site proof is a comparison, so the tooling has to be able to show
+        /// both halves of it: what genesis wrote down, and what is there now. It reports the ledger
+        /// length beside them because "nothing regenerated" and "no historical event was
+        /// redispatched" are the same claim seen twice - genesis appends nothing, so a return that
+        /// moved that number moved it for some other reason and the trace should say so.
+        /// </summary>
+        public static string DescribeSite(NarrativeWorldState world, EntityId siteId, IVanillaState vanilla)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("site ").Append(siteId.IsNone ? "nothing" : siteId.Value).Append('\n');
+            if (world == null)
+            {
+                sb.Append("  no world to look in\n");
+                return sb.ToString();
+            }
+
+            SiteVisit visit = SiteGenesis.Visit(world, siteId, vanilla);
+            if (!visit.Found)
+            {
+                sb.Append("  the world knows no such place\n");
+                return sb.ToString();
+            }
+
+            NarrativeSite site = visit.Site;
+            sb.Append("  ").Append(site.Name).Append(" [").Append(site.SiteType).Append("] ")
+              .Append(site.Persistence).Append(site.Restricted ? ", restricted" : ", open").Append('\n');
+            sb.Append("  genesis: ")
+              .Append(visit.Established ? "established " + site.EstablishedAt : "never generated here")
+              .Append("; body: ")
+              .Append(visit.Embodied ? site.VanillaZoneRef : "none bound")
+              .Append('\n');
+
+            sb.Append("  occupants ").Append(site.OccupantIds.Count - visit.MissingOccupants.Count)
+              .Append('/').Append(site.OccupantIds.Count).Append('\n');
+            for (int i = 0; i < site.OccupantIds.Count; i++)
+            {
+                EntityId who = site.OccupantIds[i];
+                sb.Append(Contains(visit.MissingOccupants, who) ? "    gone    " : "    here    ")
+                  .Append(world.Registry.NameOf(who)).Append('\n');
+            }
+
+            sb.Append("  cargo ").Append(site.ImportantObjectIds.Count - visit.MissingCargo.Count)
+              .Append('/').Append(site.ImportantObjectIds.Count).Append('\n');
+            for (int i = 0; i < site.ImportantObjectIds.Count; i++)
+            {
+                EntityId what = site.ImportantObjectIds[i];
+                sb.Append(Contains(visit.MissingCargo, what) ? "    gone    " : "    here    ")
+                  .Append(what.Value).Append('\n');
+            }
+
+            sb.Append("  ways in\n");
+            for (int i = 0; i < site.Approaches.Count; i++)
+            {
+                sb.Append("    ").Append(site.Approaches[i]).Append('\n');
+            }
+
+            sb.Append(visit.Intact ? "  intact" : "  changed since genesis")
+              .Append("; ledger holds ").Append(world.Ledger.Count).Append(" event(s)\n");
+            return sb.ToString();
+        }
+
+        private static bool Contains(IReadOnlyList<EntityId> ids, EntityId id)
+        {
+            for (int i = 0; i < ids.Count; i++)
+            {
+                if (ids[i] == id)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static string Render(NarrativeWorldState world, Fact fact)
         {
             if (fact == null)

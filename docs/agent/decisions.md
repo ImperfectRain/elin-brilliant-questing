@@ -1419,4 +1419,45 @@ Reason: the cheap version is a `History` list on the item, written at each verb.
 of the ledger that can outlive it, disagree with it and need migrating, and the first thing it does
 is let anybody holding the object read a past they were never part of.
 
+## D058 — Genesis runs once and is not history; a return visit is a read
+
+A place the mod makes is created by `SiteGenesis` exactly once, and the fact that it was created is
+kept on the place rather than in the event ledger.
+
+**Genesis is bookkeeping, not an event.** Nothing happened to anybody when a smugglers' cache came
+into existence — the in-world events about a site are somebody finding it and somebody clearing it,
+and both already existed. So genesis appends nothing. That is what makes the site proof's
+"no historical event was redispatched on return" true by construction instead of by a listener being
+careful: there is nothing to redispatch, and a return that moved the ledger count moved it for some
+other reason the trace can name.
+
+**A visited place is never regenerated over.** `NarrativeSite.Established` persists, and it is a
+refusal rather than a note: a plan whose site id the world already knows is rejected outright, and
+an established place is handed straight back with nobody staged and its establishment time
+untouched. Across a reload as well as within a session, because the failure that matters is a player
+who saves inside a generated place and loads back into a second cast of it.
+
+**The manifest is the site, not a copy of it.** `OccupantIds` and `ImportantObjectIds` already
+persisted and are already what the place is; `SiteGenesis.Visit` reads them against the game and
+reports which occupant and which object is missing. Nothing is written down twice, so nothing can
+disagree, and coming back is a read that appends nothing — a reconciliation that recorded a visit
+would make walking through a door history.
+
+**Two ways in means one of them does not need permission.** A plan must carry at least one approach
+that waits on somebody letting you in and at least one that does not. Two verbs that both wait on
+the keeper are one approach with two spellings, and the distinction reuses
+`NarrativeSite.Restricted`/`Admits` — an owner admits people, a burglar admits themselves — rather
+than adding a taxonomy of route kinds.
+
+**A place with no body is not created at all.** `ISituationStager.StageSite` answers with the
+adapter's handle or with nothing, and nothing means genesis registers no site, stages nobody and
+binds no thread. Half a place is worse than none: it would sit in the save, be named by its matter,
+and answer questions about somewhere nobody can walk into.
+
+Reason: the cheap version stamps a site into the registry at generation time and re-runs the
+generator when the zone reloads, because the generator is where the occupants come from. That is
+exactly the destructive regeneration `PP §6` forbids, and it is invisible until a player comes back
+to a place they emptied and finds it staffed again.
+
+
 Add a new entry only when the decision is both load-bearing and durable.

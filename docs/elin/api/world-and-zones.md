@@ -8,6 +8,12 @@ development lives in [`../../design/procedural-places-and-spatial-history.md`](.
 - `GetCharactersInZone` currently scans the loaded `EClass._map.charas`, not arbitrary saved zones (`VERIFIED-METADATA`, `INFERRED` from implementation).
 - Zone loose items are exposed for the active loaded map through `EClass._map.things`; current `IVanillaState.GetInventory(zone)` still only resolves `Chara` inventories, so arbitrary zone inventory remains an adapter gap (`VERIFIED-METADATA`, `SOURCE-OBSERVED`, `UNRESOLVED` runtime coverage).
 
+## BQ-Owned Sites (BQ-087)
+
+`ElinSituationStager.StageSite` gives a generated place a body by binding it to the loaded zone and reading its uid through `ElinPresence.IdOf`, returning the same `zone_<uid>` handle everything else is keyed on. It creates no zone. Native site creation - random zone profiles, `addMap` for a predeclared mod zone, `Region.CreateRandomSite(...)`, `.mp` map pieces, and whether a created site's map survives a save - is `UNRESOLVED` and was not written blind (`ELIN-Q-0032`, `PP §7`). With no zone loaded the stager answers with nothing and `SiteGenesis` fails closed, so the failure direction is a place that cannot be made rather than a site in the save the game does not agree exists.
+
+Consequence for return visits: `GetCharactersInZone` still reads the loaded `EClass._map.charas` rather than an arbitrary saved zone (`ELIN-Q-0008`), so `SiteGenesis.Visit` is accurate for the place the player is standing in and reports drift it cannot see for one they are not.
+
 ## Grade-B Absence / Movement
 
 Current BQ implementation: `ElinPresence.ResolveMove` searches for `Chara.MoveZone(Zone, ZoneTransition.EnterState)` and `ElinPresence.ResolveFindZone` searches for `EClass.game.spatials.Find(int)`. The adapter refuses movement when the actor is not already global, and Grade-B absence remains configuration-gated pending disposable-save runtime validation (`SOURCE-OBSERVED`, `STUB-VERIFIED`, `UNRESOLVED` runtime).
