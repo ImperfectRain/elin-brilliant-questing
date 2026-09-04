@@ -1,0 +1,158 @@
+id: fragments.core.repair
+kind: dialogueFragments
+payload:
+  fragments:
+    # -- apology: offered by whoever did the thing
+    - id: core.apologize.was.wrong
+      position: core
+      text: "I was wrong. I am sorry."
+      requires:
+        act: apologize
+      repetitionGroup: apologize
+    - id: core.apologize.deserved.better
+      position: core
+      text: "You deserved better from me."
+      requires:
+        act: apologize
+      repetitionGroup: apologize
+    - id: core.apologize.explanation.no.improvement
+      position: core
+      text: "I have an explanation. It does not improve what I did."
+      requires:
+        act: apologize
+      repetitionGroup: apologize
+      memorability: signature
+    - id: core.apologize.short
+      position: core
+      text: "I am sorry."
+      requires:
+        act: apologize
+      repetitionGroup: apologize
+    - id: core.apologize.shame.no.excuse
+      position: core
+      text: "I am not going to dress it up."
+      requires:
+        act: apologize
+        emotion: shame
+      repetitionGroup: apologize.mood
+      memorability: voiced
+    - id: core.apologize.public.rather.not.here
+      position: core
+      text: "I will say it here if it has to be here. I am sorry."
+      requires:
+        act: apologize
+        audience: several
+      repetitionGroup: apologize.mood
+      memorability: voiced
+    - id: core.apologize.close.tie.nothing.to.say
+      position: core
+      text: "You do not have to say anything. I am sorry."
+      requires:
+        act: apologize
+        relationship:
+          - friend
+          - family
+          - spouse
+      repetitionGroup: apologize.tie
+      memorability: protected
+
+    # -- forgiveness: granted by whoever it was done to. Saying it is not the same as the ledger
+    #    clearing; that stays the obligation layer's decision.
+    - id: core.forgive.done.with.it
+      position: core
+      text: "All right. We are done with it."
+      requires:
+        act: forgive
+      repetitionGroup: forgive
+    - id: core.forgive.owe.nothing
+      position: core
+      text: "You owe me nothing."
+      requires:
+        act: forgive
+      repetitionGroup: forgive
+    - id: core.forgive.settled
+      position: core
+      text: "Consider it settled."
+      requires:
+        act: forgive
+      repetitionGroup: forgive
+    - id: core.forgive.still.angry
+      position: core
+      text: "I am still angry. I forgive you anyway."
+      requires:
+        act: forgive
+        emotion: anger
+      repetitionGroup: forgive
+      memorability: signature
+    - id: core.forgive.not.farther.than.today
+      position: core
+      text: "I will not carry this farther than today."
+      requires:
+        act: forgive
+      repetitionGroup: forgive
+      memorability: signature
+    - id: core.forgive.tearing.the.page
+      position: core
+      text: "I am tearing that page out of the ledger."
+      requires:
+        act: forgive
+        relationship: creditor
+      repetitionGroup: forgive.debt
+      memorability: signature
+    - id: core.forgive.repaired.not.avenged
+      position: core
+      text: "I want this repaired, not avenged."
+      requires:
+        act: forgive
+        claim_predicate: stole
+      repetitionGroup: forgive.restitution
+      memorability: signature
+    - id: core.forgive.replace.and.done
+      position: core
+      text: "Replace it and we are done."
+      requires:
+        act: forgive
+        claim_predicate: stole
+      repetitionGroup: forgive.restitution
+    - id: core.forgive.wanted.blood.need.a.roof
+      position: core
+      text: "Yesterday I wanted blood. Today I need a roof."
+      requires:
+        act: forgive
+        claim_predicate: stole
+      repetitionGroup: forgive.restitution
+      memorability: protected
+    - id: core.forgive.shame.did.the.work
+      position: core
+      text: "If shame has already done the work, I see no need to add blood."
+      requires:
+        act: forgive
+      repetitionGroup: forgive.restitution
+      memorability: signature
+    - id: core.forgive.chance.to.return.it
+      position: core
+      text: "Give it back and I will forget where it went."
+      requires:
+        act: forgive
+        claim_predicate: stole
+      repetitionGroup: forgive.restitution
+      memorability: voiced
+    - id: core.forgive.close.tie.no.explanation
+      position: core
+      text: "You do not need to explain the whole thing."
+      requires:
+        act: forgive
+        relationship:
+          - friend
+          - family
+          - spouse
+      repetitionGroup: forgive.tie
+      memorability: protected
+    - id: core.forgive.relief.unclench
+      position: core
+      text: "Good. I think I can finally unclench my jaw."
+      requires:
+        act: forgive
+        emotion: relief
+      repetitionGroup: forgive.tie
+      memorability: signature

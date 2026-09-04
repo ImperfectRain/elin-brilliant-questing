@@ -2,11 +2,15 @@ id: fragments.negative.space
 kind: dialogueFragments
 payload:
   fragments:
+    # Marked as a manner so a speaker whose personal line forbids the appealing register loses
+    # these and keeps the act. Asking is not begging; asking like this is.
     - id: mod.ask.kindness
       position: modifier
       text: "I would take it as a kindness."
       requires:
-        act: ask
+        act:
+          - ask
+          - request
       tags:
         - pleading
       repetitionGroup: appeal
@@ -14,7 +18,40 @@ payload:
       position: modifier
       text: "There is nobody else I can put this to."
       requires:
-        act: ask
+        act:
+          - ask
+          - request
       tags:
         - pleading
       repetitionGroup: appeal
+      memorability: voiced
+    - id: mod.ask.would.not.ask
+      position: modifier
+      text: "I would not ask if there were someone else."
+      requires:
+        act:
+          - ask
+          - request
+      tags:
+        - pleading
+      repetitionGroup: appeal
+      memorability: signature
+    - id: mod.request.please
+      position: modifier
+      text: "Please."
+      requires:
+        act: request
+      tags:
+        - pleading
+      repetitionGroup: appeal
+    - id: mod.request.no.smaller.version
+      position: modifier
+      text: "There is no smaller version of this for the person whose home is attached to it."
+      requires:
+        act:
+          - request
+          - warn
+      tags:
+        - pleading
+      repetitionGroup: appeal
+      memorability: protected

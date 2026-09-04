@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using BrilliantQuesting.Continuity;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Relationships;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Dialogue
@@ -58,6 +59,136 @@ namespace BrilliantQuesting.Dialogue
             }
 
             return cast;
+        }
+    }
+
+    /// <summary>
+    /// What the speaker is feeling strongly enough to be heard doing it (BQ-146).
+    ///
+    /// One emotion and one number, taken from the profile the world already keeps and decays. It
+    /// is passed to wording rather than read there for the same reason the cast is: the realizer
+    /// holds nothing it could write to, and "wording writes no world state" stays a fact about its
+    /// signature.
+    ///
+    /// <see cref="Of"/> is the only sanctioned way to derive one, so "which feeling is the audible
+    /// one" is answered in a single place instead of at every call site. Nothing is audible below
+    /// <see cref="Floor"/>: somebody faintly several things at once is not visibly any of them,
+    /// and a grief-marked line said by somebody slightly sad is the vocabulary talking rather than
+    /// the character.
+    /// </summary>
+    public readonly struct SpeakerFeeling
+    {
+        /// <summary>Below this, nothing shows. A quiet mood is not a mood a listener can hear.</summary>
+        public const double Floor = 0.35;
+
+        /// <summary>Nothing audible. What a calm speaker and an unread one both produce.</summary>
+        public static readonly SpeakerFeeling None = new SpeakerFeeling(false, default(EmotionalState), 0.0);
+
+        private SpeakerFeeling(bool audible, EmotionalState state, double intensity)
+        {
+            IsAudible = audible;
+            State = state;
+            Intensity = intensity;
+        }
+
+        public bool IsAudible { get; }
+
+        public EmotionalState State { get; }
+
+        public double Intensity { get; }
+
+        /// <summary>
+        /// The one emotion above the floor, or <see cref="None"/>.
+        ///
+        /// Ties break on the enum's own order, so the same profile always reads the same way and a
+        /// line does not change because two feelings happened to be equal.
+        /// </summary>
+        public static SpeakerFeeling Of(EmotionalStateProfile profile, GameTime now)
+        {
+            if (profile == null)
+            {
+                return None;
+            }
+
+            SpeakerFeeling strongest = None;
+            foreach (EmotionalState state in Enum.GetValues(typeof(EmotionalState)))
+            {
+                double intensity = profile.Get(state, now);
+                if (intensity >= Floor && intensity > strongest.Intensity)
+                {
+                    strongest = new SpeakerFeeling(true, state, intensity);
+                }
+            }
+
+            return strongest;
+        }
+
+        /// <summary>An audible feeling named directly, for a caller that has one without a profile.</summary>
+        public static SpeakerFeeling Felt(EmotionalState state, double intensity)
+        {
+            return intensity >= Floor ? new SpeakerFeeling(true, state, intensity) : None;
+        }
+    }
+
+    /// <summary>
+    /// What the speaker is to one particular listener, as the relationship graph already holds it
+    /// (BQ-146).
+    ///
+    /// Directed, because the graph is: a creditor's view of a debtor is not the debtor's view of
+    /// the creditor, and a line authored for one of those said by the other would be wording
+    /// asserting the wrong relationship.
+    ///
+    /// Three states, not two. <see cref="Tied"/> is a tie the world holds; <see cref="Stranger"/>
+    /// is the world saying there is none, which is a real thing to have a line for; and
+    /// <see cref="Unread"/> is a caller who did not look. Collapsing the last two would let a
+    /// stranger's line be said to somebody's spouse because nobody checked.
+    /// </summary>
+    public readonly struct SpeakerTie
+    {
+        /// <summary>Nobody looked. Reads as <see cref="DialogueReadings.Absent"/>.</summary>
+        public static readonly SpeakerTie Unread = new SpeakerTie(false, false, default(RelationKind), EntityId.None);
+
+        private SpeakerTie(bool read, bool tied, RelationKind kind, EntityId listener)
+        {
+            IsRead = read;
+            IsTied = tied;
+            Kind = kind;
+            Listener = listener;
+        }
+
+        public bool IsRead { get; }
+
+        public bool IsTied { get; }
+
+        public RelationKind Kind { get; }
+
+        /// <summary>Who the tie is with. The act has to be addressing them, or the request is refused.</summary>
+        public EntityId Listener { get; }
+
+        public static SpeakerTie Stranger(EntityId listener)
+        {
+            return listener.IsNone ? Unread : new SpeakerTie(true, false, default(RelationKind), listener);
+        }
+
+        public static SpeakerTie Tied(RelationKind kind, EntityId listener)
+        {
+            return listener.IsNone ? Unread : new SpeakerTie(true, true, kind, listener);
+        }
+
+        /// <summary>
+        /// The tie the graph holds from speaker to listener, or <see cref="Stranger"/> when it
+        /// holds none. Reading the graph here rather than inside realization keeps the realizer
+        /// world-free.
+        /// </summary>
+        public static SpeakerTie Of(RelationshipGraph graph, EntityId speaker, EntityId listener)
+        {
+            if (graph == null || speaker.IsNone || listener.IsNone)
+            {
+                return Unread;
+            }
+
+            RelationshipEdge edge = graph.Find(speaker, listener);
+            return edge == null ? Stranger(listener) : Tied(edge.Kind, listener);
         }
     }
 
@@ -126,6 +257,28 @@ namespace BrilliantQuesting.Dialogue
             DialogueCast cast,
             CallbackHook callback)
         {
+            return Of(act, decision, claim, cast, callback, SpeakerFeeling.None, SpeakerTie.Unread);
+        }
+
+        /// <summary>
+        /// The same reading, plus what the speaker is feeling and what they are to the person
+        /// opposite (BQ-146).
+        ///
+        /// Two more inputs of exactly the kind the other five already are: both are read off state
+        /// the world holds before this call, neither can be composed here, and both read as
+        /// <see cref="DialogueReadings.Absent"/> when nothing was supplied - so a fragment authored
+        /// for anger is not eligible in a scene nobody read a mood for, and a fragment authored for
+        /// strangers is not eligible for a caller who never looked at the graph.
+        /// </summary>
+        public static RealizationReading Of(
+            SpeechAct act,
+            DisclosureDecision decision,
+            Fact claim,
+            DialogueCast cast,
+            CallbackHook callback,
+            SpeakerFeeling feeling,
+            SpeakerTie tie)
+        {
             RealizationReading reading = new RealizationReading();
             if (act == null)
             {
@@ -142,8 +295,41 @@ namespace BrilliantQuesting.Dialogue
             reading._readings[DialogueReadings.Audience] = act.Addressees.Count > 1 ? "several" : "one";
             ReadDecision(reading, decision);
             ReadCallback(reading, act, callback);
+            ReadFeeling(reading, feeling);
+            ReadTie(reading, act, tie);
             ReadSlots(reading, act, claim, cast ?? DialogueCast.Anonymous, callback);
             return reading;
+        }
+
+        /// <summary>
+        /// What the speaker is audibly feeling, or <see cref="DialogueReadings.Absent"/>. One
+        /// value: which feeling, never how much of it, because a fragment chosen on a number would
+        /// be content deciding where a threshold lies.
+        /// </summary>
+        private static void ReadFeeling(RealizationReading reading, SpeakerFeeling feeling)
+        {
+            reading._readings[DialogueReadings.Emotion] =
+                feeling.IsAudible ? Snake(feeling.State.ToString()) : DialogueReadings.Absent;
+        }
+
+        /// <summary>
+        /// What the speaker is to whoever they are addressing.
+        ///
+        /// A tie read for somebody this act does not address is read as no tie at all rather than
+        /// refused, exactly as a callback belonging to somebody else is:
+        /// <see cref="RealizationRequest.WhyNot"/> has already turned the request down by the time
+        /// wording runs, and this keeps the reading honest for a caller that built one by hand.
+        /// </summary>
+        private static void ReadTie(RealizationReading reading, SpeechAct act, SpeakerTie tie)
+        {
+            if (!tie.IsRead || !act.IsAddressedTo(tie.Listener))
+            {
+                reading._readings[DialogueReadings.Relationship] = DialogueReadings.Absent;
+                return;
+            }
+
+            reading._readings[DialogueReadings.Relationship] =
+                tie.IsTied ? Snake(tie.Kind.ToString()) : "none";
         }
 
         /// <summary>
@@ -367,6 +553,28 @@ namespace BrilliantQuesting.Dialogue
         public CallbackPermit Callback { get; set; }
 
         /// <summary>
+        /// What the speaker is feeling strongly enough to be heard doing it (BQ-146), when the
+        /// caller read it. <see cref="SpeakerFeeling.None"/> asks for no emotional constraint at
+        /// all, which is what a calm speaker and an unread one both produce.
+        ///
+        /// Like <see cref="Tone"/> and unlike <see cref="Decision"/>, it narrows which fragment
+        /// says the point and can never change which point is said. Nothing here writes back: the
+        /// profile it came from is the world's, and reading it is not touching it.
+        /// </summary>
+        public SpeakerFeeling Feeling { get; set; } = SpeakerFeeling.None;
+
+        /// <summary>
+        /// What the speaker is to the person being addressed (BQ-146), when the caller read the
+        /// graph. <see cref="SpeakerTie.Unread"/> asks for no relational constraint.
+        ///
+        /// <see cref="WhyNot"/> refuses a tie read for somebody the act does not address, for the
+        /// reason it refuses a callback cleared for the wrong listener: a line authored for a
+        /// friend, said to a stranger because the tie was measured against a third party, is
+        /// wording asserting a relationship the world never held.
+        /// </summary>
+        public SpeakerTie Tie { get; set; } = SpeakerTie.Unread;
+
+        /// <summary>
         /// The hook wording may actually read, or null when there is none it may.
         ///
         /// Every path into the fragment pool goes through this rather than through
@@ -468,6 +676,14 @@ namespace BrilliantQuesting.Dialogue
             if (Callback != null && !Callback.Allowed)
             {
                 return "the speaker would not bring this up with this listener";
+            }
+
+            // BQ-146's one refusal, and the same refusal as the callback's: a tie is directed and
+            // is measured against one person, so wording it at somebody else would let a line
+            // authored for a friend be said to a stranger.
+            if (Tie.IsRead && !Act.IsAddressedTo(Tie.Listener))
+            {
+                return "the relationship was read against somebody the act does not address";
             }
 
             return string.Empty;

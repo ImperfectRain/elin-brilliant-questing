@@ -2,6 +2,8 @@ id: fragments.core.question
 kind: dialogueFragments
 payload:
   fragments:
+    # -- neutral cores. Every act needs three that stay valid with no voice, no mood and no tie,
+    #    or the library has an act it cannot say to a stranger on a flat day.
     - id: core.ask.plain
       position: core
       text: "What do you know about it?"
@@ -14,6 +16,45 @@ payload:
       requires:
         act: ask
       repetitionGroup: ask
+    - id: core.ask.what.happened
+      position: core
+      text: "What happened?"
+      requires:
+        act: ask
+      repetitionGroup: ask
+    - id: core.ask.tell.me.saw
+      position: core
+      text: "Tell me what you saw."
+      requires:
+        act: ask
+      repetitionGroup: ask
+    - id: core.ask.stopped.making.sense
+      position: core
+      text: "Start where things stopped making sense."
+      requires:
+        act: ask
+      repetitionGroup: ask
+      memorability: voiced
+    - id: core.ask.who.else
+      position: core
+      text: "Who else knows?"
+      requires:
+        act: ask
+      repetitionGroup: ask.spread
+    - id: core.ask.what.next
+      position: core
+      text: "What happened next?"
+      requires:
+        act: ask
+      repetitionGroup: ask.detail
+    - id: core.ask.show.me
+      position: core
+      text: "Show me where you found it."
+      requires:
+        act: ask
+      repetitionGroup: ask.detail
+
+    # -- theft, the predicate the world currently produces most of
     - id: core.ask.theft
       position: core
       text: "Who took the {matter}?"
@@ -28,3 +69,200 @@ payload:
         act: ask
         claim_predicate: stole
       repetitionGroup: ask
+    - id: core.ask.theft.where
+      position: core
+      text: "Where did the {matter} go?"
+      requires:
+        act: ask
+        claim_predicate: stole
+      repetitionGroup: ask
+
+    # -- asking after an answer is asking where the answer came from. No new act needed: an ask
+    #    that replies to an answer is a provenance challenge by its shape.
+    - id: core.ask.provenance.who
+      position: core
+      text: "Who told you?"
+      requires:
+        act: ask
+        reply: answer
+      repetitionGroup: ask.provenance
+    - id: core.ask.provenance.where
+      position: core
+      text: "Where did you hear that?"
+      requires:
+        act: ask
+        reply: answer
+      repetitionGroup: ask.provenance
+    - id: core.ask.provenance.backward
+      position: core
+      text: "Trace that answer backward for me."
+      requires:
+        act: ask
+        reply: answer
+      repetitionGroup: ask.provenance
+      memorability: voiced
+    - id: core.ask.provenance.saw.or.heard
+      position: core
+      text: "Did you see that, or did you hear it?"
+      requires:
+        act: ask
+        reply: answer
+      repetitionGroup: ask.provenance
+
+    # -- and an ask that replies to a denial or an answer is a challenge to the speaker
+    - id: core.ask.credibility.why
+      position: core
+      text: "Why should I believe you?"
+      requires:
+        act: ask
+        reply:
+          - answer
+          - deny
+      repetitionGroup: ask.credibility
+    - id: core.ask.credibility.gain
+      position: core
+      text: "Tell me what you gain if I believe that."
+      requires:
+        act: ask
+        reply:
+          - answer
+          - deny
+      repetitionGroup: ask.credibility
+      memorability: signature
+    - id: core.ask.credibility.neat
+      position: core
+      text: "That answer arrived cleaner than the event."
+      requires:
+        act: ask
+        reply:
+          - answer
+          - deny
+        emotion: suspicion
+      repetitionGroup: ask.credibility
+      memorability: signature
+    - id: core.ask.credibility.again
+      position: core
+      text: "Say that again. Slower."
+      requires:
+        act: ask
+        reply:
+          - answer
+          - deny
+      tone:
+        - curt
+      repetitionGroup: ask.credibility
+
+    # -- mood. An angry question is a different question, and the world already knows who is angry.
+    - id: core.ask.angry.exactly
+      position: core
+      text: "Say exactly what you saw."
+      requires:
+        act: ask
+        emotion: anger
+      tone:
+        - curt
+      repetitionGroup: ask.pressed
+    - id: core.ask.angry.leave.nothing
+      position: core
+      text: "Start again, and leave nothing convenient out."
+      requires:
+        act: ask
+        emotion: anger
+      repetitionGroup: ask.pressed
+      memorability: signature
+    - id: core.ask.suspicion.doesnt.fit
+      position: core
+      text: "Something here does not fit. What is it?"
+      requires:
+        act: ask
+        emotion: suspicion
+      repetitionGroup: ask.pressed
+    - id: core.ask.fear.quietly
+      position: core
+      text: "Tell me quietly. Just tell me."
+      requires:
+        act: ask
+        emotion: fear
+      repetitionGroup: ask.pressed
+    - id: core.ask.grief.only.this
+      position: core
+      text: "I only want to know one thing. Where."
+      requires:
+        act: ask
+        emotion: grief
+      repetitionGroup: ask.pressed
+      memorability: protected
+
+    # -- tie. Asking a stranger and asking your sister are different sentences.
+    - id: core.ask.stranger.name
+      position: core
+      text: "A name would be a useful start."
+      requires:
+        act: ask
+        relationship: none
+      repetitionGroup: ask.tie
+      memorability: voiced
+    - id: core.ask.friend.what.happened
+      position: core
+      text: "What did you get yourself into?"
+      requires:
+        act: ask
+        relationship:
+          - friend
+          - family
+          - spouse
+      repetitionGroup: ask.tie
+    - id: core.ask.family.plainly
+      position: core
+      text: "Look at me and say it."
+      requires:
+        act: ask
+        relationship:
+          - family
+          - spouse
+      repetitionGroup: ask.tie
+      memorability: voiced
+    - id: core.ask.rival.humour.me
+      position: core
+      text: "Humour me. What is your version?"
+      requires:
+        act: ask
+        relationship:
+          - rival
+          - enemy
+      tone:
+        - wry
+      repetitionGroup: ask.tie
+      memorability: voiced
+    - id: core.ask.creditor.where.is.it
+      position: core
+      text: "Where is it, then?"
+      requires:
+        act: ask
+        relationship: creditor
+      tone:
+        - curt
+      repetitionGroup: ask.tie
+
+    # -- what the asker will settle for
+    - id: core.ask.choice.what.now
+      position: core
+      text: "What do you want to do?"
+      requires:
+        act: ask
+      repetitionGroup: ask.choice
+    - id: core.ask.choice.your.call
+      position: core
+      text: "Your call."
+      requires:
+        act: ask
+      tone:
+        - curt
+      repetitionGroup: ask.choice
+    - id: core.ask.choice.which.mistake
+      position: core
+      text: "We have reached the fork. Pick which mistake you prefer."
+      requires:
+        act: ask
+      repetitionGroup: ask.choice
+      memorability: signature

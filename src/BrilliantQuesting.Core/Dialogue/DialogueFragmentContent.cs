@@ -174,6 +174,17 @@ namespace BrilliantQuesting.Dialogue
                 return false;
             }
 
+            // Unmarked means utility, which is what every fragment was before the vocabulary
+            // existed. A misspelt tier is rejected rather than defaulted: silently downgrading a
+            // line somebody marked "protected" to the least protected tier is exactly the failure
+            // mode the vocabulary is closed to prevent.
+            string memorability = json.GetString("memorability", DialogueMemorability.Utility);
+            if (!DialogueMemorability.IsMemorability(memorability))
+            {
+                diagnostic = Invalid(record, where, "Unknown memorability: " + memorability + ".");
+                return false;
+            }
+
             fragment = new DialogueFragment(
                 id,
                 position,
@@ -183,7 +194,8 @@ namespace BrilliantQuesting.Dialogue
                 tones.ToArray(),
                 tags.ToArray(),
                 json.GetString("repetitionGroup", string.Empty),
-                slots);
+                slots,
+                memorability);
             diagnostic = null;
             return true;
         }

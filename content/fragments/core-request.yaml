@@ -1,0 +1,265 @@
+id: fragments.core.request
+kind: dialogueFragments
+payload:
+  fragments:
+    # Asking somebody to do something. What is asked for is the act's content; these are the ways
+    # of asking, so a plea for help, a demand for payment and a call for restitution share a pool
+    # wherever the wording genuinely carries over, and part company where it does not.
+    - id: core.request.need.help
+      position: core
+      text: "I need your help."
+      requires:
+        act: request
+      repetitionGroup: request
+    - id: core.request.can.you
+      position: core
+      text: "Can you handle something for me?"
+      requires:
+        act: request
+      repetitionGroup: request
+    - id: core.request.unpleasant.part
+      position: core
+      text: "I have reached the unpleasant part where I need another person."
+      requires:
+        act: request
+      repetitionGroup: request
+      memorability: signature
+    - id: core.request.bring.matter
+      position: core
+      text: "Bring me the {matter}."
+      requires:
+        act: request
+      repetitionGroup: request.item
+    - id: core.request.need.matter
+      position: core
+      text: "I need the {matter}, if you can find it."
+      requires:
+        act: request
+      repetitionGroup: request.item
+    - id: core.request.whole.plan.waiting
+      position: core
+      text: "The whole plan is waiting on the {matter}."
+      requires:
+        act: request
+      repetitionGroup: request.item
+      memorability: voiced
+    - id: core.request.everything.except
+      position: core
+      text: "Everything is ready except the {matter}."
+      requires:
+        act: request
+      repetitionGroup: request.item
+
+    # -- restitution and payment
+    - id: core.request.return.what.you.took
+      position: core
+      text: "Return what you took."
+      requires:
+        act: request
+        claim_predicate: stole
+        referent: listener
+      repetitionGroup: request.restitution
+    - id: core.request.replace.or.pay
+      position: core
+      text: "Replace it or pay for it."
+      requires:
+        act: request
+        claim_predicate: stole
+      repetitionGroup: request.restitution
+    - id: core.request.boring.again
+      position: core
+      text: "I am offering you the rare privilege of making this boring again."
+      requires:
+        act: request
+        claim_predicate: stole
+      tone:
+        - wry
+      repetitionGroup: request.restitution
+      memorability: signature
+    - id: core.request.still.owe
+      position: core
+      text: "You still owe me."
+      requires:
+        act: request
+        relationship: debtor
+      repetitionGroup: request.debt
+    - id: core.request.ledger.unconvinced
+      position: core
+      text: "Our friendship is lovely. The ledger remains unconvinced."
+      requires:
+        act: request
+        relationship: debtor
+      tone:
+        - wry
+      repetitionGroup: request.debt
+      memorability: signature
+    - id: core.request.count.against.debt
+      position: core
+      text: "I am willing to count this against the debt."
+      requires:
+        act: request
+        relationship: debtor
+      repetitionGroup: request.debt
+      memorability: voiced
+
+    # -- asking for silence
+    - id: core.request.keep.between.us
+      position: core
+      text: "Keep this between us."
+      requires:
+        act: request
+        depth: in_confidence
+      repetitionGroup: request.secrecy
+    - id: core.request.do.not.repeat
+      position: core
+      text: "Do not repeat what I am about to tell you."
+      requires:
+        act: request
+        depth: in_confidence
+      repetitionGroup: request.secrecy
+    - id: core.request.silence.not.agreement
+      position: core
+      text: "I need your silence more than your agreement."
+      requires:
+        act: request
+        depth: in_confidence
+      repetitionGroup: request.secrecy
+      memorability: signature
+
+    # -- sending it somewhere it can be acted on
+    - id: core.request.take.it.to.authority
+      position: core
+      text: "Take this to somebody with the right to act."
+      requires:
+        act: request
+      repetitionGroup: request.authority
+    - id: core.request.title.useful
+      position: core
+      text: "We have reached the part where a title becomes useful."
+      requires:
+        act: request
+      repetitionGroup: request.authority
+      memorability: signature
+    - id: core.request.name.opens.doors
+      position: core
+      text: "Take this to someone whose name opens doors."
+      requires:
+        act: request
+      repetitionGroup: request.authority
+      memorability: voiced
+
+    # -- appeals. Marked as pleading so a speaker who never begs can be refused the register
+    #    without being refused the request.
+    - id: core.request.asking.as.friend
+      position: core
+      text: "I am asking as a friend."
+      requires:
+        act: request
+        relationship:
+          - friend
+          - family
+          - spouse
+      tags:
+        - pleading
+      repetitionGroup: request.appeal
+    - id: core.request.if.strangers
+      position: core
+      text: "If we were strangers I would not ask this."
+      requires:
+        act: request
+        relationship:
+          - friend
+          - family
+          - spouse
+      tags:
+        - pleading
+      repetitionGroup: request.appeal
+      memorability: voiced
+    - id: core.request.spending.friendship
+      position: core
+      text: "I dislike spending friendship like coin. Here we are."
+      requires:
+        act: request
+        relationship:
+          - friend
+          - family
+          - spouse
+      tags:
+        - pleading
+      repetitionGroup: request.appeal
+      memorability: signature
+    - id: core.request.family.did.nothing
+      position: core
+      text: "Whatever you think of me, {subject} did nothing."
+      requires:
+        act: request
+      tags:
+        - pleading
+      repetitionGroup: request.appeal
+      memorability: voiced
+
+    # -- mood and tie
+    - id: core.request.fear.do.not.go.alone
+      position: core
+      text: "Do not make me do this alone."
+      requires:
+        act: request
+        emotion: fear
+      tags:
+        - pleading
+      repetitionGroup: request.mood
+    - id: core.request.stress.one.hand
+      position: core
+      text: "One of these has to go to somebody else. Take one."
+      requires:
+        act: request
+        emotion: stress
+      repetitionGroup: request.mood
+      memorability: voiced
+    - id: core.request.stranger.you.are.here
+      position: core
+      text: "You are standing here, and I am short of options."
+      requires:
+        act: request
+        relationship: none
+      repetitionGroup: request.tie
+      memorability: voiced
+    - id: core.request.rival.without.liking
+      position: core
+      text: "I can ask you without liking you."
+      requires:
+        act: request
+        relationship:
+          - rival
+          - enemy
+      tone:
+        - cold
+      repetitionGroup: request.tie
+      memorability: signature
+
+    # -- being asked to leave. A request whose matter is the listener's going.
+    - id: core.request.leave
+      position: core
+      text: "Leave."
+      requires:
+        act: request
+      tone:
+        - curt
+      repetitionGroup: request.dismissal
+    - id: core.request.need.you.gone
+      position: core
+      text: "I need you gone."
+      requires:
+        act: request
+      tone:
+        - curt
+      repetitionGroup: request.dismissal
+    - id: core.request.feet.catch.up
+      position: core
+      text: "The conversation has ended. Your feet may catch up."
+      requires:
+        act: request
+      tone:
+        - wry
+      repetitionGroup: request.dismissal
+      memorability: signature

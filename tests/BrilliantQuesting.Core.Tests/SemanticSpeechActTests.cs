@@ -118,8 +118,8 @@ namespace BrilliantQuesting.Tests
                 Assert.Equal(type, acts[type].Type);
             }
 
-            Assert.Equal(12, acts.Count);
-            Assert.Equal(12, acts.Values.Select(a => a.Signature).Distinct().Count());
+            Assert.Equal(SpeechActProfile.Vocabulary.Count, acts.Count);
+            Assert.Equal(acts.Count, acts.Values.Select(a => a.Signature).Distinct().Count());
         }
 
         /// <summary>
@@ -520,7 +520,11 @@ namespace BrilliantQuesting.Tests
                 { SpeechActType.Apologize, SpeechAct.Compose(SpeechActType.Apologize, thief, victim, theft) },
                 { SpeechActType.Gossip, SpeechAct.Compose(SpeechActType.Gossip, witness, player, theft, thief) },
                 { SpeechActType.Evade, SpeechAct.Compose(SpeechActType.Evade, witness, player, ActionBinding.Empty, EntityId.None, ask) },
-                { SpeechActType.Promise, SpeechAct.Compose(SpeechActType.Promise, thief, victim, help) }
+                { SpeechActType.Promise, SpeechAct.Compose(SpeechActType.Promise, thief, victim, help) },
+                { SpeechActType.Inform, SpeechAct.Compose(SpeechActType.Inform, witness, victim, theft) },
+                { SpeechActType.Warn, SpeechAct.Compose(SpeechActType.Warn, witness, player, help) },
+                { SpeechActType.Offer, SpeechAct.Compose(SpeechActType.Offer, thief, victim, help) },
+                { SpeechActType.Forgive, SpeechAct.Compose(SpeechActType.Forgive, victim, thief, ActionBinding.Empty, thief) }
             };
 
             foreach (KeyValuePair<SpeechActType, SpeechAct> pair in acts)

@@ -671,15 +671,28 @@ namespace BrilliantQuesting.Tests
             Assert.Contains("mod.ask.kindness", open);
             Assert.Contains("mod.ask.nobody.else", open);
 
+            // Which fragments carry the appealing register is content's business and grows; that
+            // every one of them goes and nothing else does is this test's. Naming the two that
+            // existed when the step shipped made the assertion a count of the library rather than
+            // a statement about the mechanism.
+            HashSet<string> pleading = new HashSet<string>(
+                open.Where(id => Carries(scene, id, DialogueManners.Pleading)), StringComparer.Ordinal);
+            Assert.NotEmpty(pleading);
+
             question.Forbidden = NegativeSpaceVoice.ForbiddenManners(
                 new[] { Holding(PersonalProhibition.NeverBegs) });
 
             List<string> constrained = Modifiers(scene, question);
             Assert.DoesNotContain("mod.ask.kindness", constrained);
             Assert.DoesNotContain("mod.ask.nobody.else", constrained);
-            Assert.Equal(
-                open.Where(id => id != "mod.ask.kindness" && id != "mod.ask.nobody.else").ToList(),
-                constrained);
+            Assert.Equal(open.Where(id => !pleading.Contains(id)).ToList(), constrained);
+        }
+
+        /// <summary>Whether a fragment in the shipped library carries this manner tag.</summary>
+        private static bool Carries(FragmentRealizationTests.Scene scene, string fragmentId, string tag)
+        {
+            DialogueFragment fragment;
+            return scene.Realizer.Library.TryGet(fragmentId, out fragment) && fragment.Tags.Contains(tag);
         }
 
         /// <summary>

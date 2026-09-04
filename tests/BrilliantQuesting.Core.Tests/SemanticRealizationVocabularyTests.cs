@@ -387,6 +387,10 @@ namespace BrilliantQuesting.Tests
                 yield return Composed(SpeechActType.Gossip, Proposition(), referent: Absent);
                 yield return Composed(SpeechActType.Evade, ActionBinding.Empty, inReplyTo: Asked());
                 yield return Promise();
+                yield return Composed(SpeechActType.Inform, Proposition());
+                yield return Composed(SpeechActType.Warn, Matter("the north road"));
+                yield return Composed(SpeechActType.Offer, Matter("the price of it"));
+                yield return Composed(SpeechActType.Forgive, ActionBinding.Empty, referent: Listener);
             }
 
             /// <summary>The listener's question, which is what a reply has to have something to be.</summary>

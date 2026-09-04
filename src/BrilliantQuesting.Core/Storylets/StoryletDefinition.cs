@@ -22,6 +22,7 @@ namespace BrilliantQuesting.Storylets
             OptionalRoles = new List<StoryletRole>();
             Beats = new List<StoryletBeat>();
             ConsequenceHooks = new List<StoryletConsequenceHook>();
+            Resolutions = new List<StoryletResolution>();
         }
 
         public string Id { get; }
@@ -39,6 +40,47 @@ namespace BrilliantQuesting.Storylets
         public List<StoryletBeat> Beats { get; }
 
         public List<StoryletConsequenceHook> ConsequenceHooks { get; }
+
+        /// <summary>
+        /// The states this scene can stop in (BQ-146). Empty for the id-only storylets that
+        /// predate routing, which stop when their beats run out.
+        /// </summary>
+        public List<StoryletResolution> Resolutions { get; }
+
+        /// <summary>
+        /// Whether the beats carry enough structure to be played rather than merely listed. False
+        /// for a storylet written before BQ-146, which is still a valid storylet - it simply has
+        /// no route through itself, so a caller drives it.
+        /// </summary>
+        public bool IsRouted
+        {
+            get
+            {
+                for (int i = 0; i < Beats.Count; i++)
+                {
+                    if (Beats[i].Routes.Count > 0 || Beats[i].Intentions.Count > 0)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>The beat with this id, or null. Routes are resolved through here.</summary>
+        public StoryletBeat Beat(string id)
+        {
+            for (int i = 0; i < Beats.Count; i++)
+            {
+                if (string.Equals(Beats[i].Id, id, StringComparison.Ordinal))
+                {
+                    return Beats[i];
+                }
+            }
+
+            return null;
+        }
     }
 
     public sealed class StoryletRole
@@ -117,6 +159,27 @@ namespace BrilliantQuesting.Storylets
         HouseholdMemberHere
     }
 
+    /// <summary>
+    /// One moment in a scene: who might speak, what they might be trying to communicate, what is
+    /// in doubt, what history should record, and where the scene goes next (BQ-146).
+    ///
+    /// Before this a beat was an id and nothing else, which meant a storylet was an unordered bag
+    /// of labels and every scene had to be driven from outside by a caller who already knew what
+    /// the labels meant. That is the shape that forces either hardcoded dialogue in content or
+    /// bespoke C# per storylet, and this type exists to make both unnecessary.
+    ///
+    /// <b>Everything on it is a reference, never a sentence.</b> The speaker is a role, the
+    /// listener is a role, the intentions are <see cref="SpeechActType"/>s over the scene's own
+    /// focus, the check is one of the profiles the action library already ships, the consequences
+    /// are <c>WorldEventType</c>s, and the routes name other beats. There is no field a line of
+    /// dialogue could be written into, which is the structural version of the rule rather than a
+    /// convention an author has to keep.
+    ///
+    /// <b>An id-only beat is still a beat.</b> Every field below is optional, so the five
+    /// storylets that shipped as bare labels keep loading and keep meaning exactly what they
+    /// meant. A beat with no routes is terminal; a beat with no intentions is something that
+    /// happens rather than something said.
+    /// </summary>
     public sealed class StoryletBeat
     {
         public StoryletBeat(string id)
@@ -127,9 +190,79 @@ namespace BrilliantQuesting.Storylets
             }
 
             Id = id;
+            Intentions = new List<BeatIntention>();
+            Requires = new List<StoryletPrecondition>();
+            Consequences = new List<BeatConsequence>();
+            Routes = new List<BeatRoute>();
+            PlayerIntersections = new List<string>();
         }
 
         public string Id { get; }
+
+        /// <summary>Which role speaks, or empty for a beat nobody speaks in.</summary>
+        public string SpeakerRole { get; set; } = string.Empty;
+
+        /// <summary>Which role is spoken to. Required whenever there is a speaker.</summary>
+        public string ListenerRole { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Everything the speaker might be trying to communicate here. One is chosen from their
+        /// own state; the list is what the situation makes sensible, never what happens.
+        /// </summary>
+        public List<BeatIntention> Intentions { get; }
+
+        /// <summary>
+        /// What must hold for this beat to be reachable at all, in the same vocabulary a storylet's
+        /// own preconditions speak. A beat whose requirements have lapsed is skipped, which is how
+        /// a scene degrades when the world moves under it instead of playing on regardless.
+        /// </summary>
+        public List<StoryletPrecondition> Requires { get; }
+
+        /// <summary>The uncertainty this beat settles, or null when nothing here is in doubt.</summary>
+        public BeatCheck Check { get; set; }
+
+        /// <summary>
+        /// The verbs the player may bring to bear here, as <c>ActionRegistry</c> ids. Declared so a
+        /// presentation layer knows where a scene is open to interference, and validated against
+        /// the registry so a storylet cannot advertise a mechanic that does not exist.
+        /// </summary>
+        public List<string> PlayerIntersections { get; }
+
+        public List<BeatConsequence> Consequences { get; }
+
+        /// <summary>
+        /// Where the scene goes, in authored order, first match winning. Empty means the beat is
+        /// an end in itself.
+        /// </summary>
+        public List<BeatRoute> Routes { get; }
+
+        public override string ToString() => Id;
+    }
+
+    /// <summary>
+    /// A state a scene can stop in.
+    ///
+    /// Declared rather than inferred so that "several plausible terminal conditions exist" is
+    /// checkable: content validation refuses a storylet whose beats can reach no resolution, and
+    /// refuses a route that ends in one nobody declared. A resolution is a name and nothing else -
+    /// what it costs and what it changes are the consequence hooks' business, on the beats that
+    /// reach it.
+    /// </summary>
+    public sealed class StoryletResolution
+    {
+        public StoryletResolution(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException("Resolution id is required.", nameof(id));
+            }
+
+            Id = id;
+        }
+
+        public string Id { get; }
+
+        public override string ToString() => Id;
     }
 
     public sealed class StoryletConsequenceHook

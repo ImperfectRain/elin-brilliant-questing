@@ -1,0 +1,159 @@
+id: fragments.modifiers.emotion
+kind: dialogueFragments
+payload:
+  fragments:
+    # Emotion is the world's, decayed and saved, and this is the one thing wording does with it:
+    # narrows which of several ways of saying the same thing is available. Nothing here asserts
+    # that anybody feels anything - the profile already did.
+    - id: mod.emotion.anger.still.angry
+      position: modifier
+      text: "Do not ask me to be fair while I am still angry."
+      requires:
+        emotion: anger
+      repetitionGroup: mood
+      memorability: signature
+    - id: mod.emotion.anger.cooled
+      position: modifier
+      text: "I have had time to cool down. It did not help."
+      requires:
+        emotion: anger
+      repetitionGroup: mood
+      memorability: signature
+    - id: mod.emotion.anger.plain
+      position: modifier
+      text: "I am not in a generous mood."
+      requires:
+        emotion: anger
+      repetitionGroup: mood
+    - id: mod.emotion.fear.voice.down
+      position: modifier
+      text: "Keep your voice down."
+      requires:
+        emotion: fear
+      repetitionGroup: mood
+    - id: mod.emotion.fear.not.seen
+      position: modifier
+      text: "I would rather not be seen telling you."
+      requires:
+        emotion: fear
+        audience: one
+      repetitionGroup: mood
+      memorability: voiced
+    - id: mod.emotion.fear.did.not.hear.it.from.me
+      position: modifier
+      text: "If they ask, you did not hear it from me."
+      requires:
+        emotion: fear
+      repetitionGroup: mood
+      memorability: signature
+    - id: mod.emotion.shame.not.public
+      position: modifier
+      text: "I would rather this not become public."
+      requires:
+        emotion: shame
+      repetitionGroup: mood
+    - id: mod.emotion.shame.no.better.version
+      position: modifier
+      text: "I have no better version of it."
+      requires:
+        emotion: shame
+      repetitionGroup: mood
+      memorability: voiced
+    - id: mod.emotion.grief.not.much.today
+      position: modifier
+      text: "I do not have much to say today."
+      requires:
+        emotion: grief
+      repetitionGroup: mood
+      memorability: protected
+    - id: mod.emotion.grief.small.things
+      position: modifier
+      text: "I keep finding small things that still belong to them."
+      requires:
+        emotion: grief
+        audience: one
+      repetitionGroup: mood
+      memorability: protected
+    - id: mod.emotion.grief.house.learned
+      position: modifier
+      text: "The house learned the silence faster than I did."
+      requires:
+        emotion: grief
+        audience: one
+      repetitionGroup: mood
+      memorability: protected
+    - id: mod.emotion.relief.prepared.worse
+      position: modifier
+      text: "I had prepared for worse."
+      requires:
+        emotion: relief
+      repetitionGroup: mood
+    - id: mod.emotion.relief.stop.preparing
+      position: modifier
+      text: "Good. I can stop preparing for the worst version."
+      requires:
+        emotion: relief
+      repetitionGroup: mood
+      memorability: signature
+    - id: mod.emotion.relief.too.late
+      position: modifier
+      text: "I thought we were too late."
+      requires:
+        emotion: relief
+      repetitionGroup: mood
+      memorability: voiced
+    - id: mod.emotion.suspicion.does.not.fit
+      position: modifier
+      text: "Something does not fit."
+      requires:
+        emotion: suspicion
+      repetitionGroup: mood
+    - id: mod.emotion.suspicion.every.word.separately
+      position: modifier
+      text: "I believe every word separately."
+      requires:
+        emotion: suspicion
+      repetitionGroup: mood
+      memorability: signature
+    - id: mod.emotion.suspicion.fits.too.easily
+      position: modifier
+      text: "The story fits. I do not trust stories that fit this easily."
+      requires:
+        emotion: suspicion
+      repetitionGroup: mood
+      memorability: signature
+    - id: mod.emotion.affection.careful
+      position: modifier
+      text: "Be careful."
+      requires:
+        emotion: affection
+      repetitionGroup: mood
+    - id: mod.emotion.affection.inventing.reasons
+      position: modifier
+      text: "Come back before I start inventing reasons you have not."
+      requires:
+        emotion: affection
+        audience: one
+      repetitionGroup: mood
+      memorability: protected
+    - id: mod.emotion.affection.less.temporary
+      position: modifier
+      text: "You make this place feel less temporary."
+      requires:
+        emotion: affection
+        audience: one
+      repetitionGroup: mood
+      memorability: protected
+    - id: mod.emotion.stress.one.thing
+      position: modifier
+      text: "One thing at a time."
+      requires:
+        emotion: stress
+      repetitionGroup: mood
+    - id: mod.emotion.stress.three.problems
+      position: modifier
+      text: "I have three problems and only two hands."
+      requires:
+        emotion: stress
+      repetitionGroup: mood
+      memorability: signature

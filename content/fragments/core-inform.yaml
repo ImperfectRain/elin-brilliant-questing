@@ -1,0 +1,187 @@
+id: fragments.core.inform
+kind: dialogueFragments
+payload:
+  fragments:
+    # Telling somebody something nobody asked for. Filed by what it does, not by who does it, so
+    # a witness volunteering a theft and a neighbour mentioning a debt draw from one pool.
+    - id: core.inform.plain
+      position: core
+      text: "You should know something."
+      requires:
+        act: inform
+      repetitionGroup: inform
+    - id: core.inform.happened
+      position: core
+      text: "Something happened, and you have not heard it yet."
+      requires:
+        act: inform
+      repetitionGroup: inform
+    - id: core.inform.before.someone.else
+      position: core
+      text: "Better you hear it from me."
+      requires:
+        act: inform
+      repetitionGroup: inform
+      memorability: voiced
+    - id: core.inform.subject.named
+      position: core
+      text: "It is about {subject}."
+      requires:
+        act: inform
+      repetitionGroup: inform
+    - id: core.inform.theft.plain
+      position: core
+      text: "{subject} took the {matter}."
+      requires:
+        act: inform
+        claim_predicate: stole
+      repetitionGroup: inform.theft
+    - id: core.inform.theft.gone
+      position: core
+      text: "The {matter} is gone, and I know whose hands it left in."
+      requires:
+        act: inform
+        claim_predicate: stole
+        commitment: committed
+      repetitionGroup: inform.theft
+      memorability: voiced
+    - id: core.inform.theft.saw
+      position: core
+      text: "I saw {subject} with the {matter}."
+      requires:
+        act: inform
+        claim_predicate: stole
+        commitment: committed
+      repetitionGroup: inform.theft
+
+    # -- consequence, observed. Nobody invents the event: the act already carries which claim.
+    - id: core.inform.talking
+      position: core
+      text: "People are talking about it."
+      requires:
+        act: inform
+      repetitionGroup: inform.aftermath
+    - id: core.inform.travelled
+      position: core
+      text: "That travelled farther than the person who did it."
+      requires:
+        act: inform
+      repetitionGroup: inform.aftermath
+      memorability: signature
+    - id: core.inform.still.here
+      position: core
+      text: "You left. Your name stayed to finish the conversation."
+      requires:
+        act: inform
+        audience: one
+      repetitionGroup: inform.aftermath
+      memorability: signature
+
+    # -- revealing something held back. Depth carries "how much"; this carries "at last".
+    - id: core.inform.secret.something
+      position: core
+      text: "There is something you do not know."
+      requires:
+        act: inform
+        depth: in_confidence
+      repetitionGroup: inform.reveal
+    - id: core.inform.secret.long.enough
+      position: core
+      text: "I have kept this quiet long enough."
+      requires:
+        act: inform
+        depth: in_confidence
+      repetitionGroup: inform.reveal
+      memorability: voiced
+    - id: core.inform.secret.heavier
+      position: core
+      text: "The secret has become heavier than the consequences."
+      requires:
+        act: inform
+        depth: in_confidence
+      repetitionGroup: inform.reveal
+      memorability: signature
+
+    # -- correcting what is going round. A denial answering gossip is the correction; this is the
+    #    unprompted version, told to somebody who has the story wrong.
+    - id: core.inform.rumor.wrong
+      position: core
+      text: "That story is wrong."
+      requires:
+        act: inform
+      repetitionGroup: inform.correction
+    - id: core.inform.rumor.better.ending
+      position: core
+      text: "Somebody added a better ending than the truth had."
+      requires:
+        act: inform
+      repetitionGroup: inform.correction
+      memorability: signature
+    - id: core.inform.rumor.first.part
+      position: core
+      text: "The first part is true. The rest grew afterward."
+      requires:
+        act: inform
+      repetitionGroup: inform.correction
+      memorability: voiced
+    - id: core.inform.rumor.horns
+      position: core
+      text: "The story has grown horns since I last heard it."
+      requires:
+        act: inform
+      tone:
+        - wry
+      repetitionGroup: inform.correction
+      memorability: signature
+
+    # -- mood and tie
+    - id: core.inform.fear.quiet
+      position: core
+      text: "Not loudly. But you need to know."
+      requires:
+        act: inform
+        emotion: fear
+      repetitionGroup: inform.mood
+    - id: core.inform.relief.finally
+      position: core
+      text: "Good news, for once."
+      requires:
+        act: inform
+        emotion: relief
+      repetitionGroup: inform.mood
+    - id: core.inform.affection.came.to.tell.you
+      position: core
+      text: "I came to tell you myself."
+      requires:
+        act: inform
+        emotion: affection
+      repetitionGroup: inform.mood
+      memorability: voiced
+    - id: core.inform.close.tie.ugly.part
+      position: core
+      text: "You already know the ugly part. Here is the rest."
+      requires:
+        act: inform
+        relationship:
+          - friend
+          - family
+          - spouse
+      repetitionGroup: inform.tie
+      memorability: voiced
+    - id: core.inform.stranger.for.what.it.is.worth
+      position: core
+      text: "For what it is worth to you."
+      requires:
+        act: inform
+        relationship: none
+      repetitionGroup: inform.tie
+    - id: core.inform.creditor.ledger
+      position: core
+      text: "The ledger has an opinion about this."
+      requires:
+        act: inform
+        relationship: creditor
+      tone:
+        - wry
+      repetitionGroup: inform.tie
+      memorability: signature

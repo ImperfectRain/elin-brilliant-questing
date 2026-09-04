@@ -37,3 +37,135 @@ payload:
           - ask
           - accuse
       repetitionGroup: closer.prompt
+    - id: close.we.are.done
+      position: closer
+      text: "We are done."
+      requires:
+        act:
+          - refuse
+          - evade
+          - forgive
+      tone:
+        - curt
+      repetitionGroup: closer.done
+    - id: close.all.i.have
+      position: closer
+      text: "That is all I have."
+      requires:
+        act:
+          - answer
+          - inform
+      repetitionGroup: closer.done
+    - id: close.return.to.my.day
+      position: closer
+      text: "Take the answer and let me return to my day."
+      requires:
+        act:
+          - answer
+          - inform
+          - refuse
+      repetitionGroup: closer.done
+      memorability: signature
+
+    # -- leaving a door open, which is how a scene becomes a later scene
+    - id: close.come.back.if.more
+      position: closer
+      text: "Come back if you learn more."
+      requires:
+        act:
+          - answer
+          - refuse
+          - evade
+          - inform
+      repetitionGroup: closer.return
+    - id: close.find.me.with.proof
+      position: closer
+      text: "Find me when you have proof."
+      requires:
+        act:
+          - refuse
+          - evade
+          - deny
+      repetitionGroup: closer.return
+      memorability: voiced
+    - id: close.sturdier.than.rumour
+      position: closer
+      text: "Bring me something sturdier than rumour and we will reopen the door."
+      requires:
+        act:
+          - refuse
+          - evade
+          - deny
+      repetitionGroup: closer.return
+      memorability: signature
+    - id: close.think.before.answering
+      position: closer
+      text: "Do not answer yet."
+      requires:
+        act:
+          - request
+          - offer
+      repetitionGroup: closer.return
+    - id: close.your.answer.today
+      position: closer
+      text: "Today, if you can manage it."
+      requires:
+        act:
+          - request
+          - threaten
+      tone:
+        - curt
+      repetitionGroup: closer.return
+
+    # -- gratitude and its refusal, as closers rather than as acts of their own
+    - id: close.thank.you
+      position: closer
+      text: "Thank you."
+      requires:
+        act:
+          - answer
+          - inform
+          - offer
+          - forgive
+      tone:
+        - warm
+      repetitionGroup: closer.thanks
+    - id: close.will.remember.this
+      position: closer
+      text: "I will remember this."
+      requires:
+        act:
+          - answer
+          - offer
+          - forgive
+          - promise
+      repetitionGroup: closer.thanks
+      memorability: voiced
+    - id: close.did.not.have.to
+      position: closer
+      text: "You did not have to. You did."
+      requires:
+        act:
+          - forgive
+          - offer
+      repetitionGroup: closer.thanks
+      memorability: protected
+    - id: close.mind.who.you.accuse
+      position: closer
+      text: "Mind who you are accusing."
+      requires:
+        act:
+          - deny
+          - refuse
+      repetitionGroup: closer.prompt
+      memorability: voiced
+    - id: close.threats.poor.evidence
+      position: closer
+      text: "Threats make poor evidence."
+      requires:
+        act:
+          - deny
+          - refuse
+        reply: threaten
+      repetitionGroup: closer.prompt
+      memorability: signature

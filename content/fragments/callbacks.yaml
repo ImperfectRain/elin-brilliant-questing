@@ -2,6 +2,7 @@ id: fragments.callbacks
 kind: dialogueFragments
 payload:
   fragments:
+    # -- what this conversation has already done. Grounded in the act's own antecedent.
     - id: call.reply.ask
       position: callback
       text: "Since you are the one asking."
@@ -20,6 +21,54 @@ payload:
       requires:
         reply: request
       repetitionGroup: callback.reply
+    - id: call.reply.threaten
+      position: callback
+      text: "Now I know what your question was really worth."
+      requires:
+        reply: threaten
+      repetitionGroup: callback.reply
+      memorability: signature
+    - id: call.reply.threaten.arrived.late
+      position: callback
+      text: "If you meant to frighten me, you should have arrived earlier."
+      requires:
+        reply: threaten
+      repetitionGroup: callback.reply
+      memorability: signature
+    - id: call.reply.apologize
+      position: callback
+      text: "You have said your piece."
+      requires:
+        reply: apologize
+      repetitionGroup: callback.reply
+    - id: call.reply.offer
+      position: callback
+      text: "So that is the shape of it."
+      requires:
+        reply: offer
+      repetitionGroup: callback.reply
+    - id: call.reply.gossip
+      position: callback
+      text: "That is what is going round, at any rate."
+      requires:
+        reply: gossip
+      repetitionGroup: callback.reply
+    - id: call.reply.inform
+      position: callback
+      text: "You came to say that."
+      requires:
+        reply: inform
+      repetitionGroup: callback.reply
+    - id: call.reply.deny
+      position: callback
+      text: "That is what you said."
+      requires:
+        reply: deny
+      repetitionGroup: callback.reply
+
+    # -- old business. The hook is derived from a recorded event and carries the whole of whether
+    #    this speaker may know it, so a fragment authored for a kind of history needs no event
+    #    written for it anywhere.
     - id: call.history.kindness.mine.listener
       position: callback
       text: "After what I did for you."
@@ -28,6 +77,15 @@ payload:
         callback_route: first_hand
         callback_party: listener
       repetitionGroup: callback.history
+    - id: call.history.kindness.mine.listener.helped
+      position: callback
+      text: "You helped me before. I have not mislaid that."
+      requires:
+        callback: kindness
+        callback_route: involved
+        callback_party: listener
+      repetitionGroup: callback.history
+      memorability: voiced
     - id: call.history.kindness.mine.other
       position: callback
       text: "After what I did for {recalled}."
@@ -44,6 +102,14 @@ payload:
         callback_route: involved
         callback_party: listener
       repetitionGroup: callback.history
+    - id: call.history.kindness.old.and.relevant
+      position: callback
+      text: "An old kindness has just become relevant."
+      requires:
+        callback: kindness
+        callback_route: involved
+      repetitionGroup: callback.history
+      memorability: signature
     - id: call.history.injury.theirs.listener
       position: callback
       text: "After what you did to me."
@@ -52,6 +118,24 @@ payload:
         callback_route: involved
         callback_party: listener
       repetitionGroup: callback.history
+    - id: call.history.injury.trusted.once
+      position: callback
+      text: "I trusted you once."
+      requires:
+        callback: injury
+        callback_route: involved
+        callback_party: listener
+      repetitionGroup: callback.history
+      memorability: signature
+    - id: call.history.injury.same.stove
+      position: callback
+      text: "You are asking me to put my hand on the same stove twice."
+      requires:
+        callback: injury
+        callback_route: involved
+        callback_party: listener
+      repetitionGroup: callback.history
+      memorability: signature
     - id: call.history.injury.seen.other
       position: callback
       text: "I saw what {recalled} did."
@@ -60,6 +144,14 @@ payload:
         callback_route: witnessed
         callback_party: other
       repetitionGroup: callback.history
+    - id: call.history.injury.ended.badly
+      position: callback
+      text: "We have tried this before. It ended badly."
+      requires:
+        callback: injury
+        callback_route: involved
+      repetitionGroup: callback.history
+      memorability: signature
     - id: call.history.scandal.heard.other
       position: callback
       text: "I know what {recalled} is said to have done."
@@ -68,3 +160,117 @@ payload:
         callback_route: heard
         callback_party: other
       repetitionGroup: callback.history
+    - id: call.history.scandal.heard.listener
+      position: callback
+      text: "People still tell that story about you."
+      requires:
+        callback: scandal
+        callback_route: heard
+        callback_party: listener
+      repetitionGroup: callback.history
+      memorability: voiced
+    - id: call.history.promise.gave.your.word
+      position: callback
+      text: "You gave me your word."
+      requires:
+        callback: promise
+        callback_route: involved
+        callback_party: listener
+      repetitionGroup: callback.history
+    - id: call.history.promise.here.because
+      position: callback
+      text: "I am here because you promised."
+      requires:
+        callback: promise
+        callback_route: involved
+        callback_party: listener
+      repetitionGroup: callback.history
+      memorability: voiced
+    - id: call.history.promise.todays.problem
+      position: callback
+      text: "Your old promise has become today's problem."
+      requires:
+        callback: promise
+        callback_route: involved
+        callback_party: listener
+      repetitionGroup: callback.history
+      memorability: signature
+    - id: call.history.promise.spent.carelessly
+      position: callback
+      text: "It was a small promise. Those are the ones people spend carelessly."
+      requires:
+        callback: promise
+        callback_route: involved
+      repetitionGroup: callback.history
+      memorability: signature
+    - id: call.history.promise.mine.first.hand
+      position: callback
+      text: "I said I would, and I meant it at the time."
+      requires:
+        callback: promise
+        callback_route: first_hand
+      repetitionGroup: callback.history
+      memorability: voiced
+    - id: call.history.embarrassment.listener
+      position: callback
+      text: "You did that in front of people."
+      requires:
+        callback: embarrassment
+        callback_route: involved
+        callback_party: listener
+      repetitionGroup: callback.history
+      memorability: voiced
+    - id: call.history.embarrassment.witnessed
+      position: callback
+      text: "I was standing there when it happened."
+      requires:
+        callback: embarrassment
+        callback_route: witnessed
+      repetitionGroup: callback.history
+    - id: call.history.embarrassment.spent
+      position: callback
+      text: "If humiliation was your method, you have spent it."
+      requires:
+        callback: embarrassment
+        callback_route: involved
+        callback_party: listener
+      repetitionGroup: callback.history
+      memorability: signature
+    - id: call.history.lost.object.mine
+      position: callback
+      text: "I am still short one thing from last time."
+      requires:
+        callback: lost_object
+        callback_route: involved
+      repetitionGroup: callback.history
+      memorability: voiced
+    - id: call.history.lost.object.other
+      position: callback
+      text: "{recalled} never got theirs back either."
+      requires:
+        callback: lost_object
+        callback_route: witnessed
+        callback_party: other
+      repetitionGroup: callback.history
+      memorability: signature
+    - id: call.history.this.again
+      position: callback
+      text: "This again."
+      requires:
+        callback:
+          - injury
+          - scandal
+          - lost_object
+      repetitionGroup: callback.history
+    - id: call.history.learned.to.walk
+      position: callback
+      text: "Apparently that old trouble has learned to walk."
+      requires:
+        callback:
+          - injury
+          - scandal
+          - lost_object
+      tone:
+        - wry
+      repetitionGroup: callback.history
+      memorability: signature

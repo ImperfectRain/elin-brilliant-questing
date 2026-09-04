@@ -192,6 +192,50 @@ namespace BrilliantQuesting.Dialogue
         public const string CallbackRoute = "callback_route";
 
         /// <summary>
+        /// What the speaker is feeling strongly enough for it to be audible, as an
+        /// <see cref="World.EmotionalState"/> (BQ-146).
+        ///
+        /// The first reading that is neither a property of the act nor of the decision behind it,
+        /// and it is here because nothing else could carry it. A <see cref="VoiceProfile"/> is a
+        /// constant - it says how somebody sounds, for as long as they are themself - and a
+        /// disclosure decision says how forthcoming they are being about one claim. Neither can
+        /// say that the person answering is still angry, which is exactly the thing a listener
+        /// hears first and the thing that makes the same answer from the same person read
+        /// differently on two days.
+        ///
+        /// It reads existing authoritative state and adds nothing: <c>EmotionalStateProfile</c>
+        /// already decays, already biases decisions, and is already saved. What is new is that
+        /// wording may be conditioned on it, which is a narrowing of an eligible pool and never a
+        /// claim about the world - an angry speaker says the same act, and the meaning is the same
+        /// value either way.
+        ///
+        /// Only one emotion reads, and only above a floor. Somebody who is faintly several things
+        /// at once is not visibly any of them, and a line marked for grief said by somebody
+        /// slightly sad would be the taxonomy talking rather than the character.
+        /// </summary>
+        public const string Emotion = "emotion";
+
+        /// <summary>
+        /// What the speaker is to the person they are speaking to, as a
+        /// <see cref="Relationships.RelationKind"/> (BQ-146).
+        ///
+        /// <see cref="Strategy"/> and <see cref="Depth"/> already carry what a tie <em>bought</em>
+        /// - a friend is told more, and told it more readily. What they cannot carry is what the
+        /// tie <em>is</em>, and the difference is audible: "I do not discuss family with
+        /// strangers" and "you already know the ugly part" are not two depths of the same line,
+        /// they are two relationships. Without this, every line that names the tie would have to
+        /// be authored per storylet, which is the failure the whole fragment library exists to
+        /// avoid.
+        ///
+        /// <c>none</c> and <see cref="Absent"/> are kept apart deliberately. <c>none</c> is a
+        /// speaker the world says has no tie to this listener - a stranger, and a real thing to
+        /// have authored a line for. <see cref="Absent"/> is a caller who did not look, and a
+        /// stranger's line said to somebody's spouse because nobody checked would be wording
+        /// asserting a relationship the world never held.
+        /// </summary>
+        public const string Relationship = "relationship";
+
+        /// <summary>
         /// Nothing was given to read: no decision was passed, or the caller supplied no fact. Not
         /// the same as a decision that came out empty - <c>strategy: nothing_to_disclose</c> is a
         /// speaker who holds nothing, and this is a wording layer that was told nothing.
@@ -275,6 +319,15 @@ namespace BrilliantQuesting.Dialogue
             allowed[Callback] = DialogueSlug.Every<CallbackKind>(Absent);
             allowed[CallbackParty] = Set(Absent, "none", "speaker", "listener", "other");
             allowed[CallbackRoute] = DialogueSlug.Every<CallbackRoute>(Absent);
+
+            // Both derived, for the reason the rest are: the emotional vocabulary is
+            // `EmotionalState`'s and the relationship vocabulary is `RelationKind`'s, and a copy
+            // kept here would be a second opinion about which feelings and which ties the world
+            // has. An authoring corpus that wants `excitement` or `envy` is asking the simulation
+            // for a state it does not hold, and the right answer is that the fragment cannot be
+            // authored rather than that wording invents the state.
+            allowed[Emotion] = DialogueSlug.Every<World.EmotionalState>(Absent);
+            allowed[Relationship] = DialogueSlug.Every<Relationships.RelationKind>(Absent, "none");
             return allowed;
         }
 
@@ -444,6 +497,96 @@ namespace BrilliantQuesting.Dialogue
     }
 
     /// <summary>
+    /// How much protection a fragment needs from being said again (BQ-146, CP §12).
+    ///
+    /// The repetition machinery BQ-078 shipped treats every phrase alike: two uses of anything and
+    /// selection starts steering around it. That is the right rule for "No." and the wrong rule
+    /// for a line somebody will remember - a joke or a piece of restrained sincerity is spent the
+    /// first time it lands, and hearing it twice in one exchange does more damage than hearing a
+    /// plain utility line five times.
+    ///
+    /// So this is a per-fragment declaration of how loud a line is, and the only thing it changes
+    /// is how quickly <see cref="DialogueExpressionHistory"/> considers it stale. It is not a
+    /// quality rating, not a selection weight, and not a second weirdness axis: an absurd premise
+    /// is <see cref="DialogueWeirdness"/>' to price, and a line can be perfectly mundane and still
+    /// be the most memorable sentence in the library.
+    ///
+    /// A fragment that says nothing is <see cref="Utility"/>, which is the behaviour every
+    /// fragment had before this existed - so the vocabulary costs nothing to ignore.
+    /// </summary>
+    public static class DialogueMemorability
+    {
+        /// <summary>A plain line nobody will notice repeating. The default.</summary>
+        public const string Utility = "utility";
+
+        /// <summary>A recognisable rhythm. Worth not saying twice running.</summary>
+        public const string Voiced = "voiced";
+
+        /// <summary>An image or a joke somebody would quote. Once per exchange.</summary>
+        public const string Signature = "signature";
+
+        /// <summary>
+        /// Sincere or genuinely strange, and spent when it lands. Once per exchange, and it takes
+        /// its whole repetition group down with it - a second line of the same kind immediately
+        /// afterwards would undo the first.
+        /// </summary>
+        public const string Protected = "protected";
+
+        public static IReadOnlyList<string> Vocabulary { get; } = new[] { Utility, Voiced, Signature, Protected };
+
+        public static bool IsMemorability(string tag)
+        {
+            for (int i = 0; i < Vocabulary.Count; i++)
+            {
+                if (string.Equals(Vocabulary[i], tag, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// How many times this fragment itself may be said before it counts as stale, given the
+        /// conversation's ordinary cap.
+        /// </summary>
+        public static int Allowance(string memorability, int cap)
+        {
+            switch (memorability)
+            {
+                case Voiced:
+                    return cap > 1 ? cap - 1 : 1;
+                case Signature:
+                case Protected:
+                    return 1;
+                default:
+                    return cap;
+            }
+        }
+
+        /// <summary>
+        /// How many times its repetition group may be spoken before this fragment counts as stale.
+        ///
+        /// Separate from <see cref="Allowance"/> because the two protect different things: the
+        /// first stops one sentence recurring, and this stops a whole register recurring. A
+        /// signature line is the second of its group at most; a protected one is the only one.
+        /// </summary>
+        public static int GroupAllowance(string memorability, int cap)
+        {
+            switch (memorability)
+            {
+                case Signature:
+                    return cap > 1 ? cap - 1 : 1;
+                case Protected:
+                    return 1;
+                default:
+                    return cap;
+            }
+        }
+    }
+
+    /// <summary>
     /// One condition on a reading: this key must read as one of these values.
     ///
     /// Any-of rather than one value, because the alternative is three near-identical fragments
@@ -512,6 +655,21 @@ namespace BrilliantQuesting.Dialogue
             IReadOnlyList<string> tags,
             string repetitionGroup,
             IReadOnlyList<string> slots)
+            : this(id, position, text, requires, forbids, toneTags, tags, repetitionGroup, slots, DialogueMemorability.Utility)
+        {
+        }
+
+        public DialogueFragment(
+            string id,
+            FragmentPosition position,
+            string text,
+            IReadOnlyList<FragmentRequirement> requires,
+            IReadOnlyList<FragmentRequirement> forbids,
+            IReadOnlyList<string> toneTags,
+            IReadOnlyList<string> tags,
+            string repetitionGroup,
+            IReadOnlyList<string> slots,
+            string memorability)
         {
             Id = id ?? string.Empty;
             Position = position;
@@ -522,6 +680,7 @@ namespace BrilliantQuesting.Dialogue
             Tags = tags ?? NoTags;
             RepetitionGroup = repetitionGroup ?? string.Empty;
             Slots = slots ?? NoTags;
+            Memorability = DialogueMemorability.IsMemorability(memorability) ? memorability : DialogueMemorability.Utility;
         }
 
         public string Id { get; }
@@ -568,6 +727,14 @@ namespace BrilliantQuesting.Dialogue
 
         /// <summary>Which placeholders the text names. Computed once at load, never re-parsed.</summary>
         public IReadOnlyList<string> Slots { get; }
+
+        /// <summary>
+        /// How much repetition protection it asks for (BQ-146). Never empty - an unmarked fragment
+        /// is <see cref="DialogueMemorability.Utility"/>, which is what every fragment was before
+        /// the vocabulary existed. Read only by <see cref="DialogueExpressionHistory"/>: it can
+        /// make a candidate stale sooner and can never make one eligible.
+        /// </summary>
+        public string Memorability { get; }
 
         /// <summary>Whether every condition holds and no disqualifier does.</summary>
         public bool Fits(RealizationReading reading)

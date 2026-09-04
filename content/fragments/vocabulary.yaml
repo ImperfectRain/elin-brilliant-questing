@@ -2,6 +2,9 @@ id: fragments.vocabulary
 kind: dialogueFragments
 payload:
   fragments:
+    # Lived-context flavour, and the rule that keeps it from becoming a stereotype: a fragment
+    # carrying one of these tags is eligible only when the identity layer actually observed that
+    # domain. Nothing here says what somebody is like; it says what they have their hands in.
     - id: mod.refuse.cultivation
       position: modifier
       text: "Some things need their season, and I am not rushing this one."
@@ -10,6 +13,7 @@ payload:
       tags:
         - cultivation
       repetitionGroup: reserve
+      memorability: signature
     - id: mod.refuse.alchemy
       position: modifier
       text: "Not everything mixes well, and this will not either."
@@ -18,6 +22,7 @@ payload:
       tags:
         - alchemy
       repetitionGroup: reserve
+      memorability: signature
     - id: mod.refuse.craft
       position: modifier
       text: "I do not hand over work before it is fit to be seen."
@@ -26,6 +31,7 @@ payload:
       tags:
         - craft
       repetitionGroup: reserve
+      memorability: signature
     - id: mod.refuse.trade
       position: modifier
       text: "That is not a bargain I am making."
@@ -42,3 +48,82 @@ payload:
       tags:
         - public_order
       repetitionGroup: reserve
+    - id: mod.answer.cultivation.soil
+      position: modifier
+      text: "Ground tells you more than people do."
+      requires:
+        act:
+          - answer
+          - inform
+      tags:
+        - cultivation
+      repetitionGroup: flavour
+      memorability: signature
+    - id: mod.answer.alchemy.measures
+      position: modifier
+      text: "I measure things for a living. I noticed."
+      requires:
+        act:
+          - answer
+          - inform
+          - accuse
+      tags:
+        - alchemy
+      repetitionGroup: flavour
+      memorability: signature
+    - id: mod.answer.craft.hands
+      position: modifier
+      text: "You can tell a great deal from what a thing was carried in."
+      requires:
+        act:
+          - answer
+          - inform
+      tags:
+        - craft
+      repetitionGroup: flavour
+      memorability: signature
+    - id: mod.answer.trade.ledger
+      position: modifier
+      text: "It did not balance. That is how I know."
+      requires:
+        act:
+          - answer
+          - inform
+          - accuse
+      tags:
+        - trade
+      repetitionGroup: flavour
+      memorability: signature
+    - id: mod.answer.public_order.seen.it.before
+      position: modifier
+      text: "I have seen this shape of trouble before."
+      requires:
+        act:
+          - answer
+          - inform
+          - warn
+      tags:
+        - public_order
+      repetitionGroup: flavour
+      memorability: signature
+    - id: mod.offer.trade.terms
+      position: modifier
+      text: "Terms first. Then handshakes."
+      requires:
+        act: offer
+      tags:
+        - trade
+      repetitionGroup: flavour
+      memorability: voiced
+    - id: mod.warn.public_order.badge.limits
+      position: modifier
+      text: "My office lets me ask. It does not let me invent proof."
+      requires:
+        act:
+          - warn
+          - refuse
+          - answer
+      tags:
+        - public_order
+      repetitionGroup: flavour
+      memorability: signature

@@ -2,6 +2,7 @@ id: fragments.core.withholding
 kind: dialogueFragments
 payload:
   fragments:
+    # -- refusal: the claim is declined, and the asker learns that there is one
     - id: core.refuse.flat
       position: core
       text: "No."
@@ -22,6 +23,210 @@ payload:
       requires:
         act: refuse
       repetitionGroup: refuse
+    - id: core.refuse.will.not
+      position: core
+      text: "I will not do that."
+      requires:
+        act: refuse
+      repetitionGroup: refuse
+    - id: core.refuse.another.pair.of.hands
+      position: core
+      text: "Find another pair of hands."
+      requires:
+        act: refuse
+        reply: request
+      repetitionGroup: refuse
+      memorability: voiced
+    - id: core.refuse.belongs.to.someone
+      position: core
+      text: "The rest of the answer belongs to someone who trusted me."
+      requires:
+        act: refuse
+      repetitionGroup: refuse
+      memorability: signature
+    - id: core.refuse.not.for.you
+      position: core
+      text: "That part is not for you."
+      requires:
+        act: refuse
+      repetitionGroup: refuse
+    - id: core.refuse.doors.not.opening
+      position: core
+      text: "There are doors in this conversation I am not opening."
+      requires:
+        act: refuse
+      repetitionGroup: refuse
+      memorability: signature
+    - id: core.refuse.polite.ask.someone.else
+      position: core
+      text: "Please ask someone else."
+      requires:
+        act: refuse
+      tone:
+        - warm
+      repetitionGroup: refuse.polite
+    - id: core.refuse.polite.leave.it.here
+      position: core
+      text: "I would prefer we leave the matter here."
+      requires:
+        act: refuse
+      tone:
+        - formal
+      repetitionGroup: refuse.polite
+    - id: core.refuse.abrasive.another.ear
+      position: core
+      text: "No. Find another ear."
+      requires:
+        act: refuse
+      tone:
+        - curt
+      repetitionGroup: refuse.abrasive
+    - id: core.refuse.abrasive.same.answer.louder
+      position: core
+      text: "Ask again and get the same answer louder."
+      requires:
+        act: refuse
+      tone:
+        - curt
+      repetitionGroup: refuse.abrasive
+      memorability: signature
+    - id: core.refuse.abrasive.new.question
+      position: core
+      text: "We are done unless you have learned a new question."
+      requires:
+        act: refuse
+      tone:
+        - curt
+      repetitionGroup: refuse.abrasive
+      memorability: signature
+    - id: core.refuse.bringing.nothing
+      position: core
+      text: "You ask a great deal for somebody bringing nothing."
+      requires:
+        act: refuse
+        relationship: none
+      repetitionGroup: refuse.abrasive
+      memorability: signature
+
+    # -- refusing an apology. Refuse already answers Apologize, so no new act is needed.
+    - id: core.refuse.apology.no
+      position: core
+      text: "No."
+      requires:
+        act: refuse
+        reply: apologize
+      repetitionGroup: refuse.apology
+    - id: core.refuse.apology.does.not.settle
+      position: core
+      text: "An apology does not settle it."
+      requires:
+        act: refuse
+        reply: apologize
+      repetitionGroup: refuse.apology
+    - id: core.refuse.apology.keep.the.words
+      position: core
+      text: "Keep the words. Repair what you broke."
+      requires:
+        act: refuse
+        reply: apologize
+      repetitionGroup: refuse.apology
+      memorability: signature
+
+    # -- refusing terms
+    - id: core.refuse.offer.not.a.bargain
+      position: core
+      text: "That is not a bargain I am making."
+      requires:
+        act: refuse
+        reply: offer
+      repetitionGroup: refuse.terms
+    - id: core.refuse.offer.price.is.wrong
+      position: core
+      text: "The answer is not no. The price is simply wrong."
+      requires:
+        act: refuse
+        reply: offer
+      repetitionGroup: refuse.terms
+      memorability: signature
+    - id: core.refuse.offer.not.for.sale
+      position: core
+      text: "It is not for sale."
+      requires:
+        act: refuse
+        reply: offer
+      repetitionGroup: refuse.terms
+    - id: core.refuse.offer.not.coin
+      position: core
+      text: "Everything has a price. That does not mean I accept coin."
+      requires:
+        act: refuse
+        reply: offer
+      repetitionGroup: refuse.terms
+      memorability: signature
+
+    # -- mood and tie
+    - id: core.refuse.stress.one.thing
+      position: core
+      text: "One thing at a time. Not this one."
+      requires:
+        act: refuse
+        emotion: stress
+      repetitionGroup: refuse.mood
+    - id: core.refuse.stress.two.hands
+      position: core
+      text: "I have three problems and two hands. Choose which one gets a hand."
+      requires:
+        act: refuse
+        emotion: stress
+      repetitionGroup: refuse.mood
+      memorability: signature
+    - id: core.refuse.grief.not.today
+      position: core
+      text: "Not today."
+      requires:
+        act: refuse
+        emotion: grief
+      repetitionGroup: refuse.mood
+      memorability: protected
+    - id: core.refuse.anger.nothing.to.discuss
+      position: core
+      text: "We have nothing to discuss."
+      requires:
+        act: refuse
+        emotion: anger
+      tone:
+        - cold
+      repetitionGroup: refuse.mood
+    - id: core.refuse.anger.mistaken.patience
+      position: core
+      text: "You have mistaken my patience for permission."
+      requires:
+        act: refuse
+        emotion: anger
+      repetitionGroup: refuse.mood
+      memorability: signature
+    - id: core.refuse.grudge.wrong.person.for.mercy
+      position: core
+      text: "You are asking the wrong person for mercy."
+      requires:
+        act: refuse
+        relationship:
+          - rival
+          - enemy
+      repetitionGroup: refuse.tie
+      memorability: signature
+    - id: core.refuse.family.not.about.them
+      position: core
+      text: "I will discuss the event. Not my family."
+      requires:
+        act: refuse
+        relationship:
+          - family
+          - spouse
+      repetitionGroup: refuse.tie
+      memorability: voiced
+
+    # -- evasion: nothing is declined and nothing is asserted
     - id: core.evade.a.question
       position: core
       text: "That is a question, is it not."
@@ -40,6 +245,39 @@ payload:
       requires:
         act: evade
       repetitionGroup: evade
+    - id: core.evade.cannot.help
+      position: core
+      text: "I cannot help you with that."
+      requires:
+        act: evade
+      repetitionGroup: evade
+    - id: core.evade.better.placed
+      position: core
+      text: "There are people better placed to answer that."
+      requires:
+        act: evade
+      repetitionGroup: evade
+    - id: core.evade.close.to.a.question
+      position: core
+      text: "You are very close to asking a question I will not answer."
+      requires:
+        act: evade
+      repetitionGroup: evade
+      memorability: signature
+    - id: core.evade.expensive
+      position: core
+      text: "Some things become expensive once spoken aloud."
+      requires:
+        act: evade
+      repetitionGroup: evade
+      memorability: signature
+    - id: core.evade.heard.enough
+      position: core
+      text: "I heard enough to stop asking."
+      requires:
+        act: evade
+      repetitionGroup: evade
+      memorability: voiced
     - id: core.evade.something.else
       position: core
       text: "There are things I could tell you. That is not one of them."
@@ -47,6 +285,7 @@ payload:
         act: evade
         tactic: answer_elsewhere
       repetitionGroup: evade
+      memorability: voiced
     - id: core.evade.moved.on
       position: core
       text: "Was there anything else?"
@@ -54,3 +293,78 @@ payload:
         act: evade
         tactic: change_subject
       repetitionGroup: evade
+    - id: core.evade.enough.about.that
+      position: core
+      text: "Enough about that."
+      requires:
+        act: evade
+        tactic: change_subject
+      repetitionGroup: evade
+    - id: core.evade.road.closed
+      position: core
+      text: "That road is closed. Pick another."
+      requires:
+        act: evade
+        tactic: change_subject
+      repetitionGroup: evade
+      memorability: signature
+    # An evasion asserts nothing, and no wording of one may name the claim's subject: a shrug
+    # that says the thief's name has answered the question after all. So a deflection points
+    # somewhere without naming who.
+    - id: core.evade.deflect.ask.elsewhere
+      position: core
+      text: "Ask somebody who was closer."
+      requires:
+        act: evade
+        tactic: answer_elsewhere
+      repetitionGroup: evade.deflect
+    - id: core.evade.deflect.wrong.door
+      position: core
+      text: "You are knocking at the wrong door."
+      requires:
+        act: evade
+        tactic: answer_elsewhere
+      repetitionGroup: evade.deflect
+      memorability: voiced
+    - id: core.evade.deflect.least.useful.corner
+      position: core
+      text: "You are shining the lamp on the least useful corner."
+      requires:
+        act: evade
+        tactic: answer_elsewhere
+      repetitionGroup: evade.deflect
+      memorability: signature
+    - id: core.evade.fear.not.here
+      position: core
+      text: "Not here."
+      requires:
+        act: evade
+        emotion: fear
+      repetitionGroup: evade.mood
+    - id: core.evade.fear.knowing.i.spoke
+      position: core
+      text: "I do not want them knowing I spoke to you."
+      requires:
+        act: evade
+        emotion: fear
+        audience: one
+      repetitionGroup: evade.mood
+      memorability: voiced
+    - id: core.evade.public.chose.an.audience
+      position: core
+      text: "You chose an audience. I did not."
+      requires:
+        act: evade
+        audience: several
+      repetitionGroup: evade.mood
+      memorability: signature
+    - id: core.evade.public.half.the.town
+      position: core
+      text: "Ask me again when half the town is not pretending to shop."
+      requires:
+        act: evade
+        audience: several
+      tone:
+        - wry
+      repetitionGroup: evade.mood
+      memorability: signature

@@ -280,6 +280,11 @@ namespace BrilliantQuesting.Tests
         /// An act the library has no words for is unsaid, with a reason. Not a vaguer line
         /// assembled from the trimmings: a line that says less than it should is a content bug and
         /// recoverable, and a line that says something nobody decided is a world bug and is not.
+        ///
+        /// Stated against a library built for the test rather than against the shipped one. It
+        /// used to name an act the library happened not to cover yet, which made it a test about
+        /// how much content exists - so authoring an apology broke it, and the invariant it is
+        /// actually about was never in question.
         /// </summary>
         [Fact]
         public void AnActNobodyHasWordsForIsUnrealizedRatherThanApproximated()
@@ -292,7 +297,22 @@ namespace BrilliantQuesting.Tests
                 new ActionBinding { Purpose = "the ring" });
             Assert.NotNull(apology);
 
-            RealizedLine line = scene.Realizer.Realize(new RealizationRequest(apology) { Cast = scene.Cast });
+            // A library with words in it, and none of them for this act.
+            DialogueFragmentLibrary elsewhere = new DialogueFragmentLibrary();
+            elsewhere.Register(new DialogueFragment(
+                "test.core.ask",
+                FragmentPosition.Core,
+                "What do you know about it?",
+                new[] { new FragmentRequirement(DialogueReadings.Act, new[] { "ask" }) },
+                null, null, null, "ask", null));
+            elsewhere.Register(new DialogueFragment(
+                "test.opener.right",
+                FragmentPosition.Opener,
+                "Right.",
+                null, null, null, null, "filler", null));
+
+            RealizedLine line = new DialogueRealizer(elsewhere)
+                .Realize(new RealizationRequest(apology) { Cast = scene.Cast });
 
             Assert.False(line.Rendered);
             Assert.Equal(string.Empty, line.Text);

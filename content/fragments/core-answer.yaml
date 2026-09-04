@@ -2,6 +2,7 @@ id: fragments.core.answer
 kind: dialogueFragments
 payload:
   fragments:
+    # -- neutral cores
     - id: core.answer.confirm
       position: core
       text: "That is how it happened."
@@ -15,6 +16,85 @@ payload:
         act: answer
         commitment: hedged
       repetitionGroup: answer
+    - id: core.answer.short.yes
+      position: core
+      text: "The short answer is yes."
+      requires:
+        act: answer
+      repetitionGroup: answer
+    - id: core.answer.that.is.it
+      position: core
+      text: "That is the whole of it."
+      requires:
+        act: answer
+      repetitionGroup: answer
+    - id: core.answer.saw.it
+      position: core
+      text: "I saw it."
+      requires:
+        act: answer
+        commitment: committed
+      repetitionGroup: answer.provenance
+    - id: core.answer.was.there
+      position: core
+      text: "I was there when it happened."
+      requires:
+        act: answer
+        commitment: committed
+      repetitionGroup: answer.provenance
+    - id: core.answer.not.a.story
+      position: core
+      text: "This did not reach me as a story. I watched it happen."
+      requires:
+        act: answer
+        commitment: committed
+        depth:
+          - detail
+          - in_confidence
+      repetitionGroup: answer.provenance
+      memorability: signature
+    - id: core.answer.secondhand
+      position: core
+      text: "I have it secondhand."
+      requires:
+        act: answer
+        commitment: hedged
+      repetitionGroup: answer.provenance
+    - id: core.answer.fingerprints
+      position: core
+      text: "It came to me with somebody else's fingerprints on it."
+      requires:
+        act: answer
+        commitment: hedged
+      repetitionGroup: answer.provenance
+      memorability: signature
+    - id: core.answer.worked.it.out
+      position: core
+      text: "Nobody told me. The pieces point that way."
+      requires:
+        act: answer
+        commitment: hedged
+        depth:
+          - detail
+          - in_confidence
+      repetitionGroup: answer.provenance
+      memorability: voiced
+    - id: core.answer.in.the.record
+      position: core
+      text: "It is in the record."
+      requires:
+        act: answer
+      repetitionGroup: answer.provenance
+    - id: core.answer.source.gone
+      position: core
+      text: "The fact stayed. Its source did not."
+      requires:
+        act: answer
+        commitment: hedged
+      repetitionGroup: answer.provenance
+      memorability: signature
+
+    # -- theft
     - id: core.answer.theft.plain
       position: core
       text: "It was {subject}."
@@ -39,3 +119,179 @@ payload:
           - detail
           - in_confidence
       repetitionGroup: answer.theft
+    - id: core.answer.theft.leaving
+      position: core
+      text: "I saw {subject} leave with it."
+      requires:
+        act: answer
+        claim_predicate: stole
+        commitment: committed
+      repetitionGroup: answer.theft
+    - id: core.answer.theft.hurry
+      position: core
+      text: "I saw {subject} leave. In a hurry."
+      requires:
+        act: answer
+        claim_predicate: stole
+        commitment: committed
+        depth:
+          - detail
+          - in_confidence
+      repetitionGroup: answer.theft
+      memorability: voiced
+
+    # -- the unhelpful truthful answer, which is most of them
+    - id: core.answer.dont.know
+      position: core
+      text: "I do not know."
+      requires:
+        act: answer
+        commitment: hedged
+      repetitionGroup: answer.thin
+    - id: core.answer.memory.thin
+      position: core
+      text: "My memory is thin there."
+      requires:
+        act: answer
+        commitment: hedged
+      repetitionGroup: answer.thin
+      memorability: voiced
+    - id: core.answer.more.doubt
+      position: core
+      text: "I have more doubt than answer."
+      requires:
+        act: answer
+        commitment: hedged
+      repetitionGroup: answer.thin
+      memorability: signature
+    - id: core.answer.nothing.unusual
+      position: core
+      text: "Nothing unusual."
+      requires:
+        act: answer
+        depth: gist
+      repetitionGroup: answer.thin
+    - id: core.answer.small.answer
+      position: core
+      text: "A small answer for a small question."
+      requires:
+        act: answer
+        depth: gist
+      tone:
+        - wry
+      repetitionGroup: answer.thin
+      memorability: signature
+
+    # -- the answer that costs the speaker something
+    - id: core.answer.bad.part
+      position: core
+      text: "The part that makes me look bad is still part of the answer."
+      requires:
+        act: answer
+        commitment: committed
+        depth:
+          - detail
+          - in_confidence
+      repetitionGroup: answer.costly
+      memorability: signature
+    - id: core.answer.one.more.thing
+      position: core
+      text: "There is one more thing."
+      requires:
+        act: answer
+        depth:
+          - detail
+          - in_confidence
+      repetitionGroup: answer.costly
+    - id: core.answer.detail.you.care.about
+      position: core
+      text: "The detail I left out is the one you are going to care about."
+      requires:
+        act: answer
+        depth:
+          - detail
+          - in_confidence
+      repetitionGroup: answer.costly
+      memorability: signature
+    - id: core.answer.before.sunset
+      position: core
+      text: "If the time matters, it was before sunset."
+      requires:
+        act: answer
+        depth:
+          - detail
+          - in_confidence
+      repetitionGroup: answer.costly
+
+    # -- mood and tie
+    - id: core.answer.anger.not.fair
+      position: core
+      text: "Do not ask me to be fair while I am still angry. It was {subject}."
+      requires:
+        act: answer
+        emotion: anger
+        claim_predicate: stole
+      repetitionGroup: answer.mood
+      memorability: signature
+    - id: core.answer.fear.keep.voice.down
+      position: core
+      text: "Keep your voice down. Yes."
+      requires:
+        act: answer
+        emotion: fear
+      repetitionGroup: answer.mood
+    - id: core.answer.grief.not.much.today
+      position: core
+      text: "I do not have much to say today. But yes."
+      requires:
+        act: answer
+        emotion: grief
+      repetitionGroup: answer.mood
+      memorability: protected
+    - id: core.answer.relief.prepared.worse
+      position: core
+      text: "I had prepared for worse. Yes, that is it."
+      requires:
+        act: answer
+        emotion: relief
+      repetitionGroup: answer.mood
+      memorability: voiced
+    - id: core.answer.trusted.everything
+      position: core
+      text: "All right. I will tell you everything I know."
+      requires:
+        act: answer
+        depth: in_confidence
+        relationship:
+          - friend
+          - family
+          - spouse
+      repetitionGroup: answer.tie
+    - id: core.answer.trusted.kept.from.everyone
+      position: core
+      text: "I kept this from everyone else."
+      requires:
+        act: answer
+        depth: in_confidence
+      repetitionGroup: answer.tie
+      memorability: signature
+    - id: core.answer.stranger.what.you.need
+      position: core
+      text: "You will get the answer you need, not the one you want."
+      requires:
+        act: answer
+        relationship: none
+      repetitionGroup: answer.tie
+      memorability: voiced
+    - id: core.answer.rival.take.the.fact
+      position: core
+      text: "Take the fact. Leave my reasons alone."
+      requires:
+        act: answer
+        relationship:
+          - rival
+          - enemy
+      tone:
+        - cold
+      repetitionGroup: answer.tie
+      memorability: signature
