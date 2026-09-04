@@ -66,12 +66,44 @@ Threads         NarrativeThread, EscalationStep, ThreadEngine
 Situations      PettyTheftSituation, PettyTheftEscalation, TheftLaboratory
                 one generated archetype, its escalation, and the harness that runs it headless
 
+Dialogue        SpeechAct, SpeechActProfile, Disclosure, Deception, DialogueFragment,
+                DialogueRealizer, VoiceProfile, ConversationState
+                what is meant, decided separately from how it is said; the realizer holds no
+                world and can only choose among authored phrases
+
+Storylets       StoryletDefinition, StoryletCasting, StoryletChemistry, StoryletEngine,
+                ActorIntent, StoryletRouter
+                what is happening: a situation becomes a cast scene, and the scene routes on
+                what its actors decide rather than on what an author wrote down
+
+Content         ContentBundle, ContentBundleLoader, StoryletContent, DialogueFragmentContent
+                storylets and fragments are compiled data; Core reads a bundle and never YAML
+
 Persistence     Json, WorldStateSerializer, SaveMigrations
                 versioned, human-readable, and restores without replaying history
 
 Diagnostics     NarrativeInspector
-                the "why?" tooling: options with their rejection reasons, belief spread, history
+                the "why?" tooling: options with their rejection reasons, belief spread, history,
+                and a played scene beat by beat with the terms behind every decision
 ```
+
+The dramatic path runs one way through those layers and never doubles back:
+
+```
+world state -> situation -> storylet found and cast -> beat
+            -> the actor decides what to try to communicate  (ActorIntent, or Disclosure
+               where somebody has just been asked about the claim)
+            -> a check settles what is genuinely in doubt     (ICheckResolver)
+            -> the meaning is worded                          (DialogueRealizer over content/)
+            -> what happened is recorded as an event          (EventLedger -> ConsequenceEngine)
+            -> the route out of the beat                      -> the next beat, or a resolution
+```
+
+Each arrow crosses a layer that cannot see the one after it. Storylets decide what is happening;
+semantic acts decide what somebody is trying to communicate; character state decides how they
+approach it; fragments decide how that meaning is expressed; resolvers decide what actually
+happens. Wording is the only layer with no write access to anything, which is a fact about
+`DialogueRealizer`'s constructor rather than a discipline anybody has to keep.
 
 ## Check resolution
 

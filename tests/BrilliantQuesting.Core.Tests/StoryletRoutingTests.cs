@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using BrilliantQuesting.Actions;
 using BrilliantQuesting.Checks;
+using BrilliantQuesting.Continuity;
 using BrilliantQuesting.Content;
 using BrilliantQuesting.Dialogue;
 using BrilliantQuesting.Events;
@@ -406,6 +407,59 @@ namespace BrilliantQuesting.Tests
 
             Assert.Equal(first, second);
             Assert.NotEqual(string.Empty, first);
+        }
+
+        /// <summary>
+        /// A scene can refer back to what an earlier one resolved, and only where both gates allow.
+        ///
+        /// Old business is raised through `CallbackDisclosure`, which answers two separate
+        /// questions: may this speaker know it happened, and would they bring it up with the person
+        /// in front of them. A scene never asks either itself - it takes the permit or it does not
+        /// - so a memory the simulation withheld cannot reach the words through a storylet.
+        /// </summary>
+        [Fact]
+        public void ASceneCanRecallSettledHistoryAndNeverRecallsWhatWasWithheld()
+        {
+            Scene scene = Scene.Create();
+            EntityId victim = scene.Lab.Situation.VictimId;
+            EntityId witness = scene.Lab.Situation.WitnessId;
+
+            // Something between these two, long enough ago to be worth remarking on.
+            scene.Lab.World.Record(
+                WorldEventType.Helped, witness, victim, scene.Lab.Vanilla.Now, 0.8,
+                threadId: scene.Lab.Situation.Thread.Id);
+            scene.Lab.Vanilla.AdvanceDays(CallbackHooks.SettledDays + 4);
+
+            StoryletPlay play = scene.Play("storylet.request_for_help", new AlwaysResolver(CheckOutcome.Pass), 7UL, apply: false);
+            Assert.True(play.Played, play.Refusal);
+
+            List<PlayedBeat> spoke = play.Beats.Where(b => b.Act != null).ToList();
+            Assert.NotEmpty(spoke);
+
+            // Every permit a beat took is one the speaker owns and was cleared to spend on exactly
+            // the person addressed. Nothing here checks that the optional callback slot happened to
+            // fill - that is the realizer's coin, and the claim is about permission.
+            foreach (PlayedBeat beat in spoke)
+            {
+                if (beat.Recalled == null)
+                {
+                    continue;
+                }
+
+                Assert.True(beat.Recalled.Allowed);
+                Assert.Equal(beat.Speaker, beat.Recalled.Hook.Recaller);
+                Assert.Equal(beat.Listener, beat.Recalled.Listener);
+                Assert.True(beat.Act.IsAddressedTo(beat.Recalled.Listener));
+            }
+
+            // And a line never words a piece of history its speaker was not cleared for: the only
+            // callback fragments that can appear are ones the permit admits.
+            foreach (PlayedBeat beat in spoke.Where(b => b.Line != null && b.Line.Rendered && b.Recalled == null))
+            {
+                Assert.DoesNotContain(
+                    beat.Line.Fragments,
+                    id => id.StartsWith("call.history.", StringComparison.Ordinal));
+            }
         }
 
         // -- what a scene may and may not write -----------------------------------------------------

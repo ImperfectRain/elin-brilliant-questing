@@ -964,6 +964,12 @@ namespace BrilliantQuesting.Diagnostics
 
                 sb.Append("     act: ").Append(beat.Act == null ? "none - nobody spoke" : beat.Act.Signature).Append('\n');
 
+                if (beat.Recalled != null)
+                {
+                    sb.Append("     recalled: ").Append(beat.Recalled.Hook.PrimaryKind)
+                      .Append(" (").Append(beat.Recalled.Hook.Route).Append(")\n");
+                }
+
                 if (beat.Check != null)
                 {
                     sb.Append("     ").Append(beat.Check.Explain()).Append('\n');

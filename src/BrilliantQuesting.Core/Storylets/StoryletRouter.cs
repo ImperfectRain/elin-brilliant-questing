@@ -33,6 +33,7 @@ namespace BrilliantQuesting.Storylets
             EntityId listener,
             IntentChoice choice,
             DisclosureDecision decision,
+            CallbackPermit recalled,
             CheckResult check,
             RealizedLine line,
             IReadOnlyList<string> consequences,
@@ -45,6 +46,7 @@ namespace BrilliantQuesting.Storylets
             Listener = listener;
             Choice = choice;
             Decision = decision;
+            Recalled = recalled;
             Check = check;
             Line = line;
             Consequences = consequences ?? Nothing;
@@ -75,6 +77,15 @@ namespace BrilliantQuesting.Storylets
         /// Null for every other beat.
         /// </summary>
         public DisclosureDecision Decision { get; }
+
+        /// <summary>
+        /// The old business the speaker was cleared to raise here, or null (BQ-081, BQ-082).
+        ///
+        /// Recorded rather than only used, because "would they have brought that up" is one of the
+        /// questions a reader most wants answered about a scene, and a permit that was granted and
+        /// then not drawn on looks identical in the words to one that was never sought.
+        /// </summary>
+        public CallbackPermit Recalled { get; }
 
         public CheckResult Check { get; }
 
@@ -320,7 +331,7 @@ namespace BrilliantQuesting.Storylets
             string lapsed = Lapsed(beat, context, focus, opportunity.RoleBindings);
             if (lapsed.Length != 0)
             {
-                PlayedBeat skipped = new PlayedBeat(beat, EntityId.None, EntityId.None, null, null, null, null, null, null,
+                PlayedBeat skipped = new PlayedBeat(beat, EntityId.None, EntityId.None, null, null, null, null, null, null, null,
                     Route(beat, null, null), lapsed);
                 return skipped;
             }
@@ -365,12 +376,13 @@ namespace BrilliantQuesting.Storylets
             }
 
             CheckResult check = Resolve(beat, opportunity, context, rng);
-            RealizedLine line = Say(said, decision, focus, context, opportunity, speaker, listener, rng, beat);
+            CallbackPermit recalled = said == null ? null : Recall(context, said, speaker, listener, now);
+            RealizedLine line = Say(said, decision, recalled, focus, context, opportunity, speaker, listener, rng, beat);
             List<string> consequences = Apply(beat, opportunity, context, focus, now, said, check);
             List<string> intersections = new List<string>(beat.PlayerIntersections);
 
-            PlayedBeat outcome = new PlayedBeat(beat, speaker, listener, choice, decision, check, line, consequences,
-                intersections, Route(beat, said, check), string.Empty);
+            PlayedBeat outcome = new PlayedBeat(beat, speaker, listener, choice, decision, recalled, check, line,
+                consequences, intersections, Route(beat, said, check), string.Empty);
             outcome.Chosen = said;
             return outcome;
         }
@@ -442,6 +454,7 @@ namespace BrilliantQuesting.Storylets
         private RealizedLine Say(
             SpeechAct said,
             DisclosureDecision decision,
+            CallbackPermit recalled,
             Fact focus,
             StoryletPlayContext context,
             StoryletOpportunity opportunity,
@@ -476,7 +489,7 @@ namespace BrilliantQuesting.Storylets
                 Cast = DialogueCast.From(context.World, named.ToArray()),
                 Feeling = actor == null ? SpeakerFeeling.None : SpeakerFeeling.Of(actor.Emotions, now),
                 Tie = SpeakerTie.Of(context.World.Relationships, speaker, listener),
-                Callback = Recall(context, said, speaker, listener, now),
+                Callback = recalled,
                 Rng = rng.Fork("bq146|line|" + beat.Id)
             };
 
