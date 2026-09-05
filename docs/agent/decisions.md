@@ -1790,3 +1790,53 @@ character is now attached to, and those are derivable from the same history with
 of it.
 
 Add a new entry only when the decision is both load-bearing and durable.
+
+## D066 — A grammar is authored requirements; a place stores which grammar and which seed, never the plan
+
+BQ-089. A curated kind of place is a catalogue entry — bandit camp, collapsed mine, smuggler
+cellar — so grammars are authored under `content/sites/` and compiled into the same bundle as
+storylets and fragments. Adding "sewer refuge" is a file, not a class. The reader,
+`SiteGrammarContent`, is what the compiler validates through, so an authoring mistake is a build
+error with a file name rather than a diagnostic nobody is watching at load
+(`content-pipeline.md §3`).
+
+**Requirements, never geometry.** A grammar says a camp has a way in somebody is watching, a
+communal area, storage and a leader's space, and that the storage is behind a lock (`LW §7.3`,
+`PP §2`). It says nothing about tiles, room sizes or which map piece is used. The plan is
+authoritative for meaning; the map is the embodiment (`PP §3`), and there is no embodiment yet.
+
+**Required and optional is the whole of "same kind, different place".** Every composition carries
+every required node and every required route — that is what makes two camps recognisably camps.
+Each optional node is drawn independently from the seed — that is what keeps them from being the
+same camp. Nothing else is needed for the distinction, and a second "variation" mechanism would be
+a knob to tune instead of a fact about the kind.
+
+**A drawn part nothing drawn reaches is not part of the place.** Optional rooms hang off other
+optional rooms, so composition prunes to a fixpoint and reports each omission with its reason. The
+required core cannot be pruned, because the loader refuses a grammar whose required nodes are not
+reachable on required routes alone: a room every place of the kind has and no place of the kind can
+get to is the one thing the inspector could not honestly explain.
+
+**The save stores the grammar id and the seed.** Content is never written into a save
+(`content-pipeline.md §2`), and a plan is content. So a place records which kind it was drawn from
+and at which seed, and the plan is recomposed — a corrected grammar reaches every place already in
+a fifty-hour save, the way a storylet that already fired reads back in the new wording of the same
+event. Both fields are additive and optional on read, so a place written before grammars existed
+reads back planned by nobody, which is the truth about it rather than a gap (`D017`).
+
+**One vocabulary for what a place must be.** A composed plan hands back a `SitePlan` — the same
+description `SiteGenesis` validates and `SiteReuse` weighs (`D064`) — with the kind, the reach and
+the ways in filled in and the occupants and cargo left to the matter, because those come from the
+situation rather than from the kind. BQ-087's two-ways-in rule is enforced one layer earlier, on
+the *required* entries, so it holds for every seed instead of for most of them.
+
+**The affordance vocabulary is a vocabulary of requirements.** `LockedBarrier` on a route says what
+the place must be like for the situation to make sense. It does not say Elin has a lock the player
+can pick there. Turning a required affordance into a route somebody can take, and grading how well
+each one is evidenced on the live build, is BQ-090's, and this exists so that step has something
+authored to project rather than a string table to guess at.
+
+Reason: the cheap version puts a place library in C# with a name and a room list, and it is
+unfixable after release for the same reason a storylet's dialogue in C# is — the wording and the
+shape of a place are content, and content that ships in the DLL cannot be corrected without a build
+or picked up by a save that already exists.

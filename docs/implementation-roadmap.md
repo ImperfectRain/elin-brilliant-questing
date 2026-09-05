@@ -2360,6 +2360,43 @@ sockets, not geometry.
 - **Depends** BQ-088.
 - **Done when** two sites from the same grammar are recognizably the same kind of place and clearly not the same place, and the inspector can explain every required node/edge in the abstract plan.
 - **Sources** LW §7.3, §7.1; PP §2, §3.
+- **Current implementation** a grammar is authored content, not C#. `content/sites/` carries six of
+  `LW §7.3`'s candidates — bandit camp, collapsed mine, smuggler cellar, occupied farmhouse,
+  warehouse, makeshift prison — read back by `SiteGrammarContent` through the same compiler and
+  bundle as storylets and fragments, because a kind of place is a catalogue entry and "sewer
+  refuge" should be a file rather than a class (`D066`).
+  **A grammar states requirements and never geometry** (`PP §2`): functional nodes with the
+  spatial affordances each needs, the routes between them, and the authored-piece sockets a node is
+  filled from. `SiteGrammar.Compose(seed)` turns one into a `SiteLayout` — the abstract plan.
+  Every required node and required route is in every composition, which is what makes two of them
+  the same kind of place; each optional node is drawn independently from the seed, which is what
+  keeps them from being the same place. A drawn node nothing drawn reaches is dropped and said to
+  be dropped, so no plan holds a part with no way to it.
+  **The place stores the grammar id and the seed, never the plan.** Content is never written into
+  a save (`content-pipeline.md §2`), so a corrected grammar reaches every place already in one, and
+  `SiteGrammarLibrary.LayoutOf` recomposes. Additive and optional on read, so a place written
+  before grammars reads back planned by nobody, which is what it was.
+  **One vocabulary for what a place must be.** `SiteLayout.NewPlan` hands back the `SitePlan`
+  genesis validates and reuse weighs (`D064`) with the kind, the reach and the ways in filled and
+  the occupants and cargo left to the matter. The ways in are `SiteApproach`, and the loader
+  enforces BQ-087's two-ways-in rule on a grammar's *required* entries, so no seed can produce a
+  place with one approach spelled twice.
+  **Authoring mistakes are build errors** (`content-pipeline.md §3`): an unknown affordance, a
+  route to a part the grammar never declared, a required part no required route reaches, a way in
+  naming a verb the action library does not register, ways in that all wait on the same permission,
+  and any value that is not a slug. `NarrativeInspector.DescribeSiteLayout` is the explanation, and
+  it says of every node and route whether every place of the kind has it or this one drew it, and
+  names every optional part left out with the reason.
+- **Deferred, and not claimed** nothing was rewired to route through a grammar — the archetypes
+  that write places down still do so directly, as BQ-088 also left them, so the path is proven
+  headlessly against a world built the way they build one. The affordance vocabulary here is a
+  vocabulary of *requirements*: turning one into a route the player can take, and grading how well
+  each is evidenced on the live build, is BQ-090's and is explicitly not claimed. Sockets are
+  carried and inspectable and nothing fills one, because no BQ site has a physical realization yet
+  (BQ-140). Composition reads no world state — contents derived from a situation are BQ-091's — and
+  scoring which of several candidate plans is better is BQ-092's. The dialogue coverage report is
+  unchanged: grammars are not dialogue coverage. Everything above is proven in `SiteGrammarTests`;
+  none of it has run in a live Elin session, and no plugin code changed.
 
 #### BQ-090 — Spatial affordances
 LockedBarrier, BreakableBarrier, DiggableBypass, HiddenPassage, GuardedThreshold, EvidenceCache,

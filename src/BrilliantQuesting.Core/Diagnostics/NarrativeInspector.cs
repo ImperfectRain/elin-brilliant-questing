@@ -1628,6 +1628,112 @@ namespace BrilliantQuesting.Diagnostics
         }
 
         /// <summary>
+        /// BQ-089. The abstract plan a place of some curated kind is made from: every part it has,
+        /// every route between them, and what each of those requires.
+        ///
+        /// The step's done-when is that this can explain every required node and edge, so it lists
+        /// them all and says of each whether every place of the kind has one - which is also the
+        /// readable form of "the same kind of place, and not the same place": the required lines
+        /// are identical between two plans from one grammar, and the chosen ones are not. What the
+        /// kind allows and this place does not have is listed too, with the reason, because an
+        /// absence a trace does not mention reads as a hole in the grammar.
+        ///
+        /// Nothing here is geometry, and that is not a gap in the trace: the plan is authoritative
+        /// for meaning and the map is the embodiment (`PP §3`). Which affordance is real on the
+        /// live build is BQ-090's evidence question, and this reports what the place *requires*.
+        /// </summary>
+        public static string DescribeSiteLayout(SiteLayout layout)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (layout == null)
+            {
+                sb.Append("site plan: no grammar composed\n");
+                return sb.ToString();
+            }
+
+            sb.Append("site plan ").Append(layout.GrammarId)
+              .Append(" [").Append(layout.SiteType).Append("] seed ").Append(layout.Seed).Append('\n');
+            sb.Append("  what it keeps is ")
+              .Append(layout.Restricted ? "behind somebody's permission" : "open to anybody")
+              .Append('\n');
+
+            sb.Append("  parts ").Append(layout.Nodes.Count).Append('\n');
+            for (int i = 0; i < layout.Nodes.Count; i++)
+            {
+                SiteLayoutNode node = layout.Nodes[i];
+                sb.Append(node.Required ? "    every one  " : "    this one   ").Append(node.Id);
+                AppendAffordances(sb, node.Affordances);
+                if (node.Spec.HasSocket)
+                {
+                    sb.Append("; authored piece ").Append(node.Socket);
+                }
+
+                sb.Append('\n');
+            }
+
+            for (int i = 0; i < layout.Omitted.Count; i++)
+            {
+                SiteOmission omission = layout.Omitted[i];
+                sb.Append("    not here   ").Append(omission.Id).Append("; ")
+                  .Append(omission.Reason == SiteOmissionReason.NotDrawn
+                      ? "another place of this kind may have one"
+                      : "nothing this place has leads to it")
+                  .Append('\n');
+            }
+
+            sb.Append("  routes ").Append(layout.Routes.Count).Append('\n');
+            for (int i = 0; i < layout.Routes.Count; i++)
+            {
+                SiteLayoutRoute route = layout.Routes[i];
+                sb.Append(route.Required ? "    every one  " : "    this one   ")
+                  .Append(route.From).Append(" -> ").Append(route.To);
+                if (route.ActionId.Length > 0)
+                {
+                    sb.Append(" by ").Append(route.ActionId);
+                }
+
+                if (route.NeedsAdmission)
+                {
+                    sb.Append("; waits on somebody letting you in");
+                }
+                else if (route.IsEntry)
+                {
+                    sb.Append("; goes around everybody");
+                }
+
+                AppendAffordances(sb, route.Affordances);
+                sb.Append('\n');
+            }
+
+            sb.Append("  ways in ").Append(layout.Approaches.Count).Append('\n');
+            for (int i = 0; i < layout.Approaches.Count; i++)
+            {
+                sb.Append("    ").Append(layout.Approaches[i]).Append('\n');
+            }
+
+            return sb.ToString();
+        }
+
+        private static void AppendAffordances(StringBuilder sb, IReadOnlyList<SiteAffordance> affordances)
+        {
+            if (affordances.Count == 0)
+            {
+                return;
+            }
+
+            sb.Append("; needs ");
+            for (int i = 0; i < affordances.Count; i++)
+            {
+                if (i > 0)
+                {
+                    sb.Append(", ");
+                }
+
+                sb.Append(affordances[i]);
+            }
+        }
+
+        /// <summary>
         /// BQ-087. What a return visit found, and if something is missing, which thing.
         ///
         /// The done-when of the site proof is a comparison, so the tooling has to be able to show
@@ -1656,6 +1762,12 @@ namespace BrilliantQuesting.Diagnostics
             NarrativeSite site = visit.Site;
             sb.Append("  ").Append(site.Name).Append(" [").Append(site.SiteType).Append("] ")
               .Append(site.Persistence).Append(site.Restricted ? ", restricted" : ", open").Append('\n');
+            if (!string.IsNullOrEmpty(site.GrammarId))
+            {
+                sb.Append("  planned from ").Append(site.GrammarId)
+                  .Append(" at seed ").Append(site.GenerationSeed).Append('\n');
+            }
+
             sb.Append("  genesis: ")
               .Append(visit.Established ? "established " + site.EstablishedAt : "never generated here")
               .Append("; body: ")

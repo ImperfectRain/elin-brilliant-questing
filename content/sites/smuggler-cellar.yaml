@@ -1,0 +1,61 @@
+# The cellar is under something ordinary and the way down is not meant to be found. What is
+# kept here is the whole reason the shop above is open.
+id: site.smuggler_cellar
+kind: site-grammar
+payload:
+  siteType: cellar
+  restricted: true
+  requiredNodes:
+    - id: front
+      socket: cellar_front
+    - id: concealed_way
+      affordances:
+        - hidden_passage
+    - id: undercroft
+    - id: cache
+      affordances:
+        - evidence_cache
+  optionalNodes:
+    - id: tally_desk
+    - id: watch_hole
+      affordances:
+        - observation_point
+    - id: river_stair
+      affordances:
+        - alternate_exit
+    - id: deadfall
+      affordances:
+        - trap_cluster
+  routes:
+    - from: outside
+      to: front
+      via: persuade
+      admission: true
+      affordances:
+        - social_checkpoint
+    - from: outside
+      to: undercroft
+      via: trespass
+      admission: false
+      affordances:
+        - breakable_barrier
+    - from: front
+      to: concealed_way
+      affordances:
+        - locked_barrier
+    - from: concealed_way
+      to: undercroft
+    - from: undercroft
+      to: cache
+      affordances:
+        - locked_barrier
+    - from: undercroft
+      to: tally_desk
+    - from: front
+      to: watch_hole
+    - from: concealed_way
+      to: deadfall
+    - from: undercroft
+      to: river_stair
+    - from: river_stair
+      to: outside

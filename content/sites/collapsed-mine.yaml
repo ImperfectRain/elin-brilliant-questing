@@ -1,0 +1,61 @@
+# The collapse is the point: the workings are still there, and what is left of the way in
+# decides who can reach them.
+id: site.collapsed_mine
+kind: site-grammar
+payload:
+  siteType: mine
+  restricted: true
+  requiredNodes:
+    - id: mouth
+      socket: mine_mouth
+    - id: fall
+      affordances:
+        - hazard
+    - id: workings
+    - id: face
+      affordances:
+        - evidence_cache
+  optionalNodes:
+    - id: flooded_drift
+      affordances:
+        - hazard
+    - id: air_shaft
+      affordances:
+        - alternate_exit
+    - id: tool_store
+    - id: deeper_cut
+      affordances:
+        - hazard
+  routes:
+    - from: outside
+      to: mouth
+      via: persuade
+      admission: true
+    - from: outside
+      to: mouth
+      via: trespass
+      admission: false
+    - from: mouth
+      to: fall
+    - from: fall
+      to: workings
+      via: clear_obstruction
+      affordances:
+        - breakable_barrier
+    - from: fall
+      to: workings
+      via: mine_bypass
+      affordances:
+        - diggable_bypass
+    - from: workings
+      to: face
+    - from: workings
+      to: flooded_drift
+    - from: workings
+      to: deeper_cut
+    - from: mouth
+      to: tool_store
+    - from: workings
+      to: air_shaft
+    - from: air_shaft
+      to: outside

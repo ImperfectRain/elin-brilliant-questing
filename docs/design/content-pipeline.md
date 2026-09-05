@@ -117,7 +117,13 @@ content/
   storylets/       by social situation      public-accusation.yaml
   fragments/       by semantic act          accuse.yaml, refuse.yaml, apologize.yaml
   acts/            the speech-act vocabulary itself
+  sites/           by kind of place         bandit-camp.yaml, collapsed-mine.yaml
 ```
+
+`sites/` arrived with BQ-089 and follows the same rule for the same reason: a kind of place is a
+catalogue entry, and "sewer refuge" should be a file a writer adds rather than a class somebody
+compiles. A grammar carries no wording at all — a place's name comes from the matter that needed
+it — so the reader refuses any value in one that is not a slug.
 
 A fragment belongs to an act and a position, and is selected by tags, requirements and voice — never
 by whose file it was in. If a line can only ever be said by one named character, that is a signature

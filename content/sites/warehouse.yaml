@@ -1,0 +1,61 @@
+# A warehouse is paperwork with a roof on it. Everything in it belongs to somebody who is not
+# here, and the argument is always about which of them.
+id: site.warehouse
+kind: site-grammar
+payload:
+  siteType: warehouse
+  restricted: true
+  requiredNodes:
+    - id: dock
+      socket: warehouse_dock
+    - id: floor
+    - id: office
+    - id: bonded_store
+      affordances:
+        - evidence_cache
+  optionalNodes:
+    - id: loft
+    - id: night_post
+      affordances:
+        - observation_point
+    - id: rat_run
+      affordances:
+        - hidden_passage
+    - id: side_door
+      affordances:
+        - alternate_exit
+  routes:
+    - from: outside
+      to: dock
+      via: show_item
+      admission: true
+      affordances:
+        - social_checkpoint
+    - from: outside
+      to: floor
+      via: trespass
+      admission: false
+      affordances:
+        - breakable_barrier
+    - from: dock
+      to: floor
+    - from: floor
+      to: office
+      affordances:
+        - guarded_threshold
+    - from: office
+      to: bonded_store
+      affordances:
+        - locked_barrier
+    - from: floor
+      to: loft
+    - from: loft
+      to: night_post
+    - from: floor
+      to: rat_run
+    - from: rat_run
+      to: outside
+    - from: floor
+      to: side_door
+    - from: side_door
+      to: outside

@@ -1,0 +1,63 @@
+# Nobody built this to hold people; somebody decided it would. Who is written down as being
+# here, and who is actually here, are two different questions.
+id: site.makeshift_prison
+kind: site-grammar
+payload:
+  siteType: prison
+  restricted: true
+  requiredNodes:
+    - id: gate
+      affordances:
+        - guarded_threshold
+      socket: prison_gate
+    - id: guard_room
+    - id: cells
+      affordances:
+        - prison_cell
+    - id: ledger_nook
+      affordances:
+        - evidence_cache
+  optionalNodes:
+    - id: exercise_yard
+      affordances:
+        - observation_point
+    - id: sick_room
+    - id: sump
+      affordances:
+        - hazard
+    - id: spoil_hole
+      affordances:
+        - alternate_exit
+  routes:
+    - from: outside
+      to: gate
+      via: bribe
+      admission: true
+      affordances:
+        - social_checkpoint
+    - from: outside
+      to: cells
+      via: mine_bypass
+      admission: false
+      affordances:
+        - diggable_bypass
+    - from: gate
+      to: guard_room
+      affordances:
+        - guarded_threshold
+    - from: guard_room
+      to: cells
+      affordances:
+        - locked_barrier
+    - from: guard_room
+      to: ledger_nook
+    - from: gate
+      to: exercise_yard
+    - from: cells
+      to: sick_room
+    - from: guard_room
+      to: sump
+    - from: cells
+      to: spoil_hole
+    - from: spoil_hole
+      to: outside

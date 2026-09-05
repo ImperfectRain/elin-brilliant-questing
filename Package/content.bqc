@@ -9008,6 +9008,673 @@
       }
     },
     {
+      "id": "site.bandit_camp",
+      "kind": "site-grammar",
+      "payload": {
+        "siteType": "camp",
+        "restricted": true,
+        "requiredNodes": [
+          {
+            "id": "approach",
+            "affordances": [
+              "guarded_threshold"
+            ],
+            "socket": "camp_gate"
+          },
+          {
+            "id": "commons"
+          },
+          {
+            "id": "stores",
+            "affordances": [
+              "evidence_cache"
+            ]
+          },
+          {
+            "id": "leader_quarters"
+          }
+        ],
+        "optionalNodes": [
+          {
+            "id": "prisoner_pen",
+            "affordances": [
+              "prison_cell"
+            ]
+          },
+          {
+            "id": "lookout",
+            "affordances": [
+              "observation_point"
+            ]
+          },
+          {
+            "id": "snare_line",
+            "affordances": [
+              "trap_cluster"
+            ]
+          },
+          {
+            "id": "bolthole",
+            "affordances": [
+              "alternate_exit"
+            ]
+          }
+        ],
+        "routes": [
+          {
+            "from": "outside",
+            "to": "approach",
+            "via": "impersonate",
+            "admission": true,
+            "affordances": [
+              "social_checkpoint"
+            ]
+          },
+          {
+            "from": "outside",
+            "to": "stores",
+            "via": "trespass",
+            "admission": false,
+            "affordances": [
+              "breakable_barrier"
+            ]
+          },
+          {
+            "from": "approach",
+            "to": "commons"
+          },
+          {
+            "from": "commons",
+            "to": "stores",
+            "affordances": [
+              "locked_barrier"
+            ]
+          },
+          {
+            "from": "commons",
+            "to": "leader_quarters",
+            "affordances": [
+              "guarded_threshold"
+            ]
+          },
+          {
+            "from": "commons",
+            "to": "prisoner_pen"
+          },
+          {
+            "from": "approach",
+            "to": "snare_line"
+          },
+          {
+            "from": "approach",
+            "to": "lookout"
+          },
+          {
+            "from": "leader_quarters",
+            "to": "bolthole"
+          },
+          {
+            "from": "bolthole",
+            "to": "outside"
+          }
+        ]
+      }
+    },
+    {
+      "id": "site.collapsed_mine",
+      "kind": "site-grammar",
+      "payload": {
+        "siteType": "mine",
+        "restricted": true,
+        "requiredNodes": [
+          {
+            "id": "mouth",
+            "socket": "mine_mouth"
+          },
+          {
+            "id": "fall",
+            "affordances": [
+              "hazard"
+            ]
+          },
+          {
+            "id": "workings"
+          },
+          {
+            "id": "face",
+            "affordances": [
+              "evidence_cache"
+            ]
+          }
+        ],
+        "optionalNodes": [
+          {
+            "id": "flooded_drift",
+            "affordances": [
+              "hazard"
+            ]
+          },
+          {
+            "id": "air_shaft",
+            "affordances": [
+              "alternate_exit"
+            ]
+          },
+          {
+            "id": "tool_store"
+          },
+          {
+            "id": "deeper_cut",
+            "affordances": [
+              "hazard"
+            ]
+          }
+        ],
+        "routes": [
+          {
+            "from": "outside",
+            "to": "mouth",
+            "via": "persuade",
+            "admission": true
+          },
+          {
+            "from": "outside",
+            "to": "mouth",
+            "via": "trespass",
+            "admission": false
+          },
+          {
+            "from": "mouth",
+            "to": "fall"
+          },
+          {
+            "from": "fall",
+            "to": "workings",
+            "via": "clear_obstruction",
+            "affordances": [
+              "breakable_barrier"
+            ]
+          },
+          {
+            "from": "fall",
+            "to": "workings",
+            "via": "mine_bypass",
+            "affordances": [
+              "diggable_bypass"
+            ]
+          },
+          {
+            "from": "workings",
+            "to": "face"
+          },
+          {
+            "from": "workings",
+            "to": "flooded_drift"
+          },
+          {
+            "from": "workings",
+            "to": "deeper_cut"
+          },
+          {
+            "from": "mouth",
+            "to": "tool_store"
+          },
+          {
+            "from": "workings",
+            "to": "air_shaft"
+          },
+          {
+            "from": "air_shaft",
+            "to": "outside"
+          }
+        ]
+      }
+    },
+    {
+      "id": "site.makeshift_prison",
+      "kind": "site-grammar",
+      "payload": {
+        "siteType": "prison",
+        "restricted": true,
+        "requiredNodes": [
+          {
+            "id": "gate",
+            "affordances": [
+              "guarded_threshold"
+            ],
+            "socket": "prison_gate"
+          },
+          {
+            "id": "guard_room"
+          },
+          {
+            "id": "cells",
+            "affordances": [
+              "prison_cell"
+            ]
+          },
+          {
+            "id": "ledger_nook",
+            "affordances": [
+              "evidence_cache"
+            ]
+          }
+        ],
+        "optionalNodes": [
+          {
+            "id": "exercise_yard",
+            "affordances": [
+              "observation_point"
+            ]
+          },
+          {
+            "id": "sick_room"
+          },
+          {
+            "id": "sump",
+            "affordances": [
+              "hazard"
+            ]
+          },
+          {
+            "id": "spoil_hole",
+            "affordances": [
+              "alternate_exit"
+            ]
+          }
+        ],
+        "routes": [
+          {
+            "from": "outside",
+            "to": "gate",
+            "via": "bribe",
+            "admission": true,
+            "affordances": [
+              "social_checkpoint"
+            ]
+          },
+          {
+            "from": "outside",
+            "to": "cells",
+            "via": "mine_bypass",
+            "admission": false,
+            "affordances": [
+              "diggable_bypass"
+            ]
+          },
+          {
+            "from": "gate",
+            "to": "guard_room",
+            "affordances": [
+              "guarded_threshold"
+            ]
+          },
+          {
+            "from": "guard_room",
+            "to": "cells",
+            "affordances": [
+              "locked_barrier"
+            ]
+          },
+          {
+            "from": "guard_room",
+            "to": "ledger_nook"
+          },
+          {
+            "from": "gate",
+            "to": "exercise_yard"
+          },
+          {
+            "from": "cells",
+            "to": "sick_room"
+          },
+          {
+            "from": "guard_room",
+            "to": "sump"
+          },
+          {
+            "from": "cells",
+            "to": "spoil_hole"
+          },
+          {
+            "from": "spoil_hole",
+            "to": "outside"
+          }
+        ]
+      }
+    },
+    {
+      "id": "site.occupied_farmhouse",
+      "kind": "site-grammar",
+      "payload": {
+        "siteType": "house",
+        "restricted": true,
+        "requiredNodes": [
+          {
+            "id": "yard",
+            "socket": "farm_yard"
+          },
+          {
+            "id": "kitchen"
+          },
+          {
+            "id": "upper_room"
+          },
+          {
+            "id": "cellar_store",
+            "affordances": [
+              "evidence_cache"
+            ]
+          }
+        ],
+        "optionalNodes": [
+          {
+            "id": "byre"
+          },
+          {
+            "id": "hayloft",
+            "affordances": [
+              "observation_point"
+            ]
+          },
+          {
+            "id": "held_room",
+            "affordances": [
+              "prison_cell"
+            ]
+          },
+          {
+            "id": "back_lane",
+            "affordances": [
+              "alternate_exit"
+            ]
+          }
+        ],
+        "routes": [
+          {
+            "from": "outside",
+            "to": "yard",
+            "via": "persuade",
+            "admission": true,
+            "affordances": [
+              "social_checkpoint"
+            ]
+          },
+          {
+            "from": "outside",
+            "to": "cellar_store",
+            "via": "trespass",
+            "admission": false,
+            "affordances": [
+              "breakable_barrier"
+            ]
+          },
+          {
+            "from": "yard",
+            "to": "kitchen",
+            "affordances": [
+              "guarded_threshold"
+            ]
+          },
+          {
+            "from": "kitchen",
+            "to": "upper_room"
+          },
+          {
+            "from": "kitchen",
+            "to": "cellar_store",
+            "affordances": [
+              "locked_barrier"
+            ]
+          },
+          {
+            "from": "kitchen",
+            "to": "held_room",
+            "affordances": [
+              "locked_barrier"
+            ]
+          },
+          {
+            "from": "yard",
+            "to": "byre"
+          },
+          {
+            "from": "byre",
+            "to": "hayloft"
+          },
+          {
+            "from": "kitchen",
+            "to": "back_lane"
+          },
+          {
+            "from": "back_lane",
+            "to": "outside"
+          }
+        ]
+      }
+    },
+    {
+      "id": "site.smuggler_cellar",
+      "kind": "site-grammar",
+      "payload": {
+        "siteType": "cellar",
+        "restricted": true,
+        "requiredNodes": [
+          {
+            "id": "front",
+            "socket": "cellar_front"
+          },
+          {
+            "id": "concealed_way",
+            "affordances": [
+              "hidden_passage"
+            ]
+          },
+          {
+            "id": "undercroft"
+          },
+          {
+            "id": "cache",
+            "affordances": [
+              "evidence_cache"
+            ]
+          }
+        ],
+        "optionalNodes": [
+          {
+            "id": "tally_desk"
+          },
+          {
+            "id": "watch_hole",
+            "affordances": [
+              "observation_point"
+            ]
+          },
+          {
+            "id": "river_stair",
+            "affordances": [
+              "alternate_exit"
+            ]
+          },
+          {
+            "id": "deadfall",
+            "affordances": [
+              "trap_cluster"
+            ]
+          }
+        ],
+        "routes": [
+          {
+            "from": "outside",
+            "to": "front",
+            "via": "persuade",
+            "admission": true,
+            "affordances": [
+              "social_checkpoint"
+            ]
+          },
+          {
+            "from": "outside",
+            "to": "undercroft",
+            "via": "trespass",
+            "admission": false,
+            "affordances": [
+              "breakable_barrier"
+            ]
+          },
+          {
+            "from": "front",
+            "to": "concealed_way",
+            "affordances": [
+              "locked_barrier"
+            ]
+          },
+          {
+            "from": "concealed_way",
+            "to": "undercroft"
+          },
+          {
+            "from": "undercroft",
+            "to": "cache",
+            "affordances": [
+              "locked_barrier"
+            ]
+          },
+          {
+            "from": "undercroft",
+            "to": "tally_desk"
+          },
+          {
+            "from": "front",
+            "to": "watch_hole"
+          },
+          {
+            "from": "concealed_way",
+            "to": "deadfall"
+          },
+          {
+            "from": "undercroft",
+            "to": "river_stair"
+          },
+          {
+            "from": "river_stair",
+            "to": "outside"
+          }
+        ]
+      }
+    },
+    {
+      "id": "site.warehouse",
+      "kind": "site-grammar",
+      "payload": {
+        "siteType": "warehouse",
+        "restricted": true,
+        "requiredNodes": [
+          {
+            "id": "dock",
+            "socket": "warehouse_dock"
+          },
+          {
+            "id": "floor"
+          },
+          {
+            "id": "office"
+          },
+          {
+            "id": "bonded_store",
+            "affordances": [
+              "evidence_cache"
+            ]
+          }
+        ],
+        "optionalNodes": [
+          {
+            "id": "loft"
+          },
+          {
+            "id": "night_post",
+            "affordances": [
+              "observation_point"
+            ]
+          },
+          {
+            "id": "rat_run",
+            "affordances": [
+              "hidden_passage"
+            ]
+          },
+          {
+            "id": "side_door",
+            "affordances": [
+              "alternate_exit"
+            ]
+          }
+        ],
+        "routes": [
+          {
+            "from": "outside",
+            "to": "dock",
+            "via": "show_item",
+            "admission": true,
+            "affordances": [
+              "social_checkpoint"
+            ]
+          },
+          {
+            "from": "outside",
+            "to": "floor",
+            "via": "trespass",
+            "admission": false,
+            "affordances": [
+              "breakable_barrier"
+            ]
+          },
+          {
+            "from": "dock",
+            "to": "floor"
+          },
+          {
+            "from": "floor",
+            "to": "office",
+            "affordances": [
+              "guarded_threshold"
+            ]
+          },
+          {
+            "from": "office",
+            "to": "bonded_store",
+            "affordances": [
+              "locked_barrier"
+            ]
+          },
+          {
+            "from": "floor",
+            "to": "loft"
+          },
+          {
+            "from": "loft",
+            "to": "night_post"
+          },
+          {
+            "from": "floor",
+            "to": "rat_run"
+          },
+          {
+            "from": "rat_run",
+            "to": "outside"
+          },
+          {
+            "from": "floor",
+            "to": "side_door"
+          },
+          {
+            "from": "side_door",
+            "to": "outside"
+          }
+        ]
+      }
+    },
+    {
       "id": "storylet.animal_witness",
       "kind": "storylet",
       "payload": {

@@ -7,6 +7,7 @@ using BrilliantQuesting.Content;
 using BrilliantQuesting.Dialogue;
 using BrilliantQuesting.Persistence;
 using BrilliantQuesting.Storylets;
+using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.ContentCompiler
 {
@@ -168,6 +169,10 @@ namespace BrilliantQuesting.ContentCompiler
             else if (string.Equals(source.Kind, DialogueFragmentContent.Kind, StringComparison.Ordinal))
             {
                 DialogueFragmentContent.LoadFragments(bundle, out diagnostics);
+            }
+            else if (string.Equals(source.Kind, SiteGrammarContent.Kind, StringComparison.Ordinal))
+            {
+                SiteGrammarContent.LoadGrammars(bundle, out diagnostics);
             }
             else
             {

@@ -102,6 +102,17 @@ namespace BrilliantQuesting.World
         public GameTime EstablishedAt { get; set; }
 
         /// <summary>
+        /// The curated grammar this place was planned from (BQ-089), or empty for a place nobody
+        /// planned that way.
+        ///
+        /// The grammar id and <see cref="GenerationSeed"/> are stored instead of the plan itself,
+        /// because the plan is content and content is never written into a save: a place composed
+        /// from a corrected grammar is the same place with the same history, the way a storylet
+        /// that already fired reads back in the new wording of the same event.
+        /// </summary>
+        public string GrammarId { get; set; } = string.Empty;
+
+        /// <summary>
         /// The ways in this place was made with. At least one that goes through somebody and at
         /// least one that does not - see <see cref="SiteApproach"/>.
         /// </summary>

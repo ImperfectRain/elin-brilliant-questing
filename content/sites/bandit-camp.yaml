@@ -1,0 +1,63 @@
+# A camp is held rather than owned: somebody is watching the way in, the takings are kept
+# together, and the person who decides sits apart from where everyone sleeps.
+id: site.bandit_camp
+kind: site-grammar
+payload:
+  siteType: camp
+  restricted: true
+  requiredNodes:
+    - id: approach
+      affordances:
+        - guarded_threshold
+      socket: camp_gate
+    - id: commons
+    - id: stores
+      affordances:
+        - evidence_cache
+    - id: leader_quarters
+  optionalNodes:
+    - id: prisoner_pen
+      affordances:
+        - prison_cell
+    - id: lookout
+      affordances:
+        - observation_point
+    - id: snare_line
+      affordances:
+        - trap_cluster
+    - id: bolthole
+      affordances:
+        - alternate_exit
+  routes:
+    - from: outside
+      to: approach
+      via: impersonate
+      admission: true
+      affordances:
+        - social_checkpoint
+    - from: outside
+      to: stores
+      via: trespass
+      admission: false
+      affordances:
+        - breakable_barrier
+    - from: approach
+      to: commons
+    - from: commons
+      to: stores
+      affordances:
+        - locked_barrier
+    - from: commons
+      to: leader_quarters
+      affordances:
+        - guarded_threshold
+    - from: commons
+      to: prisoner_pen
+    - from: approach
+      to: snare_line
+    - from: approach
+      to: lookout
+    - from: leader_quarters
+      to: bolthole
+    - from: bolthole
+      to: outside

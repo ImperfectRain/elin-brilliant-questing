@@ -112,6 +112,12 @@ namespace BrilliantQuesting.World
         /// <summary>The one matter this place belongs to. A site with no thread is scenery.</summary>
         public EntityId ThreadId { get; }
 
+        /// <summary>
+        /// The curated kind of place this was planned from, where one was (BQ-089). Empty on a
+        /// plan somebody wrote by hand, which is the truth about it rather than a gap.
+        /// </summary>
+        public string GrammarId { get; set; } = string.Empty;
+
         public List<SiteOccupantPlan> Occupants { get; }
 
         public List<SiteCargoPlan> Cargo { get; }
@@ -284,6 +290,7 @@ namespace BrilliantQuesting.World
                 Persistence = plan.Persistence,
                 DangerLevel = plan.DangerLevel,
                 GenerationSeed = plan.Seed,
+                GrammarId = plan.GrammarId,
                 Established = true,
                 EstablishedAt = now
             };

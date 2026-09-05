@@ -1,0 +1,61 @@
+# Somebody else's home, held by people who do not live in it. The family is still on the
+# premises, which is what makes every way in a decision rather than a route.
+id: site.occupied_farmhouse
+kind: site-grammar
+payload:
+  siteType: house
+  restricted: true
+  requiredNodes:
+    - id: yard
+      socket: farm_yard
+    - id: kitchen
+    - id: upper_room
+    - id: cellar_store
+      affordances:
+        - evidence_cache
+  optionalNodes:
+    - id: byre
+    - id: hayloft
+      affordances:
+        - observation_point
+    - id: held_room
+      affordances:
+        - prison_cell
+    - id: back_lane
+      affordances:
+        - alternate_exit
+  routes:
+    - from: outside
+      to: yard
+      via: persuade
+      admission: true
+      affordances:
+        - social_checkpoint
+    - from: outside
+      to: cellar_store
+      via: trespass
+      admission: false
+      affordances:
+        - breakable_barrier
+    - from: yard
+      to: kitchen
+      affordances:
+        - guarded_threshold
+    - from: kitchen
+      to: upper_room
+    - from: kitchen
+      to: cellar_store
+      affordances:
+        - locked_barrier
+    - from: kitchen
+      to: held_room
+      affordances:
+        - locked_barrier
+    - from: yard
+      to: byre
+    - from: byre
+      to: hayloft
+    - from: kitchen
+      to: back_lane
+    - from: back_lane
+      to: outside

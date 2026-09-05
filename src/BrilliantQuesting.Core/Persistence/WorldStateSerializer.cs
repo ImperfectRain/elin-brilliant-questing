@@ -298,6 +298,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("danger", site.DangerLevel)
                     .Set("persistence", (int)site.Persistence)
                     .Set("seed", site.GenerationSeed.ToString())
+                    .Set("grammar", site.GrammarId)
                     .Set("restricted", site.Restricted)
                     .Set("established", site.Established)
                     .Set("establishedAt", site.EstablishedAt.TotalMinutes)
@@ -732,6 +733,10 @@ namespace BrilliantQuesting.Persistence
                     DangerLevel = json.GetInt("danger"),
                     Persistence = (SitePersistence)json.GetInt("persistence"),
                     GenerationSeed = ulong.Parse(json.GetString("seed", "0")),
+
+                    // Additive and optional again: a place written before grammars existed reads
+                    // back planned by nobody, which is exactly what it was.
+                    GrammarId = json.GetString("grammar"),
 
                     // Additive and optional: a save written before locked places existed has no
                     // node here, reads back as an open site, and behaves exactly as it did.
