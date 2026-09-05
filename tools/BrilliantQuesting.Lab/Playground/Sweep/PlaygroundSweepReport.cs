@@ -149,6 +149,17 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
                 ? "all held"
                 : result.Violations.Count + " VIOLATED");
 
+            output.WriteLine();
+            output.WriteLine("dialogue diversity");
+            DialogueDiversityReport diversity = result.Diversity;
+            Field(output, "unrealized rate", diversity.UnrealizedSummary);
+            Field(output, "distinct cores", diversity.CoreSummary);
+            Field(output, "fragment overlap", diversity.OverlapSummary);
+            Field(output, "memorable fragments", diversity.MemorableSummary);
+            Field(output, "structural reuse", diversity.StructuralGroupSummary);
+            Field(output, "textual overlap", diversity.TextualOverlapSummary);
+            Field(output, "line length", diversity.LineLengthSummary);
+
             for (int i = 0; i < result.Violations.Count; i++)
             {
                 output.WriteLine("  VIOLATION  " + result.Violations[i].Invariant);

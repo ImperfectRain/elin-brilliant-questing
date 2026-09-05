@@ -48,6 +48,14 @@ namespace BrilliantQuesting.Lab.Cli.Scenarios
             + "unrealized acts, no-effect inputs, world mutations and invariant violations. A violation\n"
             + "fails the run.\n"
             + "\n"
+            + "Every family also ends in a 'dialogue diversity' block: how much the realized wording\n"
+            + "actually varies across whatever the family moved, read straight off the same rows - the\n"
+            + "unrealized rate, distinct core fragments, cross-row fragment overlap, memorable-fragment\n"
+            + "reuse, repeated opener/core/closer groups, a simple deterministic textual overlap and the\n"
+            + "line-length spread. It answers no question about prose quality and fails nothing; it is\n"
+            + "the reading to check with '--axis voice', '--axis vocabulary' or '--axis relationship' for\n"
+            + "whether contrasting speaker profiles over the same fixture actually sound different.\n"
+            + "\n"
             + AxisHelp();
 
         public override IReadOnlyList<LabOption> Options => new[]

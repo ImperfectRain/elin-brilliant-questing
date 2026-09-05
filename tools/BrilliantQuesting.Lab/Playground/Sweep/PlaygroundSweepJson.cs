@@ -52,6 +52,7 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
             output.WriteLine("      \"noEffectInputs\": " + result.NoEffect.Count + ",");
             output.WriteLine("      \"weighedButUnchanged\": " + result.WeighedButUnchanged.Count + ",");
             output.WriteLine("      \"worldMutations\": " + result.Mutating + ",");
+            WriteDiversity(output, result.Diversity);
             output.WriteLine("      \"violations\": [");
             for (int i = 0; i < result.Violations.Count; i++)
             {
@@ -70,6 +71,30 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
 
             output.WriteLine("      ]");
             output.WriteLine("    }" + (last ? string.Empty : ","));
+        }
+
+        /// <summary>
+        /// The same figures <see cref="PlaygroundSweepReport"/> prints under "dialogue diversity",
+        /// with the formatted strings kept alongside the raw counts so a regression check can
+        /// compare either without recomputing anything.
+        /// </summary>
+        private static void WriteDiversity(TextWriter output, DialogueDiversityReport diversity)
+        {
+            output.WriteLine("      \"diversity\": {");
+            output.WriteLine("        \"samples\": " + diversity.Samples + ",");
+            output.WriteLine("        \"realized\": " + diversity.Realized + ",");
+            output.WriteLine("        \"unrealizedRate\": " + Text(diversity.UnrealizedSummary) + ",");
+            output.WriteLine("        \"distinctCores\": " + diversity.DistinctCores + ",");
+            output.WriteLine("        \"distinctCoreRate\": " + Text(diversity.CoreSummary) + ",");
+            output.WriteLine("        \"distinctFragmentsUsed\": " + diversity.DistinctFragmentsUsed + ",");
+            output.WriteLine("        \"fragmentsSharedAcrossProfiles\": " + diversity.FragmentsSharedAcrossProfiles + ",");
+            output.WriteLine("        \"fragmentOverlap\": " + Text(diversity.OverlapSummary) + ",");
+            output.WriteLine("        \"memorableFragmentUses\": " + diversity.MemorableFragmentUses + ",");
+            output.WriteLine("        \"reusedMemorableFragments\": " + Texts(diversity.ReusedMemorableFragments) + ",");
+            output.WriteLine("        \"reusedStructuralGroups\": " + Texts(diversity.ReusedStructuralGroups) + ",");
+            output.WriteLine("        \"textualOverlap\": " + Text(diversity.TextualOverlapSummary) + ",");
+            output.WriteLine("        \"lineLength\": " + Text(diversity.LineLengthSummary));
+            output.WriteLine("      },");
         }
 
         private static void WriteRow(TextWriter output, PlaygroundSweepRow row, bool last)

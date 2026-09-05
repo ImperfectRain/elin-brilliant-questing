@@ -89,6 +89,7 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
             DistinctLines = lines.Count;
             NoEffect = inert;
             WeighedButUnchanged = weighed;
+            Diversity = DialogueDiversityMetrics.Compute(DialogueDiversityMetrics.SamplesFrom(rows));
         }
 
         /// <summary>The row a given row's change is read against: its own named control, else the baseline.</summary>
@@ -150,6 +151,16 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
         /// and this situation simply was not close enough to a boundary for it to matter.
         /// </summary>
         public IReadOnlyList<PlaygroundSweepRow> WeighedButUnchanged { get; }
+
+        /// <summary>
+        /// How much the realized wording actually varies across this family's own rows: fragment
+        /// and core reuse, memorable-line reuse, opener/core/closer group reuse, a simple textual
+        /// overlap and the unrealized rate. Not a claim about which axis is a "profile" - it is
+        /// computed from whatever rows the family produced, the same way <see cref="DistinctLines"/>
+        /// already is, and reads most tellingly for a family that holds meaning fixed and moves a
+        /// speaker's voice, tie or lived context.
+        /// </summary>
+        public DialogueDiversityReport Diversity { get; }
 
         public bool Failed => Violations.Count > 0;
     }

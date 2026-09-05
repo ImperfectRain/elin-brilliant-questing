@@ -78,6 +78,8 @@ payload:
       idiolect:
         - expansive
         - flowing
+      voice:
+        - expansive
       repetitionGroup: closer.done
       memorability: signature
 
@@ -118,6 +120,8 @@ payload:
         - expansive
         - flowing
         - figurative
+      voice:
+        - expansive
       repetitionGroup: closer.return
       memorability: signature
     - id: close.think.before.answering

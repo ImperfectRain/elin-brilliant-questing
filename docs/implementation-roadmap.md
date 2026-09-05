@@ -1380,6 +1380,62 @@ of a job rather than as the concepts somebody who does that work thinks in.
 - **Sources** CD §18, §19; `docs/design/content-pipeline.md` §5.1; `D034`, `D035`, `D054`, `D060`,
   `D062`.
 
+#### BQ-150 — Dialogue diversity metrics: measuring whether contrasting speakers actually sound different *(stage S7, immediately after BQ-149)*
+`playground-sweep`'s voice, vocabulary and relationship families could already show that a speaker or
+an identity changed the eligible pool - but nothing said whether the corpus paid that width out in
+lines that actually sound different, as opposed to different strings that land on the same authored
+material. "The output changed" and "a listener would notice two speakers sound alike" are different
+claims, and only the first had an instrument.
+- **Depends** BQ-133, BQ-142, BQ-146, BQ-148, BQ-149.
+- **Done when** a developer can run one existing-style sweep command (`--axis voice`,
+  `--axis vocabulary` or `--axis relationship`, or any other family) and read, off the rows it already
+  built, whether the realized wording actually diverges: the unrealized/fallback rate, the distinct
+  core-fragment rate, cross-profile fragment overlap, the frequency and identity of memorable-tier
+  fragments reused across profiles, repeated opener/core/closer groups, a simple deterministic textual
+  overlap and the line-length spread; the same figures reach `--json`; fixed fixtures produce
+  deterministic metrics without running a single conversation; and nothing here scores a line, fails a
+  build or introduces a threshold a normal authored-content change could trip.
+- **Current implementation** `DialogueDiversityMetrics` and `DialogueDiversityReport`
+  (`tools/BrilliantQuesting.Lab/Playground/Sweep/PlaygroundSweepDiversity.cs`) turn a family's own
+  evaluated rows into `DialogueDiversitySample`s - one per row that had an act to word, gated on
+  `Turn.Reply != null` exactly as `PlaygroundSweepRow.Unrealized` already is, so the two can never
+  disagree about what counts as a fallback - and compute seven deterministic figures with no
+  embedding, no LLM judge and no single quality score. `PlaygroundSweepResult.Diversity` computes it
+  once per family from the rows already built for `DistinctSemantics`/`DistinctLines`, so every
+  existing family gets it for free rather than behind a new command or axis; `PlaygroundSweepReport`
+  prints it under "dialogue diversity" beside the existing summary counts, and `PlaygroundSweepJson`
+  carries the same figures under a `diversity` object. Fifteen tests (`DialogueDiversityMetricsTests`)
+  hold the arithmetic to fixed fixtures built entirely by hand - no fragment library, no
+  `PlaygroundRun`, no content file - so the metrics are checked against inputs that do not have to be
+  kept in sync with whatever the shipped corpus says next.
+  **Running it against the shipped corpus found two closers a prose-quality read would have missed.**
+  `close.return.to.my.day` and `close.sturdier.than.rumour` are both `memorability: signature` and
+  both marked `idiolect: [expansive, flowing(, figurative)]`, but neither carried a `voice` demand -
+  so `FitsIdiolect`'s "narrowed by contradiction" default (`D060`) left both eligible for every voice
+  that took no position on length or cadence at all, which in the sweep's own seven-voice family is
+  five of seven. The voice family's own "memorable fragments" reading named `close.return.to.my.day`
+  as reused across profiles at every seed tried before the fix. Adding `voice: [expansive]` to both -
+  the identical correction BQ-149 already made for fourteen shipped ties and moods - closed it: the
+  same sweep now reports no memorable fragment shared across contrasting voices
+  (`DialogueDiversityMetricsTests.NoMemorableFragmentIsSharedAcrossContrastingVoicesInTheShippedCorpus`).
+  No other content changed. `Package/content.bqc` was rebuilt through `tools/ContentCompiler --check`
+  and a plain run (the .NET SDK was reachable this session, so the compiler ran directly rather than
+  through the hand-mirrored Python fallback BQ-148 and BQ-149 needed); `dotnet build` and the full
+  `dotnet test` (1477 tests across `BrilliantQuesting.Core.Tests` and `BrilliantQuesting.Lab.Tests`)
+  were run end-to-end and pass.
+- **Deferred by design** no aggregate score across a whole `--axis all` run - the totals section stays
+  counts, exactly as `DistinctSemantics`/`DistinctLines` already are, rather than an average of rates
+  that would hide which family produced them; no new axis or standalone command, because the point was
+  extending the existing summary and JSON rather than adding a second benchmarking surface; and no
+  attempt to root-cause why an occupational modifier is rarely drawn under `--axis vocabulary` at any
+  one seed. `VocabularyAxis` holds the seed constant across every identity row by design (its own
+  "held" contract), and `DialogueRealizer`'s per-slot draw is forked from the act's own signature
+  (BQ-074) - which the family's invariant guarantees is identical across every row - so every row asks
+  the same fork for the same optional slot. That is a property of a controlled comparison reflecting
+  Core's realizer faithfully, not a corpus defect this step's scope covers; touching it would mean
+  changing `DialogueRealizer`'s RNG forking rather than making a small, obvious content correction.
+- **Sources** CD §18, §19, §21; `docs/design/content-pipeline.md` §5.1; `D060`, `D062`.
+
 #### BQ-134 — Project verbs through contextual affordances *(moved forward)*
 Moved forward to the playtest consolidation section before BQ-039 because live S4 testing showed
 raw verb projection would multiply defects during generative expansion. Do not implement a second
