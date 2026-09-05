@@ -18,6 +18,29 @@ payload:
       text: "That is wrong, wherever it came from."
       requires:
         act: deny
+      idiolect:
+        - flowing
+      repetitionGroup: deny
+    - id: core.deny.nah
+      position: core
+      text: "No, that wasn't me."
+      requires:
+        act: deny
+      tone:
+        - plain
+      idiolect:
+        - terse
+        - clipped
+      repetitionGroup: deny
+    - id: core.deny.not.guilty.formal
+      position: core
+      text: "I am not guilty of this."
+      requires:
+        act: deny
+      tone:
+        - formal
+      idiolect:
+        - literal
       repetitionGroup: deny
     - id: core.deny.wrong.person
       position: core
@@ -45,6 +68,8 @@ payload:
         act: deny
         referent: speaker
         claim_predicate: stole
+      idiolect:
+        - literal
       repetitionGroup: deny
     - id: core.deny.believe.what.you.like
       position: core
@@ -108,6 +133,18 @@ payload:
         act: deny
         referent: other
         reply: accuse
+      idiolect:
+        - literal
+      repetitionGroup: deny.defend
+    - id: core.deny.other.plain
+      position: core
+      text: "{referent} didn't do it."
+      requires:
+        act: deny
+        referent: other
+      idiolect:
+        - terse
+        - clipped
       repetitionGroup: deny.defend
     - id: core.deny.one.of.mine
       position: core
@@ -152,6 +189,19 @@ payload:
       requires:
         act: deny
         reply: gossip
+      idiolect:
+        - flowing
+      repetitionGroup: deny.rumor
+    - id: core.deny.rumor.not.true
+      position: core
+      text: "That's not true."
+      requires:
+        act: deny
+        reply: gossip
+      idiolect:
+        - terse
+        - clipped
+        - literal
       repetitionGroup: deny.rumor
 
     # -- mood and audience
@@ -162,6 +212,8 @@ payload:
         act: deny
         emotion: fear
         referent: speaker
+      idiolect:
+        - clipped
       repetitionGroup: deny.mood
     - id: core.deny.anger.finish.the.sentence
       position: core
@@ -194,12 +246,32 @@ payload:
         - clipped
         - literal
       repetitionGroup: deny.mood
+    - id: core.deny.public.plain
+      position: core
+      text: "I didn't do it. That's the truth."
+      requires:
+        act: deny
+        audience: several
+      idiolect:
+        - clipped
+      repetitionGroup: deny.mood
     - id: core.deny.stranger.dont.know.you
       position: core
       text: "I do not know you, and I did not do it."
       requires:
         act: deny
         relationship: none
+      idiolect:
+        - flowing
+      repetitionGroup: deny.tie
+    - id: core.deny.tie.plain
+      position: core
+      text: "You don't know me, but no, I didn't."
+      requires:
+        act: deny
+        relationship: none
+      idiolect:
+        - flowing
       repetitionGroup: deny.tie
     - id: core.deny.pride.own.trade
       position: core
@@ -207,5 +279,7 @@ payload:
       requires:
         act: deny
         referent: speaker
+      idiolect:
+        - clipped
       repetitionGroup: deny.tie
       memorability: voiced

@@ -9,12 +9,53 @@ payload:
       text: "You should know something."
       requires:
         act: inform
+      idiolect:
+        - literal
       repetitionGroup: inform
     - id: core.inform.happened
       position: core
       text: "Something happened. I am telling you now."
       requires:
         act: inform
+      idiolect:
+        - clipped
+      repetitionGroup: inform
+    - id: core.inform.fyi
+      position: core
+      text: "Just so you know."
+      requires:
+        act: inform
+      tone:
+        - plain
+      idiolect:
+        - terse
+        - clipped
+      repetitionGroup: inform
+    - id: core.inform.heads.up
+      position: core
+      text: "Heads up."
+      requires:
+        act: inform
+      idiolect:
+        - terse
+        - clipped
+        - figurative
+      repetitionGroup: inform
+    - id: core.inform.wanted.you.to.know
+      position: core
+      text: "I wanted you to know."
+      requires:
+        act: inform
+      idiolect:
+        - literal
+      repetitionGroup: inform
+    - id: core.inform.for.the.record
+      position: core
+      text: "For the record: yes, this happened."
+      requires:
+        act: inform
+      idiolect:
+        - clipped
       repetitionGroup: inform
     - id: core.inform.before.someone.else
       position: core
@@ -29,6 +70,9 @@ payload:
       requires:
         subject: other
         act: inform
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: inform
     - id: core.inform.theft.plain
       position: core
@@ -37,6 +81,19 @@ payload:
         subject: other
         act: inform
         claim_predicate: stole
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: inform.theft
+    - id: core.inform.theft.someone.took
+      position: core
+      text: "Someone took the {matter}."
+      requires:
+        act: inform
+        claim_predicate: stole
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: inform.theft
     - id: core.inform.theft.gone
       position: core
@@ -55,6 +112,8 @@ payload:
         act: inform
         claim_predicate: stole
         claim_source: witnessed
+      idiolect:
+        - literal
       repetitionGroup: inform.theft
 
     # -- consequence, observed. Nobody invents the event: the act already carries which claim.
@@ -64,6 +123,18 @@ payload:
       requires:
         act: inform
         claim_source: hearsay
+      idiolect:
+        - literal
+      repetitionGroup: inform.aftermath
+    - id: core.inform.aftermath.getting.around
+      position: core
+      text: "Word's getting around."
+      requires:
+        act: inform
+        claim_source: hearsay
+      idiolect:
+        - terse
+        - figurative
       repetitionGroup: inform.aftermath
     - id: core.inform.travelled
       position: core
@@ -90,6 +161,17 @@ payload:
       requires:
         act: inform
         depth: in_confidence
+      idiolect:
+        - literal
+      repetitionGroup: inform.reveal
+    - id: core.inform.reveal.plain
+      position: core
+      text: "There's something I haven't told you."
+      requires:
+        act: inform
+        depth: in_confidence
+      idiolect:
+        - flowing
       repetitionGroup: inform.reveal
     - id: core.inform.secret.long.enough
       position: core
@@ -116,6 +198,19 @@ payload:
       requires:
         act: inform
         reply: gossip
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: inform.correction
+    - id: core.inform.correction.plain
+      position: core
+      text: "That's not quite right."
+      requires:
+        act: inform
+        reply: gossip
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: inform.correction
     - id: core.inform.rumor.better.ending
       position: core
@@ -151,6 +246,8 @@ payload:
       requires:
         act: inform
         emotion: fear
+      idiolect:
+        - clipped
       repetitionGroup: inform.mood
     - id: core.inform.relief.finally
       position: core
@@ -158,6 +255,8 @@ payload:
       requires:
         act: inform
         emotion: relief
+      idiolect:
+        - terse
       repetitionGroup: inform.mood
     - id: core.inform.affection.came.to.tell.you
       position: core
@@ -188,6 +287,18 @@ payload:
       requires:
         act: inform
         relationship: none
+      idiolect:
+        - literal
+      repetitionGroup: inform.tie
+    - id: core.inform.tie.plain
+      position: core
+      text: "Here's what I know."
+      requires:
+        act: inform
+        relationship: none
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: inform.tie
     - id: core.inform.creditor.ledger
       position: core

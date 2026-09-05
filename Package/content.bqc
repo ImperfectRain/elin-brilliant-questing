@@ -1338,6 +1338,10 @@
             "requires": {
               "act": "admit"
             },
+            "idiolect": [
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "admit"
           },
           {
@@ -1347,6 +1351,9 @@
             "requires": {
               "act": "admit"
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "admit"
           },
           {
@@ -1356,6 +1363,55 @@
             "requires": {
               "act": "admit"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "admit"
+          },
+          {
+            "id": "core.admit.yeah.i.did",
+            "position": "core",
+            "text": "Yeah, I did.",
+            "requires": {
+              "act": "admit"
+            },
+            "tone": [
+              "plain"
+            ],
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
+            "repetitionGroup": "admit"
+          },
+          {
+            "id": "core.admit.guilty",
+            "position": "core",
+            "text": "Guilty.",
+            "requires": {
+              "act": "admit"
+            },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
+            "repetitionGroup": "admit"
+          },
+          {
+            "id": "core.admit.confess.formal",
+            "position": "core",
+            "text": "I confess to it.",
+            "requires": {
+              "act": "admit"
+            },
+            "tone": [
+              "formal"
+            ],
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "admit"
           },
           {
@@ -1386,6 +1442,25 @@
               "act": "admit",
               "claim_predicate": "stole"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "admit.theft"
+          },
+          {
+            "id": "core.admit.theft.plain",
+            "position": "core",
+            "text": "I took it.",
+            "requires": {
+              "act": "admit",
+              "claim_predicate": "stole"
+            },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "admit.theft"
           },
           {
@@ -1452,6 +1527,23 @@
               "act": "admit",
               "emotion": "shame"
             },
+            "idiolect": [
+              "clipped"
+            ],
+            "repetitionGroup": "admit.shame"
+          },
+          {
+            "id": "core.admit.shame.plain",
+            "position": "core",
+            "text": "I'm sorry. I did it.",
+            "requires": {
+              "act": "admit",
+              "emotion": "shame"
+            },
+            "idiolect": [
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "admit.shame"
           },
           {
@@ -1474,8 +1566,24 @@
               "act": "admit",
               "audience": "several"
             },
+            "idiolect": [
+              "clipped"
+            ],
             "repetitionGroup": "admit.shame",
             "memorability": "voiced"
+          },
+          {
+            "id": "core.admit.public.plain",
+            "position": "core",
+            "text": "Yes, here, in front of everyone.",
+            "requires": {
+              "act": "admit",
+              "audience": "several"
+            },
+            "idiolect": [
+              "clipped"
+            ],
+            "repetitionGroup": "admit.shame"
           },
           {
             "id": "core.admit.let.it.be.me",
@@ -1494,6 +1602,9 @@
             "requires": {
               "act": "admit"
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "admit"
           },
           {
@@ -1504,6 +1615,9 @@
               "act": "admit",
               "emotion": "stress"
             },
+            "idiolect": [
+              "clipped"
+            ],
             "repetitionGroup": "admit.shame",
             "memorability": "voiced"
           },
@@ -1519,8 +1633,45 @@
                 "spouse"
               ]
             },
+            "idiolect": [
+              "clipped"
+            ],
             "repetitionGroup": "admit",
             "memorability": "voiced"
+          },
+          {
+            "id": "core.admit.tie.plain",
+            "position": "core",
+            "text": "I will not lie to you. It was me.",
+            "requires": {
+              "act": "admit",
+              "relationship": [
+                "friend",
+                "family",
+                "spouse"
+              ]
+            },
+            "idiolect": [
+              "clipped",
+              "literal"
+            ],
+            "repetitionGroup": "admit"
+          },
+          {
+            "id": "core.admit.deep.plain",
+            "position": "core",
+            "text": "There's more, and I should tell you.",
+            "requires": {
+              "act": "admit",
+              "depth": [
+                "detail",
+                "in_confidence"
+              ]
+            },
+            "idiolect": [
+              "flowing"
+            ],
+            "repetitionGroup": "admit.deep"
           }
         ]
       }
@@ -1556,6 +1707,9 @@
             "requires": {
               "act": "answer"
             },
+            "idiolect": [
+              "terse"
+            ],
             "repetitionGroup": "answer"
           },
           {
@@ -1565,6 +1719,80 @@
             "requires": {
               "act": "answer"
             },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "answer"
+          },
+          {
+            "id": "core.answer.yeah",
+            "position": "core",
+            "text": "Yeah, that's it.",
+            "requires": {
+              "act": "answer"
+            },
+            "tone": [
+              "plain"
+            ],
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
+            "repetitionGroup": "answer"
+          },
+          {
+            "id": "core.answer.right",
+            "position": "core",
+            "text": "That's right.",
+            "requires": {
+              "act": "answer"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "answer"
+          },
+          {
+            "id": "core.answer.true",
+            "position": "core",
+            "text": "True.",
+            "requires": {
+              "act": "answer"
+            },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
+            "repetitionGroup": "answer"
+          },
+          {
+            "id": "core.answer.correct.formal",
+            "position": "core",
+            "text": "That is correct.",
+            "requires": {
+              "act": "answer"
+            },
+            "tone": [
+              "formal"
+            ],
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "answer"
+          },
+          {
+            "id": "core.answer.i.think.so",
+            "position": "core",
+            "text": "I think so.",
+            "requires": {
+              "act": "answer",
+              "commitment": "hedged"
+            },
+            "idiolect": [
+              "terse"
+            ],
             "repetitionGroup": "answer"
           },
           {
@@ -1579,6 +1807,10 @@
                 "participant"
               ]
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "answer.provenance"
           },
           {
@@ -1593,6 +1825,9 @@
                 "participant"
               ]
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "answer.provenance"
           },
           {
@@ -1619,6 +1854,23 @@
               "act": "answer",
               "claim_source": "hearsay"
             },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "answer.provenance"
+          },
+          {
+            "id": "core.answer.provenance.someone.told.me",
+            "position": "core",
+            "text": "Someone told me.",
+            "requires": {
+              "act": "answer",
+              "claim_source": "hearsay"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "answer.provenance"
           },
           {
@@ -1644,8 +1896,24 @@
                 "in_confidence"
               ]
             },
+            "idiolect": [
+              "clipped"
+            ],
             "repetitionGroup": "answer.provenance",
             "memorability": "voiced"
+          },
+          {
+            "id": "core.answer.provenance.figured.it.out",
+            "position": "core",
+            "text": "I put it together myself.",
+            "requires": {
+              "act": "answer",
+              "claim_source": "inference"
+            },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "answer.provenance"
           },
           {
             "id": "core.answer.in.the.record",
@@ -1655,6 +1923,10 @@
               "act": "answer",
               "claim_source": "document"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "answer.provenance"
           },
           {
@@ -1742,6 +2014,51 @@
               "act": "answer",
               "commitment": "hedged"
             },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "answer.thin"
+          },
+          {
+            "id": "core.answer.maybe",
+            "position": "core",
+            "text": "Maybe.",
+            "requires": {
+              "act": "answer",
+              "commitment": "hedged"
+            },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
+            "repetitionGroup": "answer.thin"
+          },
+          {
+            "id": "core.answer.thin.not.sure",
+            "position": "core",
+            "text": "I'm not sure.",
+            "requires": {
+              "act": "answer",
+              "commitment": "hedged"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "answer.thin"
+          },
+          {
+            "id": "core.answer.thin.dont.recall",
+            "position": "core",
+            "text": "I don't recall.",
+            "requires": {
+              "act": "answer",
+              "commitment": "hedged"
+            },
+            "idiolect": [
+              "terse"
+            ],
             "repetitionGroup": "answer.thin"
           },
           {
@@ -1774,6 +2091,25 @@
               "act": "answer",
               "depth": "gist"
             },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
+            "repetitionGroup": "answer.thin"
+          },
+          {
+            "id": "core.answer.thin.not.much",
+            "position": "core",
+            "text": "Not much to tell.",
+            "requires": {
+              "act": "answer",
+              "depth": "gist"
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
             "repetitionGroup": "answer.thin"
           },
           {
@@ -1816,6 +2152,25 @@
                 "in_confidence"
               ]
             },
+            "idiolect": [
+              "terse"
+            ],
+            "repetitionGroup": "answer.costly"
+          },
+          {
+            "id": "core.answer.costly.plain",
+            "position": "core",
+            "text": "There's a part I'm not proud of.",
+            "requires": {
+              "act": "answer",
+              "depth": [
+                "detail",
+                "in_confidence"
+              ]
+            },
+            "idiolect": [
+              "flowing"
+            ],
             "repetitionGroup": "answer.costly"
           },
           {
@@ -1844,6 +2199,9 @@
                 "in_confidence"
               ]
             },
+            "idiolect": [
+              "flowing"
+            ],
             "repetitionGroup": "answer.costly"
           },
           {
@@ -1904,6 +2262,9 @@
                 "spouse"
               ]
             },
+            "idiolect": [
+              "clipped"
+            ],
             "repetitionGroup": "answer.tie"
           },
           {
@@ -1927,6 +2288,19 @@
             },
             "repetitionGroup": "answer.tie",
             "memorability": "voiced"
+          },
+          {
+            "id": "core.answer.tie.stranger.plain",
+            "position": "core",
+            "text": "I'll tell you what I know.",
+            "requires": {
+              "act": "answer",
+              "relationship": "none"
+            },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "answer.tie"
           },
           {
             "id": "core.answer.rival.take.the.fact",
@@ -2293,6 +2667,40 @@
             "requires": {
               "act": "deny"
             },
+            "idiolect": [
+              "flowing"
+            ],
+            "repetitionGroup": "deny"
+          },
+          {
+            "id": "core.deny.nah",
+            "position": "core",
+            "text": "No, that wasn't me.",
+            "requires": {
+              "act": "deny"
+            },
+            "tone": [
+              "plain"
+            ],
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
+            "repetitionGroup": "deny"
+          },
+          {
+            "id": "core.deny.not.guilty.formal",
+            "position": "core",
+            "text": "I am not guilty of this.",
+            "requires": {
+              "act": "deny"
+            },
+            "tone": [
+              "formal"
+            ],
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "deny"
           },
           {
@@ -2331,6 +2739,9 @@
               "referent": "speaker",
               "claim_predicate": "stole"
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "deny"
           },
           {
@@ -2415,6 +2826,23 @@
               "referent": "other",
               "reply": "accuse"
             },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "deny.defend"
+          },
+          {
+            "id": "core.deny.other.plain",
+            "position": "core",
+            "text": "{referent} didn't do it.",
+            "requires": {
+              "act": "deny",
+              "referent": "other"
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
             "repetitionGroup": "deny.defend"
           },
           {
@@ -2473,6 +2901,24 @@
               "act": "deny",
               "reply": "gossip"
             },
+            "idiolect": [
+              "flowing"
+            ],
+            "repetitionGroup": "deny.rumor"
+          },
+          {
+            "id": "core.deny.rumor.not.true",
+            "position": "core",
+            "text": "That's not true.",
+            "requires": {
+              "act": "deny",
+              "reply": "gossip"
+            },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "deny.rumor"
           },
           {
@@ -2484,6 +2930,9 @@
               "emotion": "fear",
               "referent": "speaker"
             },
+            "idiolect": [
+              "clipped"
+            ],
             "repetitionGroup": "deny.mood"
           },
           {
@@ -2530,6 +2979,19 @@
             "repetitionGroup": "deny.mood"
           },
           {
+            "id": "core.deny.public.plain",
+            "position": "core",
+            "text": "I didn't do it. That's the truth.",
+            "requires": {
+              "act": "deny",
+              "audience": "several"
+            },
+            "idiolect": [
+              "clipped"
+            ],
+            "repetitionGroup": "deny.mood"
+          },
+          {
             "id": "core.deny.stranger.dont.know.you",
             "position": "core",
             "text": "I do not know you, and I did not do it.",
@@ -2537,6 +2999,22 @@
               "act": "deny",
               "relationship": "none"
             },
+            "idiolect": [
+              "flowing"
+            ],
+            "repetitionGroup": "deny.tie"
+          },
+          {
+            "id": "core.deny.tie.plain",
+            "position": "core",
+            "text": "You don't know me, but no, I didn't.",
+            "requires": {
+              "act": "deny",
+              "relationship": "none"
+            },
+            "idiolect": [
+              "flowing"
+            ],
             "repetitionGroup": "deny.tie"
           },
           {
@@ -2547,6 +3025,9 @@
               "act": "deny",
               "referent": "speaker"
             },
+            "idiolect": [
+              "clipped"
+            ],
             "repetitionGroup": "deny.tie",
             "memorability": "voiced"
           }
@@ -2722,6 +3203,9 @@
             "requires": {
               "act": "inform"
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "inform"
           },
           {
@@ -2731,6 +3215,63 @@
             "requires": {
               "act": "inform"
             },
+            "idiolect": [
+              "clipped"
+            ],
+            "repetitionGroup": "inform"
+          },
+          {
+            "id": "core.inform.fyi",
+            "position": "core",
+            "text": "Just so you know.",
+            "requires": {
+              "act": "inform"
+            },
+            "tone": [
+              "plain"
+            ],
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
+            "repetitionGroup": "inform"
+          },
+          {
+            "id": "core.inform.heads.up",
+            "position": "core",
+            "text": "Heads up.",
+            "requires": {
+              "act": "inform"
+            },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "figurative"
+            ],
+            "repetitionGroup": "inform"
+          },
+          {
+            "id": "core.inform.wanted.you.to.know",
+            "position": "core",
+            "text": "I wanted you to know.",
+            "requires": {
+              "act": "inform"
+            },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "inform"
+          },
+          {
+            "id": "core.inform.for.the.record",
+            "position": "core",
+            "text": "For the record: yes, this happened.",
+            "requires": {
+              "act": "inform"
+            },
+            "idiolect": [
+              "clipped"
+            ],
             "repetitionGroup": "inform"
           },
           {
@@ -2751,6 +3292,10 @@
               "subject": "other",
               "act": "inform"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "inform"
           },
           {
@@ -2762,6 +3307,24 @@
               "act": "inform",
               "claim_predicate": "stole"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "inform.theft"
+          },
+          {
+            "id": "core.inform.theft.someone.took",
+            "position": "core",
+            "text": "Someone took the {matter}.",
+            "requires": {
+              "act": "inform",
+              "claim_predicate": "stole"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "inform.theft"
           },
           {
@@ -2786,6 +3349,9 @@
               "claim_predicate": "stole",
               "claim_source": "witnessed"
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "inform.theft"
           },
           {
@@ -2796,6 +3362,23 @@
               "act": "inform",
               "claim_source": "hearsay"
             },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "inform.aftermath"
+          },
+          {
+            "id": "core.inform.aftermath.getting.around",
+            "position": "core",
+            "text": "Word's getting around.",
+            "requires": {
+              "act": "inform",
+              "claim_source": "hearsay"
+            },
+            "idiolect": [
+              "terse",
+              "figurative"
+            ],
             "repetitionGroup": "inform.aftermath"
           },
           {
@@ -2829,6 +3412,22 @@
               "act": "inform",
               "depth": "in_confidence"
             },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "inform.reveal"
+          },
+          {
+            "id": "core.inform.reveal.plain",
+            "position": "core",
+            "text": "There's something I haven't told you.",
+            "requires": {
+              "act": "inform",
+              "depth": "in_confidence"
+            },
+            "idiolect": [
+              "flowing"
+            ],
             "repetitionGroup": "inform.reveal"
           },
           {
@@ -2861,6 +3460,24 @@
               "act": "inform",
               "reply": "gossip"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "inform.correction"
+          },
+          {
+            "id": "core.inform.correction.plain",
+            "position": "core",
+            "text": "That's not quite right.",
+            "requires": {
+              "act": "inform",
+              "reply": "gossip"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "inform.correction"
           },
           {
@@ -2907,6 +3524,9 @@
               "act": "inform",
               "emotion": "fear"
             },
+            "idiolect": [
+              "clipped"
+            ],
             "repetitionGroup": "inform.mood"
           },
           {
@@ -2917,6 +3537,9 @@
               "act": "inform",
               "emotion": "relief"
             },
+            "idiolect": [
+              "terse"
+            ],
             "repetitionGroup": "inform.mood"
           },
           {
@@ -2958,6 +3581,23 @@
               "act": "inform",
               "relationship": "none"
             },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "inform.tie"
+          },
+          {
+            "id": "core.inform.tie.plain",
+            "position": "core",
+            "text": "Here's what I know.",
+            "requires": {
+              "act": "inform",
+              "relationship": "none"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "inform.tie"
           },
           {
@@ -3008,6 +3648,11 @@
             "requires": {
               "act": "ask"
             },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "ask"
           },
           {
@@ -3017,6 +3662,10 @@
             "requires": {
               "act": "ask"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "ask"
           },
           {
@@ -3036,6 +3685,11 @@
             "requires": {
               "act": "ask"
             },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "ask.spread"
           },
           {
@@ -3049,6 +3703,10 @@
                 "inform"
               ]
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "ask.detail"
           },
           {
@@ -3068,6 +3726,10 @@
               "act": "ask",
               "claim_predicate": "stole"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "ask"
           },
           {
@@ -3079,6 +3741,9 @@
               "act": "ask",
               "claim_predicate": "stole"
             },
+            "idiolect": [
+              "flowing"
+            ],
             "repetitionGroup": "ask"
           },
           {
@@ -3089,6 +3754,10 @@
               "act": "ask",
               "claim_predicate": "stole"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "ask"
           },
           {
@@ -3099,6 +3768,11 @@
               "act": "ask",
               "reply": "answer"
             },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "ask.provenance"
           },
           {
@@ -3109,6 +3783,24 @@
               "act": "ask",
               "reply": "answer"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "ask.provenance"
+          },
+          {
+            "id": "core.ask.provenance.plain",
+            "position": "core",
+            "text": "How do you know that?",
+            "requires": {
+              "act": "ask",
+              "reply": "answer"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "ask.provenance"
           },
           {
@@ -3130,6 +3822,10 @@
               "act": "ask",
               "reply": "answer"
             },
+            "idiolect": [
+              "flowing",
+              "literal"
+            ],
             "repetitionGroup": "ask.provenance"
           },
           {
@@ -3143,6 +3839,9 @@
                 "deny"
               ]
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "ask.credibility"
           },
           {
@@ -3188,6 +3887,10 @@
             "tone": [
               "curt"
             ],
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
             "repetitionGroup": "ask.credibility"
           },
           {
@@ -3200,6 +3903,10 @@
             },
             "tone": [
               "curt"
+            ],
+            "idiolect": [
+              "terse",
+              "literal"
             ],
             "repetitionGroup": "ask.pressed"
           },
@@ -3226,6 +3933,9 @@
               "act": "ask",
               "emotion": "suspicion"
             },
+            "idiolect": [
+              "clipped"
+            ],
             "repetitionGroup": "ask.pressed"
           },
           {
@@ -3236,6 +3946,9 @@
               "act": "ask",
               "emotion": "fear"
             },
+            "idiolect": [
+              "clipped"
+            ],
             "repetitionGroup": "ask.pressed"
           },
           {
@@ -3272,6 +3985,9 @@
                 "spouse"
               ]
             },
+            "idiolect": [
+              "figurative"
+            ],
             "repetitionGroup": "ask.tie"
           },
           {
@@ -3285,6 +4001,10 @@
                 "spouse"
               ]
             },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
             "repetitionGroup": "ask.tie",
             "memorability": "voiced"
           },
@@ -3302,6 +4022,9 @@
             "tone": [
               "wry"
             ],
+            "idiolect": [
+              "clipped"
+            ],
             "repetitionGroup": "ask.tie",
             "memorability": "voiced"
           },
@@ -3316,6 +4039,11 @@
             "tone": [
               "curt"
             ],
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "ask.tie"
           },
           {
@@ -3325,6 +4053,9 @@
             "requires": {
               "act": "ask"
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "ask.choice"
           },
           {
@@ -3337,6 +4068,11 @@
             "tone": [
               "curt"
             ],
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "ask.choice"
           },
           {
@@ -3348,6 +4084,77 @@
             },
             "repetitionGroup": "ask.choice",
             "memorability": "signature"
+          },
+          {
+            "id": "core.ask.choice.now.what",
+            "position": "core",
+            "text": "So what now?",
+            "requires": {
+              "act": "ask"
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
+            "repetitionGroup": "ask.choice"
+          },
+          {
+            "id": "core.ask.whats.the.story",
+            "position": "core",
+            "text": "So, what's the story?",
+            "requires": {
+              "act": "ask"
+            },
+            "tone": [
+              "plain"
+            ],
+            "idiolect": [
+              "terse",
+              "figurative"
+            ],
+            "repetitionGroup": "ask"
+          },
+          {
+            "id": "core.ask.walk.me.through",
+            "position": "core",
+            "text": "Walk me through it, from the start.",
+            "requires": {
+              "act": "ask"
+            },
+            "idiolect": [
+              "expansive",
+              "flowing",
+              "literal"
+            ],
+            "repetitionGroup": "ask"
+          },
+          {
+            "id": "core.ask.mind.telling.me",
+            "position": "core",
+            "text": "Mind telling me what happened?",
+            "requires": {
+              "act": "ask"
+            },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "ask"
+          },
+          {
+            "id": "core.ask.in.your.own.words",
+            "position": "core",
+            "text": "Tell it in your own words. Take your time.",
+            "requires": {
+              "act": "ask"
+            },
+            "tone": [
+              "warm"
+            ],
+            "idiolect": [
+              "expansive",
+              "flowing"
+            ],
+            "repetitionGroup": "ask"
           }
         ]
       }
@@ -3631,6 +4438,9 @@
             "requires": {
               "act": "request"
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "request"
           },
           {
@@ -3640,6 +4450,35 @@
             "requires": {
               "act": "request"
             },
+            "idiolect": [
+              "flowing"
+            ],
+            "repetitionGroup": "request"
+          },
+          {
+            "id": "core.request.plain.help",
+            "position": "core",
+            "text": "I need a hand.",
+            "requires": {
+              "act": "request"
+            },
+            "idiolect": [
+              "terse",
+              "figurative"
+            ],
+            "repetitionGroup": "request"
+          },
+          {
+            "id": "core.request.could.you",
+            "position": "core",
+            "text": "Could you help me with something?",
+            "requires": {
+              "act": "request"
+            },
+            "idiolect": [
+              "expansive",
+              "flowing"
+            ],
             "repetitionGroup": "request"
           },
           {
@@ -3659,6 +4498,10 @@
             "requires": {
               "act": "request"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "request.item"
           },
           {
@@ -3668,6 +4511,22 @@
             "requires": {
               "act": "request"
             },
+            "idiolect": [
+              "flowing"
+            ],
+            "repetitionGroup": "request.item"
+          },
+          {
+            "id": "core.request.item.plain",
+            "position": "core",
+            "text": "I need the {matter}.",
+            "requires": {
+              "act": "request"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "request.item"
           },
           {
@@ -3687,6 +4546,9 @@
             "requires": {
               "act": "request"
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "request.item"
           },
           {
@@ -3698,6 +4560,10 @@
               "claim_predicate": "stole",
               "referent": "listener"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "request.restitution"
           },
           {
@@ -3708,6 +4574,23 @@
               "act": "request",
               "claim_predicate": "stole"
             },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "request.restitution"
+          },
+          {
+            "id": "core.request.restitution.give.it.back",
+            "position": "core",
+            "text": "Just give it back.",
+            "requires": {
+              "act": "request",
+              "claim_predicate": "stole"
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
             "repetitionGroup": "request.restitution"
           },
           {
@@ -3732,6 +4615,24 @@
               "act": "request",
               "relationship": "creditor"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "request.debt"
+          },
+          {
+            "id": "core.request.debt.plain",
+            "position": "core",
+            "text": "You owe me. Pay up.",
+            "requires": {
+              "act": "request",
+              "relationship": "creditor"
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
             "repetitionGroup": "request.debt"
           },
           {
@@ -3767,6 +4668,10 @@
               "act": "request",
               "depth": "in_confidence"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "request.secrecy"
           },
           {
@@ -3777,6 +4682,23 @@
               "act": "request",
               "depth": "in_confidence"
             },
+            "idiolect": [
+              "flowing"
+            ],
+            "repetitionGroup": "request.secrecy"
+          },
+          {
+            "id": "core.request.secrecy.plain",
+            "position": "core",
+            "text": "Don't tell anyone.",
+            "requires": {
+              "act": "request",
+              "depth": "in_confidence"
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
             "repetitionGroup": "request.secrecy"
           },
           {
@@ -3797,6 +4719,21 @@
             "requires": {
               "act": "request"
             },
+            "idiolect": [
+              "flowing"
+            ],
+            "repetitionGroup": "request.authority"
+          },
+          {
+            "id": "core.request.authority.plain",
+            "position": "core",
+            "text": "Report it to someone in charge.",
+            "requires": {
+              "act": "request"
+            },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "request.authority"
           },
           {
@@ -3833,6 +4770,30 @@
             },
             "tags": [
               "pleading"
+            ],
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "request.appeal"
+          },
+          {
+            "id": "core.request.appeal.plain",
+            "position": "core",
+            "text": "I need you. Please.",
+            "requires": {
+              "act": "request",
+              "relationship": [
+                "friend",
+                "family",
+                "spouse"
+              ]
+            },
+            "tags": [
+              "pleading"
+            ],
+            "idiolect": [
+              "terse",
+              "clipped"
             ],
             "repetitionGroup": "request.appeal"
           },
@@ -3897,6 +4858,9 @@
             "tags": [
               "pleading"
             ],
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "request.mood"
           },
           {
@@ -3907,6 +4871,23 @@
               "act": "request",
               "emotion": "stress"
             },
+            "idiolect": [
+              "clipped"
+            ],
+            "repetitionGroup": "request.mood"
+          },
+          {
+            "id": "core.request.mood.plain",
+            "position": "core",
+            "text": "I could use a hand with this.",
+            "requires": {
+              "act": "request",
+              "emotion": "stress"
+            },
+            "idiolect": [
+              "expansive",
+              "flowing"
+            ],
             "repetitionGroup": "request.mood",
             "memorability": "voiced"
           },
@@ -3948,6 +4929,11 @@
             "tone": [
               "curt"
             ],
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "request.dismissal"
           },
           {
@@ -3959,6 +4945,25 @@
             },
             "tone": [
               "curt"
+            ],
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "request.dismissal"
+          },
+          {
+            "id": "core.request.dismissal.plain",
+            "position": "core",
+            "text": "Go, please.",
+            "requires": {
+              "act": "request"
+            },
+            "tone": [
+              "warm"
+            ],
+            "idiolect": [
+              "terse",
+              "clipped"
             ],
             "repetitionGroup": "request.dismissal"
           },
@@ -4332,6 +5337,61 @@
             "repetitionGroup": "refuse"
           },
           {
+            "id": "core.refuse.nope",
+            "position": "core",
+            "text": "Nope.",
+            "requires": {
+              "act": "refuse"
+            },
+            "tone": [
+              "plain"
+            ],
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
+            "repetitionGroup": "refuse"
+          },
+          {
+            "id": "core.refuse.cant.say",
+            "position": "core",
+            "text": "Can't say.",
+            "requires": {
+              "act": "refuse"
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
+            "repetitionGroup": "refuse"
+          },
+          {
+            "id": "core.refuse.not.my.place",
+            "position": "core",
+            "text": "It's not my place to say.",
+            "requires": {
+              "act": "refuse"
+            },
+            "idiolect": [
+              "flowing"
+            ],
+            "repetitionGroup": "refuse"
+          },
+          {
+            "id": "core.refuse.short.wont.happen",
+            "position": "core",
+            "text": "That's not happening.",
+            "requires": {
+              "act": "refuse"
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
+            "repetitionGroup": "refuse"
+          },
+          {
             "id": "core.refuse.will.not",
             "position": "core",
             "text": "I will not do that.",
@@ -4412,12 +5472,31 @@
             "tone": [
               "warm"
             ],
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "refuse.polite"
           },
           {
             "id": "core.refuse.polite.leave.it.here",
             "position": "core",
             "text": "I would prefer we leave the matter here.",
+            "requires": {
+              "act": "refuse"
+            },
+            "tone": [
+              "formal"
+            ],
+            "idiolect": [
+              "flowing",
+              "literal"
+            ],
+            "repetitionGroup": "refuse.polite"
+          },
+          {
+            "id": "core.refuse.id.rather.not.formal",
+            "position": "core",
+            "text": "I would prefer not to answer that.",
             "requires": {
               "act": "refuse"
             },
@@ -4502,6 +5581,22 @@
             "memorability": "signature"
           },
           {
+            "id": "core.refuse.abrasive.plain.no",
+            "position": "core",
+            "text": "No. Not talking about it.",
+            "requires": {
+              "act": "refuse"
+            },
+            "tone": [
+              "curt"
+            ],
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
+            "repetitionGroup": "refuse.abrasive"
+          },
+          {
             "id": "core.refuse.apology.no",
             "position": "core",
             "text": "No.",
@@ -4509,6 +5604,11 @@
               "act": "refuse",
               "reply": "apologize"
             },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "refuse.apology"
           },
           {
@@ -4519,6 +5619,23 @@
               "act": "refuse",
               "reply": "apologize"
             },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "refuse.apology"
+          },
+          {
+            "id": "core.refuse.apology.plain",
+            "position": "core",
+            "text": "That doesn't fix it.",
+            "requires": {
+              "act": "refuse",
+              "reply": "apologize"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "refuse.apology"
           },
           {
@@ -4540,6 +5657,24 @@
               "act": "refuse",
               "reply": "offer"
             },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "refuse.terms"
+          },
+          {
+            "id": "core.refuse.terms.plain",
+            "position": "core",
+            "text": "No deal.",
+            "requires": {
+              "act": "refuse",
+              "reply": "offer"
+            },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "refuse.terms"
           },
           {
@@ -4561,6 +5696,10 @@
               "act": "refuse",
               "reply": "offer"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
             "repetitionGroup": "refuse.terms"
           },
           {
@@ -4582,6 +5721,23 @@
               "act": "refuse",
               "emotion": "stress"
             },
+            "idiolect": [
+              "clipped"
+            ],
+            "repetitionGroup": "refuse.mood"
+          },
+          {
+            "id": "core.refuse.mood.plain",
+            "position": "core",
+            "text": "Not now. I can't.",
+            "requires": {
+              "act": "refuse",
+              "emotion": "stress"
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
             "repetitionGroup": "refuse.mood"
           },
           {
@@ -4616,6 +5772,10 @@
             },
             "tone": [
               "cold"
+            ],
+            "idiolect": [
+              "terse",
+              "literal"
             ],
             "repetitionGroup": "refuse.mood"
           },
@@ -4655,8 +5815,28 @@
                 "spouse"
               ]
             },
+            "idiolect": [
+              "clipped"
+            ],
             "repetitionGroup": "refuse.tie",
             "memorability": "voiced"
+          },
+          {
+            "id": "core.refuse.tie.plain",
+            "position": "core",
+            "text": "I'm not talking about family.",
+            "requires": {
+              "act": "refuse",
+              "relationship": [
+                "family",
+                "spouse"
+              ]
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "refuse.tie"
           },
           {
             "id": "core.evade.a.question",
@@ -4665,6 +5845,9 @@
             "requires": {
               "act": "evade"
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "evade"
           },
           {
@@ -4674,6 +5857,9 @@
             "requires": {
               "act": "evade"
             },
+            "idiolect": [
+              "flowing"
+            ],
             "repetitionGroup": "evade"
           },
           {
@@ -4683,6 +5869,9 @@
             "requires": {
               "act": "evade"
             },
+            "idiolect": [
+              "terse"
+            ],
             "repetitionGroup": "evade"
           },
           {
@@ -4692,6 +5881,9 @@
             "requires": {
               "act": "evade"
             },
+            "idiolect": [
+              "literal"
+            ],
             "repetitionGroup": "evade"
           },
           {
@@ -4701,6 +5893,46 @@
             "requires": {
               "act": "evade"
             },
+            "idiolect": [
+              "flowing"
+            ],
+            "repetitionGroup": "evade"
+          },
+          {
+            "id": "core.evade.plain.dont.want.to.say",
+            "position": "core",
+            "text": "I'd rather not get into it.",
+            "requires": {
+              "act": "evade"
+            },
+            "idiolect": [
+              "flowing"
+            ],
+            "repetitionGroup": "evade"
+          },
+          {
+            "id": "core.evade.plain.leave.it",
+            "position": "core",
+            "text": "Let's leave it there.",
+            "requires": {
+              "act": "evade"
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
+            "repetitionGroup": "evade"
+          },
+          {
+            "id": "core.evade.plain.dunno",
+            "position": "core",
+            "text": "I couldn't tell you.",
+            "requires": {
+              "act": "evade"
+            },
+            "idiolect": [
+              "flowing"
+            ],
             "repetitionGroup": "evade"
           },
           {
@@ -4783,6 +6015,25 @@
               "act": "evade",
               "tactic": "answer_elsewhere"
             },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "evade.deflect"
+          },
+          {
+            "id": "core.evade.deflect.plain",
+            "position": "core",
+            "text": "Ask somebody else.",
+            "requires": {
+              "act": "evade",
+              "tactic": "answer_elsewhere"
+            },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
             "repetitionGroup": "evade.deflect"
           },
           {
@@ -4815,6 +6066,25 @@
               "act": "evade",
               "emotion": "fear"
             },
+            "idiolect": [
+              "terse",
+              "clipped",
+              "literal"
+            ],
+            "repetitionGroup": "evade.mood"
+          },
+          {
+            "id": "core.evade.mood.plain",
+            "position": "core",
+            "text": "Not here. Not now.",
+            "requires": {
+              "act": "evade",
+              "emotion": "fear"
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
             "repetitionGroup": "evade.mood"
           },
           {

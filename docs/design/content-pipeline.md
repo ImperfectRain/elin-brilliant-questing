@@ -160,6 +160,15 @@ migrated a cross-section at a time. Both poles of one axis on one fragment is re
 `memorability` is the one axis that is purely about wear: it changes how quickly a fragment counts as
 stale, so a line somebody would quote is spent when it lands and "No." is not (`D055`).
 
+**An act's unconditional core pool - the fragments reachable with no optional reading at all - has to
+keep both poles of every `idiolect` axis reachable, or one pole.** A voice can only narrow a pool, never
+widen it, so if every fragment answering an act from `act` alone happens to carry the same pole (every
+one `terse`/`literal`, say), a voice built from the opposite pole is left with nothing to say for that
+act the moment no optional reading (mood, tie, depth, ...) is available to fall back on - which a plain,
+early conversation often is. When adding plain alternatives to a well-covered act, mark most of them and
+leave at least one of the act's unconditional cores unmarked, or mark one toward the opposite pole,
+rather than tagging every one of them the same way.
+
 ### 5.2 What a storylet file says (BQ-131, BQ-146)
 
 A storylet is a dramatic structure. **It contains no wording, and cannot** — every string in one is

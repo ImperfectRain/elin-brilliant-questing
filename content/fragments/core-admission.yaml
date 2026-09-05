@@ -7,18 +7,57 @@ payload:
       text: "Yes. I did it."
       requires:
         act: admit
+      idiolect:
+        - clipped
+        - literal
       repetitionGroup: admit
     - id: core.admit.no.point
       position: core
       text: "There is no point denying it."
       requires:
         act: admit
+      idiolect:
+        - literal
       repetitionGroup: admit
     - id: core.admit.was.me
       position: core
       text: "It was me."
       requires:
         act: admit
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: admit
+    - id: core.admit.yeah.i.did
+      position: core
+      text: "Yeah, I did."
+      requires:
+        act: admit
+      tone:
+        - plain
+      idiolect:
+        - terse
+        - clipped
+      repetitionGroup: admit
+    - id: core.admit.guilty
+      position: core
+      text: "Guilty."
+      requires:
+        act: admit
+      idiolect:
+        - terse
+        - clipped
+        - literal
+      repetitionGroup: admit
+    - id: core.admit.confess.formal
+      position: core
+      text: "I confess to it."
+      requires:
+        act: admit
+      tone:
+        - formal
+      idiolect:
+        - literal
       repetitionGroup: admit
     - id: core.admit.stop.looking
       position: core
@@ -40,6 +79,20 @@ payload:
       requires:
         act: admit
         claim_predicate: stole
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: admit.theft
+    - id: core.admit.theft.plain
+      position: core
+      text: "I took it."
+      requires:
+        act: admit
+        claim_predicate: stole
+      idiolect:
+        - terse
+        - clipped
+        - literal
       repetitionGroup: admit.theft
     - id: core.admit.theft.have.it
       position: core
@@ -89,6 +142,18 @@ payload:
       requires:
         act: admit
         emotion: shame
+      idiolect:
+        - clipped
+      repetitionGroup: admit.shame
+    - id: core.admit.shame.plain
+      position: core
+      text: "I'm sorry. I did it."
+      requires:
+        act: admit
+        emotion: shame
+      idiolect:
+        - clipped
+        - literal
       repetitionGroup: admit.shame
     - id: core.admit.rehearsed
       position: core
@@ -105,8 +170,19 @@ payload:
       requires:
         act: admit
         audience: several
+      idiolect:
+        - clipped
       repetitionGroup: admit.shame
       memorability: voiced
+    - id: core.admit.public.plain
+      position: core
+      text: "Yes, here, in front of everyone."
+      requires:
+        act: admit
+        audience: several
+      idiolect:
+        - clipped
+      repetitionGroup: admit.shame
     - id: core.admit.let.it.be.me
       position: core
       text: "If someone has to pay for this, let it be me."
@@ -120,6 +196,8 @@ payload:
       text: "It was my doing."
       requires:
         act: admit
+      idiolect:
+        - literal
       repetitionGroup: admit
     - id: core.admit.tired.of.carrying
       position: core
@@ -127,6 +205,8 @@ payload:
       requires:
         act: admit
         emotion: stress
+      idiolect:
+        - clipped
       repetitionGroup: admit.shame
       memorability: voiced
     - id: core.admit.you.knew
@@ -138,5 +218,31 @@ payload:
           - friend
           - family
           - spouse
+      idiolect:
+        - clipped
       repetitionGroup: admit
       memorability: voiced
+    - id: core.admit.tie.plain
+      position: core
+      text: "I will not lie to you. It was me."
+      requires:
+        act: admit
+        relationship:
+          - friend
+          - family
+          - spouse
+      idiolect:
+        - clipped
+        - literal
+      repetitionGroup: admit
+    - id: core.admit.deep.plain
+      position: core
+      text: "There's more, and I should tell you."
+      requires:
+        act: admit
+        depth:
+          - detail
+          - in_confidence
+      idiolect:
+        - flowing
+      repetitionGroup: admit.deep

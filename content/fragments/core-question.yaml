@@ -22,12 +22,19 @@ payload:
       text: "What happened?"
       requires:
         act: ask
+      idiolect:
+        - terse
+        - clipped
+        - literal
       repetitionGroup: ask
     - id: core.ask.tell.me.saw
       position: core
       text: "Tell me what you know."
       requires:
         act: ask
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: ask
     - id: core.ask.stopped.making.sense
       position: core
@@ -41,6 +48,10 @@ payload:
       text: "Who else knows?"
       requires:
         act: ask
+      idiolect:
+        - terse
+        - clipped
+        - literal
       repetitionGroup: ask.spread
     - id: core.ask.what.next
       position: core
@@ -50,6 +61,9 @@ payload:
         reply:
           - answer
           - inform
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: ask.detail
     - id: core.ask.show.me
       position: core
@@ -65,6 +79,9 @@ payload:
       requires:
         act: ask
         claim_predicate: stole
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: ask
     - id: core.ask.theft.subject
       position: core
@@ -73,6 +90,8 @@ payload:
         subject: other
         act: ask
         claim_predicate: stole
+      idiolect:
+        - flowing
       repetitionGroup: ask
     - id: core.ask.theft.where
       position: core
@@ -80,6 +99,9 @@ payload:
       requires:
         act: ask
         claim_predicate: stole
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: ask
 
     # -- asking after an answer is asking where the answer came from. No new act needed: an ask
@@ -90,6 +112,10 @@ payload:
       requires:
         act: ask
         reply: answer
+      idiolect:
+        - terse
+        - clipped
+        - literal
       repetitionGroup: ask.provenance
     - id: core.ask.provenance.where
       position: core
@@ -97,6 +123,19 @@ payload:
       requires:
         act: ask
         reply: answer
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: ask.provenance
+    - id: core.ask.provenance.plain
+      position: core
+      text: "How do you know that?"
+      requires:
+        act: ask
+        reply: answer
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: ask.provenance
     - id: core.ask.provenance.backward
       position: core
@@ -112,6 +151,9 @@ payload:
       requires:
         act: ask
         reply: answer
+      idiolect:
+        - flowing
+        - literal
       repetitionGroup: ask.provenance
 
     # -- and an ask that replies to a denial or an answer is a challenge to the speaker
@@ -123,6 +165,8 @@ payload:
         reply:
           - answer
           - deny
+      idiolect:
+        - literal
       repetitionGroup: ask.credibility
     - id: core.ask.credibility.gain
       position: core
@@ -155,6 +199,9 @@ payload:
           - deny
       tone:
         - curt
+      idiolect:
+        - terse
+        - clipped
       repetitionGroup: ask.credibility
 
     # -- mood. An angry question is a different question, and the world already knows who is angry.
@@ -166,6 +213,9 @@ payload:
         emotion: anger
       tone:
         - curt
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: ask.pressed
     - id: core.ask.angry.leave.nothing
       position: core
@@ -184,6 +234,8 @@ payload:
       requires:
         act: ask
         emotion: suspicion
+      idiolect:
+        - clipped
       repetitionGroup: ask.pressed
     - id: core.ask.fear.quietly
       position: core
@@ -191,6 +243,8 @@ payload:
       requires:
         act: ask
         emotion: fear
+      idiolect:
+        - clipped
       repetitionGroup: ask.pressed
     - id: core.ask.grief.only.this
       position: core
@@ -219,6 +273,8 @@ payload:
           - friend
           - family
           - spouse
+      idiolect:
+        - figurative
       repetitionGroup: ask.tie
     - id: core.ask.family.plainly
       position: core
@@ -228,6 +284,9 @@ payload:
         relationship:
           - family
           - spouse
+      idiolect:
+        - terse
+        - clipped
       repetitionGroup: ask.tie
       memorability: voiced
     - id: core.ask.rival.humour.me
@@ -240,6 +299,8 @@ payload:
           - enemy
       tone:
         - wry
+      idiolect:
+        - clipped
       repetitionGroup: ask.tie
       memorability: voiced
     - id: core.ask.creditor.where.is.it
@@ -250,6 +311,10 @@ payload:
         relationship: creditor
       tone:
         - curt
+      idiolect:
+        - terse
+        - clipped
+        - literal
       repetitionGroup: ask.tie
 
     # -- what the asker will settle for
@@ -258,6 +323,8 @@ payload:
       text: "What do you want to do?"
       requires:
         act: ask
+      idiolect:
+        - literal
       repetitionGroup: ask.choice
     - id: core.ask.choice.your.call
       position: core
@@ -266,6 +333,10 @@ payload:
         act: ask
       tone:
         - curt
+      idiolect:
+        - terse
+        - clipped
+        - literal
       repetitionGroup: ask.choice
     - id: core.ask.choice.which.mistake
       position: core
@@ -274,3 +345,55 @@ payload:
         act: ask
       repetitionGroup: ask.choice
       memorability: signature
+    - id: core.ask.choice.now.what
+      position: core
+      text: "So what now?"
+      requires:
+        act: ask
+      idiolect:
+        - terse
+        - clipped
+      repetitionGroup: ask.choice
+
+    # -- plain, everyday alternatives. Most of a conversation is not a set piece, and a question
+    #    said in passing should be able to sound like one.
+    - id: core.ask.whats.the.story
+      position: core
+      text: "So, what's the story?"
+      requires:
+        act: ask
+      tone:
+        - plain
+      idiolect:
+        - terse
+        - figurative
+      repetitionGroup: ask
+    - id: core.ask.walk.me.through
+      position: core
+      text: "Walk me through it, from the start."
+      requires:
+        act: ask
+      idiolect:
+        - expansive
+        - flowing
+        - literal
+      repetitionGroup: ask
+    - id: core.ask.mind.telling.me
+      position: core
+      text: "Mind telling me what happened?"
+      requires:
+        act: ask
+      idiolect:
+        - literal
+      repetitionGroup: ask
+    - id: core.ask.in.your.own.words
+      position: core
+      text: "Tell it in your own words. Take your time."
+      requires:
+        act: ask
+      tone:
+        - warm
+      idiolect:
+        - expansive
+        - flowing
+      repetitionGroup: ask

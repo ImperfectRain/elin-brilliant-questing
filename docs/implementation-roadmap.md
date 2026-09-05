@@ -134,7 +134,7 @@ No system is allowed to disappear from this table.
 | Emotion & interpretation | Absent | Playable | BQ-063, BQ-064 |
 | Storylets & casting | Absent | Playable | BQ-065 … BQ-069 |
 | Speech acts & disclosure | Absent | Playable | BQ-070 … BQ-073 |
-| Dialogue realization & voice | Absent | Playable | BQ-074 … BQ-078, BQ-142, BQ-147 |
+| Dialogue realization & voice | Absent | Playable | BQ-074 … BQ-078, BQ-142, BQ-147, BQ-148 |
 | Elin tone & weirdness budget | Absent | Playable | BQ-079, BQ-080 |
 | Callbacks & continuity | Absent | Playable | BQ-081, BQ-082 |
 | Conversation state & commitments | Absent | Playable | BQ-083 |
@@ -1272,6 +1272,59 @@ audited against its own conditions and the one reading it turned out to be missi
   `WillDisclose && Depth < KnownDepth`, so it never reads `yes` for a refusal, and the fragments
   pairing `act: refuse` with `held_back: yes` are unreachable rather than dishonest.
 - **Sources** CD §17, §18, §19; `D061`, `D035`, `D043`, `D060`.
+
+#### BQ-148 — Cadence and register diversity across the high-frequency acts *(stage S7, content pass over BQ-074 … BQ-081, BQ-142)*
+The corpus said everything in one voice. `VoiceProfile` and `DialogueIdiolect` (BQ-075, BQ-142) had
+narrowed selection since their own steps, but only 44 of 521 fragments carried a mark to narrow on, and
+the seven highest-frequency acts — ask, answer, inform, request, deny, admit, refuse/evade — carried
+five of those 44 between them. A voice reached almost the same pool as every other voice, and a plain
+exchange was as likely to draw a signature line as a utility one: `core-withholding.yaml` alone was 51%
+`voiced`/`signature`/`protected` before this pass.
+- **Depends** BQ-074, BQ-075, BQ-076, BQ-077, BQ-078, BQ-079, BQ-142, BQ-133.
+- **Done when** every one of the seven priority acts has a clear utility-tier majority among its core
+  fragments, both poles of every `idiolect` axis are reachable inside each of those acts, no voice
+  extreme empties an act's unconditional core pool, and the shipped corpus still validates and loads
+  with zero diagnostics.
+- **Current implementation** content only; no schema, reading or realizer change. `idiolect` marks were
+  added to a large existing cross-section of the seven priority files' fragments (44 → 202 marked
+  fragments corpus-wide) and 68 new core fragments were authored across `core-question.yaml`,
+  `core-answer.yaml`, `core-inform.yaml`, `core-request.yaml`, `core-admission.yaml`,
+  `core-denial.yaml` and `core-withholding.yaml` (521 → 589 shipped fragments), favouring contractions,
+  sentence fragments, hedged and direct construction and plain register over the library's existing
+  house voice of complete, elevated, often figurative sentences — without touching or removing any
+  existing line, so the library's memorable material stays exactly as memorable, only proportionally
+  rarer. Each of the seven files now clears 60–74% `utility` memorability, against roughly 50% or worse
+  before. `unmarked idiolect > half the corpus` (`VoiceIdiolectTests.TheShippedCorpusSupportsBothPolesOfEveryAxis`)
+  still holds at 65.7%.
+  **Marking a pool uniformly is its own failure.** An early pass tagged every unconditional core (the
+  fragments answering `answer`, `deny` and `refuse` from `act` alone, with no mood, tie or depth to fall
+  back on) toward `terse`/`literal`, leaving none `expansive`/`figurative` — so a voice built from
+  BQ-142's own "isolate the axis" extreme (`Verbosity`=`Cadence`=`Figuration`=1) could no longer answer,
+  deny or refuse in an otherwise unremarkable exchange. Caught by an exhaustive sweep over every
+  idiolect/tone axis combination against every act's unconditional pool (not by an existing test), fixed
+  by leaving one fragment per affected act unmarked rather than by writing new figurative wording under
+  time pressure, and closed with a permanent regression test,
+  `VoiceIdiolectTests.NoVoiceExtremeStarvesAnActOfEveryUnconditionalCore`. `content-pipeline.md` §5.1
+  gained the authoring rule this failure taught: mark most of a well-covered act's plain alternatives,
+  but leave at least one of its unconditional cores unmarked or opposite-poled.
+  **The compiled bundle was rebuilt by hand.** No .NET SDK was reachable in this session (network egress
+  to the dotnet install endpoint was blocked by the environment's proxy policy), so `Package/content.bqc`
+  could not be regenerated through `tools/ContentCompiler`. A Python re-implementation of `SimpleYaml`'s
+  restricted subset was verified byte-for-semantic-equivalence against the compiler's own output for
+  every one of the repository's 44 content records before use (one block-scalar chomping difference
+  found and normalized, in a file this step did not otherwise touch), then used to regenerate the bundle
+  from the edited YAML; a diff against the prior bundle confirmed only the seven edited records changed.
+  `dotnet build`/`dotnet test` were not run in this session and remain unverified end-to-end; the actual
+  ContentCompiler and full test suite should be run once .NET tooling is reachable, before this step is
+  treated as fully proven.
+- **Deferred by design** the niche acts (accuse, gossip, coerce, repair, terms, offer, threaten, warn,
+  apologize, promise) and the cross-cutting families (openers, closers, modifiers, callbacks,
+  vocabulary, negative-space) were left as they were — the task ordering asks for the seven
+  highest-frequency acts first, and those files already carry a much higher memorable fraction (some
+  above 70%) that a later pass should return to with the same method. No occupational vocabulary was
+  added; no new `DialogueReadings`, `DialogueTones`, `DialogueIdiolect` or `DialogueMemorability` value
+  was introduced.
+- **Sources** CD §18, §19, §20, §21; `docs/design/content-pipeline.md` §5, §6; `D043`, `D060`.
 
 #### BQ-134 — Project verbs through contextual affordances *(moved forward)*
 Moved forward to the playtest consolidation section before BQ-039 because live S4 testing showed

@@ -392,6 +392,65 @@ namespace BrilliantQuesting.Tests
             }
         }
 
+        /// <summary>
+        /// A voice can only narrow, never invent, so the corpus's job is to keep at least one
+        /// candidate standing for every act at every extreme a <see cref="VoiceProfile"/> can
+        /// take - in the pool that needs no optional reading to be eligible at all, the same
+        /// unconditional pool <c>FragmentSemanticHonestyTests.EveryActCanStillBeSaidFromTheActAlone</c>
+        /// already protects from going empty. That test guards the pool's existence; this one
+        /// guards it from being narrowed to nothing by idiolect alone. A content pass once
+        /// marked every unconditional core for `answer`, `deny` and `refuse` `terse` or
+        /// `literal` and left none `expansive` or `figurative`, so a voice built from
+        /// <see cref="VoiceProfile.Verbosity"/>=1, <see cref="VoiceProfile.Cadence"/>=1 and
+        /// <see cref="VoiceProfile.Figuration"/>=1 - exactly BQ-142's own "isolate the axis"
+        /// voice - could no longer answer, deny or refuse without an optional reading to fall
+        /// back on, which a mundane conversation does not always supply.
+        /// </summary>
+        [Fact]
+        public void NoVoiceExtremeStarvesAnActOfEveryUnconditionalCore()
+        {
+            List<DialogueFragment> unconditional = Shipped()
+                .Where(f => f.Position == FragmentPosition.Core)
+                .Where(f => f.Requires.Count == 1 && f.Requires[0].Key == DialogueReadings.Act)
+                .ToList();
+
+            HashSet<string> acts = new HashSet<string>(StringComparer.Ordinal);
+            foreach (DialogueFragment fragment in unconditional)
+            {
+                foreach (string act in fragment.Requires[0].Values)
+                {
+                    acts.Add(act);
+                }
+            }
+
+            double[] extremes = { 0.0, 1.0 };
+            foreach (string act in acts)
+            {
+                List<DialogueFragment> pool = unconditional.Where(f => f.Requires[0].IsMetBy(act)).ToList();
+
+                foreach (double verbosity in extremes)
+                {
+                    foreach (double cadence in extremes)
+                    {
+                        foreach (double figuration in extremes)
+                        {
+                            VoiceProfile voice = new VoiceProfile
+                            {
+                                Verbosity = verbosity,
+                                Cadence = cadence,
+                                Figuration = figuration
+                            };
+
+                            IReadOnlyList<string> idiolect = voice.RequestedIdiolect();
+                            Assert.True(
+                                pool.Any(f => f.FitsIdiolect(idiolect)),
+                                act + " has no unconditional core left for a voice requesting " + string.Join("/", idiolect));
+                        }
+                    }
+                }
+            }
+        }
+
         [Fact]
         public void AnUnknownIdiolectMarkIsRejected()
         {

@@ -21,12 +21,65 @@ payload:
       text: "The short answer is yes."
       requires:
         act: answer
+      idiolect:
+        - terse
       repetitionGroup: answer
     - id: core.answer.that.is.it
       position: core
       text: "That is the whole of it."
       requires:
         act: answer
+      idiolect:
+        - literal
+      repetitionGroup: answer
+    - id: core.answer.yeah
+      position: core
+      text: "Yeah, that's it."
+      requires:
+        act: answer
+      tone:
+        - plain
+      idiolect:
+        - terse
+        - clipped
+      repetitionGroup: answer
+    - id: core.answer.right
+      position: core
+      text: "That's right."
+      requires:
+        act: answer
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: answer
+    - id: core.answer.true
+      position: core
+      text: "True."
+      requires:
+        act: answer
+      idiolect:
+        - terse
+        - clipped
+        - literal
+      repetitionGroup: answer
+    - id: core.answer.correct.formal
+      position: core
+      text: "That is correct."
+      requires:
+        act: answer
+      tone:
+        - formal
+      idiolect:
+        - literal
+      repetitionGroup: answer
+    - id: core.answer.i.think.so
+      position: core
+      text: "I think so."
+      requires:
+        act: answer
+        commitment: hedged
+      idiolect:
+        - terse
       repetitionGroup: answer
     - id: core.answer.saw.it
       position: core
@@ -37,6 +90,9 @@ payload:
         claim_source:
           - witnessed
           - participant
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: answer.provenance
     - id: core.answer.was.there
       position: core
@@ -47,6 +103,8 @@ payload:
         claim_source:
           - witnessed
           - participant
+      idiolect:
+        - literal
       repetitionGroup: answer.provenance
     - id: core.answer.not.a.story
       position: core
@@ -66,6 +124,18 @@ payload:
       requires:
         act: answer
         claim_source: hearsay
+      idiolect:
+        - literal
+      repetitionGroup: answer.provenance
+    - id: core.answer.provenance.someone.told.me
+      position: core
+      text: "Someone told me."
+      requires:
+        act: answer
+        claim_source: hearsay
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: answer.provenance
     - id: core.answer.fingerprints
       position: core
@@ -84,14 +154,28 @@ payload:
         depth:
           - detail
           - in_confidence
+      idiolect:
+        - clipped
       repetitionGroup: answer.provenance
       memorability: voiced
+    - id: core.answer.provenance.figured.it.out
+      position: core
+      text: "I put it together myself."
+      requires:
+        act: answer
+        claim_source: inference
+      idiolect:
+        - literal
+      repetitionGroup: answer.provenance
     - id: core.answer.in.the.record
       position: core
       text: "It is in the record."
       requires:
         act: answer
         claim_source: document
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: answer.provenance
     - id: core.answer.source.gone
       position: core
@@ -160,6 +244,38 @@ payload:
       requires:
         act: answer
         commitment: hedged
+      idiolect:
+        - literal
+      repetitionGroup: answer.thin
+    - id: core.answer.maybe
+      position: core
+      text: "Maybe."
+      requires:
+        act: answer
+        commitment: hedged
+      idiolect:
+        - terse
+        - clipped
+        - literal
+      repetitionGroup: answer.thin
+    - id: core.answer.thin.not.sure
+      position: core
+      text: "I'm not sure."
+      requires:
+        act: answer
+        commitment: hedged
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: answer.thin
+    - id: core.answer.thin.dont.recall
+      position: core
+      text: "I don't recall."
+      requires:
+        act: answer
+        commitment: hedged
+      idiolect:
+        - terse
       repetitionGroup: answer.thin
     - id: core.answer.memory.thin
       position: core
@@ -183,6 +299,20 @@ payload:
       requires:
         act: answer
         depth: gist
+      idiolect:
+        - terse
+        - clipped
+        - literal
+      repetitionGroup: answer.thin
+    - id: core.answer.thin.not.much
+      position: core
+      text: "Not much to tell."
+      requires:
+        act: answer
+        depth: gist
+      idiolect:
+        - terse
+        - clipped
       repetitionGroup: answer.thin
     - id: core.answer.small.answer
       position: core
@@ -215,6 +345,19 @@ payload:
         depth:
           - detail
           - in_confidence
+      idiolect:
+        - terse
+      repetitionGroup: answer.costly
+    - id: core.answer.costly.plain
+      position: core
+      text: "There's a part I'm not proud of."
+      requires:
+        act: answer
+        depth:
+          - detail
+          - in_confidence
+      idiolect:
+        - flowing
       repetitionGroup: answer.costly
     - id: core.answer.detail.you.care.about
       position: core
@@ -235,6 +378,8 @@ payload:
         depth:
           - detail
           - in_confidence
+      idiolect:
+        - flowing
       repetitionGroup: answer.costly
 
     # -- mood and tie
@@ -281,6 +426,8 @@ payload:
           - friend
           - family
           - spouse
+      idiolect:
+        - clipped
       repetitionGroup: answer.tie
     - id: core.answer.trusted.kept.from.everyone
       position: core
@@ -298,6 +445,15 @@ payload:
         relationship: none
       repetitionGroup: answer.tie
       memorability: voiced
+    - id: core.answer.tie.stranger.plain
+      position: core
+      text: "I'll tell you what I know."
+      requires:
+        act: answer
+        relationship: none
+      idiolect:
+        - literal
+      repetitionGroup: answer.tie
     - id: core.answer.rival.take.the.fact
       position: core
       text: "Take the fact. Leave my reasons alone."

@@ -10,12 +10,34 @@ payload:
       text: "I need your help."
       requires:
         act: request
+      idiolect:
+        - literal
       repetitionGroup: request
     - id: core.request.can.you
       position: core
       text: "Can you handle something for me?"
       requires:
         act: request
+      idiolect:
+        - flowing
+      repetitionGroup: request
+    - id: core.request.plain.help
+      position: core
+      text: "I need a hand."
+      requires:
+        act: request
+      idiolect:
+        - terse
+        - figurative
+      repetitionGroup: request
+    - id: core.request.could.you
+      position: core
+      text: "Could you help me with something?"
+      requires:
+        act: request
+      idiolect:
+        - expansive
+        - flowing
       repetitionGroup: request
     - id: core.request.unpleasant.part
       position: core
@@ -29,12 +51,26 @@ payload:
       text: "Bring me the {matter}."
       requires:
         act: request
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: request.item
     - id: core.request.need.matter
       position: core
       text: "I need the {matter}, if you can find it."
       requires:
         act: request
+      idiolect:
+        - flowing
+      repetitionGroup: request.item
+    - id: core.request.item.plain
+      position: core
+      text: "I need the {matter}."
+      requires:
+        act: request
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: request.item
     - id: core.request.whole.plan.waiting
       position: core
@@ -48,6 +84,8 @@ payload:
       text: "Everything is ready except the {matter}."
       requires:
         act: request
+      idiolect:
+        - literal
       repetitionGroup: request.item
 
     # -- restitution and payment
@@ -58,6 +96,9 @@ payload:
         act: request
         claim_predicate: stole
         referent: listener
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: request.restitution
     - id: core.request.replace.or.pay
       position: core
@@ -65,6 +106,18 @@ payload:
       requires:
         act: request
         claim_predicate: stole
+      idiolect:
+        - literal
+      repetitionGroup: request.restitution
+    - id: core.request.restitution.give.it.back
+      position: core
+      text: "Just give it back."
+      requires:
+        act: request
+        claim_predicate: stole
+      idiolect:
+        - terse
+        - clipped
       repetitionGroup: request.restitution
     - id: core.request.boring.again
       position: core
@@ -82,6 +135,19 @@ payload:
       requires:
         act: request
         relationship: creditor
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: request.debt
+    - id: core.request.debt.plain
+      position: core
+      text: "You owe me. Pay up."
+      requires:
+        act: request
+        relationship: creditor
+      idiolect:
+        - terse
+        - clipped
       repetitionGroup: request.debt
     - id: core.request.ledger.unconvinced
       position: core
@@ -109,6 +175,9 @@ payload:
       requires:
         act: request
         depth: in_confidence
+      idiolect:
+        - terse
+        - literal
       repetitionGroup: request.secrecy
     - id: core.request.do.not.repeat
       position: core
@@ -116,6 +185,18 @@ payload:
       requires:
         act: request
         depth: in_confidence
+      idiolect:
+        - flowing
+      repetitionGroup: request.secrecy
+    - id: core.request.secrecy.plain
+      position: core
+      text: "Don't tell anyone."
+      requires:
+        act: request
+        depth: in_confidence
+      idiolect:
+        - terse
+        - clipped
       repetitionGroup: request.secrecy
     - id: core.request.silence.not.agreement
       position: core
@@ -132,6 +213,16 @@ payload:
       text: "Take this to somebody with the right to act."
       requires:
         act: request
+      idiolect:
+        - flowing
+      repetitionGroup: request.authority
+    - id: core.request.authority.plain
+      position: core
+      text: "Report it to someone in charge."
+      requires:
+        act: request
+      idiolect:
+        - literal
       repetitionGroup: request.authority
     - id: core.request.title.useful
       position: core
@@ -161,6 +252,23 @@ payload:
           - spouse
       tags:
         - pleading
+      idiolect:
+        - literal
+      repetitionGroup: request.appeal
+    - id: core.request.appeal.plain
+      position: core
+      text: "I need you. Please."
+      requires:
+        act: request
+        relationship:
+          - friend
+          - family
+          - spouse
+      tags:
+        - pleading
+      idiolect:
+        - terse
+        - clipped
       repetitionGroup: request.appeal
     - id: core.request.if.strangers
       position: core
@@ -208,6 +316,8 @@ payload:
         emotion: fear
       tags:
         - pleading
+      idiolect:
+        - literal
       repetitionGroup: request.mood
     - id: core.request.stress.one.hand
       position: core
@@ -215,6 +325,18 @@ payload:
       requires:
         act: request
         emotion: stress
+      idiolect:
+        - clipped
+      repetitionGroup: request.mood
+    - id: core.request.mood.plain
+      position: core
+      text: "I could use a hand with this."
+      requires:
+        act: request
+        emotion: stress
+      idiolect:
+        - expansive
+        - flowing
       repetitionGroup: request.mood
       memorability: voiced
     - id: core.request.stranger.you.are.here
@@ -246,6 +368,10 @@ payload:
         act: request
       tone:
         - curt
+      idiolect:
+        - terse
+        - clipped
+        - literal
       repetitionGroup: request.dismissal
     - id: core.request.need.you.gone
       position: core
@@ -254,6 +380,19 @@ payload:
         act: request
       tone:
         - curt
+      idiolect:
+        - literal
+      repetitionGroup: request.dismissal
+    - id: core.request.dismissal.plain
+      position: core
+      text: "Go, please."
+      requires:
+        act: request
+      tone:
+        - warm
+      idiolect:
+        - terse
+        - clipped
       repetitionGroup: request.dismissal
     - id: core.request.feet.catch.up
       position: core
