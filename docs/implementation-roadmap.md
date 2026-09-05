@@ -134,7 +134,7 @@ No system is allowed to disappear from this table.
 | Emotion & interpretation | Absent | Playable | BQ-063, BQ-064 |
 | Storylets & casting | Absent | Playable | BQ-065 … BQ-069 |
 | Speech acts & disclosure | Absent | Playable | BQ-070 … BQ-073 |
-| Dialogue realization & voice | Absent | Playable | BQ-074 … BQ-078, BQ-142, BQ-147, BQ-148 |
+| Dialogue realization & voice | Absent | Playable | BQ-074 … BQ-078, BQ-142, BQ-147 … BQ-151 |
 | Elin tone & weirdness budget | Absent | Playable | BQ-079, BQ-080 |
 | Callbacks & continuity | Absent | Playable | BQ-081, BQ-082 |
 | Conversation state & commitments | Absent | Playable | BQ-083 |
@@ -1435,6 +1435,69 @@ claims, and only the first had an instrument.
   Core's realizer faithfully, not a corpus defect this step's scope covers; touching it would mean
   changing `DialogueRealizer`'s RNG forking rather than making a small, obvious content correction.
 - **Sources** CD §18, §19, §21; `docs/design/content-pipeline.md` §5.1; `D060`, `D062`.
+
+#### BQ-151 — Ordinary lines for the slots that fire in every line *(stage S7, immediately after BQ-150)*
+BQ-148 raised the utility share of the seven high-frequency **core** files and explicitly deferred the
+cross-cutting families. Those families are drawn once per *line* rather than once per act, and they
+were the worst in the library: `modifiers-relationship.yaml` was 81% above utility, `context.yaml`
+84%, `modifiers-emotion.yaml` 68%. Eight of thirteen ties, grief, and eleven of thirteen context lines
+had no plain wording at all, so having a friend opposite or speaking in private was worded strikingly
+every time it was worded.
+- **Depends** BQ-133, BQ-142, BQ-146, BQ-147, BQ-148, BQ-149, BQ-150.
+- **Done when** every tie, mood, audience, callback kind, callback route and act that some authored
+  line in an always-on slot is written for also has a `utility` line written for it; every callback
+  kind and route has plain wording that names nobody, so recognition does not depend on who the other
+  side turned out to be; a speaker nobody described reaches a plain modifier for every tie the world
+  can hand them; the coverage report can *see* the always-on families, which it could not; the shipped
+  corpus still validates and loads with zero diagnostics; and assembled storylet output no longer
+  repeats one line across a scene.
+- **The gap, and why five passes missed it.** `DialogueMemorability` (`D055`) prices wear per
+  fragment and says nothing about how a *situation* is worded, and every table in the coverage report
+  is act-by-something — which for an optional slot is dominated by the fragments with no act opinion
+  at all. `warn / modifier` read 37 while exactly one modifier had been written for warning, and it
+  was a signature. The families that gate on relationship, emotion, audience or callback appeared as
+  one flat column repeated down every row. The report was blind to precisely what it most needed to
+  watch, so this was found by reading assembled `run scene` output, and closed by giving the report
+  the reading that finds it (`D063`).
+- **Current implementation** no schema change, no new reading, no realizer change. Content plus one
+  report section plus one test file.
+  **Content: 609 → 671 fragments, and every one of the 62 is `utility`** (319 → 381; `voiced`,
+  `signature` and `protected` are unchanged at 141/124/25). No line was reworded and none was
+  removed. Twenty-two plain relationship modifiers covering the acts their memorable siblings cover;
+  ten plain mood modifiers, including the first three grief has ever had; five plain context lines;
+  seven plain stances for `warn`, `threaten` and `offer`, whose only tie-free modifiers were all above
+  utility; and eighteen plain callbacks — fifteen closing every (kind, route) the model derives that
+  had no wording, keeping the four routes linguistically distinct (`CD §17`), plus three that name
+  nobody, so a hook whose other party the world can no longer produce is still sayable. `promise`, `kindness` and `embarrassment` had no
+  party-free wording at all before this.
+  **Six `tone: [wry]` marks in optional slots became `voice: [wry]` demands** — `D062`'s correction
+  applied to the three families BQ-149 and BQ-150 did not reach. `wry` has no opposite pole (`D034`),
+  so the mark refused nobody; `call.history.learned.to.walk` was drawn in three of the callbacks
+  sweep's seven rows and named as reused across profiles. Three of the six were found by the new test
+  rather than by the audit. Demands are 22 of 671, still well inside BQ-149's own sparseness guard.
+  **`--coverage` gained an always-on section and a third holes list.** Six slot-and-reading pairs
+  whose wording is chosen on something other than the act, each value counted twice: written, and
+  written plainly. Written counts *declarations* rather than eligibility, deliberately. "Worded, but
+  never plainly, in a slot that fires every line" names eleven holes against the pre-change corpus and
+  none against this one.
+  **`MundaneWordingTests` is five invariants over the shipped bundle** — the plain-sibling floor, the
+  party-free callback floor, the realizer-side fallback for every tie under a neutral voice, the wry
+  demand, and a direction-of-travel guard that the always-on slots stay majority-`utility`. None reads
+  the English or asserts that a particular sentence was chosen.
+  **The .NET SDK was reachable this session** (`apt-get install dotnet-sdk-8.0`; the dotnet.microsoft.com
+  installer remains blocked by the proxy, which is what forced BQ-148's and BQ-149's hand-mirrored
+  Python fallback). `tools/ContentCompiler` ran directly, `--check` is clean, and `dotnet build` plus
+  the full `dotnet test` (1482 tests) pass end to end.
+- **Deferred by design** no new storylet — the 22 routed storylets already cover the mundane social
+  situations the research names (debts, favours, damaged property, blocked access, contamination,
+  testimony disagreement, restitution, extortion) and they carry no prose at all, so the reusable
+  layer was the only place a fix belonged; no second pass over `closers.yaml`, `openers.yaml` or the
+  niche core files BQ-148 left, which are healthier and can take the same method later; no change to
+  repetition scope, so a line can still recur across two storylets played back to back in one
+  situation because `DialogueExpressionHistory` is per conversation; and no aggregate prose score,
+  LLM judge or embedding, for BQ-150's reasons.
+- **Sources** CD §17, §18, §19, §21; `docs/design/dialogue-writing-inspiration-research.md` §11, §12,
+  §18, §19; `docs/design/content-pipeline.md` §5.1; `D034`, `D055`, `D060`, `D062`, `D063`.
 
 #### BQ-134 — Project verbs through contextual affordances *(moved forward)*
 Moved forward to the playtest consolidation section before BQ-039 because live S4 testing showed

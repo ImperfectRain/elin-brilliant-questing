@@ -197,7 +197,7 @@ payload:
       requires:
         reply: none
         relationship: rival
-      tone:
+      voice:
         - wry
       repetitionGroup: greeting
       memorability: voiced
@@ -223,7 +223,7 @@ payload:
       requires:
         reply: none
         relationship: debtor
-      tone:
+      voice:
         - wry
       repetitionGroup: greeting
       memorability: voiced
@@ -283,7 +283,7 @@ payload:
       text: "If another person asks me for something I may become furniture."
       requires:
         emotion: stress
-      tone:
+      voice:
         - wry
       repetitionGroup: greeting.mood
       memorability: signature

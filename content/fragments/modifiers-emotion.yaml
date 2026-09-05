@@ -177,3 +177,84 @@ payload:
         - wry
       repetitionGroup: mood
       memorability: signature
+
+    # -- BQ-151. A second plain reading of every mood, and the first of grief.
+    #
+    # Every mood above had exactly one utility line and grief had none, so a mood was very nearly a
+    # catchphrase and grief could only ever be worded as one of three protected lines. A feeling is
+    # the state a listener hears first; it is heard constantly, and the ordinary way of showing it
+    # has to be as available as the striking one.
+    #
+    # Emotion is the world's and none of these assert it. None of them claims a cause, a duration or
+    # a history either - `emotion` says what somebody is feeling now and nothing about how long or
+    # how often, so no line here reaches for `still` or `again`.
+    - id: mod.emotion.anger.plain.take.it.as.it.comes
+      position: modifier
+      text: "Take it as it comes. I am in no state to soften it."
+      requires:
+        emotion: anger
+      repetitionGroup: mood
+    - id: mod.emotion.fear.plain.rather.not
+      position: modifier
+      text: "I would rather not be having this conversation."
+      requires:
+        emotion: fear
+      repetitionGroup: mood
+    - id: mod.emotion.shame.plain.no.excuse
+      position: modifier
+      text: "I have no excuse to offer."
+      requires:
+        emotion: shame
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: mood
+    - id: mod.emotion.grief.plain.poor.company
+      position: modifier
+      text: "I am poor company just now."
+      requires:
+        emotion: grief
+      idiolect:
+        - terse
+      repetitionGroup: mood
+    - id: mod.emotion.grief.plain.slowly
+      position: modifier
+      text: "Go slowly with me."
+      requires:
+        emotion: grief
+      repetitionGroup: mood
+    - id: mod.emotion.grief.plain.answer.what.i.can
+      position: modifier
+      text: "I will answer what I can. Not more than that."
+      requires:
+        emotion: grief
+      repetitionGroup: mood
+    - id: mod.emotion.relief.plain.better.than.expected
+      position: modifier
+      text: "That is better than I expected."
+      requires:
+        emotion: relief
+      idiolect:
+        - literal
+      repetitionGroup: mood
+    - id: mod.emotion.suspicion.plain.not.settled
+      position: modifier
+      text: "I am not settled on it."
+      requires:
+        emotion: suspicion
+      idiolect:
+        - terse
+      repetitionGroup: mood
+    - id: mod.emotion.affection.plain.glad.you.came
+      position: modifier
+      text: "I am glad you came."
+      requires:
+        emotion: affection
+        audience: one
+      repetitionGroup: mood
+    - id: mod.emotion.stress.plain.short.of.time
+      position: modifier
+      text: "I am short of time and shorter of patience."
+      requires:
+        emotion: stress
+      repetitionGroup: mood

@@ -252,3 +252,70 @@ payload:
           - enemy
       repetitionGroup: boundary
       memorability: protected
+
+    # -- BQ-151. The plain way of holding a warning, a threat and an offer.
+    #
+    # Found by reading assembled storylet output rather than by a table. `warn` had exactly one
+    # modifier written for it and `threaten` two, and all three were above utility - so a warning
+    # given to somebody the speaker has no tie to reached "I become unreasonable where family is
+    # concerned" or nothing, and a scene that warned twice said it twice. An act whose only
+    # authored stance is a signature is a catchphrase with extra steps.
+    - id: mod.warn.said.my.piece
+      position: modifier
+      text: "I have told you. What you do with it is yours."
+      requires:
+        act: warn
+      idiolect:
+        - literal
+      repetitionGroup: boundary
+    - id: mod.warn.take.it.or.not
+      position: modifier
+      text: "Take it as you like."
+      requires:
+        act:
+          - warn
+          - inform
+      idiolect:
+        - terse
+        - clipped
+      repetitionGroup: boundary
+    - id: mod.warn.not.a.threat
+      position: modifier
+      text: "That is not a threat. It is what I expect to happen."
+      requires:
+        act: warn
+      repetitionGroup: boundary
+    - id: mod.threaten.means.it
+      position: modifier
+      text: "I mean it."
+      requires:
+        act: threaten
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: boundary
+    - id: mod.threaten.no.second.telling
+      position: modifier
+      text: "I would rather not say this twice."
+      requires:
+        act:
+          - threaten
+          - warn
+      repetitionGroup: boundary
+    - id: mod.offer.stands
+      position: modifier
+      text: "The offer stands."
+      requires:
+        act: offer
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: boundary
+    - id: mod.offer.think.on.it
+      position: modifier
+      text: "Think on it."
+      requires:
+        act:
+          - offer
+          - promise
+      repetitionGroup: boundary

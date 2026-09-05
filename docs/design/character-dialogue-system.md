@@ -909,6 +909,16 @@ Represent strong behavioral prohibitions explicitly where useful. They should co
 
 Separate meaning from voice.
 
+> **Where the prose guidance lives.** This document owns the architecture and the semantic model:
+> what a fragment may be selected on, what it may name, and the rule that wording may express
+> meaning and may never create it. It does not own the writing.
+> [`dialogue-writing-inspiration-research.md`](dialogue-writing-inspiration-research.md) is the
+> researched reference for the prose itself — cadence, register, voice construction, prose tiers,
+> occupational vocabulary, callbacks as recognition, provenance families, and the loaded words that
+> quietly assert world state. Nothing in it can move truth into prose, and nothing in it is a runtime
+> quantity. Pull it when the task is authoring or auditing dialogue content; leave it closed
+> otherwise.
+
 ```csharp
 DialogueFragment
 {

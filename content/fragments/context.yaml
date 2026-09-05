@@ -76,7 +76,7 @@ payload:
         act:
           - refuse
           - evade
-      tone:
+      voice:
         - wry
       repetitionGroup: context.setting
       memorability: signature
@@ -112,7 +112,7 @@ payload:
       requires:
         audience: several
         depth: in_confidence
-      tone:
+      voice:
         - wry
       repetitionGroup: context.setting
       memorability: signature
@@ -124,3 +124,67 @@ payload:
         depth: in_confidence
       repetitionGroup: context.setting
       memorability: protected
+
+    # -- BQ-151. Plain wording for the room.
+    #
+    # Two of the thirteen lines above were utility, and every line written for `audience: one`
+    # also required a confiding depth - so an ordinary private exchange had no context wording at
+    # all, and a public one had one plain line and seven memorable ones. The surroundings are the
+    # least remarkable thing about most exchanges and were the most remarkably worded.
+    #
+    # `audience` and `depth` are the whole of what these may lean on. Nothing here names who is
+    # present, counts them, or says the room has been like this before.
+    - id: ctx.plain.people.about
+      position: context
+      text: "There are people about."
+      requires:
+        audience: several
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: context.setting
+    - id: ctx.plain.say.it.here
+      position: context
+      text: "I will say it here. It is nothing I would hide."
+      requires:
+        audience: several
+        act:
+          - answer
+          - inform
+          - deny
+          - accuse
+      repetitionGroup: context.setting
+    - id: ctx.plain.quieter.spot
+      position: context
+      text: "There is a quieter spot if you want one."
+      requires:
+        audience: several
+        act:
+          - refuse
+          - evade
+          - admit
+          - offer
+      repetitionGroup: context.setting
+    - id: ctx.plain.just.us
+      position: context
+      text: "It is just us."
+      requires:
+        audience: one
+        depth:
+          - detail
+          - in_confidence
+      idiolect:
+        - terse
+        - clipped
+      repetitionGroup: context.setting
+    - id: ctx.plain.here.is.fine
+      position: context
+      text: "Here is fine for this."
+      requires:
+        audience: one
+        depth:
+          - detail
+          - in_confidence
+      idiolect:
+        - terse
+      repetitionGroup: context.setting

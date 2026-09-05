@@ -206,6 +206,35 @@ early conversation often is. When adding plain alternatives to a well-covered ac
 leave at least one of the act's unconditional cores unmarked, or mark one toward the opposite pole,
 rather than tagging every one of them the same way.
 
+**A memorable line is an alternative, never the only wording a situation has (BQ-151).** `memorability`
+prices wear per fragment; it says nothing about how a *situation* is worded, and the two came apart
+badly in the optional slots. Eight of thirteen relationship modifiers, grief, and most of the context
+slot had no `utility` wording at all — so a friend, a grieving speaker or a private room was worded
+strikingly every single time it was worded, which is a catchphrase nobody authored. The rule is per
+value of the reading that gates the slot: **any tie, mood, audience, kind of recalled history, or act
+that some line is written for keeps a line written for the same value at `utility`.** Pinned by test
+over the shipped corpus, and printed by `--coverage`'s always-on table and its "worded, but never
+plainly" holes list — which counts *declarations* rather than eligibility, because a modifier with no
+opinion about the tie is available to a friend but is not wording for having one.
+
+This matters more here than in a core file for a structural reason: a core is drawn once per act, and
+an opener, modifier, callback, context line or closer is drawn once per *line*. Getting the ratio
+wrong in an optional family is heard several times a scene.
+
+Two smaller rules fell out of the same pass:
+
+- **a fragment marked `wry` in an optional slot must also demand it.** `wry` has no opposite pole
+  (`D034`), so the mark alone refuses nobody and the line reaches every voice that simply took no
+  position on sarcasm. Cores are exempt because a core may not demand at all;
+- **a context fragment should be about the room.** Wording that is really about the speaker's patience
+  or mood belongs on a modifier; put it in the context slot and it becomes eligible for every private
+  line, which is how one courtesy ended up in three beats of one scene.
+
+The writing side of all of this — cadence rather than synonym, prose tiers, what an optional fragment
+has to earn, and the loaded words that quietly assert world state — is
+[`dialogue-writing-inspiration-research.md`](dialogue-writing-inspiration-research.md) §11, §12, §18
+and §19. Read it when authoring or auditing prose; it decides nothing about the pipeline.
+
 ### 5.2 What a storylet file says (BQ-131, BQ-146)
 
 A storylet is a dramatic structure. **It contains no wording, and cannot** — every string in one is

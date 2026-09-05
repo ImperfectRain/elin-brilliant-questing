@@ -27,6 +27,11 @@ For an ordinary implementation task:
 5. Read `docs/agent/decisions.md` if an architectural question arises.
 6. Read `docs/elin-api-notes.md` only for relevant Elin/runtime facts.
 7. Read cited sections of `docs/design/` only when the task still has an unanswered design question.
+8. If — and only if — the task is authoring or auditing narrative *prose*, read
+   `docs/design/dialogue-writing-inspiration-research.md`. Dialogue fragments, voice/idiolect marks,
+   storylet prose, callbacks, relationship/emotion wording, occupational vocabulary, narrative content
+   generation, dialogue-quality audits. It answers how a line should be written; it decides nothing
+   about the semantic model, which stays `docs/design/character-dialogue-system.md`'s.
 
 Do not read `docs/implementation-roadmap.md` front to back for ordinary implementation.
 Do not preload the design corpus.
@@ -42,6 +47,8 @@ Do not generate or maintain a permanent `current-state.md`.
 - `docs/implementation-roadmap.md` — ordered BQ steps and done-when criteria; query by step.
 - `docs/elin-api-notes.md` — discovered and verified Elin runtime/API facts.
 - `docs/design/` — long-form design archive; retrieve selectively.
+- `docs/design/dialogue-writing-inspiration-research.md` — the writing reference for authored
+  dialogue. Prose only, and only for prose tasks; it is not part of an ordinary cold start.
 - `docs/agent/decisions.md` — durable architectural decisions.
 - `docs/agent/workflow.md` — context-efficient development procedure.
 - `docs/agent/active-task.md` — optional ephemeral handoff template, not project status.

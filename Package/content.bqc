@@ -386,11 +386,231 @@
                 "lost_object"
               ]
             },
-            "tone": [
+            "voice": [
               "wry"
             ],
             "repetitionGroup": "callback.history",
             "memorability": "signature"
+          },
+          {
+            "id": "call.history.kindness.saw.it.done",
+            "position": "callback",
+            "text": "I saw what you did.",
+            "requires": {
+              "callback": "kindness",
+              "callback_route": "witnessed",
+              "callback_party": "listener"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.kindness.saw.it.done.other",
+            "position": "callback",
+            "text": "I saw what was done for {recalled}.",
+            "requires": {
+              "callback": "kindness",
+              "callback_route": "witnessed",
+              "callback_party": "other"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.kindness.was.told",
+            "position": "callback",
+            "text": "I was told about that.",
+            "requires": {
+              "callback": "kindness",
+              "callback_route": "heard"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.injury.my.doing",
+            "position": "callback",
+            "text": "I know what I did.",
+            "requires": {
+              "callback": "injury",
+              "callback_route": "first_hand"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.injury.saw.it.done",
+            "position": "callback",
+            "text": "I saw what was done to you.",
+            "requires": {
+              "callback": "injury",
+              "callback_route": "witnessed",
+              "callback_party": "listener"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.injury.was.told",
+            "position": "callback",
+            "text": "I heard about it afterwards.",
+            "requires": {
+              "callback": "injury",
+              "callback_route": "heard"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.scandal.my.doing",
+            "position": "callback",
+            "text": "That was my doing.",
+            "requires": {
+              "callback": "scandal",
+              "callback_route": "first_hand"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.scandal.caught.up.in.it",
+            "position": "callback",
+            "text": "I was caught up in that one myself.",
+            "requires": {
+              "callback": "scandal",
+              "callback_route": "involved"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.scandal.was.standing.there",
+            "position": "callback",
+            "text": "I was there when that came out.",
+            "requires": {
+              "callback": "scandal",
+              "callback_route": "witnessed"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.promise.saw.it.given",
+            "position": "callback",
+            "text": "I was there when that was promised.",
+            "requires": {
+              "callback": "promise",
+              "callback_route": "witnessed"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.promise.was.told",
+            "position": "callback",
+            "text": "I was told there was a promise in it.",
+            "requires": {
+              "callback": "promise",
+              "callback_route": "heard"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.embarrassment.my.doing",
+            "position": "callback",
+            "text": "That was my doing, and it was badly done.",
+            "requires": {
+              "callback": "embarrassment",
+              "callback_route": "first_hand"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.embarrassment.was.told",
+            "position": "callback",
+            "text": "Word of that reached me.",
+            "requires": {
+              "callback": "embarrassment",
+              "callback_route": "heard"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.lost.object.my.doing",
+            "position": "callback",
+            "text": "I had a hand in that going missing.",
+            "requires": {
+              "callback": "lost_object",
+              "callback_route": "first_hand"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.lost.object.was.told",
+            "position": "callback",
+            "text": "I was told it never turned up.",
+            "requires": {
+              "callback": "lost_object",
+              "callback_route": "heard"
+            },
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.plain.given.what.happened",
+            "position": "callback",
+            "text": "Given what happened.",
+            "requires": {
+              "callback": [
+                "promise",
+                "kindness",
+                "injury",
+                "embarrassment",
+                "scandal",
+                "lost_object"
+              ]
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.plain.history.behind.this",
+            "position": "callback",
+            "text": "There is history behind this.",
+            "requires": {
+              "callback": [
+                "promise",
+                "kindness",
+                "injury",
+                "embarrassment",
+                "scandal",
+                "lost_object"
+              ]
+            },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "callback.history"
+          },
+          {
+            "id": "call.history.plain.not.put.aside",
+            "position": "callback",
+            "text": "I have not put that aside.",
+            "requires": {
+              "callback": [
+                "promise",
+                "kindness",
+                "injury",
+                "embarrassment",
+                "scandal",
+                "lost_object"
+              ]
+            },
+            "repetitionGroup": "callback.history"
           }
         ]
       }
@@ -983,7 +1203,7 @@
                 "evade"
               ]
             },
-            "tone": [
+            "voice": [
               "wry"
             ],
             "repetitionGroup": "context.setting",
@@ -1033,7 +1253,7 @@
               "audience": "several",
               "depth": "in_confidence"
             },
-            "tone": [
+            "voice": [
               "wry"
             ],
             "repetitionGroup": "context.setting",
@@ -1049,6 +1269,82 @@
             },
             "repetitionGroup": "context.setting",
             "memorability": "protected"
+          },
+          {
+            "id": "ctx.plain.people.about",
+            "position": "context",
+            "text": "There are people about.",
+            "requires": {
+              "audience": "several"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "context.setting"
+          },
+          {
+            "id": "ctx.plain.say.it.here",
+            "position": "context",
+            "text": "I will say it here. It is nothing I would hide.",
+            "requires": {
+              "audience": "several",
+              "act": [
+                "answer",
+                "inform",
+                "deny",
+                "accuse"
+              ]
+            },
+            "repetitionGroup": "context.setting"
+          },
+          {
+            "id": "ctx.plain.quieter.spot",
+            "position": "context",
+            "text": "There is a quieter spot if you want one.",
+            "requires": {
+              "audience": "several",
+              "act": [
+                "refuse",
+                "evade",
+                "admit",
+                "offer"
+              ]
+            },
+            "repetitionGroup": "context.setting"
+          },
+          {
+            "id": "ctx.plain.just.us",
+            "position": "context",
+            "text": "It is just us.",
+            "requires": {
+              "audience": "one",
+              "depth": [
+                "detail",
+                "in_confidence"
+              ]
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
+            "repetitionGroup": "context.setting"
+          },
+          {
+            "id": "ctx.plain.here.is.fine",
+            "position": "context",
+            "text": "Here is fine for this.",
+            "requires": {
+              "audience": "one",
+              "depth": [
+                "detail",
+                "in_confidence"
+              ]
+            },
+            "idiolect": [
+              "terse"
+            ],
+            "repetitionGroup": "context.setting"
           }
         ]
       }
@@ -6383,6 +6679,110 @@
             ],
             "repetitionGroup": "mood",
             "memorability": "signature"
+          },
+          {
+            "id": "mod.emotion.anger.plain.take.it.as.it.comes",
+            "position": "modifier",
+            "text": "Take it as it comes. I am in no state to soften it.",
+            "requires": {
+              "emotion": "anger"
+            },
+            "repetitionGroup": "mood"
+          },
+          {
+            "id": "mod.emotion.fear.plain.rather.not",
+            "position": "modifier",
+            "text": "I would rather not be having this conversation.",
+            "requires": {
+              "emotion": "fear"
+            },
+            "repetitionGroup": "mood"
+          },
+          {
+            "id": "mod.emotion.shame.plain.no.excuse",
+            "position": "modifier",
+            "text": "I have no excuse to offer.",
+            "requires": {
+              "emotion": "shame"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "mood"
+          },
+          {
+            "id": "mod.emotion.grief.plain.poor.company",
+            "position": "modifier",
+            "text": "I am poor company just now.",
+            "requires": {
+              "emotion": "grief"
+            },
+            "idiolect": [
+              "terse"
+            ],
+            "repetitionGroup": "mood"
+          },
+          {
+            "id": "mod.emotion.grief.plain.slowly",
+            "position": "modifier",
+            "text": "Go slowly with me.",
+            "requires": {
+              "emotion": "grief"
+            },
+            "repetitionGroup": "mood"
+          },
+          {
+            "id": "mod.emotion.grief.plain.answer.what.i.can",
+            "position": "modifier",
+            "text": "I will answer what I can. Not more than that.",
+            "requires": {
+              "emotion": "grief"
+            },
+            "repetitionGroup": "mood"
+          },
+          {
+            "id": "mod.emotion.relief.plain.better.than.expected",
+            "position": "modifier",
+            "text": "That is better than I expected.",
+            "requires": {
+              "emotion": "relief"
+            },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "mood"
+          },
+          {
+            "id": "mod.emotion.suspicion.plain.not.settled",
+            "position": "modifier",
+            "text": "I am not settled on it.",
+            "requires": {
+              "emotion": "suspicion"
+            },
+            "idiolect": [
+              "terse"
+            ],
+            "repetitionGroup": "mood"
+          },
+          {
+            "id": "mod.emotion.affection.plain.glad.you.came",
+            "position": "modifier",
+            "text": "I am glad you came.",
+            "requires": {
+              "emotion": "affection",
+              "audience": "one"
+            },
+            "repetitionGroup": "mood"
+          },
+          {
+            "id": "mod.emotion.stress.plain.short.of.time",
+            "position": "modifier",
+            "text": "I am short of time and shorter of patience.",
+            "requires": {
+              "emotion": "stress"
+            },
+            "repetitionGroup": "mood"
           }
         ]
       }
@@ -6778,6 +7178,367 @@
             },
             "repetitionGroup": "tie",
             "memorability": "signature"
+          },
+          {
+            "id": "mod.tie.stranger.plain.a.stranger",
+            "position": "modifier",
+            "text": "You are a stranger to me.",
+            "requires": {
+              "act": [
+                "refuse",
+                "evade",
+                "deny",
+                "answer"
+              ],
+              "relationship": "none"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.stranger.plain.what.a.stranger.may",
+            "position": "modifier",
+            "text": "Ask me what a stranger may be asked.",
+            "requires": {
+              "act": [
+                "ask",
+                "request",
+                "inform"
+              ],
+              "relationship": "none"
+            },
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.acquaintance.plain.only.so.far",
+            "position": "modifier",
+            "text": "We know each other, but only so far.",
+            "requires": {
+              "act": [
+                "refuse",
+                "evade",
+                "deny"
+              ],
+              "relationship": "acquaintance"
+            },
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.friend.plain.since.it.is.you",
+            "position": "modifier",
+            "text": "Since it is you.",
+            "requires": {
+              "act": [
+                "offer",
+                "promise",
+                "request",
+                "answer",
+                "forgive"
+              ],
+              "relationship": "friend"
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.friend.plain.ask.me.straight",
+            "position": "modifier",
+            "text": "You can ask me straight. I would rather that.",
+            "requires": {
+              "act": [
+                "ask",
+                "answer",
+                "offer",
+                "inform"
+              ],
+              "relationship": "friend"
+            },
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.family.plain.you.are.family",
+            "position": "modifier",
+            "text": "You are family, so I will say it plainly.",
+            "requires": {
+              "act": [
+                "ask",
+                "answer",
+                "inform",
+                "forgive",
+                "warn"
+              ],
+              "relationship": [
+                "family",
+                "spouse"
+              ]
+            },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.family.plain.under.one.roof",
+            "position": "modifier",
+            "text": "This is a thing to settle between us, not outside.",
+            "requires": {
+              "act": [
+                "request",
+                "accuse",
+                "offer",
+                "refuse"
+              ],
+              "relationship": [
+                "family",
+                "spouse"
+              ]
+            },
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.rival.plain.no.friendship.needed",
+            "position": "modifier",
+            "text": "We do not have to be friendly for this.",
+            "requires": {
+              "act": [
+                "warn",
+                "threaten",
+                "refuse",
+                "request"
+              ],
+              "relationship": "rival"
+            },
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.enemy.plain.no.pretence",
+            "position": "modifier",
+            "text": "I will not pretend otherwise.",
+            "requires": {
+              "act": [
+                "answer",
+                "evade",
+                "refuse",
+                "deny"
+              ],
+              "relationship": "enemy"
+            },
+            "idiolect": [
+              "terse"
+            ],
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.enemy.plain.what.we.are",
+            "position": "modifier",
+            "text": "We are what we are. That does not change the question.",
+            "requires": {
+              "act": [
+                "accuse",
+                "threaten",
+                "deny",
+                "inform"
+              ],
+              "relationship": "enemy"
+            },
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.creditor.plain.the.debt.stands",
+            "position": "modifier",
+            "text": "The debt stands.",
+            "requires": {
+              "act": [
+                "refuse",
+                "request",
+                "threaten",
+                "inform"
+              ],
+              "relationship": "creditor"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.creditor.plain.settle.first",
+            "position": "modifier",
+            "text": "Settle what is between us first, then we can talk.",
+            "requires": {
+              "act": [
+                "request",
+                "offer",
+                "refuse"
+              ],
+              "relationship": "creditor"
+            },
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.debtor.plain.i.owe.you",
+            "position": "modifier",
+            "text": "I owe you, and I know it.",
+            "requires": {
+              "act": [
+                "refuse",
+                "request",
+                "answer",
+                "apologize"
+              ],
+              "relationship": "debtor"
+            },
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.employer.plain.take.it.as.instruction",
+            "position": "modifier",
+            "text": "You work for me. Take it as instruction.",
+            "requires": {
+              "act": [
+                "request",
+                "refuse",
+                "warn",
+                "inform"
+              ],
+              "relationship": "employer"
+            },
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.employer.plain.when.you.can",
+            "position": "modifier",
+            "text": "Bring it to me when you have it. That is all I ask.",
+            "requires": {
+              "act": [
+                "request",
+                "offer",
+                "answer",
+                "forgive"
+              ],
+              "relationship": "employer"
+            },
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.employee.plain.not.my.call",
+            "position": "modifier",
+            "text": "That is not mine to decide.",
+            "requires": {
+              "act": [
+                "deny",
+                "refuse",
+                "answer",
+                "evade"
+              ],
+              "relationship": "employee"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.employee.plain.i.only.work.here",
+            "position": "modifier",
+            "text": "I do the work. The rest is above me.",
+            "requires": {
+              "act": [
+                "answer",
+                "inform",
+                "refuse"
+              ],
+              "relationship": "employee"
+            },
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.guildmate.plain.same.hall",
+            "position": "modifier",
+            "text": "We answer to the same hall.",
+            "requires": {
+              "act": [
+                "refuse",
+                "evade",
+                "answer",
+                "inform"
+              ],
+              "relationship": "guild_mate"
+            },
+            "idiolect": [
+              "terse"
+            ],
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.guildmate.plain.through.the.hall",
+            "position": "modifier",
+            "text": "Put it through the hall and I will answer it there.",
+            "requires": {
+              "act": [
+                "request",
+                "refuse",
+                "offer"
+              ],
+              "relationship": "guild_mate"
+            },
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.accomplice.plain.same.trouble",
+            "position": "modifier",
+            "text": "We are in the same trouble.",
+            "requires": {
+              "act": [
+                "warn",
+                "threaten",
+                "request",
+                "deny"
+              ],
+              "relationship": "accomplice"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.accomplice.plain.keep.it.between",
+            "position": "modifier",
+            "text": "Keep it between us and we can both stand it.",
+            "requires": {
+              "act": [
+                "request",
+                "warn",
+                "offer",
+                "refuse"
+              ],
+              "relationship": "accomplice"
+            },
+            "repetitionGroup": "tie"
+          },
+          {
+            "id": "mod.tie.acquaintance.plain.what.i.have",
+            "position": "modifier",
+            "text": "You will get what I have. It is not much.",
+            "requires": {
+              "act": [
+                "inform",
+                "offer",
+                "answer"
+              ],
+              "relationship": "acquaintance"
+            },
+            "repetitionGroup": "tie"
           }
         ]
       }
@@ -7127,6 +7888,93 @@
             },
             "repetitionGroup": "boundary",
             "memorability": "protected"
+          },
+          {
+            "id": "mod.warn.said.my.piece",
+            "position": "modifier",
+            "text": "I have told you. What you do with it is yours.",
+            "requires": {
+              "act": "warn"
+            },
+            "idiolect": [
+              "literal"
+            ],
+            "repetitionGroup": "boundary"
+          },
+          {
+            "id": "mod.warn.take.it.or.not",
+            "position": "modifier",
+            "text": "Take it as you like.",
+            "requires": {
+              "act": [
+                "warn",
+                "inform"
+              ]
+            },
+            "idiolect": [
+              "terse",
+              "clipped"
+            ],
+            "repetitionGroup": "boundary"
+          },
+          {
+            "id": "mod.warn.not.a.threat",
+            "position": "modifier",
+            "text": "That is not a threat. It is what I expect to happen.",
+            "requires": {
+              "act": "warn"
+            },
+            "repetitionGroup": "boundary"
+          },
+          {
+            "id": "mod.threaten.means.it",
+            "position": "modifier",
+            "text": "I mean it.",
+            "requires": {
+              "act": "threaten"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "boundary"
+          },
+          {
+            "id": "mod.threaten.no.second.telling",
+            "position": "modifier",
+            "text": "I would rather not say this twice.",
+            "requires": {
+              "act": [
+                "threaten",
+                "warn"
+              ]
+            },
+            "repetitionGroup": "boundary"
+          },
+          {
+            "id": "mod.offer.stands",
+            "position": "modifier",
+            "text": "The offer stands.",
+            "requires": {
+              "act": "offer"
+            },
+            "idiolect": [
+              "terse",
+              "literal"
+            ],
+            "repetitionGroup": "boundary"
+          },
+          {
+            "id": "mod.offer.think.on.it",
+            "position": "modifier",
+            "text": "Think on it.",
+            "requires": {
+              "act": [
+                "offer",
+                "promise"
+              ]
+            },
+            "repetitionGroup": "boundary"
           }
         ]
       }
@@ -7489,7 +8337,7 @@
               "reply": "none",
               "relationship": "rival"
             },
-            "tone": [
+            "voice": [
               "wry"
             ],
             "repetitionGroup": "greeting",
@@ -7526,7 +8374,7 @@
               "reply": "none",
               "relationship": "debtor"
             },
-            "tone": [
+            "voice": [
               "wry"
             ],
             "repetitionGroup": "greeting",
@@ -7608,7 +8456,7 @@
             "requires": {
               "emotion": "stress"
             },
-            "tone": [
+            "voice": [
               "wry"
             ],
             "repetitionGroup": "greeting.mood",

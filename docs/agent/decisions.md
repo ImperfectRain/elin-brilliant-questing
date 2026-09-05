@@ -1670,4 +1670,41 @@ deletes the material that makes a rival sound like a rival, and leaves the actua
 contextual condition choosing a personality — in place for the next author writing the next
 relationship.
 
+## D063 — A memorable line is an alternative; the situation it is written for keeps a plain one
+
+BQ-151. `DialogueMemorability` (`D055`) prices *wear per fragment*: a signature line is spent when it
+lands and "No." is not. It says nothing about how a *situation* is worded, and in the optional slots
+the two came apart badly. Eight of thirteen relationship modifiers, grief, and eleven of thirteen
+context lines had no `utility` wording at all — so having a friend opposite, or grieving, or speaking
+in private was worded strikingly **every time it was worded**. Nobody authored a catchphrase; the
+corpus produced one by having nothing ordinary to fall back to.
+
+**The invariant is per value of the reading that gates the slot, not per fragment.** Any tie, mood,
+audience, kind of recalled history, or act that some authored line is written for keeps a line
+written for the same value at `utility`. Declared, not merely eligible: a modifier with no opinion
+about the tie is available to a friend but is not wording *for* having one, so counting it would
+answer a different question and answer it reassuringly.
+
+**It binds hardest in the optional slots**, and that is the whole reason it needs stating. A core is
+drawn once per act; an opener, modifier, callback, context line or closer is drawn once per *line*.
+The same ratio that is merely rich in a core file is heard three times a scene in a modifier family —
+which is how the audit found it, by reading assembled storylet output rather than a table.
+
+Two corollaries, both structural rather than editorial:
+
+- **an optional fragment marked `wry` must also demand it.** `wry` has no opposite pole (`D034`), so
+  the mark refuses nobody and the line reaches every voice that took no position on sarcasm — which
+  is how the library's wryest callback reached five of the sweep's seven contrasting voices. This is
+  `D062`'s correction applied to the families BQ-149 and BQ-150 did not reach. Cores are exempt
+  because a core may not demand at all;
+- **a context fragment is about the room.** Wording that is really about the speaker's patience or
+  mood is a modifier. Put it in the context slot and it becomes eligible for every private line, and
+  one courtesy lands in three beats of one scene.
+
+Reason: the alternative is to police this in review, and review is exactly what missed it for five
+consecutive dialogue-quality passes. The instrument is cheap and deterministic — `--coverage` counts
+declarations per slot and lists what is "worded, but never plainly", and the corpus invariant is a
+test — and neither scores a line, reads the English, or introduces a threshold an ordinary content
+change would trip.
+
 Add a new entry only when the decision is both load-bearing and durable.

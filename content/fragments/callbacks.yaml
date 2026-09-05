@@ -274,7 +274,190 @@ payload:
           - injury
           - scandal
           - lost_object
-      tone:
+      voice:
         - wry
       repetitionGroup: callback.history
       memorability: signature
+
+    # -- BQ-151. Recognition before wit: a plain wording for every route a hook can arrive by.
+    #
+    # The callbacks sweep found the shape of the hole. `scandal` was worded only for `heard`, so a
+    # speaker who had *watched* the thing happen fell through to the two kind-agnostic lines below,
+    # and the wry one won three rows of seven; `promise`, `kindness` and `embarrassment` reached
+    # nothing at all on their unwritten routes, because neither generic line names them. A route
+    # with no plain wording is not a quieter callback - it is recognition arriving as a joke, or
+    # not arriving.
+    #
+    # Route is the whole of the difference between these lines, deliberately: doing a thing, having
+    # it done to you, standing there while it happened and being told about it afterwards are four
+    # different claims about the same event, and a pool that admitted all four would let the words
+    # decide which was true. None of them says when it happened, how often, or what it cost - a
+    # recalled event is past by construction and the hook carries no magnitude.
+    - id: call.history.kindness.saw.it.done
+      position: callback
+      text: "I saw what you did."
+      requires:
+        callback: kindness
+        callback_route: witnessed
+        callback_party: listener
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: callback.history
+    - id: call.history.kindness.saw.it.done.other
+      position: callback
+      text: "I saw what was done for {recalled}."
+      requires:
+        callback: kindness
+        callback_route: witnessed
+        callback_party: other
+      repetitionGroup: callback.history
+    - id: call.history.kindness.was.told
+      position: callback
+      text: "I was told about that."
+      requires:
+        callback: kindness
+        callback_route: heard
+      repetitionGroup: callback.history
+    - id: call.history.injury.my.doing
+      position: callback
+      text: "I know what I did."
+      requires:
+        callback: injury
+        callback_route: first_hand
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: callback.history
+    - id: call.history.injury.saw.it.done
+      position: callback
+      text: "I saw what was done to you."
+      requires:
+        callback: injury
+        callback_route: witnessed
+        callback_party: listener
+      repetitionGroup: callback.history
+    - id: call.history.injury.was.told
+      position: callback
+      text: "I heard about it afterwards."
+      requires:
+        callback: injury
+        callback_route: heard
+      repetitionGroup: callback.history
+    - id: call.history.scandal.my.doing
+      position: callback
+      text: "That was my doing."
+      requires:
+        callback: scandal
+        callback_route: first_hand
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: callback.history
+    - id: call.history.scandal.caught.up.in.it
+      position: callback
+      text: "I was caught up in that one myself."
+      requires:
+        callback: scandal
+        callback_route: involved
+      repetitionGroup: callback.history
+    - id: call.history.scandal.was.standing.there
+      position: callback
+      text: "I was there when that came out."
+      requires:
+        callback: scandal
+        callback_route: witnessed
+      repetitionGroup: callback.history
+    - id: call.history.promise.saw.it.given
+      position: callback
+      text: "I was there when that was promised."
+      requires:
+        callback: promise
+        callback_route: witnessed
+      repetitionGroup: callback.history
+    - id: call.history.promise.was.told
+      position: callback
+      text: "I was told there was a promise in it."
+      requires:
+        callback: promise
+        callback_route: heard
+      repetitionGroup: callback.history
+    - id: call.history.embarrassment.my.doing
+      position: callback
+      text: "That was my doing, and it was badly done."
+      requires:
+        callback: embarrassment
+        callback_route: first_hand
+      repetitionGroup: callback.history
+    - id: call.history.embarrassment.was.told
+      position: callback
+      text: "Word of that reached me."
+      requires:
+        callback: embarrassment
+        callback_route: heard
+      repetitionGroup: callback.history
+    - id: call.history.lost.object.my.doing
+      position: callback
+      text: "I had a hand in that going missing."
+      requires:
+        callback: lost_object
+        callback_route: first_hand
+      repetitionGroup: callback.history
+    - id: call.history.lost.object.was.told
+      position: callback
+      text: "I was told it never turned up."
+      requires:
+        callback: lost_object
+        callback_route: heard
+      repetitionGroup: callback.history
+
+    # The floor under all of the above, and the reason the route lines can be specific. Every one of
+    # these is written for all six kinds, takes no position on the route and names nobody, so a hook
+    # whose other side the world can no longer produce - or never had one - still has plain wording
+    # rather than falling to the two lines that happen to be kind-agnostic. `this.again` above was
+    # that floor for three kinds; a promise, a kindness or an embarrassment reached nothing.
+    #
+    # None of them says the listener was party to it. A hook carries who the other side is on
+    # `callback_party`, and a line that says "between us" without asking is wording deciding that
+    # the person in the room was there.
+    - id: call.history.plain.given.what.happened
+      position: callback
+      text: "Given what happened."
+      requires:
+        callback:
+          - promise
+          - kindness
+          - injury
+          - embarrassment
+          - scandal
+          - lost_object
+      idiolect:
+        - terse
+        - clipped
+      repetitionGroup: callback.history
+    - id: call.history.plain.history.behind.this
+      position: callback
+      text: "There is history behind this."
+      requires:
+        callback:
+          - promise
+          - kindness
+          - injury
+          - embarrassment
+          - scandal
+          - lost_object
+      idiolect:
+        - literal
+      repetitionGroup: callback.history
+    - id: call.history.plain.not.put.aside
+      position: callback
+      text: "I have not put that aside."
+      requires:
+        callback:
+          - promise
+          - kindness
+          - injury
+          - embarrassment
+          - scandal
+          - lost_object
+      repetitionGroup: callback.history

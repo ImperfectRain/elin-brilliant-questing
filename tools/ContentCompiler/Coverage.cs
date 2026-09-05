@@ -64,6 +64,7 @@ namespace BrilliantQuesting.ContentCompiler
             Idiolect(report, fragments);
             VoiceDemands(report, fragments);
             Memorability(report, fragments);
+            AlwaysOnSlots(report, fragments);
             Storylets(report, storylets);
             Holes(report, fragments);
             return report.ToString();
@@ -338,6 +339,140 @@ namespace BrilliantQuesting.ContentCompiler
                 .AppendLine();
         }
 
+        /// <summary>
+        /// The optional slots that fire in every line, counted against the reading that actually
+        /// gates them, with how much of each is plain (BQ-151).
+        ///
+        /// Every other table in this file is act-by-something, because a core is chosen on its act.
+        /// A relationship modifier, a mood modifier, a context line and a callback are not: they
+        /// declare a tie, a feeling, a room or a kind of recalled history and usually say nothing
+        /// about the act at all. So they appeared in <see cref="ActsByPosition"/> as one flat
+        /// column repeated down every row - 34 callbacks for every act, because 34 callbacks
+        /// answer every act - and the report could not see their distribution at all. It was
+        /// blind to exactly the families it most needed to watch, since a core file is read once
+        /// per act and these are read once per <em>line</em>.
+        ///
+        /// <b>Written counts declarations, not eligibility.</b> A modifier with no opinion about
+        /// the tie is available to a friend, but it is not wording <em>for</em> having a friend
+        /// opposite: it does not express the tie, and the question here is whether the tie has an
+        /// ordinary way of being expressed as well as a striking one. Counting the unconditioned
+        /// fragments would answer a different question and would answer it reassuringly.
+        ///
+        /// It scores nothing and fails nothing. `plain` well under `written` in a row is the
+        /// reading to act on: a value the library can only say memorably is a situation the world
+        /// always says strikingly, and the optional slots are where that costs the most (CD §19;
+        /// `dialogue-writing-inspiration-research.md` §11, §19).
+        /// </summary>
+        private static void AlwaysOnSlots(StringBuilder report, IReadOnlyList<DialogueFragment> fragments)
+        {
+            Header(report, "the always-on slots, and how much of each is plain");
+            report.Append(Pad("slot", 10)).Append(Pad("reading", 16)).Append(Pad("value", 16))
+                .Append(Pad("written", 9)).Append("plain").AppendLine();
+
+            foreach (KeyValuePair<FragmentPosition, string> family in AlwaysOn())
+            {
+                IReadOnlyList<string> values = DialogueReadings.ValuesOf(family.Value);
+                if (values == null)
+                {
+                    continue;
+                }
+
+                foreach (string value in values)
+                {
+                    int written = Declaring(fragments, family.Key, family.Value, value, false);
+                    if (written == 0)
+                    {
+                        continue;
+                    }
+
+                    int plain = Declaring(fragments, family.Key, family.Value, value, true);
+                    report.Append(Pad(family.Key.ToString().ToLowerInvariant(), 10))
+                        .Append(Pad(family.Value, 16))
+                        .Append(Pad(value, 16))
+                        .Append(Pad(Cell(written), 9))
+                        .Append(Cell(plain))
+                        .AppendLine();
+                }
+            }
+
+            report.AppendLine();
+        }
+
+        /// <summary>
+        /// The slot-and-reading pairs whose wording is chosen on something other than the act. Not
+        /// a taxonomy: it is the list of places where <see cref="ActsByPosition"/> cannot see.
+        /// </summary>
+        private static IEnumerable<KeyValuePair<FragmentPosition, string>> AlwaysOn()
+        {
+            // The act belongs here as well as in `act x position`, and the two readings disagree
+            // on purpose. That table counts eligibility, which for an optional slot is dominated by
+            // the fragments with no act opinion at all - so `warn / modifier` read 37 while exactly
+            // one modifier had been written for warning, and it was a signature. Declaration is the
+            // reading that finds that.
+            yield return new KeyValuePair<FragmentPosition, string>(
+                FragmentPosition.Modifier, DialogueReadings.Act);
+            yield return new KeyValuePair<FragmentPosition, string>(
+                FragmentPosition.Modifier, DialogueReadings.Relationship);
+            yield return new KeyValuePair<FragmentPosition, string>(
+                FragmentPosition.Modifier, DialogueReadings.Emotion);
+            yield return new KeyValuePair<FragmentPosition, string>(
+                FragmentPosition.Context, DialogueReadings.Audience);
+            yield return new KeyValuePair<FragmentPosition, string>(
+                FragmentPosition.Callback, DialogueReadings.Callback);
+            yield return new KeyValuePair<FragmentPosition, string>(
+                FragmentPosition.Callback, DialogueReadings.CallbackRoute);
+        }
+
+        /// <summary>
+        /// How many fragments in this slot are written for this value of this reading - they name
+        /// it in a <c>requires</c> - optionally counting only the ones that ask for no repetition
+        /// protection beyond the ordinary.
+        /// </summary>
+        private static int Declaring(
+            IReadOnlyList<DialogueFragment> fragments,
+            FragmentPosition position,
+            string key,
+            string value,
+            bool plainOnly)
+        {
+            int count = 0;
+            for (int i = 0; i < fragments.Count; i++)
+            {
+                DialogueFragment fragment = fragments[i];
+                if (fragment.Position != position || !Declares(fragment, key, value))
+                {
+                    continue;
+                }
+
+                if (plainOnly && !string.Equals(
+                    fragment.Memorability, DialogueMemorability.Utility, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                count++;
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// Whether a fragment names this value of this key in its own conditions. Stricter than
+        /// <see cref="Answers"/> on purpose - silence is not a declaration.
+        /// </summary>
+        private static bool Declares(DialogueFragment fragment, string key, string value)
+        {
+            for (int i = 0; i < fragment.Requires.Count; i++)
+            {
+                if (string.Equals(fragment.Requires[i].Key, key, StringComparison.Ordinal))
+                {
+                    return fragment.Requires[i].IsMetBy(value);
+                }
+            }
+
+            return false;
+        }
+
         private static void Storylets(StringBuilder report, IReadOnlyList<StoryletDefinition> storylets)
         {
             Header(report, "storylets");
@@ -377,12 +512,21 @@ namespace BrilliantQuesting.ContentCompiler
 
         /// <summary>
         /// The list a content author actually acts on: every act-and-position cell nothing can
-        /// fill, and every one exactly one thing can.
+        /// fill, every one exactly one thing can, and every always-on situation the library can
+        /// only say memorably (BQ-151).
+        ///
+        /// The third list is a different kind of hole from the first two and is worth stating as
+        /// such. Nothing is missing there - the situation has wording, and the wording is good. It
+        /// is that the only wording is a line written to be noticed, in a slot that fires in every
+        /// line, so a tie or a mood or a kind of recalled history is heard strikingly every single
+        /// time it is heard at all. That is how a signature line becomes a catchphrase without
+        /// anybody authoring a catchphrase.
         /// </summary>
         private static void Holes(StringBuilder report, IReadOnlyList<DialogueFragment> fragments)
         {
             List<string> empty = new List<string>();
             List<string> single = new List<string>();
+            List<string> neverPlain = new List<string>();
 
             foreach (SpeechActType act in SpeechActProfile.Vocabulary)
             {
@@ -401,11 +545,33 @@ namespace BrilliantQuesting.ContentCompiler
                 }
             }
 
+            foreach (KeyValuePair<FragmentPosition, string> family in AlwaysOn())
+            {
+                IReadOnlyList<string> values = DialogueReadings.ValuesOf(family.Value);
+                if (values == null)
+                {
+                    continue;
+                }
+
+                foreach (string value in values)
+                {
+                    if (Declaring(fragments, family.Key, family.Value, value, false) != 0
+                        && Declaring(fragments, family.Key, family.Value, value, true) == 0)
+                    {
+                        neverPlain.Add(
+                            family.Key.ToString().ToLowerInvariant() + " / " + family.Value + " = " + value);
+                    }
+                }
+            }
+
             Header(report, "holes");
             report.AppendLine("nothing at all (" + empty.Count + "):");
             Bullets(report, empty);
             report.AppendLine("exactly one, so it is a catchphrase (" + single.Count + "):");
             Bullets(report, single);
+            report.AppendLine(
+                "worded, but never plainly, in a slot that fires every line (" + neverPlain.Count + "):");
+            Bullets(report, neverPlain);
         }
 
         private static void Bullets(StringBuilder report, List<string> entries)

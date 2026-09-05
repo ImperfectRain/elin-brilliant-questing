@@ -289,3 +289,279 @@ payload:
         relationship: accomplice
       repetitionGroup: tie
       memorability: signature
+
+    # -- BQ-151. The plain half of every tie above.
+    #
+    # A tie the library can only word memorably is a tie the world can only ever say strikingly,
+    # and this slot fires in every act. Each line below is utility on purpose and each covers the
+    # acts its memorable sibling covers, so the strong reading of a relationship stays an
+    # alternative rather than the whole of it. Cadence rather than synonym: fragments, plain
+    # declaratives, qualification before and after the point, a conclusion with its practical
+    # consequence.
+    #
+    # Nothing here asserts more than `relationship` already guarantees. No line claims what the
+    # listener knows, remembers or has done before; no line carries `again`, `still` or `always`,
+    # because the tie says who two people are to each other and says nothing about how often.
+    - id: mod.tie.stranger.plain.a.stranger
+      position: modifier
+      text: "You are a stranger to me."
+      requires:
+        act:
+          - refuse
+          - evade
+          - deny
+          - answer
+        relationship: none
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: tie
+    - id: mod.tie.stranger.plain.what.a.stranger.may
+      position: modifier
+      text: "Ask me what a stranger may be asked."
+      requires:
+        act:
+          - ask
+          - request
+          - inform
+        relationship: none
+      repetitionGroup: tie
+    - id: mod.tie.acquaintance.plain.only.so.far
+      position: modifier
+      text: "We know each other, but only so far."
+      requires:
+        act:
+          - refuse
+          - evade
+          - deny
+        relationship: acquaintance
+      repetitionGroup: tie
+    - id: mod.tie.friend.plain.since.it.is.you
+      position: modifier
+      text: "Since it is you."
+      requires:
+        act:
+          - offer
+          - promise
+          - request
+          - answer
+          - forgive
+        relationship: friend
+      idiolect:
+        - terse
+        - clipped
+      repetitionGroup: tie
+    - id: mod.tie.friend.plain.ask.me.straight
+      position: modifier
+      text: "You can ask me straight. I would rather that."
+      requires:
+        act:
+          - ask
+          - answer
+          - offer
+          - inform
+        relationship: friend
+      repetitionGroup: tie
+    - id: mod.tie.family.plain.you.are.family
+      position: modifier
+      text: "You are family, so I will say it plainly."
+      requires:
+        act:
+          - ask
+          - answer
+          - inform
+          - forgive
+          - warn
+        relationship:
+          - family
+          - spouse
+      idiolect:
+        - literal
+      repetitionGroup: tie
+    - id: mod.tie.family.plain.under.one.roof
+      position: modifier
+      text: "This is a thing to settle between us, not outside."
+      requires:
+        act:
+          - request
+          - accuse
+          - offer
+          - refuse
+        relationship:
+          - family
+          - spouse
+      repetitionGroup: tie
+    - id: mod.tie.rival.plain.no.friendship.needed
+      position: modifier
+      text: "We do not have to be friendly for this."
+      requires:
+        act:
+          - warn
+          - threaten
+          - refuse
+          - request
+        relationship: rival
+      repetitionGroup: tie
+    - id: mod.tie.enemy.plain.no.pretence
+      position: modifier
+      text: "I will not pretend otherwise."
+      requires:
+        act:
+          - answer
+          - evade
+          - refuse
+          - deny
+        relationship: enemy
+      idiolect:
+        - terse
+      repetitionGroup: tie
+    - id: mod.tie.enemy.plain.what.we.are
+      position: modifier
+      text: "We are what we are. That does not change the question."
+      requires:
+        act:
+          - accuse
+          - threaten
+          - deny
+          - inform
+        relationship: enemy
+      repetitionGroup: tie
+    - id: mod.tie.creditor.plain.the.debt.stands
+      position: modifier
+      text: "The debt stands."
+      requires:
+        act:
+          - refuse
+          - request
+          - threaten
+          - inform
+        relationship: creditor
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: tie
+    - id: mod.tie.creditor.plain.settle.first
+      position: modifier
+      text: "Settle what is between us first, then we can talk."
+      requires:
+        act:
+          - request
+          - offer
+          - refuse
+        relationship: creditor
+      repetitionGroup: tie
+    - id: mod.tie.debtor.plain.i.owe.you
+      position: modifier
+      text: "I owe you, and I know it."
+      requires:
+        act:
+          - refuse
+          - request
+          - answer
+          - apologize
+        relationship: debtor
+      repetitionGroup: tie
+    - id: mod.tie.employer.plain.take.it.as.instruction
+      position: modifier
+      text: "You work for me. Take it as instruction."
+      requires:
+        act:
+          - request
+          - refuse
+          - warn
+          - inform
+        relationship: employer
+      repetitionGroup: tie
+    - id: mod.tie.employer.plain.when.you.can
+      position: modifier
+      text: "Bring it to me when you have it. That is all I ask."
+      requires:
+        act:
+          - request
+          - offer
+          - answer
+          - forgive
+        relationship: employer
+      repetitionGroup: tie
+    - id: mod.tie.employee.plain.not.my.call
+      position: modifier
+      text: "That is not mine to decide."
+      requires:
+        act:
+          - deny
+          - refuse
+          - answer
+          - evade
+        relationship: employee
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: tie
+    - id: mod.tie.employee.plain.i.only.work.here
+      position: modifier
+      text: "I do the work. The rest is above me."
+      requires:
+        act:
+          - answer
+          - inform
+          - refuse
+        relationship: employee
+      repetitionGroup: tie
+    - id: mod.tie.guildmate.plain.same.hall
+      position: modifier
+      text: "We answer to the same hall."
+      requires:
+        act:
+          - refuse
+          - evade
+          - answer
+          - inform
+        relationship: guild_mate
+      idiolect:
+        - terse
+      repetitionGroup: tie
+    - id: mod.tie.guildmate.plain.through.the.hall
+      position: modifier
+      text: "Put it through the hall and I will answer it there."
+      requires:
+        act:
+          - request
+          - refuse
+          - offer
+        relationship: guild_mate
+      repetitionGroup: tie
+    - id: mod.tie.accomplice.plain.same.trouble
+      position: modifier
+      text: "We are in the same trouble."
+      requires:
+        act:
+          - warn
+          - threaten
+          - request
+          - deny
+        relationship: accomplice
+      idiolect:
+        - terse
+        - literal
+      repetitionGroup: tie
+    - id: mod.tie.accomplice.plain.keep.it.between
+      position: modifier
+      text: "Keep it between us and we can both stand it."
+      requires:
+        act:
+          - request
+          - warn
+          - offer
+          - refuse
+        relationship: accomplice
+      repetitionGroup: tie
+    - id: mod.tie.acquaintance.plain.what.i.have
+      position: modifier
+      text: "You will get what I have. It is not much."
+      requires:
+        act:
+          - inform
+          - offer
+          - answer
+        relationship: acquaintance
+      repetitionGroup: tie
