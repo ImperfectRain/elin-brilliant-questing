@@ -49,6 +49,8 @@ namespace BrilliantQuesting.World
 
         public bool IsEntry => Spec.IsEntry;
 
+        public bool IsExit => Spec.IsExit;
+
         public IReadOnlyList<SiteAffordance> Affordances => Spec.Affordances;
 
         public override string ToString() => Spec.ToString();

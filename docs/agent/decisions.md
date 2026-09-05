@@ -1925,3 +1925,56 @@ and is listed. Choosing between rival plans on those mismatches is BQ-092's.
 Reason: the cheap version fills a generated site from the grammar — three bandits because a camp
 has bandits, a strongbox because a camp has stores — and the result is a place that looks causal,
 survives inspection, and is not about anything that happened.
+
+## D069 — A plan is refused for the errand it cannot host, and scored for everything else
+
+BQ-092. `SiteCandidates.Select` draws several plans from one grammar, refuses the ones that are
+wrong for the errand, and takes the best of what is left. `PP §2`'s "generate, score, validate"
+needs something to vary and something to judge against, and both are already in the repository:
+BQ-089's seed is what varies, and BQ-090's projection is what the judging reads.
+
+**The errand is a requirement passed in, never a room the grammar names.** The objective is a
+`SiteAffordance` — `EvidenceCache` for what a place keeps, `PrisonCell` for who it holds — so a
+storylet, an archetype or a matter never has to know that the collapsed mine calls its cache `face`
+and the warehouse calls its `bonded_store`. This is the same rule `D066` set for grammars from the
+other side: a place kind is a catalogue entry, and nothing outside the catalogue may depend on its
+node names. It also makes the judgement honest, because the same grammar is a good plan for one
+errand and a refused one for another — the makeshift prison can be dug into and its ledger cannot.
+
+**A refusal is not a low score, and the two are decided separately.** Six qualities are measured
+and averaged — `LW §7.6`'s own list — and the best average wins. Eight named flaws refuse a plan
+outright, because a plan whose objective cannot be reached, whose alternate routes are one route
+renamed, or whose only promise this build cannot keep is not a worse place: it is not a place this
+errand can happen in, and offering it because it was the best of a bad batch is how a generator
+ships a site nobody can finish. The six weights are equal, deliberately: nothing yet says a place
+with two ways in matters more than a place whose evidence is spread, and a weighting invented to
+look considered would be a claim nobody made.
+
+**Every refusal names what caused it, and the score prints its measurement.** The done-when is a
+readable refusal, so a flaw carries the part, the leg or the verb that produced it, and
+`DescribeSiteCandidates` prints each score beside the counts it was worked out from — "diversity
+0.83" asserts, and "2 ways, 2 plays, admitted and uninvited" reports. A number nobody can check is
+the thing that makes a generator impossible to tune from a save.
+
+**What the older wording meant here.** `LW §7.6` and `PP §2` were written before this repository had
+a spatial vocabulary, so each of their rejection reasons is implemented as the thing this
+architecture actually has. "Access/key ordering" is BQ-087's two-ways-in contract measured against
+the objective rather than against the place: a plan that advertises a way in waiting on nobody and
+reaches what the matter came for only by being let past has an approach that is decoration.
+"Alternate routes collapsing into the same play" is BQ-090's `Vocabulary` with the legs nobody has
+to get past left out, because walking one room further is not a decision. "A route promise refused
+because the required Elin primitive was unsupported" is `D067`'s evidence gate applied to a whole
+plan, and is reported apart from a requirement no registered verb answers, because a refused
+promise is the build's answer and an unanswered requirement is a verb nobody has written. And
+"unreachable objective" is a place with nowhere that answers the errand at all — a part with
+nothing leading to it is something composition already drops (`D066`), so that half of the rule is
+an invariant carried into the report rather than a case a grammar can produce.
+
+**Scoring reads no world state.** It judges the shape of a plan and the promises this build can
+keep. What a place then holds is the situation's and `SiteContents` derives it (`D068`), which is
+why selection runs first and contents second: choosing a plan by what would be in it would make the
+choice depend on a derivation that has not happened yet.
+
+Reason: the cheap version composes one plan and uses it, and the failures are invisible until
+somebody plays them — an errand after a strongbox in a place whose second way in reaches only the
+yard, three approaches that are all the doorman, a dug route promised on a build that cannot dig.

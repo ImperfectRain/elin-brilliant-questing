@@ -2486,9 +2486,11 @@ group; loot is stolen cargo and possessions, never filler.
   ledger are real state, but nothing physical is derived from them here, and `DangerLevel` stays
   `OrganizationActivity`'s so a place does not have two authors for how dangerous it is. Composition
   still reads no world state — which optional parts a plan has is BQ-089's seed — so this places
-  contents into a plan and reports the mismatches rather than choosing a plan that fits them, which
-  is BQ-092's. Proven headlessly: Core 1419 tests and Lab 134 pass, no plugin code changed and none
-  of this has run in a live Elin session.
+  contents into a plan and reports the mismatches rather than choosing a plan that fits them.
+  (BQ-092 chose between rival plans on shape and promise instead, and reads no world state either:
+  contents are derived after a plan is chosen, so choosing by them would depend on a derivation
+  that has not happened yet — `D069`.) Proven headlessly: Core 1419 tests and Lab 134 pass, no
+  plugin code changed and none of this has run in a live Elin session.
 
 #### BQ-092 — Candidate generation and scoring
 Generate several site candidates and select on route diversity, objective separation, evidence
@@ -2497,6 +2499,42 @@ inspector.
 - **Depends** BQ-091.
 - **Done when** rejected candidates' reasons are readable in the inspector, including at least one each for unreachable objective, access/key ordering failure, nominal alternate routes collapsing into the same play, useless loop or trivial shortcut, pathological backtracking or low-information corridor, inaccessible evidence, and a route promise refused because the required Elin primitive was unsupported or unverified.
 - **Sources** LW §7.6, §12; PP §2, §8.
+- **Current implementation** `SiteCandidates.Select` draws several plans of one kind, refuses the
+  ones that are wrong for the errand, and takes the best of what is left (`D069`). What varies is
+  BQ-089's seed, because that is already what makes two places of a kind different; what they are
+  judged against is passed in.
+  **The errand is a requirement, not a room.** The objective is a `SiteAffordance` -
+  `EvidenceCache` for what a place keeps, `PrisonCell` for who it holds — so a storylet or an
+  archetype never has to know a grammar's node names, and the same grammar is a good plan for one
+  errand and a refused one for another. The shipped catalogue proves that both ways: the makeshift
+  prison is chosen for an errand after the people in its cells and refused for one after its
+  ledger, because every way to the ledger waits on the gate while the plan still advertises a way
+  in that waits on nobody.
+  **A refusal is not a low score.** Six qualities are measured and averaged — reachability, route
+  diversity, objective separation, evidence distribution, loop quality and supported mechanic
+  vocabulary — and the best average wins; but eight named flaws refuse a plan outright, because a
+  plan whose objective cannot be reached is not a worse place, it is not a place this errand can
+  happen in. `NarrativeInspector.DescribeSiteCandidates` prints every plan drawn, each score beside
+  the counts it was worked out from, and every refusal with the part, the leg or the verb that
+  caused it.
+  **What the roadmap named, in the vocabulary this architecture has.** "Access/key ordering" is the
+  two-ways-in contract (`BQ-087`) measured against the objective rather than against the place;
+  "alternate routes collapsing into the same play" is BQ-090's `Vocabulary` with the legs nobody
+  has to get past left out; "unsupported route promise" is `D067`'s evidence gate applied to a
+  whole plan, and is reported separately from a requirement no verb in the library answers, because
+  the two are fixed by different people. "Unreachable objective" is a place with nowhere that
+  answers the errand: a part with nothing leading to it is something BQ-089's composition drops
+  rather than composes, so that half of the rule is an invariant carried into the report.
+  **Proven headlessly** in `SiteCandidatesTests`: one test per reason, a check that every reason is
+  printable, seed replay, and the score bounds. Core 1438 tests and Lab 134 pass. No content
+  changed, no plugin code changed, and none of this has run in a live Elin session.
+- **Not this step** nothing was rewired to route through selection — the archetypes that write
+  places down still do so directly, as BQ-088, BQ-089 and BQ-090 also left them. Scoring judges the
+  shape of a plan and the promises this build can keep; it reads no world state, so it does not
+  weigh a plan by the contents BQ-091 would put in it, and there is no scenario-specific scoring
+  ("a burglary values stealth routes") because nothing yet asks for one. The six weights are equal
+  on purpose. No abstract scenario graph, route cycles or authored-piece socket validation, which
+  are BQ-139's, and no physical realization, which is BQ-140's.
 
 #### BQ-139 — Scenario-dungeon plan representation
 Introduce the abstract plan for bounded adventure sites: scenario graph, route cycles, required

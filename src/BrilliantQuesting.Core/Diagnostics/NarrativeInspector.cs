@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using BrilliantQuesting.Actions;
 using BrilliantQuesting.Actions.Library;
@@ -1802,6 +1803,101 @@ namespace BrilliantQuesting.Diagnostics
             {
                 sb.Append("        nobody answers ").Append(leg.Unanswered[i]).Append('\n');
             }
+        }
+
+        /// <summary>
+        /// BQ-092. Every plan drawn for one errand, what each scored, and every reason a plan was
+        /// refused.
+        ///
+        /// The refusals are the step's done-when, so each one prints its kind and the sentence that
+        /// explains it - the part that could not be reached, the way in that reaches nothing the
+        /// errand wants, the verb the build would not promise. The scores print beside the counts
+        /// they were worked out from, because a number nobody can check is an assertion rather than
+        /// a measurement: "diversity 0.83" says nothing on its own, and "3 plays, admitted and
+        /// uninvited" says what was seen.
+        /// </summary>
+        public static string DescribeSiteCandidates(SiteCandidateSelection selection)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (selection == null)
+            {
+                sb.Append("site candidates: nothing weighed\n");
+                return sb.ToString();
+            }
+
+            sb.Append("site candidates ")
+              .Append(selection.Grammar == null ? "no grammar" : selection.Grammar.Id)
+              .Append(" from seed ").Append(selection.Seed)
+              .Append(", for an errand after ").Append(selection.Objective).Append('\n');
+
+            int usable = 0;
+            for (int i = 0; i < selection.Considered.Count; i++)
+            {
+                if (selection.Considered[i].Usable)
+                {
+                    usable++;
+                }
+            }
+
+            sb.Append("  ").Append(selection.Considered.Count).Append(" drawn, ").Append(usable)
+              .Append(" usable\n");
+
+            if (!selection.Selected)
+            {
+                sb.Append("  nothing chosen: ")
+                  .Append(selection.Refusal.Length > 0 ? selection.Refusal : "no reason was recorded")
+                  .Append('\n');
+            }
+
+            for (int i = 0; i < selection.Considered.Count; i++)
+            {
+                AppendCandidate(sb, selection.Considered[i]);
+            }
+
+            return sb.ToString();
+        }
+
+        private static void AppendCandidate(StringBuilder sb, SitePlanCandidate candidate)
+        {
+            sb.Append(candidate.Chosen ? "    chosen   " : candidate.Usable ? "    usable   " : "    refused  ")
+              .Append("seed ").Append(candidate.Seed)
+              .Append("; ").Append(candidate.ObjectiveNodeId.Length > 0
+                  ? candidate.ObjectiveNodeId
+                  : "nowhere answers the errand")
+              .Append("; scored ").Append(Fixed(candidate.Score.Total))
+              .Append('\n');
+
+            SiteCandidateScore score = candidate.Score;
+            sb.Append("      reach ").Append(Fixed(score.Reachability))
+              .Append(" (").Append(score.ReachableNodes).Append(" of ").Append(score.Nodes)
+              .Append(" parts can be got to)\n");
+            sb.Append("      diversity ").Append(Fixed(score.RouteDiversity))
+              .Append(" (").Append(score.PromisedWays).Append(" way(s), ").Append(score.DistinctPlays)
+              .Append(" play(s), ")
+              .Append(score.AdmittedWay && score.UninvitedWay
+                  ? "admitted and uninvited"
+                  : score.AdmittedWay ? "admitted only" : score.UninvitedWay ? "uninvited only" : "neither")
+              .Append(")\n");
+            sb.Append("      separation ").Append(Fixed(score.ObjectiveSeparation))
+              .Append(" (").Append(score.ShortestWayLegs).Append(" leg(s) at the shortest)\n");
+            sb.Append("      evidence ").Append(Fixed(score.EvidenceDistribution))
+              .Append(" (").Append(score.ReachableKeepNodes).Append(" of ").Append(score.KeepNodes)
+              .Append(" part(s) that hold something can be got to)\n");
+            sb.Append("      loops ").Append(Fixed(score.LoopQuality))
+              .Append(" (").Append(score.RealAlternatives).Append(" alternative(s) worth having)\n");
+            sb.Append("      mechanics ").Append(Fixed(score.MechanicVocabulary))
+              .Append(" (").Append(score.Mechanics).Append(" requirement(s) actually answered on the way)\n");
+
+            for (int i = 0; i < candidate.Flaws.Count; i++)
+            {
+                SiteCandidateFlaw flaw = candidate.Flaws[i];
+                sb.Append("      refused ").Append(flaw.Kind).Append(": ").Append(flaw.Reason).Append('\n');
+            }
+        }
+
+        private static string Fixed(double value)
+        {
+            return value.ToString("0.00", CultureInfo.InvariantCulture);
         }
 
         private static void AppendAffordances(StringBuilder sb, IReadOnlyList<SiteAffordance> affordances)
