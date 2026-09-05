@@ -17,6 +17,8 @@ payload:
       text: "I have had time to cool down. It did not help."
       requires:
         emotion: anger
+      voice:
+        - wry
       repetitionGroup: mood
       memorability: signature
     - id: mod.emotion.anger.plain
@@ -80,6 +82,8 @@ payload:
       requires:
         emotion: grief
         audience: one
+      voice:
+        - figurative
       repetitionGroup: mood
       memorability: protected
     - id: mod.emotion.relief.prepared.worse
@@ -93,6 +97,8 @@ payload:
       text: "Good. I can stop preparing for the worst version."
       requires:
         emotion: relief
+      voice:
+        - wry
       repetitionGroup: mood
       memorability: signature
     - id: mod.emotion.relief.too.late
@@ -113,6 +119,8 @@ payload:
       text: "I believe every word separately."
       requires:
         emotion: suspicion
+      voice:
+        - wry
       repetitionGroup: mood
       memorability: voiced
     - id: mod.emotion.suspicion.fits.too.easily
@@ -138,6 +146,8 @@ payload:
           - friend
           - family
           - spouse
+      voice:
+        - warm
       repetitionGroup: mood
       memorability: protected
     - id: mod.emotion.affection.less.temporary
@@ -163,5 +173,7 @@ payload:
       text: "I have three problems and only two hands."
       requires:
         emotion: stress
+      voice:
+        - wry
       repetitionGroup: mood
       memorability: signature

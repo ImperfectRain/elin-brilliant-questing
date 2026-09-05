@@ -192,6 +192,12 @@ namespace BrilliantQuesting.Dialogue
                 return false;
             }
 
+            List<string> voice = new List<string>();
+            if (!TryVoice(record, where, json["voice"], position, tones, idiolect, voice, out diagnostic))
+            {
+                return false;
+            }
+
             List<string> tags = new List<string>();
             if (!TryTags(record, where, json["tags"], tags, out diagnostic))
             {
@@ -220,7 +226,8 @@ namespace BrilliantQuesting.Dialogue
                 tags.ToArray(),
                 json.GetString("repetitionGroup", string.Empty),
                 slots,
-                memorability);
+                memorability,
+                voice.ToArray());
             diagnostic = null;
             return true;
         }
@@ -401,6 +408,83 @@ namespace BrilliantQuesting.Dialogue
                         where,
                         "A fragment cannot be both " + DialogueIdiolect.Opposite(item.StringValue)
                             + " and " + item.StringValue + ".");
+                    return false;
+                }
+
+                into.Add(item.StringValue);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// The persistent voice traits a phrase requires of whoever says it (BQ-149), against the
+        /// two vocabularies a <see cref="VoiceProfile"/> can request from and against the fragment
+        /// itself.
+        ///
+        /// Four refusals, and three of them are the same refusal <see cref="TryIdiolect"/> already
+        /// makes: an unknown tag is a demand no voice can ever satisfy, both poles of one axis is a
+        /// contradiction rather than a refinement, and a demand contradicting the phrase's own
+        /// <c>tone</c> or <c>idiolect</c> mark - a line marked warm that only a cold speaker may
+        /// say - is a rule that fires never. All three fail silently rather than loudly if allowed
+        /// through: the fragment simply disappears from every pool it was written for.
+        ///
+        /// The fourth is this field's own, and it is what keeps a demand from being able to take a
+        /// line away rather than a way of saying it. Exactly one slot is required, and a core
+        /// narrowed to nothing is a refused act (<c>D060</c>); every other slot is drawn against
+        /// saying nothing and falls silent when its pool empties. So a core may not demand a trait
+        /// at all, and the guarantee that "an unsupported combination falls back to neutral
+        /// material" is structural rather than a property of how carefully the corpus was authored.
+        /// </summary>
+        private static bool TryVoice(
+            ContentRecord record,
+            string where,
+            JsonValue json,
+            FragmentPosition position,
+            List<string> tones,
+            List<string> idiolect,
+            List<string> into,
+            out ContentDiagnostic diagnostic)
+        {
+            diagnostic = null;
+            if (json == null)
+            {
+                return true;
+            }
+
+            if (json.Kind != JsonKind.Array)
+            {
+                diagnostic = Invalid(record, where, "voice must be an array.");
+                return false;
+            }
+
+            if (position == FragmentPosition.Core && json.Items.Count > 0)
+            {
+                diagnostic = Invalid(
+                    record,
+                    where,
+                    "A core fragment may not demand a voice trait: the core is the one slot that "
+                        + "cannot fall silent, so narrowing it on a speaker's habits would refuse the act.");
+                return false;
+            }
+
+            for (int i = 0; i < json.Items.Count; i++)
+            {
+                JsonValue item = json.Items[i];
+                if (item.Kind != JsonKind.String || !DialogueVoiceTraits.IsTrait(item.StringValue))
+                {
+                    diagnostic = Invalid(record, where, "Unknown voice trait.");
+                    return false;
+                }
+
+                string opposite = DialogueVoiceTraits.Opposite(item.StringValue);
+                if (opposite != null
+                    && (into.Contains(opposite) || tones.Contains(opposite) || idiolect.Contains(opposite)))
+                {
+                    diagnostic = Invalid(
+                        record,
+                        where,
+                        "A fragment cannot demand " + item.StringValue + " and be " + opposite + ".");
                     return false;
                 }
 

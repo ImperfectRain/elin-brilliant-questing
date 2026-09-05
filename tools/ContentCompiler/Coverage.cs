@@ -62,6 +62,7 @@ namespace BrilliantQuesting.ContentCompiler
             Axis(report, fragments, DialogueReadings.ClaimProof, "whether it can be shown");
             Tone(report, fragments);
             Idiolect(report, fragments);
+            VoiceDemands(report, fragments);
             Memorability(report, fragments);
             Storylets(report, storylets);
             Holes(report, fragments);
@@ -236,6 +237,77 @@ namespace BrilliantQuesting.ContentCompiler
             for (int i = 0; i < fragment.IdiolectTags.Count; i++)
             {
                 if (string.Equals(fragment.IdiolectTags[i], tag, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// How many lines are reserved for a particular kind of speaker (BQ-149), and which trait
+        /// each is reserved for.
+        ///
+        /// The number to watch is the total rather than any one row. A demand is the only narrowing
+        /// in this file that a middling voice fails rather than passes, so every demanding fragment
+        /// is wording most speakers never reach - which is the point for a line whose temperament is
+        /// the line, and caricature the moment it is the ordinary way a tie or a mood is worded. A
+        /// demanding fraction that climbs is a corpus deciding personalities for people the
+        /// simulation described only as rivals.
+        /// </summary>
+        private static void VoiceDemands(StringBuilder report, IReadOnlyList<DialogueFragment> fragments)
+        {
+            Header(report, "voice demanded");
+            int demanding = 0;
+            for (int i = 0; i < fragments.Count; i++)
+            {
+                if (fragments[i].VoiceDemands.Count != 0)
+                {
+                    demanding++;
+                }
+            }
+
+            foreach (string tag in Demandable())
+            {
+                int count = 0;
+                for (int i = 0; i < fragments.Count; i++)
+                {
+                    if (Demands(fragments[i], tag))
+                    {
+                        count++;
+                    }
+                }
+
+                if (count != 0)
+                {
+                    report.Append(Pad(tag, 12)).Append(count).AppendLine();
+                }
+            }
+
+            report.AppendLine();
+            report.Append("demanding: ").Append(demanding).Append(" of ").Append(fragments.Count)
+                .AppendLine(" - wording only a speaker described that way reaches").AppendLine();
+        }
+
+        private static IEnumerable<string> Demandable()
+        {
+            foreach (string tag in DialogueTones.Vocabulary)
+            {
+                yield return tag;
+            }
+
+            foreach (string tag in DialogueIdiolect.Vocabulary)
+            {
+                yield return tag;
+            }
+        }
+
+        private static bool Demands(DialogueFragment fragment, string tag)
+        {
+            for (int i = 0; i < fragment.VoiceDemands.Count; i++)
+            {
+                if (string.Equals(fragment.VoiceDemands[i], tag, StringComparison.Ordinal))
                 {
                     return true;
                 }

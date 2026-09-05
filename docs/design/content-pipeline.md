@@ -123,7 +123,7 @@ A fragment belongs to an act and a position, and is selected by tags, requiremen
 by whose file it was in. If a line can only ever be said by one named character, that is a signature
 line, and `CD §20` already defers those.
 
-### 5.1 What a fragment file says (BQ-132, BQ-146, BQ-142)
+### 5.1 What a fragment file says (BQ-132, BQ-146, BQ-142, BQ-149)
 
 ```yaml
 - id: core.accuse.stop.looking.past      # globally unique; a long-term contract
@@ -136,6 +136,7 @@ line, and `CD §20` already defers those.
   forbids: {}                             # the same vocabulary, negated
   tone: [curt]                            # marked poles of four axes; unmarked fits every voice
   idiolect: [terse, literal]              # marked poles of three habit axes; unmarked fits every voice
+  voice: [wry]                            # traits the speaker must actually have; never on a core
   tags: [trade]                           # lived-context vocabulary, manners, weirdness category/level/premise
   repetitionGroup: accuse
   memorability: signature                 # utility | voiced | signature | protected
@@ -156,6 +157,42 @@ cadence (`clipped`/`flowing`) and figuration (`literal`/`figurative`). Register 
 because `tone`'s `formal`/`plain` axis already is register. Marking is optional and most of the
 library is unmarked; an unmarked fragment is wording every voice can still reach, so the corpus is
 migrated a cross-section at a time. Both poles of one axis on one fragment is rejected at load.
+
+`voice` is the same two vocabularies asked in the stricter direction (`BQ-149`, `D062`): a tag in
+`tone` or `idiolect` says what this line *is*, and a tag in `voice` says what its speaker must *be*
+for the line to be theirs at all. The difference is the default. A mark is narrowed on by
+contradiction, so a voice that took no position on an axis leaves a marked fragment eligible — and
+`wry` has no opposite pole at all, so a wry mark is one nothing can ever refuse. A demand is
+`FitsVocabulary`'s rule instead: unrequested excludes. A fragment that demands a tag gains nothing
+from also marking it.
+
+**Reach for `voice` only where the sentence encodes a temperament its conditions do not.** A
+`relationship` or an `emotion` condition says what is between two people or what state one of them is
+in; if the wording also decides that the speaker is playful, prickly or fond about it, then without a
+demand the tie is choosing the personality — every rival playful, every friend roguish. Three rules
+keep this from becoming a second personality system:
+
+- **a demand names a way of speaking, never a disposition.** What a line may require is how somebody
+  talks. Wanting, risking, forgiving and refusing are `PersonalityWeights`' and the decision layer's,
+  and they have already been spent by the time there is a sentence;
+- **a demanding line always has an undemanding sibling for the same tie or mood.** A demand should
+  narrow which reading of a relationship is available, never remove the relationship's wording
+  altogether. Pinned by test over the shipped corpus, not by care;
+- **a core may not demand at all**, and the loader refuses one that does. The core is the only slot
+  that cannot fall silent, so a demand on one would turn a temperament into a refused act.
+
+Demands stay a small minority of the library on purpose — the coverage report prints the count,
+because a corpus where most lines are reserved is a corpus deciding personalities for people the
+simulation described only as rivals.
+
+**Occupational flavour is a domain of thought, not the name of a job.** A `tags` entry buys wording
+that is eligible only for an identity `BQ-145` actually read (`D035`), and the way to spend it is the
+concepts somebody who does that work thinks in — weather, season and rot; proportion and reaction;
+grain, join and repair; price, debt and balance; routes, procedure and boundaries — rather than a
+sentence that announces the trade. A line that names the job can only be said by somebody announcing
+what they are, so it caricatures on its second appearance; a metaphor drawn from the work is said by
+somebody who simply thinks that way, and it still has to win an ordinary draw against every plain
+modifier in the same pool. Flavour never changes what is meant, so it lives on modifiers.
 
 `memorability` is the one axis that is purely about wear: it changes how quickly a fragment counts as
 stale, so a line somebody would quote is spent when it lands and "No." is not (`D055`).

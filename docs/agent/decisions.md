@@ -1619,4 +1619,55 @@ costs nothing on the day, deletes the register that makes a witness sound like a
 the actual defect in place — provenance chosen on confidence — for the next author to walk into with
 the next sentence.
 
+## D062 — A context supplies the situation; a persistent trait supplies the temperament, and wording may require one
+
+BQ-149 adds one optional field to a fragment — `voice`, a list of `DialogueTones`/`DialogueIdiolect`
+tags — and one check, `DialogueFragment.FitsVoice`, read in `DialogueRealizer.Candidates` beside the
+five narrowings already there. Nothing else moved: no new vocabulary, no new request field, no new
+reading, no new source of state.
+
+**The defect was a default, not a missing layer.** `FitsTone` narrows by contradiction, so a voice
+that took no position on an axis leaves a marked fragment eligible — and `wry` has no opposite pole
+at all, because sincerity is the unmarked baseline (`D034`). A `tone: [wry]` mark on "If anyone ruins
+you, I would prefer it be me" therefore excluded precisely nobody: the tie said rival, the corpus
+said playful, and no voice was in a position to object. Fourteen shipped lines were deciding a
+temperament from a relationship or a mood. Adding a `sincere` tag to give wryness an opposite would
+have fixed one axis and left the general case — a line that only a *particular sort of speaker* says
+is not the same claim as a line that contradicts a pole — so a demand generalises instead: unmet
+excludes, which is `D035`'s inversion applied to temperament rather than to lived context.
+
+**What may be demanded is a way of speaking, and never a disposition.** `PersonalityWeights` decides
+what a character wants and how forthcoming they are, and it has already been spent by the time there
+is a sentence; letting a fragment demand a disposition would be personality reaching the words a
+second time, after it had reached the decision that produced them, and would collapse the separation
+`D034` exists to hold. So `DialogueVoiceTraits` is the union of the two vocabularies a `VoiceProfile`
+already requests from and is not a third one. Ownership, unchanged and now stated in one place:
+relationship answers what is between these people, emotion answers what state the speaker is in,
+personality and the decision layer answer disposition and behaviour, voice answers linguistic form,
+occupation supplies vocabulary — and none of them may invent a fact or a semantic act.
+
+**A demand may silence an embellishment and may never take a line away.** A core is refused at load
+for demanding anything. Exactly one slot is required, and a core narrowed to nothing is a refused act
+(`D060`); every other slot is drawn against saying nothing and falls silent when its pool empties. So
+"an unsupported combination falls back to neutral material" is structural rather than a property of
+how carefully the corpus was authored, and it is backed on the content side by a test: every tie and
+every mood a demanding line is written for keeps an undemanding sibling, so a rival with an ordinary
+voice loses the playful reading of the tie and not the tie.
+
+**Occupational flavour is a domain of thought, not the name of a job.** The second half of the step
+spends `BQ-076`'s existing seam the way it should have been spent: twenty new modifiers reaching for
+weather, season and rot; proportion and reaction; grain, join and repair; price, debt and balance;
+routes, procedure and boundaries — none of which name the trade. A line that announces what somebody
+does can only be said by somebody announcing it, so it caricatures on its second appearance; a
+metaphor drawn from the work is said by somebody who simply thinks that way. Nothing about the
+mechanism changed: the tag still buys eligibility only for an identity `BQ-145` actually read, the
+flavoured line still joins the pool a plain one already fits at the same odds, and every domain tag
+in the corpus is still on a modifier, so lived context cannot reach the sentence that carries the
+point.
+
+Reason: the cheap version reworded the fourteen lines into neutrality. It costs nothing on the day,
+deletes the material that makes a rival sound like a rival, and leaves the actual defect — a
+contextual condition choosing a personality — in place for the next author writing the next
+relationship.
+
 Add a new entry only when the decision is both load-bearing and durable.

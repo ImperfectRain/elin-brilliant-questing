@@ -14,6 +14,8 @@ payload:
           - deny
           - ask
         relationship: none
+      voice:
+        - formal
       repetitionGroup: tie
       memorability: signature
     - id: mod.tie.stranger.not.well.enough
@@ -35,6 +37,8 @@ payload:
           - evade
           - ask
         relationship: none
+      voice:
+        - curt
       repetitionGroup: tie
       memorability: signature
     - id: mod.tie.acquaintance.past.introductions
@@ -81,7 +85,7 @@ payload:
           - promise
           - request
         relationship: friend
-      tone:
+      voice:
         - wry
       repetitionGroup: tie
       memorability: signature
@@ -111,6 +115,8 @@ payload:
         relationship:
           - family
           - spouse
+      voice:
+        - curt
       repetitionGroup: tie
       memorability: protected
     - id: mod.tie.family.no.strangers
@@ -126,6 +132,8 @@ payload:
           - family
           - spouse
           - friend
+      voice:
+        - warm
       repetitionGroup: tie
       memorability: signature
     - id: mod.tie.rival.without.liking
@@ -148,7 +156,7 @@ payload:
           - offer
           - threaten
         relationship: rival
-      tone:
+      voice:
         - wry
       repetitionGroup: tie
       memorability: signature
@@ -201,7 +209,7 @@ payload:
           - offer
           - threaten
         relationship: creditor
-      tone:
+      voice:
         - wry
       repetitionGroup: tie
       memorability: signature
@@ -226,6 +234,8 @@ payload:
           - refuse
           - apologize
         relationship: debtor
+      voice:
+        - wry
       repetitionGroup: tie
       memorability: signature
     - id: mod.tie.employer.do.the.work

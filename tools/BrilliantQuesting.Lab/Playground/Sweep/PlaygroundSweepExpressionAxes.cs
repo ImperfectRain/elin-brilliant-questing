@@ -214,7 +214,14 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
                     }
 
                     return null;
-                }))
+                })),
+
+            // BQ-149's, and the one that needs a voice sweep rather than a relationship sweep to
+            // mean anything: the rows differ in nothing but the speaker, so a line that turns up
+            // for one of them and not another turned up because of who is talking.
+            new PlaygroundSweepInvariant(
+                "a line reserved for a temperament reaches nobody else",
+                rows => NoUnaskedTemperament(rows))
         };
 
         public override void WriteTail(TextWriter output, PlaygroundSweepResult result)
@@ -288,6 +295,45 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Whether any row was offered wording that is reserved for a way of speaking its own voice
+        /// never asked for (BQ-149).
+        ///
+        /// Shared with <see cref="RelationshipAxis"/> rather than written twice, because the two
+        /// families ask the same question from opposite ends and both answers are needed. The voice
+        /// sweep holds the tie still and moves the speaker, so it says a demand is <em>reachable</em>
+        /// by the right voice; the relationship sweep holds the speaker still and moves the tie, so
+        /// it says a tie cannot <em>hand</em> somebody a temperament. Either one alone would pass
+        /// for a build where demands did nothing at all.
+        /// </summary>
+        internal static IReadOnlyList<string> NoUnaskedTemperament(IReadOnlyList<PlaygroundSweepRow> rows)
+        {
+            return PlaygroundSweepInvariant.Each(rows, row =>
+            {
+                if (row.Turn?.Request == null || row.Turn.Eligible == null || row.Run == null)
+                {
+                    return null;
+                }
+
+                DialogueFragmentLibrary library = row.Run.Stage.Realizer.Library;
+                for (int slot = 0; slot < PlaygroundEligibility.Slots.Length; slot++)
+                {
+                    IReadOnlyList<string> ids = row.Turn.Eligible.At(PlaygroundEligibility.Slots[slot]);
+                    for (int i = 0; i < ids.Count; i++)
+                    {
+                        if (library.TryGet(ids[i], out DialogueFragment fragment)
+                            && !fragment.FitsVoice(row.Turn.Request.Tone, row.Turn.Request.Idiolect))
+                        {
+                            return "left " + ids[i] + " eligible, which is reserved for "
+                                   + PlaygroundText.Join(fragment.VoiceDemands, "nothing");
+                        }
+                    }
+                }
+
+                return null;
+            });
         }
 
         internal static IReadOnlyList<string> OneMeaning(IReadOnlyList<PlaygroundSweepRow> rows)

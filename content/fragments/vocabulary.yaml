@@ -127,3 +127,224 @@ payload:
         - public_order
       repetitionGroup: flavour
       memorability: signature
+    # BQ-149. The same seam, authored the other way round: a domain reaching wording as the
+    # concepts somebody who works in it thinks in - weather, season and rot; proportion and
+    # reaction; grain, join and repair; price, debt and balance; routes, procedure and boundaries -
+    # rather than as the name of the job. Naming the trade is the version that caricatures, because
+    # it can only ever be said by somebody announcing what they are; a metaphor drawn from the work
+    # is said by somebody who simply thinks that way, and it stays sparse because it still has to
+    # win an ordinary draw against every plain modifier in the same pool.
+    - id: mod.refuse.cultivation.roots
+      position: modifier
+      text: "Nothing is helped by pulling it up to look at the roots."
+      requires:
+        act:
+          - refuse
+          - evade
+      tags:
+        - cultivation
+      repetitionGroup: reserve
+    - id: mod.warn.cultivation.rot
+      position: modifier
+      text: "Rot starts where nobody thought to look."
+      requires:
+        act:
+          - warn
+          - inform
+      tags:
+        - cultivation
+      repetitionGroup: flavour
+      memorability: voiced
+    - id: mod.promise.cultivation.weather
+      position: modifier
+      text: "I can promise the work. I cannot promise the weather."
+      requires:
+        act:
+          - promise
+          - offer
+          - request
+      tags:
+        - cultivation
+      repetitionGroup: flavour
+    - id: mod.answer.cultivation.dry.year
+      position: modifier
+      text: "You learn to read a dry year early or not at all."
+      requires:
+        act:
+          - answer
+          - inform
+      tags:
+        - cultivation
+      repetitionGroup: flavour
+    - id: mod.warn.alchemy.two.harmless
+      position: modifier
+      text: "Two harmless things together are not always harmless."
+      requires:
+        act:
+          - warn
+          - inform
+      tags:
+        - alchemy
+      repetitionGroup: flavour
+      memorability: voiced
+    - id: mod.answer.alchemy.proportion
+      position: modifier
+      text: "Proportion decides more than ingredients do."
+      requires:
+        act:
+          - answer
+          - inform
+      tags:
+        - alchemy
+      repetitionGroup: flavour
+    - id: mod.evade.alchemy.settles
+      position: modifier
+      text: "Give a thing time and it separates on its own."
+      requires:
+        act:
+          - evade
+          - refuse
+          - answer
+      tags:
+        - alchemy
+      repetitionGroup: reserve
+    - id: mod.request.alchemy.small.amounts
+      position: modifier
+      text: "Small amounts, and one change at a time."
+      requires:
+        act:
+          - request
+          - offer
+          - promise
+      tags:
+        - alchemy
+      repetitionGroup: flavour
+    - id: mod.refuse.craft.forced.join
+      position: modifier
+      text: "A join that is forced does not hold."
+      requires:
+        act:
+          - refuse
+          - warn
+      tags:
+        - craft
+      repetitionGroup: reserve
+      memorability: voiced
+    - id: mod.answer.craft.grain
+      position: modifier
+      text: "You work with the grain or you work twice."
+      requires:
+        act:
+          - answer
+          - inform
+          - warn
+      tags:
+        - craft
+      repetitionGroup: flavour
+    - id: mod.answer.craft.strain
+      position: modifier
+      text: "Strain never shows at the surface. It shows at the joint."
+      requires:
+        act:
+          - answer
+          - inform
+          - accuse
+      tags:
+        - craft
+      repetitionGroup: flavour
+    - id: mod.offer.craft.twice
+      position: modifier
+      text: "I would rather do it twice than do it badly once."
+      requires:
+        act:
+          - offer
+          - promise
+          - apologize
+      tags:
+        - craft
+      repetitionGroup: flavour
+    - id: mod.refuse.trade.price.i.will.take
+      position: modifier
+      text: "Everything has a price. Not everything has one I will take."
+      requires:
+        act:
+          - refuse
+          - evade
+      tags:
+        - trade
+      repetitionGroup: reserve
+      memorability: voiced
+    - id: mod.warn.trade.debt.ignored
+      position: modifier
+      text: "A debt does not get smaller for being ignored."
+      requires:
+        act:
+          - warn
+          - threaten
+          - request
+      tags:
+        - trade
+      repetitionGroup: flavour
+    - id: mod.answer.trade.numbers.patient
+      position: modifier
+      text: "Numbers are patient. They wait for somebody to check them."
+      requires:
+        act:
+          - answer
+          - inform
+          - accuse
+      tags:
+        - trade
+      repetitionGroup: flavour
+    - id: mod.answer.trade.margin
+      position: modifier
+      text: "Whatever is saved somewhere is spent somewhere else."
+      requires:
+        act:
+          - answer
+          - inform
+      tags:
+        - trade
+      repetitionGroup: flavour
+    - id: mod.refuse.public_order.line.i.keep
+      position: modifier
+      text: "That is on the other side of a line I keep."
+      requires:
+        act:
+          - refuse
+          - evade
+      tags:
+        - public_order
+      repetitionGroup: reserve
+      memorability: voiced
+    - id: mod.answer.public_order.same.paths
+      position: modifier
+      text: "People keep to the same paths. So does what follows them."
+      requires:
+        act:
+          - answer
+          - inform
+          - warn
+      tags:
+        - public_order
+      repetitionGroup: flavour
+    - id: mod.ask.public_order.in.order
+      position: modifier
+      text: "From the beginning, and in order."
+      requires:
+        act:
+          - ask
+          - request
+      tags:
+        - public_order
+      repetitionGroup: flavour
+    - id: mod.warn.public_order.quiet.route
+      position: modifier
+      text: "Nothing stays quiet on a route that gets used."
+      requires:
+        act:
+          - warn
+          - inform
+      tags:
+        - public_order
+      repetitionGroup: flavour

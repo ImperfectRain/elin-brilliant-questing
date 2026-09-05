@@ -1326,6 +1326,60 @@ exchange was as likely to draw a signature line as a utility one: `core-withhold
   was introduced.
 - **Sources** CD §18, §19, §20, §21; `docs/design/content-pipeline.md` §5, §6; `D043`, `D060`.
 
+#### BQ-149 — A context is not a personality: contextual wording that requires the trait it implies *(stage S7, immediately after BQ-148)*
+Some of the strongest authored relationship and emotion lines carried a temperament their conditions
+did not. "If anyone ruins you, I would prefer it be me" was eligible for *every* rival and "This
+sounds like trouble. I suppose that saves us finding some" for every friend, so the tie was choosing
+the personality — and the `tone: [wry]` marks those two already carried excluded nobody, because
+`FitsTone` narrows by contradiction and `wry` has no opposite pole (`D034`). The same seam's other
+half was under-spent in the opposite direction: occupational flavour was reaching wording as the name
+of a job rather than as the concepts somebody who does that work thinks in.
+- **Depends** BQ-074, BQ-075, BQ-076, BQ-142, BQ-146, BQ-147, BQ-148, BQ-145, BQ-133.
+- **Done when** a fragment can require a persistent voice trait of its speaker; the same relationship
+  reaches different wording for contrasting voices; walking the relationship under one voice never
+  admits wording that voice did not ask for; an occupational vocabulary still cannot change what was
+  meant; a combination nothing supports falls back to the plain alternative rather than to silence or
+  to the strong line anyway; and the shipped corpus still validates and loads with zero diagnostics.
+- **Current implementation** one optional fragment field, `voice`, and one check,
+  `DialogueFragment.FitsVoice`, read in `DialogueRealizer.Candidates` beside the five narrowings
+  already there (`D062`). A demand names a tag in `DialogueVoiceTraits` — the union of the two
+  vocabularies `VoiceProfile` already requests from, not a third one — and is met only when the
+  speaker's voice actually asked for it, so an unspecified voice excludes rather than admits
+  (`D035`'s inversion, applied to temperament instead of to lived context). Fourteen shipped
+  modifiers were tightened: eight ties (`stranger.trust.first` → `formal`, `stranger.earn.the.second`
+  and `family.already.dislike` → `curt`, `family.no.strangers` → `warm`, and the four sardonic ones
+  → `wry`) and six moods (four `wry`, one `figurative`, one `warm`). No line was reworded and none
+  was removed. Twenty new occupational modifiers spend BQ-076's tag on conceptual domains rather than
+  profession words (`vocabulary.yaml`, 12 → 32 fragments; corpus 589 → 609). The coverage report
+  gained a `voice demanded` section, because the number to watch is the total: demands are 14 of 609,
+  and a corpus where most lines are reserved is one deciding personalities for people the simulation
+  described only as rivals.
+  **The core is refused a demand at load**, which is what makes the fallback structural rather than
+  careful. Exactly one slot is required, so a demand on a core would turn a temperament into a
+  refused act; every other slot falls silent when its pool empties. The content-side half — that
+  every tie and every mood a demanding line is written for keeps an undemanding sibling — is pinned
+  by a data-driven test over the shipped corpus rather than by review.
+  **No new diagnostic tool.** The existing `voice` sweep holds the tie still and moves the speaker,
+  and the existing `relationship` sweep holds the speaker still and moves the tie; between them they
+  already isolate both directions, and each gained the same invariant rather than a third axis being
+  added. Either alone would pass for a build where demands did nothing.
+  **The compiled bundle was rebuilt by hand, as at BQ-148.** No .NET SDK was reachable in this
+  session, so `Package/content.bqc` could not be regenerated through `tools/ContentCompiler`. A
+  Python re-implementation of `SimpleYaml`'s restricted subset and of `JsonValue`'s indented writer
+  was proved byte-for-byte against the shipped bundle from the *unedited* content tree before any
+  edit was compiled through it, and a record-level diff afterwards confirmed only the three edited
+  records changed. A Python mirror of `DialogueFragmentContent`'s closed-vocabulary checks was run
+  over all 609 regenerated fragments and reported no problems. `dotnet build`/`dotnet test` were not
+  run in this session and remain unverified end-to-end; the actual ContentCompiler and full test
+  suite should be run once .NET tooling is reachable, before this step is treated as fully proven.
+- **Deferred by design** no `sincere` tone tag (giving wryness an opposite would fix one axis and
+  leave the general case), no demand on a disposition, no new reading, request field or state source,
+  and no second pass over the ties and moods this audit judged to be pure context — the accomplice's
+  shared exposure, the enemy's guardedness, the guildmate's hall — which encode a situation rather
+  than a temperament.
+- **Sources** CD §18, §19; `docs/design/content-pipeline.md` §5.1; `D034`, `D035`, `D054`, `D060`,
+  `D062`.
+
 #### BQ-134 — Project verbs through contextual affordances *(moved forward)*
 Moved forward to the playtest consolidation section before BQ-039 because live S4 testing showed
 raw verb projection would multiply defects during generative expansion. Do not implement a second
@@ -3040,7 +3094,7 @@ the audit artifact: if an idea is not here, it was missed.
 | Quirks | BQ-060 |
 | Identity anchors | BQ-059, BQ-060 |
 | Vanilla identity is an input, not a template | BQ-144, BQ-145 |
-| Identity as plausible knowledge, stakes, eligibility and vocabulary | BQ-145; BQ-064, BQ-067, BQ-068, BQ-076 |
+| Identity as plausible knowledge, stakes, eligibility and vocabulary | BQ-145; BQ-064, BQ-067, BQ-068, BQ-076, BQ-149 |
 | Topic model | BQ-076 |
 | Emotional state | BQ-063 |
 | Actor-local interpretation | BQ-064 |
@@ -3060,7 +3114,7 @@ the audit artifact: if an idea is not here, it was missed.
 | Occupational vocabulary | BQ-076 |
 | Negative-space personality | BQ-077 |
 | Dialogue realization and fragments | BQ-074; authored as data at BQ-132 |
-| Voice profiles | BQ-075; persistent idiolect at BQ-142 |
+| Voice profiles | BQ-075; persistent idiolect at BQ-142; wording that requires a trait at BQ-149 |
 | Four dialogue scales | BQ-074; signature lines §8 |
 | Repetition control | BQ-078 |
 | Weirdness taxonomy, budget, reactions, tone bible | BQ-079, BQ-080 |

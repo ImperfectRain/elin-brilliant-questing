@@ -112,6 +112,45 @@ namespace BrilliantQuesting.Dialogue
     }
 
     /// <summary>
+    /// The two voice vocabularies read as one, for the single reader that has to ask about both -
+    /// <see cref="DialogueFragment.FitsVoice"/> (BQ-149).
+    ///
+    /// A fragment may declare that a way of speaking is not merely compatible with it but
+    /// <em>required</em> by it: somebody would only say this line if they were the sort of person
+    /// who talks this way. The trait it names is always one a <see cref="VoiceProfile"/> can ask
+    /// for, because that is the whole of what a persistent linguistic trait is here, and the two
+    /// lists a voice produces are <see cref="DialogueTones"/>' and <see cref="DialogueIdiolect"/>'s.
+    /// So this is a union of two closed vocabularies and never a third one: nothing is named here
+    /// that is not already named there, and widening what a line may demand means widening one of
+    /// the two rather than this.
+    ///
+    /// <b>A disposition is deliberately not demandable.</b> <c>PersonalityWeights</c> already
+    /// decides what a character wants and how forthcoming they are, and <c>D034</c> keeps voice and
+    /// personality from reading each other. A demand on a disposition would be personality reaching
+    /// the words a second time, after it had already reached the decision that produced them - so
+    /// what a line may require of its speaker is how they talk, never what they want.
+    /// </summary>
+    public static class DialogueVoiceTraits
+    {
+        /// <summary>Whether a voice could ever ask for this tag.</summary>
+        public static bool IsTrait(string tag)
+        {
+            return DialogueTones.IsTone(tag) || DialogueIdiolect.IsIdiolect(tag);
+        }
+
+        /// <summary>
+        /// The tag at the other end of the same axis, in whichever vocabulary owns it. Null for a
+        /// tag neither owns, and null for <see cref="DialogueTones.Wry"/>, whose axis has an
+        /// unmarked far end - which is exactly why wryness has to be <em>demanded</em> to be
+        /// narrowed on at all, and cannot be narrowed on by contradiction the way warmth can.
+        /// </summary>
+        public static string Opposite(string tag)
+        {
+            return DialogueTones.Opposite(tag) ?? DialogueIdiolect.Opposite(tag);
+        }
+    }
+
+    /// <summary>
     /// How a speaker sounds, independent of what they mean or why they said it (CD §19).
     ///
     /// BQ-074 left this seam open on purpose. <see cref="RealizationRequest.Tone"/> asks for no

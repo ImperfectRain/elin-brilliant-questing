@@ -49,6 +49,19 @@ namespace BrilliantQuesting.Lab.Playground.Sweep
             };
         }
 
+        /// <summary>
+        /// BQ-149, from the end the voice family cannot reach. Every row here is the same speaker
+        /// with the same voice - the playground's default, which asks for nothing - and only the
+        /// tie moves, so a line reserved for a particular way of speaking turning up at any rung
+        /// would be a relationship handing somebody a temperament nobody gave them.
+        /// </summary>
+        public override IReadOnlyList<PlaygroundSweepInvariant> Invariants => new[]
+        {
+            new PlaygroundSweepInvariant(
+                "a tie never hands the speaker a temperament",
+                rows => VoiceAxis.NoUnaskedTemperament(rows))
+        };
+
         private const string Preset = "neutral-witness";
     }
 

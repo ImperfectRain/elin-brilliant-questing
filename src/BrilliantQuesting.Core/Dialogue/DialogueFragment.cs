@@ -765,6 +765,25 @@ namespace BrilliantQuesting.Dialogue
             string repetitionGroup,
             IReadOnlyList<string> slots,
             string memorability)
+            : this(
+                id, position, text, requires, forbids, toneTags, idiolectTags, tags, repetitionGroup, slots,
+                memorability, null)
+        {
+        }
+
+        public DialogueFragment(
+            string id,
+            FragmentPosition position,
+            string text,
+            IReadOnlyList<FragmentRequirement> requires,
+            IReadOnlyList<FragmentRequirement> forbids,
+            IReadOnlyList<string> toneTags,
+            IReadOnlyList<string> idiolectTags,
+            IReadOnlyList<string> tags,
+            string repetitionGroup,
+            IReadOnlyList<string> slots,
+            string memorability,
+            IReadOnlyList<string> voiceDemands)
         {
             Id = id ?? string.Empty;
             Position = position;
@@ -777,6 +796,7 @@ namespace BrilliantQuesting.Dialogue
             RepetitionGroup = repetitionGroup ?? string.Empty;
             Slots = slots ?? NoTags;
             Memorability = DialogueMemorability.IsMemorability(memorability) ? memorability : DialogueMemorability.Utility;
+            VoiceDemands = voiceDemands ?? NoTags;
         }
 
         public string Id { get; }
@@ -813,6 +833,29 @@ namespace BrilliantQuesting.Dialogue
         /// question: tone is the pitch of one line, and this is the habit behind it.
         /// </summary>
         public IReadOnlyList<string> IdiolectTags { get; }
+
+        /// <summary>
+        /// The persistent voice traits a speaker must actually have for this phrase to be theirs
+        /// to say (BQ-149). Empty for nearly every fragment, and empty means what it has always
+        /// meant: any voice may reach this wording.
+        ///
+        /// <b>This is <see cref="ToneTags"/>' and <see cref="IdiolectTags"/>' question asked in the
+        /// stricter direction, and it exists because contextual conditions cannot ask it.</b> A
+        /// <see cref="DialogueReadings.Relationship"/> or a <see cref="DialogueReadings.Emotion"/>
+        /// condition says what is between two people or what state one of them is in; it cannot say
+        /// that the speaker is the sort of person who makes a joke of it. Left to a mark alone, the
+        /// tie decided the temperament: every rival got the playful line and every friend the
+        /// roguish one, because <see cref="FitsTone"/> only removes a fragment whose mark takes the
+        /// pole the voice took against it, and a voice that said nothing about wryness said nothing
+        /// against a wry line. A demand inverts that default for the handful of lines that need it
+        /// - <see cref="FitsVocabulary"/>'s rule rather than <see cref="FitsTone"/>'s, for
+        /// <c>D035</c>'s reason applied to temperament instead of to lived context.
+        ///
+        /// A demand is strictly stronger than the matching mark, so a fragment that demands a tag
+        /// gains nothing from also declaring it: a request naming the opposite pole cannot also
+        /// name the demanded one.
+        /// </summary>
+        public IReadOnlyList<string> VoiceDemands { get; }
 
         /// <summary>
         /// Free tags for the layers that constrain selection beyond tone. BQ-075's voice reached
@@ -963,6 +1006,57 @@ namespace BrilliantQuesting.Dialogue
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Whether the speaker's persistent voice actually carries every trait this phrase requires
+        /// (BQ-149). A fragment that demands nothing fits every speaker, which is nearly all of
+        /// them and the behaviour every fragment had before demands existed.
+        ///
+        /// <b>Every demand must be met, and an unspecified voice meets none.</b> The two lists are
+        /// the ones <see cref="VoiceProfile.RequestedTone"/> and
+        /// <see cref="VoiceProfile.RequestedIdiolect"/> produce, searched together because the two
+        /// vocabularies are disjoint and a demand names a tag in exactly one of them. Asking for
+        /// nothing therefore excludes a demanding fragment rather than admitting it - deliberately
+        /// the inversion <see cref="FitsVocabulary"/> makes and not the default
+        /// <see cref="FitsTone"/> keeps, because a line that only a wry speaker would say, said by
+        /// a speaker nobody described, is the wording layer deciding somebody's temperament from
+        /// the situation they are in.
+        ///
+        /// It can only ever remove a candidate, and it can only ever remove an optional one: a
+        /// demand is refused at load on a core fragment, so the sentence that carries the point is
+        /// never the one a voice cannot say, and an embellishment narrowed to nothing falls silent
+        /// exactly as an optional slot always has.
+        /// </summary>
+        public bool FitsVoice(IReadOnlyList<string> tone, IReadOnlyList<string> idiolect)
+        {
+            for (int i = 0; i < VoiceDemands.Count; i++)
+            {
+                if (!Names(tone, VoiceDemands[i]) && !Names(idiolect, VoiceDemands[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool Names(IReadOnlyList<string> requested, string tag)
+        {
+            if (requested == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < requested.Count; i++)
+            {
+                if (string.Equals(requested[i], tag, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
