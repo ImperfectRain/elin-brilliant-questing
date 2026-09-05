@@ -34,19 +34,44 @@ namespace BrilliantQuesting.Actions.Library
         }
     }
 
-    public abstract class PhysicalBarrierAction : NarrativeAction
+    public abstract class PhysicalBarrierAction : NarrativeAction, ISpatialRouteVerb
     {
         private readonly CheckProfile _profile;
         private readonly string[] _kinds;
         private readonly bool _removesBarrier;
 
-        protected PhysicalBarrierAction(string id, string label, CheckProfile profile, string[] kinds, bool removesBarrier)
+        protected PhysicalBarrierAction(
+            string id,
+            string label,
+            CheckProfile profile,
+            string[] kinds,
+            bool removesBarrier,
+            SiteAffordance answers)
             : base(id, ActionFamily.Physical, label)
         {
             _profile = profile;
             _kinds = kinds;
             _removesBarrier = removesBarrier;
+
+            // BQ-090. Answering a barrier means finding it first, and the barrier is a thing
+            // standing in the place rather than something anybody is carrying - which is the one
+            // read the live adapter does not have (`ELIN-Q-0008`). So the physical ways through a
+            // place are proven headlessly and refused in game until that read exists, rather than
+            // offered to a player they would do nothing for.
+            List<VanillaCapability> needs = new List<VanillaCapability> { VanillaCapability.ReadPlaceContents };
+            if (removesBarrier)
+            {
+                needs.Add(VanillaCapability.DestroyItems);
+            }
+
+            SpatialRoute = new SpatialRouteClaim(
+                new[] { answers },
+                RouteEvidence.SourceObserved,
+                "reading the obstruction standing in the place (ELIN-Q-0008)",
+                needs.ToArray());
         }
+
+        public SpatialRouteClaim SpatialRoute { get; }
 
         public override Availability GetAvailability(ActionContext context)
         {
@@ -231,7 +256,8 @@ namespace BrilliantQuesting.Actions.Library
             "Clear the obstruction",
             ProceduralCheckProfiles.Clearing,
             new[] { "obstruction", "rubble", "debris", "rockfall" },
-            removesBarrier: true)
+            removesBarrier: true,
+            answers: SiteAffordance.BreakableBarrier)
         {
         }
     }
@@ -243,7 +269,8 @@ namespace BrilliantQuesting.Actions.Library
             "Mine a bypass",
             ProceduralCheckProfiles.MiningBypass,
             new[] { "rock", "stone", "ore", "cave", "mine", "rockfall" },
-            removesBarrier: false)
+            removesBarrier: false,
+            answers: SiteAffordance.DiggableBypass)
         {
         }
     }
@@ -255,7 +282,8 @@ namespace BrilliantQuesting.Actions.Library
             "Break the barrier",
             ProceduralCheckProfiles.Breaking,
             new[] { "barrier", "door", "gate", "barricade", "rockfall" },
-            removesBarrier: true)
+            removesBarrier: true,
+            answers: SiteAffordance.BreakableBarrier)
         {
         }
     }

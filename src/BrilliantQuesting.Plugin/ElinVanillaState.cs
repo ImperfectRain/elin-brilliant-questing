@@ -146,6 +146,16 @@ namespace BrilliantQuesting.Plugin
                 VanillaCapability.ReadInventory,
                 () => EClass.pc == null || EClass.pc.things == null ? null : "pc.things enumerated => " + EClass.pc.things.Count + " item(s)");
 
+            // BQ-090. Reported unsupported deliberately, and not for want of trying: GetInventory
+            // resolves a character, so a thing standing on a floor is invisible to this adapter
+            // whatever the build does (`ELIN-Q-0008`). Advertising it would promise every route
+            // that has to find the obstruction blocking a place, and those routes would then find
+            // nothing. `EClass._map.things` is the read that would close it, for the active zone
+            // at least; until it exists and a live run has exercised it, this stays off.
+            MarkUnsupported(
+                VanillaCapability.ReadPlaceContents,
+                "GetInventory resolves a Chara and nothing else on this build, so nothing standing loose in a place can be read (ELIN-Q-0008)");
+
             Probe(
                 VanillaCapability.TransferItems,
                 () => EClass.pc == null || EClass.pc.things == null ? null : "Chara.Pick transfer path available; source inventory count " + EClass.pc.things.Count);

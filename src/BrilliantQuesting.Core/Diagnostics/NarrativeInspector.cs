@@ -1714,6 +1714,96 @@ namespace BrilliantQuesting.Diagnostics
             return sb.ToString();
         }
 
+        /// <summary>
+        /// BQ-090. Every way through a place to one part of it, and for each one either the verbs
+        /// it is taken with or the leg that stopped it.
+        ///
+        /// The refusals are the point. A place whose plan reads perfectly well and whose physical
+        /// routes cannot be offered on this build is a thing the inspector has to be able to say
+        /// out loud, because the alternative is a player shown a mined wall that does nothing.
+        /// </summary>
+        public static string DescribeSiteRoutes(SiteRouteProjection projection)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (projection == null)
+            {
+                sb.Append("ways through: nothing projected\n");
+                return sb.ToString();
+            }
+
+            sb.Append("ways through ")
+              .Append(projection.Layout == null ? "no plan" : projection.Layout.GrammarId)
+              .Append(" to ").Append(projection.Objective.Length > 0 ? projection.Objective : "nowhere named")
+              .Append('\n');
+
+            if (projection.Refusal.Length > 0)
+            {
+                sb.Append("  nothing to read: ").Append(projection.Refusal).Append('\n');
+                return sb.ToString();
+            }
+
+            sb.Append("  ").Append(projection.Promised.Count).Append(" of ").Append(projection.Ways.Count)
+              .Append(" can be offered on this build\n");
+
+            for (int i = 0; i < projection.Ways.Count; i++)
+            {
+                SiteWayThrough way = projection.Ways[i];
+                sb.Append(way.Promised ? "    offered  " : "    refused  ").Append(way);
+                if (way.NeedsAdmission)
+                {
+                    sb.Append("; waits on somebody letting you in");
+                }
+
+                sb.Append('\n');
+
+                for (int leg = 0; leg < way.Legs.Count; leg++)
+                {
+                    AppendLeg(sb, way.Legs[leg]);
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        private static void AppendLeg(StringBuilder sb, SiteRouteLeg leg)
+        {
+            sb.Append("      ").Append(leg.From).Append(" -> ").Append(leg.To);
+            AppendAffordances(sb, leg.Route.Affordances);
+            if (leg.Verbs.Count == 0)
+            {
+                sb.Append("; nothing to get past");
+            }
+
+            sb.Append('\n');
+
+            for (int i = 0; i < leg.Verbs.Count; i++)
+            {
+                SiteRouteVerb verb = leg.Verbs[i];
+                sb.Append(verb.Promised ? "        can    " : "        cannot ").Append(verb.ActionId);
+                sb.Append(verb.Authored ? " (this route's own verb)" : " (answers the requirement)");
+                if (verb.Claim != null)
+                {
+                    sb.Append("; ").Append(verb.Claim.Evidence);
+                    if (verb.Claim.LeansOn.Length > 0)
+                    {
+                        sb.Append(", leaning on ").Append(verb.Claim.LeansOn);
+                    }
+                }
+
+                if (!verb.Promised)
+                {
+                    sb.Append("; ").Append(verb.Refusal);
+                }
+
+                sb.Append('\n');
+            }
+
+            for (int i = 0; i < leg.Unanswered.Count; i++)
+            {
+                sb.Append("        nobody answers ").Append(leg.Unanswered[i]).Append('\n');
+            }
+        }
+
         private static void AppendAffordances(StringBuilder sb, IReadOnlyList<SiteAffordance> affordances)
         {
             if (affordances.Count == 0)

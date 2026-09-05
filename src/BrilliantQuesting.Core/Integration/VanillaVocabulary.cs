@@ -86,6 +86,19 @@ namespace BrilliantQuesting.Integration
         ReadGuildRank,
         ReadFaith,
         ReadInventory,
+
+        /// <summary>
+        /// The game will say what is standing loose in a place, as opposed to what somebody is
+        /// carrying.
+        ///
+        /// Separate from <see cref="ReadInventory"/> because the two are different reads and this
+        /// build answers only one of them: `GetInventory` resolves a character, so a thing on a
+        /// floor is invisible to the live adapter even though the headless reference returns it
+        /// (`ELIN-Q-0008`). A route that has to find the rockfall blocking a mine leans on this
+        /// one, and unsupported means that route is not promised rather than promised and then
+        /// silently empty.
+        /// </summary>
+        ReadPlaceContents,
         TransferItems,
 
         /// <summary>

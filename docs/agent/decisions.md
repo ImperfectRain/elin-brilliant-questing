@@ -1840,3 +1840,43 @@ Reason: the cheap version puts a place library in C# with a name and a room list
 unfixable after release for the same reason a storylet's dialogue in C# is — the wording and the
 shape of a place are content, and content that ships in the DLL cannot be corrected without a build
 or picked up by a save that already exists.
+
+## D067 — A route is promised because the build was asked, never because a primitive looks likely
+
+BQ-090. `SiteRoutes.Project` reads a composed plan as the ways somebody can actually take to one
+part of a place, and refuses the ones this build cannot keep. `LW §7.4`'s affordance list stays a
+vocabulary of requirements (`D066`); this is who answers each requirement and on what terms.
+
+**The verb makes the claim, not a table beside it.** A verb that takes somebody through part of a
+place implements `ISpatialRouteVerb` and states which requirement it answers, what it leans on from
+the live build, and how well that is evidenced. Derived rather than listed, for the reason the
+content loader derives the registered verb ids: a hand-kept copy is the thing that lets a place
+promise a way through nobody built. Only the verbs that end in `NarrativeSite.Admit` claim one —
+`persuade`, `call_favor`, `impersonate`, `trespass`, `clear_obstruction`, `mine_bypass`,
+`break_barrier` — because a verb that leaves the place exactly as shut as it was is not a way in
+however well it reads. `intimidate` and `bribe` therefore open nothing today, and that is a gap
+stated rather than papered over.
+
+**Two rules decide a promise, in this order.** A capability the verb needs and the adapter does not
+advertise refuses the route, because the adapter has been asked and said no — its probe is the live
+exercise. With nothing left to ask, the recorded grade decides: `SourceObserved` or `MetadataOnly`
+is not promised. A null adapter is not a build that supports everything; nobody has said, so the
+route is refused. This is `BQ-003`'s honest reporting applied to space: the four grades are the
+verification record's own, and a grade is a record of what is known, never a prediction.
+
+**Availability is a different question and stays where it is.** `NarrativeAction.GetAvailability`
+answers "can this be tried here, now, against this world", and needs a barrier object, an occupant
+and a zone that an abstract plan does not have. A projection answers the earlier question — could
+this route be offered on this build at all — and decides no option a player sees.
+
+**What this found.** The physical ways through a place cannot be offered in game today. Answering a
+barrier means finding it first, and the barrier is a thing standing in the place rather than
+something anybody is carrying, which is the one read the live adapter does not have
+(`ELIN-Q-0008`). `VanillaCapability.ReadPlaceContents` names that read; the sandbox advertises it
+because it really answers, the live adapter reports it unsupported with the reason. So the mined
+wall is proven headlessly and refused live, and a build that cannot read what stands in a place
+keeps exactly the social ways and loses the physical ones.
+
+Reason: the cheap version projects every authored route as an option and finds out in play that
+half of them do nothing, which is indistinguishable from a broken mod and impossible to diagnose
+from a save.

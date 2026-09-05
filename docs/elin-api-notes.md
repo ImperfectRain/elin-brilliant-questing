@@ -468,6 +468,9 @@ Everything above is metadata. None of it proves behaviour. Specifically open:
   Consecrated ground is therefore modelled as a fact about the *zone* rather than as an altar
   `Thing` to be found standing in it, which keeps the faith verbs off that path entirely. Reading
   a zone's things (`Zone.things` / the map's card list) is the fix when a step needs it.
+  `VanillaCapability.ReadPlaceContents` (BQ-090) is the name of that read: the adapter reports it
+  unsupported with this reason, and the spatial routes that have to find an obstruction standing in
+  a place are refused rather than offered and then silently empty (`D067`).
 - **Everything below `EClass.Branch`.** Phase 2 installed-source analysis resolves the important
   names for EA 23.338 Patch 2: residents are `FactionBranch.members`, capacity is
   `FactionBranch.MaxPopulation`, branch zone is `owner`, and metrics live in `elements`.

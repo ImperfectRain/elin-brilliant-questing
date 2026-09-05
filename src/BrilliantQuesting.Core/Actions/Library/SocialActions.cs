@@ -211,11 +211,21 @@ namespace BrilliantQuesting.Actions.Library
     }
 
     /// <summary>Ask straight out for cooperation.</summary>
-    public sealed class PersuadeAction : NarrativeAction
+    public sealed class PersuadeAction : NarrativeAction, ISpatialRouteVerb
     {
         public PersuadeAction() : base("persuade", ActionFamily.Social, "Persuade")
         {
         }
+
+        // BQ-090. Somebody standing there deciding who passes is answered by asking them, and
+        // being let through is `NarrativeSite.Admit` - nothing on the live build has to exist for
+        // it. Declared here and not on the other social verbs because only the verbs that end in
+        // AdmitRestrictedSite actually get anybody through; a route promise made by a verb that
+        // leaves the place as shut as it was would be a lie.
+        public SpatialRouteClaim SpatialRoute { get; } = new SpatialRouteClaim(
+            new[] { SiteAffordance.GuardedThreshold },
+            RouteEvidence.BqAuthored,
+            string.Empty);
 
         public override Availability GetAvailability(ActionContext context)
         {
@@ -346,11 +356,18 @@ namespace BrilliantQuesting.Actions.Library
     /// It does not compete with persuasion so much as sit above it: the same ask, without the
     /// roll, offered only to somebody who actually owes you one.
     /// </summary>
-    public sealed class CallInFavorAction : NarrativeAction
+    public sealed class CallInFavorAction : NarrativeAction, ISpatialRouteVerb
     {
         public CallInFavorAction() : base("call_favor", ActionFamily.Social, "Call in a favour")
         {
         }
+
+        // BQ-090. A favour buys the same concession persuasion does, including being let past
+        // whoever is deciding, so it is the same route taken with something already owed.
+        public SpatialRouteClaim SpatialRoute { get; } = new SpatialRouteClaim(
+            new[] { SiteAffordance.GuardedThreshold },
+            RouteEvidence.BqAuthored,
+            string.Empty);
 
         public override Availability GetAvailability(ActionContext context)
         {

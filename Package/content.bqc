@@ -9184,8 +9184,26 @@
             "admission": false
           },
           {
+            "from": "outside",
+            "to": "workings",
+            "via": "mine_bypass",
+            "admission": false,
+            "affordances": [
+              "diggable_bypass"
+            ]
+          },
+          {
             "from": "mouth",
             "to": "fall"
+          },
+          {
+            "from": "mouth",
+            "to": "workings",
+            "via": "persuade",
+            "admission": true,
+            "affordances": [
+              "guarded_threshold"
+            ]
           },
           {
             "from": "fall",

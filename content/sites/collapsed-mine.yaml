@@ -1,5 +1,7 @@
 # The collapse is the point: the workings are still there, and what is left of the way in
-# decides who can reach them.
+# decides who can reach them. Three ways in, because the wall is thin somewhere: the road,
+# the road nobody watches, and the one a pick makes. Past the fall there are two: move the
+# stone, or be walked around it by somebody who knows the old service crawl.
 id: site.collapsed_mine
 kind: site-grammar
 payload:
@@ -35,8 +37,20 @@ payload:
       to: mouth
       via: trespass
       admission: false
+    - from: outside
+      to: workings
+      via: mine_bypass
+      admission: false
+      affordances:
+        - diggable_bypass
     - from: mouth
       to: fall
+    - from: mouth
+      to: workings
+      via: persuade
+      admission: true
+      affordances:
+        - guarded_threshold
     - from: fall
       to: workings
       via: clear_obstruction

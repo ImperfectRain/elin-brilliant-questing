@@ -2405,6 +2405,46 @@ PrisonCell, ObservationPoint, AlternateExit — so builds have real routes.
 - **Done when** one site is completed three ways: front gate, side lock, mined wall.
 - **Sources** LW §7.4; MD §12; PP §4.
 - **Evidence gate** each affordance records whether it is runtime-verified, source-observed, metadata-only, or BQ-authored. Do not promise a route whose Elin primitive has not passed the appropriate evidence level.
+- **Current implementation** `SiteRoutes.Project` reads a composed `SiteLayout` as the ways
+  somebody can take from outside a place to one part of it, and refuses the ones this build cannot
+  keep (`D067`). Every simple path is enumerated, promised and refused alike, because a refusal
+  with the leg and the reason is what BQ-092 will score candidates with.
+  **The verb makes the claim.** A verb that takes somebody through part of a place implements
+  `ISpatialRouteVerb` and states which requirement it answers, what it leans on from the live build
+  and how well that is evidenced — derived rather than listed, so a grammar cannot promise a way
+  through nobody built. Only the verbs that end in `NarrativeSite.Admit` claim one, because a verb
+  that leaves the place as shut as it was is not a way in however well it reads; `intimidate` and
+  `bribe` consequently open nothing, which is stated rather than papered over. A leg is takeable
+  when some verb can take it — the grammar's own `via`, or any registered verb answering what the
+  leg demands — and a requirement nothing answers is reported even where the leg still works.
+  **A promise is a build's answer, not a guess.** A capability the verb needs and the adapter does
+  not advertise refuses the route; with nothing left to ask, the recorded grade decides, and
+  `SourceObserved`/`MetadataOnly` is never promised. A null adapter refuses rather than assumes.
+  `NarrativeInspector.DescribeSiteRoutes` prints every way with the leg that stopped it, the verbs
+  considered, and what each leans on.
+  **The done-when is proven twice**: the plan for `site.collapsed_mine` reads as three ways in —
+  the road, the road nobody watches, and the one a pick makes — and each of those three verbs gets
+  somebody into the same place in the BQ-029 laboratory. The grammar gained the third way in and
+  the old service crawl past the fall, so what the place keeps is reachable by more than one
+  solution family (`MD §12`).
+- **What the evidence gate found** the physical ways through a place cannot be offered in game
+  today. Answering a barrier means finding it first, and the barrier is a thing standing in the
+  place rather than something anybody is carrying — the one read the live adapter does not have
+  (`ELIN-Q-0008`). `VanillaCapability.ReadPlaceContents` names that read: the sandbox advertises it
+  because it really answers, and `ElinVanillaState` reports it unsupported with the reason. So a
+  build that cannot read what stands in a place keeps the social ways and loses the physical ones,
+  and the mined wall is proven headlessly rather than promised live.
+- **Deferred, and not claimed** no Elin lock, diggable wall, trap or hidden passage was adapted;
+  the requirements those name are answered by this mod's own state and portable checks or not at
+  all, and `HiddenPassage`, `PrisonCell`, `ObservationPoint`, `Hazard`, `TrapCluster`,
+  `EvidenceCache` and `AlternateExit` have no verb that answers them — a leg demanding one is
+  refused by name and the report says so. Nothing was rewired to route through a projection: the
+  archetypes that write places down still do so directly, as BQ-088 and BQ-089 left them. No
+  scoring of how different two ways really are, which is BQ-092's; no contents derived from a
+  situation, which is BQ-091's; no per-part reach state, because `NarrativeSite.Admits` is about
+  what a place keeps rather than where a body is standing (`BQ-087`). Everything above is proven in
+  `SiteRoutesTests`; none of it has run in a live Elin session, and the plugin was not built —
+  its one change is the `ReadPlaceContents` probe, and this machine has no Elin assemblies.
 
 #### BQ-091 — Scenario decoration and causal contents
 Wealth, hunger, recent attack, prisoners and cargo change what is placed. Enemies reflect the actual

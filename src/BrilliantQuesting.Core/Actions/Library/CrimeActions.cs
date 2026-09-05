@@ -271,11 +271,19 @@ namespace BrilliantQuesting.Actions.Library
     /// to; what breaking in changes is whether the strongbox in the corner is open, which is what
     /// <see cref="SearchForEvidenceAction"/> then reads.
     /// </summary>
-    public sealed class TrespassAction : NarrativeAction
+    public sealed class TrespassAction : NarrativeAction, ISpatialRouteVerb
     {
         public TrespassAction() : base("trespass", ActionFamily.Crime, "Let yourself in")
         {
         }
+
+        // BQ-090. The lock this answers is `NarrativeSite.Restricted`, not an Elin door: nothing
+        // on the build has to exist for a burglar to get past it, and the roll is the portable
+        // resolver, so the route reads the same on every build.
+        public SpatialRouteClaim SpatialRoute { get; } = new SpatialRouteClaim(
+            new[] { SiteAffordance.LockedBarrier },
+            RouteEvidence.BqAuthored,
+            string.Empty);
 
         public override Availability GetAvailability(ActionContext context)
         {
@@ -797,7 +805,7 @@ namespace BrilliantQuesting.Actions.Library
     /// What it produces is whatever standing would have got you: something the target would only
     /// tell that person, or the run of a place that person could walk into.
     /// </summary>
-    public sealed class ImpersonateAction : NarrativeAction
+    public sealed class ImpersonateAction : NarrativeAction, ISpatialRouteVerb
     {
         /// <summary>Past this, they know you too well for a costume to survive the first sentence.</summary>
         public const int KnowsYourFaceAt = 40;
@@ -805,6 +813,15 @@ namespace BrilliantQuesting.Actions.Library
         public ImpersonateAction() : base("impersonate", ActionFamily.Crime, "Pass yourself off")
         {
         }
+
+        // BQ-090. Being let past for who they take you for, which needs paper: the credentials are
+        // read out of the actor's own carried inventory, a read a running game has exercised
+        // (`API-017`).
+        public SpatialRouteClaim SpatialRoute { get; } = new SpatialRouteClaim(
+            new[] { SiteAffordance.SocialCheckpoint, SiteAffordance.GuardedThreshold },
+            RouteEvidence.RuntimeVerified,
+            "reading the credentials the actor is carrying (API-017)",
+            VanillaCapability.ReadInventory);
 
         public override Availability GetAvailability(ActionContext context)
         {
