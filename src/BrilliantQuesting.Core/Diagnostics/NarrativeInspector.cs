@@ -1580,6 +1580,51 @@ namespace BrilliantQuesting.Diagnostics
         }
 
         /// <summary>
+        /// BQ-088. Which place a matter was given, and why that one rather than a new one.
+        ///
+        /// The step's done-when is that reuse can be explained, and "why this one" is only half an
+        /// explanation: the interesting half is why every other place the world knows was passed
+        /// over. So every candidate is listed with its tier and, where it was refused, the reasons
+        /// it was refused - which is also what makes a wrong answer diagnosable, because a policy
+        /// that generated when it should not have will say which rule did it.
+        /// </summary>
+        public static string DescribeSiteChoice(NarrativeWorldState world, SitePlan plan)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (world == null || plan == null)
+            {
+                sb.Append("place for nothing: no world or no plan to place\n");
+                return sb.ToString();
+            }
+
+            SiteChoice choice = SiteReuse.Choose(world, plan);
+            sb.Append("place for ").Append(plan.ThreadId.IsNone ? "no matter" : plan.ThreadId.Value)
+              .Append(": ").Append(choice.Reused ? "reuse " + choice.Site.Name : "generate a new one")
+              .Append('\n');
+            sb.Append("  needs ").Append(string.IsNullOrEmpty(plan.SiteType) ? "any kind of place" : "a " + plan.SiteType)
+              .Append(plan.Restricted ? ", what it keeps behind somebody's permission" : ", what it keeps open to anybody")
+              .Append('\n');
+            sb.Append("  because ").Append(choice.Reason).Append('\n');
+
+            sb.Append("  considered ").Append(choice.Considered.Count).Append(" existing place(s)\n");
+            for (int i = 0; i < choice.Considered.Count; i++)
+            {
+                SiteCandidateReading reading = choice.Considered[i];
+                sb.Append(reading.Chosen ? "    chosen  " : reading.CanHost ? "    could   " : "    refused ");
+                sb.Append(reading.Site.Name).Append(" [").Append(reading.Site.SiteType).Append("]  ");
+                sb.Append(reading.Tier);
+                for (int j = 0; j < reading.Refusals.Count; j++)
+                {
+                    sb.Append("\n              ").Append(reading.Refusals[j]);
+                }
+
+                sb.Append('\n');
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// BQ-087. What a return visit found, and if something is missing, which thing.
         ///
         /// The done-when of the site proof is a comparison, so the tooling has to be able to show

@@ -1707,4 +1707,44 @@ declarations per slot and lists what is "worded, but never plainly", and the cor
 test — and neither scores a line, reads the English, or introduces a threshold an ordinary content
 change would trip.
 
+## D064 — Reuse is decided before genesis, from what a place asserts about itself
+
+BQ-088. `SiteReuse` is the decider for *which place a matter uses*; `SiteGenesis` only makes new
+ones. Generating is the fourth answer, not the first (`LW §7.2`, `PM §14`).
+
+**The requirement is the plan, read as requirements.** A caller that might have to generate has
+already built a `SitePlan`, so asking whether one is needed costs nothing extra and there is only
+one description of what a place must be. Reuse reads the three fields that describe the *place* —
+the matter it belongs to, its kind, and whether what it keeps is behind somebody's permission — and
+ignores occupants, cargo and approaches, which describe a place being built.
+
+**Four tiers, cheapest first.** A place this matter already uses; a place the world already had and
+this mod did not make; a place genesis made for a matter that can no longer surface; then a new
+one. `LW §7.2`'s middle two steps — recontextualise an existing procedural site, reuse an older BQ
+site — are one tier here, because the repo has exactly one class of BQ-made place and what actually
+separates those two cases is whether the site's matter is still live. That is a refusal, not a rank.
+
+**Only a made place can be spoken for.** A place genesis made exists because one matter needed it,
+so handing it to a second live matter puts two invented matters in one invented room. A place the
+world already had is shared infrastructure — a market row hosts as many matters as the town has —
+and is never refused for being busy. "Still live" is `Latent | Active | Dormant`, the same predicate
+`ItemProvenance` already uses: a dormant matter can wake up.
+
+**Two site fields are deliberately not read.** `Approaches` records how a place was *planned*, not
+which verbs work there, and every place the world already had has none — reading an empty list as
+"no way in" would rule out the whole first tier on an absence rather than on evidence (`D017`).
+Whether a route is available stays the action library's precondition question and BQ-090's
+projection. `Persistence` is left at its enum default on every place nobody set it on, so it is not
+evidence about them either.
+
+**Reuse is a binding and appends nothing.** The place is added to the matter's own list and left
+exactly as it is: nobody staged, none of the plan's cargo placed, no event written. Staging the
+plan's contents into a reused place would be genesis under another name and would overwrite the
+history that made the place worth reusing. Eventless for `D058`'s reason seen from the other side —
+a matter adopting a place is bookkeeping, not something that happened to anybody.
+
+Reason: the cheap version generates whenever a matter names a place, and the clutter is invisible
+until a save has a dozen mod-made caches in one region and no matter ever happens anywhere the
+player already knows.
+
 Add a new entry only when the decision is both load-bearing and durable.

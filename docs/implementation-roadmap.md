@@ -2314,6 +2314,44 @@ recontextualized, can an older site be reused? Generate only as a last resort.
 - **Depends** BQ-087.
 - **Done when** a situation needing a site reuses an existing one, and the inspector explains why.
 - **Sources** LW §7.2; PM §14.
+- **Current implementation** `SiteReuse` is the decider for which place a matter uses, and
+  `SiteGenesis` is left as the thing that makes new ones (`D064`, `D052`). `SiteReuse.Provide` is
+  the one call a caller makes: it chooses, and only reaches genesis when nothing existing can host
+  the matter. The requirement it weighs is the `SitePlan` itself, read as requirements rather than
+  as instructions — a caller that might have to generate has built one anyway, and a second
+  vocabulary for "what a place must be" would be one more thing to get out of step with the one
+  genesis validates. Three things a place asserts decide it: its kind, whether what it keeps is
+  behind somebody's permission (`NarrativeSite.Restricted`, already the load-bearing half of "two
+  ways in" under `D058`), and — for a place this mod made — whether a matter that can still surface
+  holds it. Four tiers, cheapest first: a place this matter already uses, a place the world already
+  had, a place genesis made for a matter that is over, then a new one.
+  **Reuse is a binding and appends nothing.** The place joins the matter's `SiteIds` and is
+  otherwise untouched: nobody staged, none of the plan's cargo placed, no event written. Staging
+  the plan's contents into a reused place would be genesis under another name and would overwrite
+  the history that made it worth reusing.
+  **`NarrativeInspector.DescribeSiteChoice` is the explanation**, and it lists the places that were
+  *not* used as well as the one that was, with a reason against each — "it is a market, and this
+  matter needs a mine", "what it keeps is open to anybody, and this matter needs a place somebody
+  has to let you into", "another matter that can still surface is using it". A policy that
+  generated when it should not have will say which rule did it.
+  **`SiteReuseTests` is thirteen behaviours**: the done-when, generation as the last answer, each
+  tier beating the one below it, a made place recycled only once its own matter can no longer
+  surface, a dormant matter's place still being its own, a shared place not refused for being busy,
+  reach mattering in both directions, reuse staging nothing and writing no history, and the same
+  need choosing the same place across a save and load, and a plan with no matter behind it being
+  placed nowhere at all. Headless throughout.
+- **Where the roadmap's own wording had to bend.** `LW §7.2`'s middle two steps — recontextualise an
+  existing procedural site, then reuse an older BQ site — are one tier here. The repo has exactly
+  one class of BQ-made place, and what actually separates those two cases is whether the site's
+  matter is still live, which this makes a refusal rather than a rank. `PM §14`'s "existing
+  persistent location" first is likewise not read off `NarrativeSite.Persistence`: that field is at
+  its enum default on every place nobody set it on, so it is not evidence about them (`D017`).
+- **Deferred by design** no situation was rewired to route through the policy — the archetypes that
+  write places down do so directly and changing them is not this step's, so the reuse path is
+  proven headlessly against a world built the way they build one; no scoring of *how good* a reused
+  place is, which is BQ-092's question over candidates; no reading of `Approaches` as a route
+  promise, which is BQ-090's; and no recontextualisation content — what a reused place then holds
+  stays the situation's own business through the ordinary verbs.
 
 #### BQ-089 — Curated location grammars
 Bandit camp, collapsed mine, smuggler cellar, occupied farmhouse, warehouse, makeshift prison —
