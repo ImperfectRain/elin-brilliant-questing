@@ -1824,6 +1824,88 @@ namespace BrilliantQuesting.Diagnostics
         }
 
         /// <summary>
+        /// BQ-091. What one matter leaves in one place, why each of it is there, and everything
+        /// the place does not get.
+        ///
+        /// The omissions and the empty parts are the point. "No template chest" is not visible in
+        /// a list of contents - a good derivation and a generous one look the same from the front -
+        /// so the inspector shows what the matter named and did not leave here, and which part of
+        /// the plan stayed empty because nothing in the world filled it.
+        /// </summary>
+        public static string DescribeSiteContents(NarrativeWorldState world, SiteContentsReading contents)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (contents == null)
+            {
+                sb.Append("contents: nothing derived\n");
+                return sb.ToString();
+            }
+
+            sb.Append("contents of the place ")
+              .Append(contents.Thread == null ? "no matter" : contents.Thread.ArchetypeId)
+              .Append(" needs")
+              .Append(contents.Layout == null ? string.Empty : " [" + contents.Layout.GrammarId + "]")
+              .Append('\n');
+
+            for (int i = 0; i < contents.Refusals.Count; i++)
+            {
+                sb.Append("  cannot furnish: ").Append(contents.Refusals[i]).Append('\n');
+            }
+
+            sb.Append("  people ").Append(contents.Occupants.Count).Append('\n');
+            for (int i = 0; i < contents.Occupants.Count; i++)
+            {
+                SiteOccupancy occupant = contents.Occupants[i];
+                sb.Append("    ").Append(occupant.Presence).Append("  ")
+                  .Append(world == null ? occupant.Id.Value : world.Registry.NameOf(occupant.Id));
+                if (occupant.NodeId.Length > 0)
+                {
+                    sb.Append(" in ").Append(occupant.NodeId);
+                }
+
+                sb.Append(occupant.AlreadyExists ? " (the game has them)" : " (to be built)")
+                  .Append("; ").Append(occupant.Reason).Append('\n');
+            }
+
+            sb.Append("  things ").Append(contents.Cargo.Count).Append('\n');
+            for (int i = 0; i < contents.Cargo.Count; i++)
+            {
+                SiteHolding holding = contents.Cargo[i];
+                sb.Append("    ").Append(holding.Keeping).Append("  ").Append(holding.Item.Name)
+                  .Append(" held by ")
+                  .Append(world == null ? holding.HolderId.Value : world.Registry.NameOf(holding.HolderId));
+                if (holding.NodeId.Length > 0)
+                {
+                    sb.Append(" in ").Append(holding.NodeId);
+                }
+
+                if (!holding.EvidenceForFact.IsNone)
+                {
+                    sb.Append("; proves ").Append(holding.EvidenceForFact.Value);
+                }
+
+                sb.Append("; ").Append(holding.Reason).Append('\n');
+            }
+
+            for (int i = 0; i < contents.Omitted.Count; i++)
+            {
+                SiteContentsOmission omission = contents.Omitted[i];
+                sb.Append("  not here  ")
+                  .Append(world == null ? omission.Id.Value : world.Registry.NameOf(omission.Id))
+                  .Append("; ").Append(omission.Reason).Append('\n');
+            }
+
+            for (int i = 0; i < contents.Vacant.Count; i++)
+            {
+                SiteVacancy vacancy = contents.Vacant[i];
+                sb.Append("  empty     ").Append(vacancy.NodeId).Append(" (").Append(vacancy.Affordance)
+                  .Append("); ").Append(vacancy.Reason).Append('\n');
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// BQ-087. What a return visit found, and if something is missing, which thing.
         ///
         /// The done-when of the site proof is a comparison, so the tooling has to be able to show

@@ -2452,6 +2452,43 @@ group; loot is stolen cargo and possessions, never filler.
 - **Depends** BQ-090.
 - **Done when** a site's contents are derivable from its situation's state, with no template chest.
 - **Sources** LW §7.5, §7.8; PM §14; PP §2, §4.
+- **Current implementation** `SiteContents.Derive` reads what one matter leaves in one place out of
+  the ledger, the knowledge graph, the registry and a live inventory, and fills the two lists
+  genesis already validates (`D068`). It mints nothing: there is no object and no person it could
+  invent, so the template chest has nowhere to come from rather than being refused by a rule.
+  **Why somebody is there is something the world wrote down.** They took what the place keeps, they
+  are in the crew of somebody who did, or the ledger recorded them taken and nothing since let them
+  go. Which acts make somebody hold a place is derived from the contents — the actor of the theft
+  that produced the cargo, the actor of the capture that produced the captive — rather than from a
+  list of hostile verbs, so the people the matter was *done to* are not in the hideout.
+  **The roster is the group's own.** Enemies are the living members of the organizations the
+  holders belong to, in the order the organization lists them; a member the world killed is not
+  there and nobody takes their place. Dead is a recorded answer and unread is not, so an actor the
+  build cannot answer for stays where the matter put them (`D017`).
+  **An object is here only where the game says somebody here has it.** Provenance is history's
+  claim, not proof: every piece of cargo is confirmed against a live inventory belonging to one of
+  the place's own people, and anything that cannot be found is omitted with the reason. So a matter
+  can come up short — too few people, or nothing left behind — and that is a refusal rather than a
+  place filled out with substitutes.
+  **Genesis now binds as well as builds.** `SiteOccupantPlan.AlreadyThere` and
+  `SiteCargoPlan.AlreadyHere` mark what must not be staged, because rebuilding a live character
+  would give them a second body and staging a carried object would put a second copy of it under
+  the site's own manifest (`D021`). A plan may claim somebody is there already only when the world
+  knows them.
+  **The done-when is proven both ways** in `SiteContentsTests`: the camp a road crew's theft needs
+  holds exactly the strongbox that was taken and exactly the crew that took it, through the ordinary
+  genesis path; and giving the goods back, moving them out of the thief's hands, killing two of the
+  crew, or composing a plan with nowhere to hold a captive each change or empty the contents rather
+  than substituting anything. `NarrativeInspector.DescribeSiteContents` prints every occupant and
+  object with what put it there, everything the matter named and the place did not get, and every
+  part of the plan that stayed empty.
+- **Not this step** no wealth, hunger or injury decoration: `Organization.Wealth` and the demand
+  ledger are real state, but nothing physical is derived from them here, and `DangerLevel` stays
+  `OrganizationActivity`'s so a place does not have two authors for how dangerous it is. Composition
+  still reads no world state — which optional parts a plan has is BQ-089's seed — so this places
+  contents into a plan and reports the mismatches rather than choosing a plan that fits them, which
+  is BQ-092's. Proven headlessly: Core 1419 tests and Lab 134 pass, no plugin code changed and none
+  of this has run in a live Elin session.
 
 #### BQ-092 — Candidate generation and scoring
 Generate several site candidates and select on route diversity, objective separation, evidence

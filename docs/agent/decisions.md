@@ -1880,3 +1880,48 @@ keeps exactly the social ways and loses the physical ones.
 Reason: the cheap version projects every authored route as an option and finds out in play that
 half of them do nothing, which is indistinguishable from a broken mod and impossible to diagnose
 from a save.
+
+## D068 — A place holds what happened, and genesis binds what already exists
+
+BQ-091. `SiteContents.Derive` answers what one matter leaves in one place by reading the ledger,
+the knowledge graph, the registry and a live inventory. `PP §2`'s "state causes contents" is
+enforced by there being nothing else to read from: the derivation mints no object and no person, so
+a template chest is not refused by a rule, it has nowhere to come from.
+
+**Why somebody is at a place is something the world wrote down.** Three answers, on the admission
+rule `D057` set for objects: they took what the place keeps, they are in the crew of somebody who
+did, or the ledger recorded them taken and nothing since let them go. There is no "guard" and no
+"lookout", because nothing records those. Which acts make somebody hold a place is derived from the
+contents rather than from a list of hostile verbs — the actor of the theft that produced the cargo,
+the actor of the capture that produced the captive — so the two people who merely argued here do
+not turn up in the hideout, and the victim never does.
+
+**The roster is the group's own (`LW §7.8`).** Enemies are the living members of the organizations
+the holders belong to, in the order the organization lists them. A member the world killed is not
+there and nobody takes their place: "do not refill a cleared group" is where the roster comes from,
+not a rule to remember. Dead is a recorded answer and unread is not, so an actor the build cannot
+answer for stays where the matter put them (`D017`).
+
+**History's claim about an object is not proof the object is there.** Every piece of cargo is
+confirmed against a live inventory belonging to one of the place's own people; anything that cannot
+be found is omitted with the reason rather than recreated. That is `D004`'s stale-binding rule
+applied to contents, and it is why a matter can come up short: too few people or nothing left
+behind is a refusal, and genesis is the decider either way.
+
+**Genesis binds as well as builds.** Contents derived from state mostly already exist, so
+`SiteOccupantPlan.AlreadyThere` and `SiteCargoPlan.AlreadyHere` mark what genesis must not stage:
+rebuilding a live character would give them a second body and a second inventory, and staging a
+carried object would put a second copy of it in the world under the site's own manifest. Vanilla
+owns embodiment (`D021`). A plan may only claim somebody is there already when the world knows
+them, so the claim is checkable rather than a plan's word.
+
+**What the plan does and does not say about where.** Only being held somewhere is a fact about
+which part of a place — a captive goes in a part that answers `PrisonCell`, cargo in one that
+answers `EvidenceCache`, and everybody else is simply in the place, because a plan says what a
+place is for and Elin decides where a body stands (`BQ-090`). A matter that holds somebody and a
+plan with nowhere to hold them is a mismatch reported by name, and a part nothing fills stays empty
+and is listed. Choosing between rival plans on those mismatches is BQ-092's.
+
+Reason: the cheap version fills a generated site from the grammar — three bandits because a camp
+has bandits, a strongbox because a camp has stores — and the result is a place that looks causal,
+survives inspection, and is not about anything that happened.

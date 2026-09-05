@@ -239,7 +239,7 @@ namespace BrilliantQuesting.World
         /// independently from the seed, so which extras a particular place has is stable for that
         /// seed and different across seeds. Nothing here reads world state: what a place then
         /// *holds* - who is in it, what was taken, what happened here - is the situation's, and
-        /// deriving contents from state is BQ-091's.
+        /// <see cref="SiteContents"/> derives it (BQ-091).
         /// </summary>
         public SiteLayout Compose(ulong seed)
         {

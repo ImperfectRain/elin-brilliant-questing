@@ -46,12 +46,28 @@ namespace BrilliantQuesting.World
             Blueprint = blueprint;
         }
 
+        /// <summary>
+        /// Somebody the game already has, to be bound into the place rather than built into it.
+        ///
+        /// Contents derived from a matter's own state are mostly people who already exist
+        /// (BQ-091), and building one again would give a live character a second body, second
+        /// stats and a second inventory. Vanilla owns embodiment (`D021`), so genesis stages
+        /// nobody it was not handed something to build.
+        /// </summary>
+        public static SiteOccupantPlan AlreadyThere(NarrativeNpc npc, string role)
+        {
+            return new SiteOccupantPlan(npc, role, null);
+        }
+
         public NarrativeNpc Npc { get; }
 
         /// <summary>What they are here for - "keeper", "guard", "captive". Free text by design.</summary>
         public string Role { get; }
 
+        /// <summary>What to build them from, or null when the game already has them.</summary>
         public CharacterBlueprint Blueprint { get; }
+
+        public bool AlreadyExists => Blueprint == null;
     }
 
     /// <summary>
@@ -65,13 +81,34 @@ namespace BrilliantQuesting.World
     public sealed class SiteCargoPlan
     {
         public SiteCargoPlan(ItemDescriptor item, EntityId holderId, EntityId evidenceForFact = default)
+            : this(item, holderId, evidenceForFact, false)
+        {
+        }
+
+        private SiteCargoPlan(ItemDescriptor item, EntityId holderId, EntityId evidenceForFact, bool alreadyExists)
         {
             Item = item;
             HolderId = holderId;
             EvidenceForFact = evidenceForFact;
+            AlreadyExists = alreadyExists;
+        }
+
+        /// <summary>
+        /// Something the place already keeps, in hands that are already holding it.
+        ///
+        /// Cargo derived from a matter's history is a real object read out of a live inventory
+        /// (BQ-091). Staging it again would put a second copy of it in the world, and the second
+        /// copy would be the one the site's manifest named.
+        /// </summary>
+        public static SiteCargoPlan AlreadyHere(ItemDescriptor item, EntityId holderId, EntityId evidenceForFact = default)
+        {
+            return new SiteCargoPlan(item, holderId, evidenceForFact, true);
         }
 
         public ItemDescriptor Item { get; }
+
+        /// <summary>The object exists and the holder already has it, so nothing is created for it.</summary>
+        public bool AlreadyExists { get; }
 
         /// <summary>One of the site's own occupants. Cargo nobody at the place holds is not cargo.</summary>
         public EntityId HolderId { get; }
@@ -308,13 +345,20 @@ namespace BrilliantQuesting.World
                 }
 
                 site.OccupantIds.Add(occupant.Npc.Id);
-                stager.StageCharacter(occupant.Npc.Id, occupant.Blueprint, zone);
+                if (!occupant.AlreadyExists)
+                {
+                    stager.StageCharacter(occupant.Npc.Id, occupant.Blueprint, zone);
+                }
             }
 
             for (int i = 0; i < plan.Cargo.Count; i++)
             {
                 SiteCargoPlan cargo = plan.Cargo[i];
-                stager.StageItem(cargo.HolderId, cargo.Item);
+                if (!cargo.AlreadyExists)
+                {
+                    stager.StageItem(cargo.HolderId, cargo.Item);
+                }
+
                 site.ImportantObjectIds.Add(cargo.Item.Id);
 
                 if (cargo.EvidenceForFact.IsNone)
@@ -438,9 +482,20 @@ namespace BrilliantQuesting.World
             for (int i = 0; i < plan.Occupants.Count; i++)
             {
                 SiteOccupantPlan occupant = plan.Occupants[i];
-                if (occupant?.Npc == null || occupant.Npc.Id.IsNone || occupant.Blueprint == null)
+                if (occupant?.Npc == null || occupant.Npc.Id.IsNone)
                 {
-                    refusals.Add("an occupant with no identity or nothing to build them from");
+                    refusals.Add("an occupant with no identity");
+                    continue;
+                }
+
+                // An occupant with nothing to build them from is one the game already has, and
+                // "already has" is checkable rather than a claim the plan gets to make: the world
+                // has to know them. Otherwise a plan could name somebody nobody would ever build,
+                // and the place would be populated by ids.
+                if (occupant.AlreadyExists && world.Registry.GetNpc(occupant.Npc.Id) == null)
+                {
+                    refusals.Add("occupant " + occupant.Npc.Id.Value
+                                 + " is said to be there already, and the world does not know them");
                     continue;
                 }
 
