@@ -2705,6 +2705,43 @@ saved, places that carry their name — and exportable as text.
 - **Depends** BQ-034, BQ-086.
 - **Done when** a tester reads their own chronicle and can retell it to someone else without the game open.
 - **Sources** engagement §3 Tier 3; Dwarf Fortress Legends.
+- **Current implementation** `Diagnostics.ChronicleNarrative` is the fourth derivation over the
+  ledger after `CallbackHooks`, `ItemProvenance` and `LocationHistory`, on exactly their terms
+  (`D022`, `D039`, `D057`, and now `D065`): nothing is stored, indexed or saved, so a life survives
+  a reload because the events do and a corrected event corrects every reading of them. BQ-034 stays
+  the record of what is finished and is read unchanged; this arranges it.
+  Three readings answer the three things `engagement §3 Tier 3` names, and each borrows an existing
+  authority rather than adding one. **Figures** are the people the player's own history keeps
+  returning to: what sort of material a dealing left is `CallbackHooks.KindsOf`, whether the player
+  may recall it at all is `CallbackHooks.TryRoute` — which is how `D008` holds here without a rule
+  of this layer's own, and why somebody who robbed them unnoticed is history the world has and
+  their chronicle does not — and what the tie is called is the relationship graph's own
+  `RelationKind`. **Places** are the sites the player's own acts are part of, read through
+  `LocationHistory.KnownTo` and compressed by `LocationHistory.Legends`. **Works** are the
+  businesses whose standing the player changed, which is readable because `BusinessStateChanged`
+  already records an actor and tags the state — so who rescued a shop is history rather than an
+  inference from who is standing in it, and what the player did and what the shop is today stay two
+  readings so the case cannot claim a rescue the world stopped holding.
+  Being worth retelling is BQ-086's bar rather than a new one: a person qualifies on repetition
+  (`MinimumOccurrences`) or on one heavy enough event (`HighSalience`), reusing those constants
+  because "what is worth remembering" is one question. A place is admitted more simply, because
+  `SiteDiscovered` and `SiteCleared` are the two verbs whose subject is a place: finding somewhere
+  or getting past what held it shut carries your name into it however ordinary the roll was.
+  Nothing here names what a history *meant*. There is no feud field: a feud is a reader looking at
+  three `Injury` dealings beside an `Enemy` edge, and deciding it in Core would be a record of what
+  happened ruling on what it was worth (`D065`).
+  "Exportable as text" is `Export`, one self-contained document — people and places by the names
+  the world gave them, days rather than timestamps, and a thing the world never named left out
+  rather than printed as a minted id, which is `D017` applied to wording. It reaches the player
+  through the native journal page, the `why?` inspector, and the laboratory's `questline` surface.
+- **Not claimed** the in-game export goes to `BepInEx/LogOutput.log` by BQ-012's existing report
+  route rather than to a dedicated `.txt` beside the save. A file drop needs a writable path
+  verified in a live install, and guessing one is how a surface that silently writes nothing gets
+  shipped. Screenshot framing and any presentation polish are likewise absent. Everything here is
+  proven headlessly in `ChronicleNarrativeTests` and by the `questline` scenario; the journal page
+  and the log export have not been run in a live Elin session, and the plugin could not be compiled
+  here because the Elin assemblies are not redistributable — the changed file was checked
+  semantically against Core instead, leaving only the game types unresolved.
 - **Why** DF players generate worlds purely to read history. A shareable chronicle is the mod's best advertisement for itself.
 
 #### BQ-118 — Standing sheet

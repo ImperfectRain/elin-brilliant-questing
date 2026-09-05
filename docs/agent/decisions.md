@@ -1747,4 +1747,46 @@ Reason: the cheap version generates whenever a matter names a place, and the clu
 until a save has a dozen mod-made caches in one region and no matter ever happens anywhere the
 player already knows.
 
+## D065 — A chronicle arranges history and never judges it, and being worth retelling has one bar
+
+BQ-117. `ChronicleNarrative` is the fourth derivation over the ledger, beside `CallbackHooks`,
+`ItemProvenance` and `LocationHistory`, and it is built on their terms: nothing stored, nothing
+indexed, nothing in the save. A life survives a reload because the events do, and a corrected event
+corrects every reading of it.
+
+**It contributes one question, and borrows every other answer.** What sort of story an event leaves
+is `CallbackHooks.KindsOf`. Whether the player may recall it is `CallbackHooks.TryRoute`, which is
+how `D008` holds here without a rule of this layer's own — something done to them unnoticed is
+history the world has and their chronicle does not. What a place is known for is
+`LocationHistory.Legends`. What a tie is called is `RelationKind`. Who rescued a shop is the actor
+`BusinessStateChanged` already records. The only question this layer answers is *which of it was
+this person's doing*.
+
+**Worth retelling has one bar, and it is BQ-086's.** A person earns a place the way a legend does:
+repeated (`LocationHistory.MinimumOccurrences`) or heavy enough alone (`LocationHistory.HighSalience`).
+The constants are reused rather than re-chosen, because "what is worth remembering" is one question
+and two answers to it drift apart. A place is admitted on a simpler ground because the ledger has
+two verbs whose subject is a place: finding somewhere or getting past what held it shut carries your
+name into it however ordinary the roll was, so `Found` and `Cleared` admit alone.
+
+**It reports; it never names what a history meant.** `engagement §3` says feuds, rescues and saved
+shops, and no field holds any of those words. A feud is a reader looking at three `Injury` dealings
+beside an `Enemy` edge. A field called `IsFeud` would be this layer deciding what happened to
+somebody meant, which is the one thing a record of what happened must not do — and it is the same
+boundary `D033` keeps between wording and meaning, seen from the record's side.
+
+**An unnamed thing is left out, never printed as a handle.** `EntityRegistry.NameOf` falls back to
+the id, which is right for a log and wrong for an export: a minted id is unreadable to somebody
+holding the text and not the save, and printing it claims a name the world never gave. `D017`
+applied to wording.
+
+**What is held is not what is finished.** Open standing — favours owed, doors, membership — stays
+`StandingSheet`'s, and the chronicle carries none of it. A trophy case that also listed what is
+outstanding is a to-do list, which is the surface BQ-118 already built and a different question.
+
+Reason: the cheap version prints the resolved-thread list under a better heading. That is a log,
+and nobody retells a log; what a player retells is the handful of people, places and shops their
+character is now attached to, and those are derivable from the same history without a second record
+of it.
+
 Add a new entry only when the decision is both load-bearing and durable.

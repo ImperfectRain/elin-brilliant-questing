@@ -70,7 +70,7 @@ namespace BrilliantQuesting.Lab
             Banner("WHAT THE PLAYER CAN READ BACK");
             Console.Write(NarrativeJournal.Describe(lab.World, lab.Player));
             Console.WriteLine();
-            Console.Write(Chronicle.Describe(lab.World, lab.Player));
+            Console.Write(ChronicleNarrative.Export(lab.World, lab.Player, lab.Vanilla.Now));
 
             Banner("HISTORY");
             Console.Write(NarrativeInspector.DescribeHistory(lab.World, 40));

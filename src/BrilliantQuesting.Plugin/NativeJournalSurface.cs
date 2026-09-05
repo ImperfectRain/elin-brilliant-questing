@@ -32,6 +32,7 @@ namespace BrilliantQuesting.Plugin
         private static bool _reportedContentRefresh;
         private static bool _reportedContentBuilt;
         private static bool _reportedContentMount;
+        private static string _exportedChronicle;
 
         internal static bool UseDialogueFallback => !_patchesAvailable || _disabled;
 
@@ -39,6 +40,10 @@ namespace BrilliantQuesting.Plugin
         {
             _world = world;
             _vanilla = vanilla;
+
+            // A different save is a different life, so the next journal open exports afresh
+            // rather than being suppressed by the previous save's text.
+            _exportedChronicle = null;
         }
 
         internal static void Install(ManualLogSource log)
@@ -486,7 +491,7 @@ namespace BrilliantQuesting.Plugin
                 AddStanding(world, vanilla);
                 AddKnownPeople(world, player);
                 AddKnownClaims(world, player);
-                AddResolvedMatters(world, player);
+                AddChronicle(world, vanilla);
                 Build();
                 if (!_reportedContentBuilt)
                 {
@@ -648,26 +653,109 @@ namespace BrilliantQuesting.Plugin
                 }
             }
 
-            private void AddResolvedMatters(NarrativeWorldState world, EntityId player)
+            /// <summary>
+            /// BQ-117: the chronicle as a trophy case - who the player became, and then what they
+            /// finished.
+            ///
+            /// The people, places and businesses come first and the finished matters last, because
+            /// the first three are what a player retells and the last is the record they check.
+            /// Nothing here decides anything: every line is a reading
+            /// <see cref="ChronicleNarrative"/> already derived.
+            /// </summary>
+            private void AddChronicle(NarrativeWorldState world, ElinVanillaState vanilla)
             {
-                AddHeader("Resolved matters", null);
-                IReadOnlyList<ChronicleEntry> entries = Chronicle.Entries(world, player);
-                if (entries.Count == 0)
+                ChronicleLife life = ChronicleNarrative.Read(world, vanilla.PlayerId, vanilla.Now);
+
+                AddHeader("Who you dealt with", null);
+                if (life.Figures.Count == 0)
                 {
-                    AddText("Nothing resolved yet.", FontColor.Default);
-                    return;
+                    AddText("Nobody yet.", FontColor.Default);
                 }
 
-                for (int i = 0; i < entries.Count; i++)
+                for (int i = 0; i < life.Figures.Count; i++)
                 {
-                    ChronicleEntry entry = entries[i];
-                    AddText(entry.ArchetypeId + "  " + Words(entry.Outcome) + "  day " + entry.ResolvedAt.TotalDays, FontColor.Topic);
+                    ChronicleFigure figure = life.Figures[i];
+                    AddText(figure.Name + "  " + figure.Dealings + (figure.Dealings == 1 ? " dealing" : " dealings")
+                            + (figure.Tie == null ? string.Empty : "  " + Chronicle.Words(figure.Tie.Kind.ToString())),
+                        FontColor.Topic);
+                }
+
+                if (life.Places.Count > 0)
+                {
+                    AddHeader("Places that carry your name", null);
+                    for (int i = 0; i < life.Places.Count; i++)
+                    {
+                        ChroniclePlace place = life.Places[i];
+                        AddText(place.Name + "  day " + place.Last.TotalDays, FontColor.Topic);
+                    }
+                }
+
+                if (life.Works.Count > 0)
+                {
+                    AddHeader("Businesses you changed", null);
+                    for (int i = 0; i < life.Works.Count; i++)
+                    {
+                        ChronicleWork work = life.Works[i];
+                        string keeper = work.OperatorId.IsNone ? string.Empty : world.Registry.NameOf(work.OperatorId) + "  ";
+                        AddText(keeper + Chronicle.Words(work.Left.ToString()) + "  day " + work.At.TotalDays,
+                            work.Holds ? FontColor.Good : FontColor.Default);
+                    }
+                }
+
+                AddHeader("Resolved matters", null);
+                if (life.Matters.Count == 0)
+                {
+                    AddText("Nothing resolved yet.", FontColor.Default);
+                }
+
+                for (int i = 0; i < life.Matters.Count; i++)
+                {
+                    ChronicleEntry entry = life.Matters[i];
+                    AddText(Chronicle.Words(entry.ArchetypeId) + "  " + Chronicle.Words(entry.Outcome) + "  day " + entry.ResolvedAt.TotalDays, FontColor.Topic);
                     for (int a = 0; a < entry.WhatThePlayerDid.Count; a++)
                     {
                         ChronicleAct act = entry.WhatThePlayerDid[a];
-                        AddText("You: " + Words(act.Type.ToString()) + (act.Towards.IsNone ? string.Empty : " - " + world.Registry.NameOf(act.Towards)), FontColor.Default);
+                        AddText("You: " + Chronicle.Words(act.Type.ToString()) + (act.Towards.IsNone ? string.Empty : " - " + world.Registry.NameOf(act.Towards)), FontColor.Default);
                     }
                 }
+
+                ExportChronicle(world, vanilla);
+            }
+
+            /// <summary>
+            /// BQ-117's "exportable as text", through the route BQ-012's report already uses: the
+            /// whole chronicle goes to `BepInEx/LogOutput.log`, which is a text file the player can
+            /// read, paste and share with the game shut, and the page says so in one line.
+            ///
+            /// Written only when the text has changed since the last write, so opening the journal
+            /// twice in a row does not put two copies in the log. A dedicated `.txt` beside the
+            /// save would be better and is deliberately not attempted here: it needs a writable
+            /// path verified in a live install, and guessing one is how a surface that silently
+            /// writes nothing gets shipped.
+            /// </summary>
+            private void ExportChronicle(NarrativeWorldState world, ElinVanillaState vanilla)
+            {
+                string text;
+                try
+                {
+                    text = ChronicleNarrative.Export(world, vanilla.PlayerId, vanilla.Now);
+                }
+                catch (Exception ex)
+                {
+                    _log?.LogError("Chronicle export failed: " + ex);
+                    return;
+                }
+
+                if (!string.Equals(text, _exportedChronicle, StringComparison.Ordinal))
+                {
+                    _exportedChronicle = text;
+                    foreach (string line in text.Split('\n'))
+                    {
+                        _log?.LogInfo(line);
+                    }
+                }
+
+                AddText("A copy of this chronicle is in BepInEx/LogOutput.log.", FontColor.Default);
             }
 
             private static string EntryLine(JournalEntry entry)
@@ -735,15 +823,6 @@ namespace BrilliantQuesting.Plugin
                 return string.Join(", ", names);
             }
 
-            private static string Words(string value)
-            {
-                if (string.IsNullOrEmpty(value))
-                {
-                    return "resolved";
-                }
-
-                return value.Replace('_', ' ');
-            }
         }
     }
 }

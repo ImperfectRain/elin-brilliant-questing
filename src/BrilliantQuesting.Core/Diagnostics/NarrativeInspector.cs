@@ -1217,8 +1217,11 @@ namespace BrilliantQuesting.Diagnostics
             sb.Append("\n-- what the player knows --\n");
             sb.Append(NarrativeJournal.Describe(world, vanilla.PlayerId));
 
-            sb.Append("\n-- what the player has finished --\n");
-            sb.Append(Chronicle.Describe(world, vanilla.PlayerId));
+            // BQ-117: the trophy case rather than the flat list. It is a superset of the
+            // Chronicle's own reading - the finished matters are still every line BQ-034 prints -
+            // so the report gains the people and places without carrying the log twice.
+            sb.Append("\n-- who the player became, and what they finished --\n");
+            sb.Append(ChronicleNarrative.Export(world, vanilla.PlayerId, vanilla.Now));
 
             sb.Append("\n-- what the player holds that is not money or an item --\n");
             sb.Append(StandingSheet.Describe(world, vanilla));

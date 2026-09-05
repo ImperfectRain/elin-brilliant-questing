@@ -99,9 +99,13 @@ Content         ContentBundle, ContentBundleLoader, StoryletContent, DialogueFra
 Persistence     Json, WorldStateSerializer, SaveMigrations
                 versioned, human-readable, and restores without replaying history
 
-Diagnostics     NarrativeInspector
-                the "why?" tooling: options with their rejection reasons, belief spread, history,
-                and a played scene beat by beat with the terms behind every decision
+Diagnostics     NarrativeInspector, NarrativeJournal, Chronicle, ChronicleNarrative,
+                StandingSheet
+                the "why?" tooling and the player-facing readings beside it: options with their
+                rejection reasons, belief spread, history, and a played scene beat by beat with the
+                terms behind every decision - then what the player knows, what they hold, what they
+                finished, and who they became. Every one is derived from the ledger and stores
+                nothing, so no surface can drift from what happened (`D022`, `D065`)
 ```
 
 The dramatic path runs one way through those layers and never doubles back:

@@ -78,9 +78,10 @@ namespace BrilliantQuesting.Diagnostics
     /// them of it. Inside an entry, who did what comes from the player's beliefs, tagged, so an
     /// unsolved theft closed on a wrong name reads as the suspicion it was rather than as fact.
     ///
-    /// Presentation is deliberately plain - one line per act, the event's own name. Turning this
-    /// into prose the player would retell is BQ-117, and inventing a phrasebook here would be a
-    /// second, half-written narrator to keep in step with the first.
+    /// Presentation is deliberately plain - one line per act, the event's own name. Arranging
+    /// this into something a player would retell is <see cref="ChronicleNarrative"/> (BQ-117),
+    /// which reads the same history rather than rewording it: a phrasebook in either place would
+    /// be a second, half-written narrator to keep in step with the first.
     /// </summary>
     public static class Chronicle
     {
@@ -232,8 +233,15 @@ namespace BrilliantQuesting.Diagnostics
             return false;
         }
 
-        /// <summary>"debt_paid" and "ItemReturned" both become readable without a phrasebook.</summary>
-        private static string Words(string value)
+        /// <summary>
+        /// "debt_paid" and "ItemReturned" both become readable without a phrasebook.
+        ///
+        /// Public because every surface that reads this history has to spell an outcome the same
+        /// way, and a copy per surface is how two readings of one ledger start disagreeing about
+        /// what a verb is called. It formats an identifier and knows nothing else - the wording
+        /// with variants and voice is still the content pipeline's.
+        /// </summary>
+        public static string Words(string value)
         {
             if (string.IsNullOrEmpty(value))
             {
