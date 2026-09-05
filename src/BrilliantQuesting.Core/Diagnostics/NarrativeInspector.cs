@@ -1920,6 +1920,305 @@ namespace BrilliantQuesting.Diagnostics
         }
 
         /// <summary>
+        /// BQ-139. One whole scenario plan, in enough detail that somebody can understand the
+        /// place without anything having rendered it.
+        ///
+        /// That is the bar this step is held to, so the trace is the plan and not a summary of it:
+        /// every region with what it requires, how deep in it is and what is anchored there; every
+        /// route with what it asks and whether this build can keep it; every ring, every genuine
+        /// alternative and every way that turned out to be one of them reworded; who the plan is
+        /// entitled to say is where, and everybody it is not; the authored sockets it carries and
+        /// fills none of; each invariant with what it was read off; and the plans that were refused
+        /// so the choice can be argued with.
+        ///
+        /// Nothing here is geometry and nothing here is a line a player reads. A plan that had
+        /// either would be answering a question BQ-140 has not asked yet.
+        /// </summary>
+        public static string DescribeScenarioPlan(NarrativeWorldState world, ScenarioPlan plan)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (plan == null)
+            {
+                sb.Append("scenario plan: nothing planned\n");
+                return sb.ToString();
+            }
+
+            sb.Append("scenario plan ").Append(plan.PlanId.Length > 0 ? plan.PlanId : "unidentified").Append('\n');
+            sb.Append("  ").Append(plan.GrammarId.Length > 0 ? plan.GrammarId : "no grammar")
+              .Append(" [").Append(plan.SiteType).Append("] composed at seed ").Append(plan.Seed)
+              .Append(", drawn from batch seed ").Append(plan.SelectionSeed).Append('\n');
+            sb.Append("  for matter ").Append(plan.ThreadId.IsNone ? "nobody's" : plan.ThreadId.Value)
+              .Append(", an errand after ").Append(plan.Objective)
+              .Append(plan.ObjectiveRegionId.Length > 0
+                  ? ", answered in " + plan.ObjectiveRegionId
+                  : ", answered nowhere")
+              .Append('\n');
+
+            if (!plan.Planned)
+            {
+                sb.Append("  no plan: ");
+                for (int i = 0; i < plan.Refusals.Count; i++)
+                {
+                    sb.Append(i > 0 ? "; " : string.Empty).Append(plan.Refusals[i]);
+                }
+
+                sb.Append(plan.Refusals.Count == 0 ? "no reason was recorded" : string.Empty).Append('\n');
+                AppendRefusedPlans(sb, plan);
+                return sb.ToString();
+            }
+
+            sb.Append("  ").Append(plan.Valid ? "valid: every invariant holds" : "not valid: an invariant is broken")
+              .Append('\n');
+
+            AppendScenarioRegions(sb, world, plan);
+            AppendScenarioRoutes(sb, plan);
+            AppendScenarioCycles(sb, plan);
+            AppendScenarioAlternatives(sb, plan);
+            AppendScenarioOccupancy(sb, world, plan);
+            AppendScenarioSockets(sb, plan);
+            AppendScenarioInvariants(sb, plan);
+            AppendRefusedPlans(sb, plan);
+
+            return sb.ToString();
+        }
+
+        private static void AppendScenarioRegions(StringBuilder sb, NarrativeWorldState world, ScenarioPlan plan)
+        {
+            sb.Append("  regions ").Append(plan.Regions.Count).Append('\n');
+            for (int i = 0; i < plan.Regions.Count; i++)
+            {
+                ScenarioRegion region = plan.Regions[i];
+                sb.Append(region.Required ? "    every one  " : "    this one   ").Append(region.Id);
+                AppendAffordances(sb, region.Affordances);
+                if (region.Socket.Length > 0)
+                {
+                    sb.Append("; authored piece ").Append(region.Socket);
+                }
+
+                sb.Append("; ").Append(region.Reachable
+                    ? region.Depth + " leg(s) in at the shortest"
+                    : "no way to it can be offered on this build");
+                if (region.IsObjective)
+                {
+                    sb.Append("; this is what the errand came for");
+                }
+
+                sb.Append('\n');
+
+                for (int a = 0; a < region.Anchors.Count; a++)
+                {
+                    AppendScenarioAnchor(sb, world, region.Anchors[a]);
+                }
+            }
+
+            SiteLayout layout = plan.Layout;
+            for (int i = 0; i < layout.Omitted.Count; i++)
+            {
+                SiteOmission omission = layout.Omitted[i];
+                sb.Append("    not here   ").Append(omission.Id).Append("; ")
+                  .Append(omission.Reason == SiteOmissionReason.NotDrawn
+                      ? "another place of this kind may have one"
+                      : "nothing this place has leads to it")
+                  .Append('\n');
+            }
+        }
+
+        private static void AppendScenarioAnchor(StringBuilder sb, NarrativeWorldState world, ScenarioAnchor anchor)
+        {
+            sb.Append("        anchored ").Append(anchor.Kind);
+            if (!anchor.SubjectId.IsNone)
+            {
+                sb.Append(' ').Append(anchor.Kind == ScenarioAnchorKind.Captive
+                    ? Who(world, anchor.SubjectId)
+                    : anchor.SubjectId.Value);
+            }
+
+            if (!anchor.EventId.IsNone)
+            {
+                sb.Append("; put here by ").Append(anchor.EventId.Value);
+            }
+
+            if (!anchor.FactId.IsNone)
+            {
+                sb.Append("; proves ").Append(anchor.FactId.Value);
+            }
+
+            if (anchor.Reason.Length > 0)
+            {
+                sb.Append("; ").Append(anchor.Reason);
+            }
+
+            sb.Append('\n');
+        }
+
+        private static void AppendScenarioRoutes(StringBuilder sb, ScenarioPlan plan)
+        {
+            sb.Append("  routes ").Append(plan.Routes.Count).Append('\n');
+            for (int i = 0; i < plan.Routes.Count; i++)
+            {
+                ScenarioRoute route = plan.Routes[i];
+                sb.Append(route.Required ? "    every one  " : "    this one   ")
+                  .Append(route.From).Append(" -> ").Append(route.To);
+                if (route.ActionId.Length > 0)
+                {
+                    sb.Append(" by ").Append(route.ActionId);
+                }
+
+                if (route.NeedsAdmission)
+                {
+                    sb.Append("; waits on somebody letting you in");
+                }
+                else if (route.IsEntry)
+                {
+                    sb.Append("; goes around everybody");
+                }
+
+                AppendAffordances(sb, route.Affordances);
+                if (route.Free)
+                {
+                    sb.Append("; nothing to get past");
+                }
+
+                sb.Append("; ").Append(route.Support);
+                if (route.Support != ScenarioSupport.Supported)
+                {
+                    sb.Append("; ").Append(route.Refusal);
+                }
+
+                sb.Append('\n');
+            }
+        }
+
+        private static void AppendScenarioCycles(StringBuilder sb, ScenarioPlan plan)
+        {
+            sb.Append("  cycles ").Append(plan.Cycles.Count).Append('\n');
+            if (plan.Cycles.Count == 0)
+            {
+                sb.Append("    none: nothing in this plan comes back round to where it started\n");
+            }
+
+            for (int i = 0; i < plan.Cycles.Count; i++)
+            {
+                ScenarioCycle cycle = plan.Cycles[i];
+                sb.Append(cycle.Kind == ScenarioCycleKind.Reentrant ? "    reentrant  " : "    internal   ")
+                  .Append(cycle).Append("; ").Append(cycle.Demanding)
+                  .Append(" route(s) round it ask something")
+                  .Append(cycle.Cosmetic ? "; a ring nobody has to get past anything on" : string.Empty)
+                  .Append('\n');
+            }
+        }
+
+        private static void AppendScenarioAlternatives(StringBuilder sb, ScenarioPlan plan)
+        {
+            sb.Append("  alternatives ").Append(plan.Alternatives.Count).Append('\n');
+            for (int i = 0; i < plan.Alternatives.Count; i++)
+            {
+                ScenarioAlternative alternative = plan.Alternatives[i];
+                sb.Append("    to ").Append(alternative.TargetRegionId).Append("   ").Append(alternative)
+                  .Append(alternative.NeedsAdmission ? "; waits on somebody letting you in" : string.Empty)
+                  .Append('\n');
+            }
+
+            for (int i = 0; i < plan.CollapsedAlternatives.Count; i++)
+            {
+                ScenarioAlternative collapsed = plan.CollapsedAlternatives[i];
+                sb.Append("    not one   ").Append(collapsed)
+                  .Append("; the same play as ").Append(collapsed.CollapsedInto).Append('\n');
+            }
+        }
+
+        private static void AppendScenarioOccupancy(StringBuilder sb, NarrativeWorldState world, ScenarioPlan plan)
+        {
+            sb.Append("  occupant regions ").Append(plan.OccupantRegions.Count).Append('\n');
+            for (int i = 0; i < plan.OccupantRegions.Count; i++)
+            {
+                ScenarioOccupantRegion region = plan.OccupantRegions[i];
+                sb.Append("    ").Append(region.Kind == ScenarioOccupancyKind.Garrison ? "garrison " : "held     ")
+                  .Append(region.RegionId).Append(" (").Append(region.Affordance).Append(')');
+                if (!region.OrganizationId.IsNone)
+                {
+                    sb.Append("; crew ").Append(Who(world, region.OrganizationId));
+                }
+
+                sb.Append("; ").Append(region.Reason).Append('\n');
+
+                for (int o = 0; o < region.Occupants.Count; o++)
+                {
+                    ScenarioOccupant occupant = region.Occupants[o];
+                    sb.Append("        ").Append(Who(world, occupant.NpcId))
+                      .Append("; ").Append(occupant.Presence)
+                      .Append("; because of ").Append(occupant.Because.Value).Append('\n');
+                }
+            }
+
+            if (plan.UnplacedOccupants.Count == 0)
+            {
+                return;
+            }
+
+            sb.Append("  at the place and in no region ").Append(plan.UnplacedOccupants.Count)
+              .Append(": nothing in the plan says where a body stands\n");
+            for (int i = 0; i < plan.UnplacedOccupants.Count; i++)
+            {
+                ScenarioOccupant occupant = plan.UnplacedOccupants[i];
+                sb.Append("        ").Append(Who(world, occupant.NpcId))
+                  .Append("; ").Append(occupant.Presence)
+                  .Append("; because of ").Append(occupant.Because.Value).Append('\n');
+            }
+        }
+
+        private static void AppendScenarioSockets(StringBuilder sb, ScenarioPlan plan)
+        {
+            sb.Append("  authored-piece sockets ").Append(plan.Sockets.Count)
+              .Append(", none filled: filling one needs a physical realization (BQ-140)\n");
+            for (int i = 0; i < plan.Sockets.Count; i++)
+            {
+                ScenarioSocket socket = plan.Sockets[i];
+                sb.Append(socket.Required ? "    every one  " : "    this one   ")
+                  .Append(socket.Socket).Append(" fills ").Append(socket.RegionId).Append('\n');
+            }
+        }
+
+        private static void AppendScenarioInvariants(StringBuilder sb, ScenarioPlan plan)
+        {
+            sb.Append("  invariants ").Append(plan.Validation.Findings.Count).Append('\n');
+            for (int i = 0; i < plan.Validation.Findings.Count; i++)
+            {
+                ScenarioFinding finding = plan.Validation.Findings[i];
+                sb.Append(finding.Held ? "    holds   " : "    broken  ")
+                  .Append(finding.Invariant).Append(": ").Append(finding.Reason).Append('\n');
+            }
+        }
+
+        private static void AppendRefusedPlans(StringBuilder sb, ScenarioPlan plan)
+        {
+            if (plan.Selection == null)
+            {
+                return;
+            }
+
+            int refused = 0;
+            for (int i = 0; i < plan.Selection.Considered.Count; i++)
+            {
+                refused += plan.Selection.Considered[i].Usable ? 0 : 1;
+            }
+
+            sb.Append("  plans refused ").Append(refused).Append(" of ")
+              .Append(plan.Selection.Considered.Count).Append(" drawn\n");
+
+            for (int i = 0; i < plan.Selection.Considered.Count; i++)
+            {
+                SitePlanCandidate candidate = plan.Selection.Considered[i];
+                for (int f = 0; f < candidate.Flaws.Count; f++)
+                {
+                    sb.Append("    seed ").Append(candidate.Seed).Append("; ")
+                      .Append(candidate.Flaws[f].Kind).Append(": ")
+                      .Append(candidate.Flaws[f].Reason).Append('\n');
+                }
+            }
+        }
+
+        /// <summary>
         /// BQ-091. What one matter leaves in one place, why each of it is there, and everything
         /// the place does not get.
         ///

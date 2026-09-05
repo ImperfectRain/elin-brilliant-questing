@@ -2022,3 +2022,68 @@ another grammar file, another set of piece files, and the evidence to back them.
 Reason: the cheap version applies map pieces straight from a grammar and calls the result a
 dungeon. It cannot say whether the place can be walked, it cannot say which of its promises this
 build keeps, and the first unsupported feature becomes a room that looks right and does nothing.
+
+## D071 — A scenario plan is the meaning of a place, identified by what it says and never by where anything sits
+
+BQ-139. `ScenarioPlanner.Plan` builds one artifact out of everything the site steps already
+produce — BQ-089's composition, BQ-090's promises, BQ-092's selection and BQ-091's contents — and
+`ScenarioPlan` is `PP §3`'s plan layer: authoritative for meaning, standing above the grammar and
+below the map Elin owns. It exists because none of the four earlier readings can be checked as a
+whole. A composition does not know what the matter left in it; a projection does not know what the
+errand was; a selection reads no world state; a derivation reads no routes. "Objective reachable,
+required evidence reachable, alternatives real, nothing required through an unsupported route,
+causal references intact" is a statement about all four at once, and there was nowhere to make it.
+
+**The plan holds no geometry, so its identity cannot depend on any.** `ScenarioPlan.PlanId` is a
+hash over the plan's meaning — the grammar, both seeds, the matter, the errand, the regions and
+what each requires, the routes and what each asks, the anchors by id, the occupancy and the
+sockets. It is computed rather than minted, because a minted id would be a fact about when the plan
+was made; the same semantic inputs and the same seed produce the same id in any session and on any
+machine, which is what makes "a seed replay reproduces the same selected plan" checkable rather
+than asserted. The hash is written out by hand: `string.GetHashCode` is not stable between runs,
+and an identity that changes when the process restarts is not an identity.
+
+**References, never copies.** An anchor carries the item, the claim and the event as ids, and an
+occupant carries the person and the organization as ids. Nothing in the plan restates what the
+ledger, the knowledge graph or the registry already own, so a corrected fact corrects every plan
+that reads it, and `CausalReferencesIntact` can be asked at all — a plan that copied its history
+could never be caught disagreeing with it. The plan itself is derived and never persisted, on the
+same terms as `SiteLayout` (`D066`).
+
+**An alternative is a difference in what is asked, and a cycle is a ring somebody can walk.** Two
+promised ways past the same requirements with the same verbs are one play however differently the
+rooms are spelled, so the second is reported as the rewording it is rather than counted; that is
+the same judgement `D069` makes of two candidate routes, applied to the claims a plan makes about
+itself. Cycles are directed simple rings, because a plan's routes are walked in the direction they
+are written and a way out is not a way in (`D066`). A fork that rejoins is drawn as a ring and
+nobody can go round it, so it is an alternative here and not a cycle — the distinction between a
+claim about the drawing and a claim about play.
+
+**Unsupported may stand in a plan; it may not stand on a required path.** A route is supported only
+when a verb this build can be offered takes it *and* nothing it demands is unanswered, because a
+leg can be walkable and still require a trap or a hazard nobody has written a verb for. The
+invariant is over the shortest promised way to each anchor — the set BQ-140 would have to build —
+so a mine that can be dug into and also talked into still plans on a build that cannot dig, with
+its dug routes standing in the plan marked as routes this build cannot keep. A place whose *only*
+way to the objective is one this build refuses is not a worse plan; `D069` refuses it, and the
+refusal travels with the plan so the choice can be argued with.
+
+**The plan says a region is occupied only where something asserts it is.** A cell holds the people
+the ledger records as held; the one region the grammar says somebody stands at holds the crew the
+matter says holds the place. Everybody else is at the place and in no region, and is listed as
+such. Spreading a crew through the rooms would be this layer deciding, from nothing, where a body
+stands — which is a physical question, and `D021`'s to answer against a real map.
+
+**BQ-140 landed before this and does not read the plan.** Its realization runs from BQ-092's
+selection and BQ-091's contents directly, on the earlier reading that BQ-089...BQ-092 plus a
+realization already were the representation. That reading is not wrong about the pieces — they were
+all present — but it is wrong about what could be *said*: `SiteStructure` validates a built place
+and BQ-092 validates a candidate, and neither can state that the alternatives a plan claims are
+real, that nothing required runs through an unsupported route, and that the history the place is
+about still resolves. This is additive and changes nothing BQ-140 built; routing realization through
+the plan, and filling the sockets it carries, is later work and is not claimed here.
+
+Reason: the cheap version is to let realization assemble the four readings as it builds, and the
+failure is that nothing is checkable before there is a map — an objective nothing reaches, an
+alternative that is one walk renamed, a required route through a mechanic this build does not have,
+and a history the plan quietly stopped agreeing with all become bugs found by playing.

@@ -2544,14 +2544,75 @@ requirements. No Elin map writes.
 - **Done when** at least two grammars produce deterministic abstract plans whose inspector output explains every node, edge, requirement and rejection reason, and a seed replay reproduces the same selected plan.
 - **Sources** PP §3, §4; LW §7.1, §7.6.
 - **Not this step.** No general Nefia replacement, no settlement generator, no tile placement, no custom puzzle mechanics.
-- **Where the representation actually lives** no separate step was implemented and none is needed: the
-  abstract plan this step names is `SiteLayout` (BQ-089's deterministic composition, recomposed from
-  grammar id and seed), its required affordances and objective/evidence anchors are `SiteAffordance`
-  and `SiteContents`' node ids (BQ-090, BQ-091), its validation requirements and rejection reasons are
-  `SiteFlaw` and the BQ-090 evidence gate, and seed replay of a *selected* plan is BQ-092's. The one
-  part of the list nothing filled was the authored-piece socket, which BQ-089 deliberately carried and
-  left empty; BQ-140 fills it. Read this step as satisfied by BQ-089...BQ-092 plus BQ-140 rather than
-  as work still owed.
+- **Ordering, and an earlier reading of this step.** BQ-140 landed first, on the reading that this
+  step named nothing separate — that the abstract plan was already `SiteLayout` plus `SiteAffordance`,
+  `SiteContents`, `SiteFlaw` and the BQ-090 evidence gate, and that BQ-089...BQ-092 plus BQ-140
+  satisfied it. That reading is superseded here rather than left standing beside its replacement: the
+  pieces were all present and there was nowhere any statement could be made about them together, so
+  the plan was checkable only one reading at a time and never as a whole. `ScenarioPlan` is that whole.
+  It is additive — nothing BQ-140 built was changed to accommodate it, and BQ-140's realization still
+  runs from the selection and the contents directly (see the deferred note below).
+- **Current implementation** `ScenarioPlanner.Plan` builds one `ScenarioPlan` out of everything the
+  four site steps already produce — BQ-089's composition, BQ-090's promises, BQ-092's selection and
+  BQ-091's contents — and that artifact is `PP §3`'s plan layer, authoritative for meaning and
+  standing above the grammar and below the map Elin owns (`D071`). It exists because none of the
+  four readings can be checked on its own: a composition does not know what the matter left in it,
+  a projection does not know what the errand was, selection reads no world state and derivation
+  reads no routes, so "objective reachable, evidence reachable, alternatives real, nothing required
+  through an unsupported route, causal references intact" had nowhere to be said.
+  **Regions, routes, cycles, alternatives, anchors, occupancy, sockets.** A region is a functional
+  part with what it requires, how deep in it is on the shortest promised way, the authored socket
+  it waits on and whatever is anchored there; a route carries what it asks as one comparable string
+  and the build's own answer about it. An *alternative* is recorded because the demands differ,
+  never because the rooms are spelled differently — two promised ways past the same requirements
+  with the same verbs are one play, and the second comes back named as the rewording it is. A
+  *cycle* is a directed simple ring, because a plan's routes are walked in the direction they are
+  written; a fork that rejoins is drawn as a ring and nobody can go round it, so it is an
+  alternative here and not a cycle.
+  **Anchors and occupants are ids, never copies.** An evidence anchor names the object, the event
+  that put it there and the claim it proves; a captive anchor names the person and the capture. The
+  plan restates nothing the ledger, the knowledge graph or the registry already own, which is what
+  lets `CausalReferencesIntact` be asked at all. A region is called occupied only where something
+  asserts it is — a cell holds who the ledger records as held, the one region the grammar says
+  somebody stands at holds the crew that holds the place — and everybody else is at the place and
+  in no region, and said to be.
+  **Identity is a hash of the plan's meaning.** `PlanId` is computed rather than minted, over the
+  grammar, both seeds, the matter, the errand, the regions, the routes, the anchors, the occupancy
+  and the sockets; nothing a renderer decides is in it because no such thing is in the plan. The
+  same semantic inputs and the same seed produce the same id in any session and on any machine.
+  **Six invariants, each printing what it was read off**: `ObjectiveAnchored`,
+  `ObjectiveReachable`, `EvidenceReachable`, `AlternativesAreStructural`, `RequiredPathsSupported`
+  and `CausalReferencesIntact`. A route is *supported* only when a verb this build can be offered
+  takes it and nothing it demands is unanswered, so a plan may hold a route this build cannot keep
+  and may not put one on the way to something required — the mine still plans on a build that
+  cannot dig, with its dug routes marked, and a place whose only way to the objective is dug is
+  refused by BQ-092 with the reason travelling on the plan.
+  **`NarrativeInspector.DescribeScenarioPlan` is the whole plan**, not a summary of it: every
+  region with its requirements, depth and anchors, every part the kind allows that this seed did
+  not draw, every route with its support and refusal, every ring, every real alternative and every
+  way that collapsed into one, who is where and who is nowhere, the sockets and that none is
+  filled, each invariant with its reading, and every refused candidate with the flaw that refused
+  it.
+  **The done-when is proven on two shipped grammars.** The bandit camp and the collapsed mine each
+  plan the same errand into different regions reached differently, both traces name every node,
+  edge, requirement and omission, replaying a seed reproduces the same `PlanId` and the same trace,
+  and a second world built the same way out of a second reading of the catalogue plans the same
+  place. `ScenarioPlanTests` is sixteen behaviours, headless throughout. Core 1454 tests and Lab
+  134 pass.
+- **Deferred, and not claimed** nothing was rewired to route through a scenario plan — the
+  archetypes that write places down still do so directly, as BQ-088 to BQ-092 also left them, so
+  this is proven headlessly against a world built the way they build one. No tile, no map piece, no
+  coordinate and no socket filled: filling one needs a physical realization and no BQ site has one
+  (BQ-140). No Trigger → Condition → Effect language, which `PP §4` puts behind a Tier-1 need
+  BQ-140 has to demonstrate first. No expressive-range metrics over many plans, which is BQ-141's.
+  No scenario-specific scoring and no new affordances. Occupant regions are a plan-level claim
+  about who the world says is where the grammar asserts somebody is; whether Elin's hostility and
+  faction behaviour can keep that promise is BQ-140's evidence question and is explicitly not
+  claimed here. **BQ-140 does not consume `ScenarioPlan`**: it landed first and runs from BQ-092's
+  selection and BQ-091's contents directly, so `SiteRealization` is not yet built from this plan and
+  nothing was rewired to make it so — routing realization through the plan, and letting it fill the
+  sockets this step carries, is a follow-up rather than something this step claims. None of this has
+  run in a live Elin session, and no plugin or content changed.
 
 #### BQ-140 — First procedural scenario dungeon
 Build one BQ-owned bounded site whose scenario graph is generated and whose physical realization uses
