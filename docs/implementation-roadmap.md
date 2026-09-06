@@ -2689,6 +2689,67 @@ development, not settlement evolution.
 - **Done when** one authored addition is applied only into verified free/compatible space; the site preserves preexisting actors, items, evidence and player-visible history; save/quit/reload, leave/re-enter, elapsed in-game days, and a second save/quit/reload all retain the addition exactly once; NPC/path/service behavior around the addition is recorded; disabling BQ is tested where feasible; and the exact Elin build and evidence level are written into the Elin evidence docs.
 - **Sources** PP §6, §7, §8; `docs/elin/api/world-and-zones.md`; `docs/elin/verification/runtime-probes.md`.
 - **Not this step.** No hamlet growth, district expansion, vanilla-town mutation, player construction collision solver, or ongoing development scheduler.
+- **Current implementation** `SiteMutation` gives a place that already exists one more authored
+  piece, once. The mutation is deliberately the smallest thing this repository's vocabulary can
+  express: one `SitePiece` put down on ground beside a part the place already has, joined to it by an
+  opening. There is no other physical change to a made place anywhere in the codebase - nothing
+  moves, nothing is removed, nothing is resized, nothing is rebuilt - which is how a mutation proof
+  is kept from becoming settlement evolution.
+  **Six questions are answered before anything is written** (`D072`). Which place: `NarrativeSite.Id`,
+  which persists and which genesis registered; nothing about identity, the zone handle or the
+  establishment time changes. Which mutation: a caller-supplied `AdditionId`, a name rather than a
+  shape. Whether it has happened: `NarrativeSite.Additions`, looked up *before* the build is asked
+  anything, so a second attempt stages nothing, appends nothing and answers the same on a build that
+  has since lost the capability. What Elin owns: the tiles - nothing here is a map. What BQ persists:
+  the record, and only the record. What protects the player: the ground is asked about, and every
+  answer but "free" refuses.
+  **The record is the one physical thing a site writes to a save,** because it is the one that
+  cannot be derived: the grammar and the seed reproduce the place *as it was made* (`D070`) and an
+  addition happened afterwards. `ScenarioDungeon.StructureOf` folds it back in, so every reader of a
+  place's shape sees the same place, and the footprint is stored with it - a bundle that later drops
+  the piece must not make the place forget which of its ground is spoken for.
+  **Refusing beats guessing.** `IVanillaState.InspectGround` asks what stands on each patch the
+  addition might take; `Occupied`, `PlayerChanged` and `Unknown` all refuse, with `Unknown` refusing
+  being the load-bearing half (`D017`). A place whose shape cannot be derived is refused for the same
+  reason - no patch of its ground is known to be free. So is a throwaway interior, a place genesis
+  never made, a part the place does not have, a piece the bundle does not carry, a piece this build
+  cannot build, and a second addition off a part that already carries one.
+  **Nothing else about the place is touched:** no occupant staged, no cargo placed, no approach
+  added, the manifest not rewritten, and nothing written to the ledger - a place gaining a store room
+  is not something that happened to anybody, exactly as genesis is not (`D058`).
+- **What the evidence gate found** a place cannot be added to in game today, and this is a harder
+  refusal than BQ-140's rather than the same one. `VanillaCapability.AddPlaceFixture` is a separate
+  rung from `BuildPlaceStructure` because making terrain nobody has stood in and changing terrain
+  somebody has been living in are different writes, and neither is evidence for the other. Both
+  halves are unexercised (`ELIN-Q-0033`): a write into an already-generated map, and the read of what
+  stands on its ground, which is the same gap BQ-090 waits on (`ELIN-Q-0008`). `ElinVanillaState`
+  reports the capability unsupported and answers `InspectGround` with `Unknown` on every call;
+  `ElinSituationStager.ApplySiteAddition` refuses every blueprint; `SiteMutation` refuses on the
+  capability before it looks at any ground and fails closed on the empty handle, writing no record.
+  The failure direction is a place that cannot be added to rather than a piece applied over whatever
+  the player has built there.
+- **Proved, and how** `SiteMutationTests` - 26 tests - covers applying once, asking again, asking ten
+  times, save/reload plus fourteen elapsed days plus a second save/reload, a legacy save with no
+  additions node, mutation identity (a second addition off the same part refused however it is named,
+  an unnamed addition refused, an addition never mistaken for a part of the plan, the same addition
+  applied to two different places being two additions), everything the mutation must not touch
+  (identity, body, occupants, cargo, ways in, establishment, the ledger, a second act of building, an
+  unrelated place, and a strongbox the player moved between two occupants), and every refusal
+  including player-changed ground, unreadable ground, an occupied side skipped for a free one, a
+  build without the capability, an adapter that will not apply, and a place whose shape cannot be
+  read. `dotnet run --project tools/BrilliantQuesting.Lab -- run site-addition` prints the whole
+  proof: the mine as it was made, the addition, the second request answered `AlreadyApplied`, the
+  place after each of two saves with the store on record exactly once, and the refusal when the
+  ground around the workings is ground the player has changed. Core 1495 tests and Lab 134 pass.
+- **Deferred, and not claimed** none of this has run in a live Elin session, and the plugin was not
+  compiled because this machine has no Elin assemblies - the two adapter changes are unexercised
+  refusals. So the step is a headless proof of the mechanism and an explicit *not-yet* on the live
+  half of its own done-when: applying into verified free space in a real zone, leave/re-enter,
+  NPC/path/service behaviour around the addition, and what a save carrying an addition does with BQ
+  disabled are all unanswered, and `docs/elin/verification/runtime-probes.md` Session D is the probe
+  that would answer them. Nothing was rewired to route through a mutation either: nothing in the mod
+  asks for an addition, because what would ask for one is the development scheduler this step
+  explicitly is not.
 
 #### BQ-135 — Read vanilla actor activity *(stage S8, immediately before BQ-093)*
 Expose transient vanilla actor activity through the seam as one read-only semantic snapshot, so the

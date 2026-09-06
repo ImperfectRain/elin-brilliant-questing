@@ -162,6 +162,11 @@ namespace BrilliantQuesting.World
         /// carries and all this needs. That is what makes "the site is not regenerated on a return
         /// visit" true of the physical shape as well as of the occupants - there is no second act
         /// of building to avoid, only the same derivation run again.
+        ///
+        /// Anything the place has been given since is folded in on top (`BQ-143`). An addition is
+        /// the one part of a place's body that is not derivable from the grammar and the seed - it
+        /// happened after both - so it is read off the site's own record of it, and every reader of
+        /// a place's shape sees the same place.
         /// </summary>
         public static SiteRealizationResult StructureOf(
             NarrativeSite site,
@@ -189,7 +194,12 @@ namespace BrilliantQuesting.World
                     null, null, new[] { site.Name + " does not record what it was made for" });
             }
 
-            return SiteRealization.Realize(Family, layout, objective, pieces, null, actions, vanilla);
+            SiteRealizationResult realization = SiteRealization.Realize(
+                Family, layout, objective, pieces, null, actions, vanilla);
+            return realization.Built
+                ? new SiteRealizationResult(
+                    SiteMutation.Fold(realization.Structure, site, pieces), realization.Checks, null)
+                : realization;
         }
 
         /// <summary>

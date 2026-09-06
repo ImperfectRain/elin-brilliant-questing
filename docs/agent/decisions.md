@@ -2087,3 +2087,49 @@ Reason: the cheap version is to let realization assemble the four readings as it
 failure is that nothing is checkable before there is a map — an objective nothing reaches, an
 alternative that is one walk renamed, a required route through a mechanic this build does not have,
 and a history the plan quietly stopped agreeing with all become bugs found by playing.
+
+## D072 — An addition is a named record on the place, and unknown ground is never built on
+
+BQ-143. A BQ-owned place that already exists can be given one bounded physical addition:
+`SiteMutation.Apply` puts one authored piece on ground beside a part the place already has, joined
+to it by an opening, and records it in `NarrativeSite.Additions`. That is the whole of the physical
+change this repository can make to a place after genesis. There is no schedule, nothing decides on
+its own that a place should grow, and there is no code path for moving, removing, resizing or
+rebuilding anything — which is what keeps a mutation proof from being a settlement-evolution system
+(`PP §6`, `§8`).
+
+**Identity is a name, and the record is the whole idempotency mechanism.** An addition is identified
+by a caller-supplied `AdditionId`, and "has this already happened" is a lookup on the site's own
+list of them — asked before the build is asked for anything, so a second attempt stages nothing,
+writes nothing, and answers the same on a build that has since lost the capability. Comparing
+geometry instead would mean comparing the mod's picture of the map against a map the player has been
+living in. One part carries at most one addition, so the same physical thing cannot be cut twice by
+renaming it.
+
+**The record is the one physical thing a site writes to a save, because it is the one that cannot be
+derived.** The grammar and the seed reproduce the place *as it was made* (`D070`), and an addition
+happened afterwards; so it is stored, and `ScenarioDungeon.StructureOf` folds it back in, and every
+reader of a place's shape sees the same place. The footprint is stored with it rather than looked up
+from the piece: a bundle that later drops or resizes that piece must not make the place forget which
+of its ground is spoken for.
+
+**Player-changed ground is protected by asking, and by refusing every answer that is not "free".**
+The mutation is additive — it never touches an existing piece, never restages an occupant, never
+places cargo, never rewrites the manifest, never adds an approach and writes nothing to the ledger.
+Beyond that it asks the build what is standing on each patch it might use (`IVanillaState.InspectGround`),
+and `Occupied`, `PlayerChanged` and `Unknown` all refuse it. Unknown refusing is the load-bearing
+half (`D017`): a build that cannot see what is there is exactly the build that must not build there.
+A place whose shape cannot be derived at all is refused for the same reason — no patch of its ground
+is known to be free.
+
+**It fails closed, and the failure direction is an addition that did not happen.** The capability
+`AddPlaceFixture` is a separate rung from `BuildPlaceStructure`, because making terrain nobody has
+stood in and changing terrain somebody has been living in are different writes with different
+consequences, and neither is evidence for the other. `ElinVanillaState` reports it unsupported and
+answers `InspectGround` with `Unknown`; `ElinSituationStager.ApplySiteAddition` refuses; the record
+is written only after the adapter answers with a handle. So nothing in a save ever claims a piece
+the map does not have (`ELIN-Q-0033`).
+
+Reason: the cheap version reapplies a "make sure the place has X" step on every load and calls it
+idempotent because the map looks right. It duplicates the moment a save is loaded on a build that
+answers differently, and it overwrites whatever the player put there, because it never asked.

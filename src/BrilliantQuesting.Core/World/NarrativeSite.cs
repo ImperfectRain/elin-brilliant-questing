@@ -124,6 +124,42 @@ namespace BrilliantQuesting.World
         public string Objective { get; set; } = string.Empty;
 
         /// <summary>
+        /// Every bounded physical addition this place has been given since genesis, in the order
+        /// they were applied (BQ-143).
+        ///
+        /// The one thing about a place's body that is written down rather than derived, and it is
+        /// written down because it cannot be derived: the grammar and the seed reproduce the place
+        /// as it was *made*, and an addition is by definition not in them. So this list is what
+        /// makes an addition survive a save, and it is also the whole of the idempotency
+        /// mechanism - <see cref="SiteMutation"/> asks it whether an addition has already been
+        /// applied before it asks the build for anything.
+        ///
+        /// Additive and optional on read, like <see cref="GrammarId"/> and <see cref="Objective"/>:
+        /// a save written before any of this reads back as a place nobody has added to, which is
+        /// the truth about it.
+        /// </summary>
+        public List<SiteAddition> Additions { get; } = new List<SiteAddition>();
+
+        /// <summary>Whether this place has already been given this exact addition.</summary>
+        public SiteAddition AdditionOf(string additionId)
+        {
+            if (string.IsNullOrEmpty(additionId))
+            {
+                return null;
+            }
+
+            for (int i = 0; i < Additions.Count; i++)
+            {
+                if (string.Equals(Additions[i].AdditionId, additionId, System.StringComparison.Ordinal))
+                {
+                    return Additions[i];
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// The ways in this place was made with. At least one that goes through somebody and at
         /// least one that does not - see <see cref="SiteApproach"/>.
         /// </summary>

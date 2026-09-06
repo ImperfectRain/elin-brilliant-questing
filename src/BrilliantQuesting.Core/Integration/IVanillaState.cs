@@ -249,5 +249,21 @@ namespace BrilliantQuesting.Integration
         EntityId GetZoneOf(EntityId entity);
 
         IReadOnlyList<EntityId> GetCharactersInZone(EntityId zoneId);
+
+        /// <summary>
+        /// What is standing on one patch of a place's ground (BQ-143), in that place's own bounded
+        /// grid rather than in Elin's tiles.
+        ///
+        /// The one read this seam has about terrain, and it is deliberately a question about a
+        /// footprint rather than a description of a map: a mutation needs to know whether it may
+        /// put something down here, and nothing else. What a tile is, where the site's grid sits
+        /// in the zone and how the two are lined up are the adapter's, the way every other handle
+        /// on this seam is.
+        ///
+        /// Answers <see cref="VanillaGround.Unknown"/> where the build cannot say - which every
+        /// build here does, because <see cref="VanillaCapability.AddPlaceFixture"/> is unexercised
+        /// (`ELIN-Q-0033`) - and unknown ground is never written on.
+        /// </summary>
+        VanillaGround InspectGround(EntityId zoneId, int x, int y, int width, int height);
     }
 }

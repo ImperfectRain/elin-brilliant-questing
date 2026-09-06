@@ -40,7 +40,7 @@ namespace BrilliantQuesting.Tests
             "GetWorshippedDeity", "GetPiety",
             "GetMoney", "GetInventory",
             "GetHomeState", "GetPlayerCompanions",
-            "GetZoneOf", "GetCharactersInZone"
+            "GetZoneOf", "GetCharactersInZone", "InspectGround"
         };
 
         /// <summary>

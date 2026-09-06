@@ -181,6 +181,50 @@ namespace BrilliantQuesting.Integration
         /// plan one, and <see cref="ISituationStager.StageSite"/> refuses a blueprint that carries
         /// a structure, on which genesis already fails closed.
         /// </summary>
-        BuildPlaceStructure
+        BuildPlaceStructure,
+
+        /// <summary>
+        /// The game will add one authored piece into a place this mod already made, after that
+        /// place has been visited, and will say whether a patch of ground in it is free.
+        ///
+        /// Separate from <see cref="BuildPlaceStructure"/> because it is a different write on a
+        /// different map: building makes terrain nobody has stood in, and this changes terrain a
+        /// player may have walked, dug, built on and left things standing in. A build that can do
+        /// the first has not thereby shown it can do the second, and the read is inseparable from
+        /// the write - adding a piece without being able to ask what is already there is how a
+        /// mod overwrites somebody's workshop.
+        ///
+        /// Unanswered on the installed build (`ELIN-Q-0033`), so an adapter that has not exercised
+        /// it reports this unsupported, <see cref="BrilliantQuesting.World.SiteMutation"/> refuses
+        /// before anything is chosen, and <see cref="IVanillaState.InspectGround"/> answers
+        /// <see cref="VanillaGround.Unknown"/> - which is itself a refusal, because ground nobody
+        /// can read is never treated as free.
+        /// </summary>
+        AddPlaceFixture
+    }
+
+    /// <summary>
+    /// What the game says is standing on a patch of a place's ground (BQ-143).
+    ///
+    /// Four answers rather than a bool, because the three ways ground can be unusable are not the
+    /// same fact and a mutation that conflated them would refuse for the wrong reason. Only
+    /// <see cref="Free"/> permits a write; every other value refuses, <see cref="Unknown"/>
+    /// included (`D017`) - an unread patch of ground is not an empty one, and the failure
+    /// direction has to be an addition that does not happen rather than an addition on top of
+    /// somebody's cellar.
+    /// </summary>
+    public enum VanillaGround
+    {
+        /// <summary>The build was not asked, could not answer, or does not know. Never "free".</summary>
+        Unknown,
+
+        /// <summary>Nothing stands there and nobody has changed it.</summary>
+        Free,
+
+        /// <summary>Something the place was made with stands there.</summary>
+        Occupied,
+
+        /// <summary>The player changed this ground: built on it, dug it, or left something in it.</summary>
+        PlayerChanged
     }
 }

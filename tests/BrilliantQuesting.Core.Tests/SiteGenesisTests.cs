@@ -479,6 +479,8 @@ namespace BrilliantQuesting.Tests
             }
 
             public string StageSite(SiteBlueprint blueprint) => string.Empty;
+
+            public string ApplySiteAddition(SiteAdditionBlueprint blueprint) => string.Empty;
         }
     }
 }

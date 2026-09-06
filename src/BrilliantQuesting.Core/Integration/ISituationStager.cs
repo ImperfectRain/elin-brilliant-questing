@@ -110,6 +110,68 @@ namespace BrilliantQuesting.Integration
     }
 
     /// <summary>
+    /// One bounded physical addition to a place that already exists (BQ-143).
+    ///
+    /// Deliberately not a second <see cref="SiteBlueprint"/>: nothing here says what the place is,
+    /// who is in it or what it keeps, because all of that is already true of a place the game made
+    /// and the simulation is not restating it. What crosses the seam is one authored piece, the
+    /// ground it goes on in the site's own grid, and the handle of the place it goes into - the
+    /// least an adapter needs to put one thing down and the most the simulation is entitled to ask
+    /// for on a map a player has been walking around in.
+    /// </summary>
+    public sealed class SiteAdditionBlueprint
+    {
+        public SiteAdditionBlueprint(
+            EntityId siteId,
+            string zoneRef,
+            string additionId,
+            string pieceId,
+            int x,
+            int y,
+            int width,
+            int height)
+        {
+            SiteId = siteId;
+            ZoneRef = zoneRef ?? string.Empty;
+            AdditionId = additionId ?? string.Empty;
+            PieceId = pieceId ?? string.Empty;
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+        }
+
+        public EntityId SiteId { get; }
+
+        /// <summary>The handle genesis bound the place to. The addition goes into that place only.</summary>
+        public string ZoneRef { get; }
+
+        /// <summary>
+        /// What this addition is, as the one name both sides use for it.
+        ///
+        /// The same string the site records once the adapter has answered, so "has this already
+        /// been applied" is one lookup rather than a resemblance check over geometry.
+        /// </summary>
+        public string AdditionId { get; }
+
+        /// <summary>The authored piece to put down.</summary>
+        public string PieceId { get; }
+
+        public int X { get; }
+
+        public int Y { get; }
+
+        public int Width { get; }
+
+        public int Height { get; }
+
+        public override string ToString()
+        {
+            return AdditionId + " = " + PieceId + " at " + X + "," + Y + " (" + Width + "x" + Height + ")";
+        }
+    }
+
+    /// <summary>
     /// Turns generated descriptions into things that exist in the running game.
     ///
     /// Keeping this separate from <see cref="IVanillaState"/> matters: reading the world and
@@ -132,6 +194,19 @@ namespace BrilliantQuesting.Integration
         /// on the other side is not Core's business.
         /// </summary>
         string StageSite(SiteBlueprint blueprint);
+
+        /// <summary>
+        /// Adds one authored piece to a place that already exists and returns the adapter's handle
+        /// for what it made, or an empty string where this build cannot (BQ-143).
+        ///
+        /// The mirror of <see cref="StageSite"/> for a place already in the save, and it fails the
+        /// same way: the empty string costs an addition that did not happen, and
+        /// <see cref="BrilliantQuesting.World.SiteMutation"/> then records nothing, so nothing in
+        /// the save claims a piece the map does not have. Whether the ground is free was asked
+        /// before this was called (<see cref="IVanillaState.InspectGround"/>); an adapter is still
+        /// free to refuse, and refusing is always safe.
+        /// </summary>
+        string ApplySiteAddition(SiteAdditionBlueprint blueprint);
     }
 
     /// <summary>Headless staging, for the laboratory and the tests.</summary>
@@ -143,6 +218,8 @@ namespace BrilliantQuesting.Integration
             new Dictionary<EntityId, SiteStructure>();
 
         private readonly List<EntityId> _built = new List<EntityId>();
+
+        private readonly List<string> _added = new List<string>();
 
         public SandboxStager(SandboxVanillaState vanilla)
         {
@@ -215,5 +292,24 @@ namespace BrilliantQuesting.Integration
         }
 
         public IReadOnlyList<EntityId> Built => _built;
+
+        /// <summary>
+        /// Headless, a place can always be added to: the laboratory has no map to disagree with.
+        /// What it does keep is one entry per act of adding, because "applied exactly once" is a
+        /// claim about how many times the adapter was asked, and nothing else can see that.
+        /// </summary>
+        public string ApplySiteAddition(SiteAdditionBlueprint blueprint)
+        {
+            if (blueprint == null || blueprint.SiteId.IsNone || blueprint.AdditionId.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            _added.Add(blueprint.SiteId.Value + "/" + blueprint.AdditionId);
+            return blueprint.SiteId.Value + ":" + blueprint.AdditionId;
+        }
+
+        /// <summary>One entry per addition actually applied, in order.</summary>
+        public IReadOnlyList<string> Added => _added;
     }
 }

@@ -26,6 +26,39 @@ Nothing on this build can apply one. `VanillaCapability.BuildPlaceStructure` nam
 
 Everything BQ-140 claims is therefore headless. Turning it on means exercising the four calls above on the exact installed build, recording them here and in [`../verification/unresolved.md`](../verification/unresolved.md), and then advertising the capability from a probe rather than from intent.
 
+## Additive Change To A Place That Already Exists (BQ-143)
+
+A place that already exists can be given one more authored piece: `SiteMutation.Apply` puts one
+`SitePiece` on ground beside a part the place already has, joined to it by an opening, and the site
+records it in `NarrativeSite.Additions`. That record is the only physical thing about a site written
+into a save, because it is the only physical thing that cannot be derived from the grammar and the
+seed - it happened after both.
+
+Nothing on this build can apply one, and this is a harder refusal than BQ-140's rather than the same
+one. `VanillaCapability.AddPlaceFixture` names both halves of the write: adding a piece into a map
+Elin has already generated and saved, and reading whether a patch of that map's ground is free
+first. Neither has been exercised (`ELIN-Q-0033`), and the read half is the same gap BQ-090 waits on
+(`ELIN-Q-0008`). Consequently:
+
+- `ElinVanillaState` reports the capability `unsupported` and answers `InspectGround` with
+  `VanillaGround.Unknown` on every call - it has no read that could say otherwise, and unknown
+  ground is refused exactly like occupied ground (`D017`);
+- `SiteMutation` refuses on the capability before it chooses any ground, so nothing is looked at;
+- `ElinSituationStager.ApplySiteAddition` refuses every blueprint and returns the empty string, on
+  which `SiteMutation` fails closed and writes no record;
+- so on the live build a BQ-owned place cannot be added to at all, never added to on top of terrain
+  the player has dug, built on or left things standing in.
+
+Everything BQ-143 claims is therefore headless (`SiteMutationTests`,
+`dotnet run --project tools/BrilliantQuesting.Lab -- run site-addition`). Turning it on means
+exercising, on the exact installed build: a write into an already-generated zone's map, a read of
+what stands on a given tile of it (`EClass._map.things` at minimum), and whether both survive
+save/quit/reload and elapsed in-game days - then recording that here and in
+[`../verification/unresolved.md`](../verification/unresolved.md) before the capability is advertised.
+The additional live questions BQ-143's done-when asks and nothing here answers are NPC pathing and
+service behaviour around the new piece, and what a save containing an addition does when BQ is
+disabled.
+
 ## Grade-B Absence / Movement
 
 Current BQ implementation: `ElinPresence.ResolveMove` searches for `Chara.MoveZone(Zone, ZoneTransition.EnterState)` and `ElinPresence.ResolveFindZone` searches for `EClass.game.spatials.Find(int)`. The adapter refuses movement when the actor is not already global, and Grade-B absence remains configuration-gated pending disposable-save runtime validation (`SOURCE-OBSERVED`, `STUB-VERIFIED`, `UNRESOLVED` runtime).

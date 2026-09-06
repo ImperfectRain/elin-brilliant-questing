@@ -153,6 +153,9 @@ namespace BrilliantQuesting.World
         private readonly Dictionary<string, List<SitePiece>> _bySocket =
             new Dictionary<string, List<SitePiece>>(StringComparer.Ordinal);
 
+        private readonly Dictionary<string, SitePiece> _byId =
+            new Dictionary<string, SitePiece>(StringComparer.Ordinal);
+
         private static readonly SitePiece[] None = new SitePiece[0];
 
         public SitePieceCatalogue(string family, IEnumerable<SitePiece> pieces)
@@ -170,6 +173,7 @@ namespace BrilliantQuesting.World
                     }
 
                     all.Add(piece);
+                    _byId[piece.Id] = piece;
 
                     List<SitePiece> socket;
                     if (!_bySocket.TryGetValue(piece.Socket, out socket))
@@ -189,6 +193,13 @@ namespace BrilliantQuesting.World
 
         /// <summary>Every piece, in the order the bundle carries them, so assembly is reproducible.</summary>
         public IReadOnlyList<SitePiece> Pieces { get; }
+
+        /// <summary>One piece by the id it is authored under, or null where the bundle has none.</summary>
+        public SitePiece Get(string id)
+        {
+            SitePiece piece;
+            return id != null && _byId.TryGetValue(id, out piece) ? piece : null;
+        }
 
         public IReadOnlyList<SitePiece> ForSocket(string socket)
         {

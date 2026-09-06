@@ -143,6 +143,26 @@ namespace BrilliantQuesting.Plugin
             return zone.Value;
         }
 
+        /// <summary>
+        /// Refused on this build, and for a harder reason than genesis is (BQ-143).
+        ///
+        /// Adding a piece to a place that already exists needs everything zone creation needs
+        /// (`ELIN-Q-0032`) and then two things it does not: writing into a map the game has already
+        /// generated and saved, and knowing what is standing on the ground first. Neither has been
+        /// exercised (`ELIN-Q-0033`), and the failure this would cause is worse than an unmade
+        /// site - it is a piece applied over whatever the player has built, dug or left there.
+        /// So nothing is attempted and nothing is recorded: <see cref="BrilliantQuesting.World.SiteMutation"/>
+        /// fails closed on the empty string, and the place keeps the shape it had.
+        /// </summary>
+        public string ApplySiteAddition(SiteAdditionBlueprint blueprint)
+        {
+            _log.LogWarning(
+                "Cannot add " + (blueprint == null ? "a piece" : blueprint.PieceId)
+                + " to a place this build already made: adding to a generated map and reading its ground"
+                + " are both unexercised (ELIN-Q-0033).");
+            return string.Empty;
+        }
+
         public void StageItem(EntityId owner, ItemDescriptor item)
         {
             if (string.IsNullOrEmpty(item.SourceId))

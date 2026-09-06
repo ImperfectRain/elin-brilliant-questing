@@ -73,3 +73,55 @@ Expected interpretations:
 - Grade-B absence should remain limited to already-global actors unless the probe proves a safe path for ordinary non-global citizens.
 
 Estimated human interaction time: 10-15 minutes.
+
+## Session D: Disposable Additive Site Mutation Probe (BQ-143)
+
+Questions answered: `ELIN-Q-0032`, `ELIN-Q-0033`, and the live half of BQ-143's done-when.
+
+Setup: `DISPOSABLE SAVE REQUIRED`. This probe writes terrain into a map the game has already
+generated. Do not run it on a save anybody cares about, and do not run it in a vanilla town: a
+BQ-owned place is the only legitimate target.
+
+Prerequisite: `ELIN-Q-0032` must be answered first. There is nothing to add to until a zone this mod
+owns can be created and authored pieces applied into it, so Session D begins where that probe ends,
+on the place it made.
+
+Player/tool actions:
+
+1. Log the created zone's uid, bounds, and the coordinates BQ's own site grid is lined up against.
+2. Read the ground for one candidate footprint before writing: what `EClass._map.things`, the tile
+   and any block/floor/obstacle read report for every tile in it.
+3. Have the player change one adjacent patch by hand - build, dig, or drop something on it - and
+   read that footprint again. The read must come back different from the untouched one; if it does
+   not, `InspectGround` cannot be advertised whatever the write does.
+4. Apply one authored piece into the free footprint.
+5. Re-read the zone: the piece is there, and every preexisting actor, item, and piece of evidence in
+   the place is still there and still where it was.
+6. Save, quit, reload. Re-read. Leave the zone, re-enter, re-read.
+7. Advance several in-game days, save, quit, reload, and re-read a second time.
+8. Watch an NPC path through and around the addition, and any service or work behaviour near it.
+9. Disable the BQ plugin, load the same save, and record what the zone looks like without it.
+
+Log values:
+
+- Zone uid, map bounds, site-grid origin used, footprint coordinates.
+- Ground read per tile before and after the player's own change.
+- Piece application call, its return, and any exception.
+- Actor/item/evidence inventory of the zone before the addition and after each reload.
+- Count of the added piece after each reload - the number that must be exactly one.
+- NPC path and goal behaviour near the addition; any pathing failure or stuck actor.
+- What the save does with the addition when BQ is not loaded.
+
+Expected interpretations:
+
+- `AddPlaceFixture` may be advertised only if the ground read distinguishes player-changed ground
+  from free ground, the write lands, and the addition is present exactly once after both reloads.
+- A single reload is not enough: BQ-143's done-when asks for save/reload, leave/re-enter, elapsed
+  days, and a second save/reload, because an addition that is reapplied on load looks correct after
+  the first one.
+- Anything that cannot be read stays `Unknown`. An adapter that reports free ground it has not
+  looked at is worse than one that refuses.
+
+Disposable save required: yes.
+
+Estimated human interaction time: 20-30 minutes.

@@ -304,9 +304,38 @@ namespace BrilliantQuesting.Persistence
                     .Set("established", site.Established)
                     .Set("establishedAt", site.EstablishedAt.TotalMinutes)
                     .Set("approaches", ApproachesToJson(site))
+                    .Set("additions", AdditionsToJson(site))
                     .Set("occupants", Ids(site.OccupantIds))
                     .Set("objects", Ids(site.ImportantObjectIds))
                     .Set("admitted", Ids(site.AdmittedIds)));
+            }
+
+            return array;
+        }
+
+        /// <summary>
+        /// What a place has been given since it was made (BQ-143).
+        ///
+        /// The one physical thing about a site that is written to a save, and it is written because
+        /// it is the one physical thing that cannot be derived: the grammar and the seed reproduce
+        /// the place as it was made, and an addition happened afterwards. Elin still owns the
+        /// ground; this is the record that the mod asked for it once and must never ask again.
+        /// </summary>
+        private static JsonValue AdditionsToJson(NarrativeSite site)
+        {
+            JsonValue array = JsonValue.Array();
+            foreach (SiteAddition addition in site.Additions)
+            {
+                array.Add(JsonValue.Object()
+                    .Set("id", addition.AdditionId)
+                    .Set("piece", addition.PieceId)
+                    .Set("anchor", addition.AnchorNodeId)
+                    .Set("x", addition.X)
+                    .Set("y", addition.Y)
+                    .Set("width", addition.Width)
+                    .Set("height", addition.Height)
+                    .Set("appliedAt", addition.AppliedAt.TotalMinutes)
+                    .Set("ref", addition.ExternalRef));
             }
 
             return array;
@@ -759,6 +788,24 @@ namespace BrilliantQuesting.Persistence
                     site.Approaches.Add(new SiteApproach(
                         approach.GetString("action"),
                         approach.GetBool("admitted")));
+                }
+
+                // Additive and optional in the same way as everything above it (BQ-143): a save
+                // written before anything could be added to a place reads back as a place nobody
+                // has added to, and one addition read back is one addition, so a reload cannot turn
+                // a store room into two.
+                foreach (JsonValue addition in json.GetArray("additions"))
+                {
+                    site.Additions.Add(new SiteAddition(
+                        addition.GetString("id"),
+                        addition.GetString("piece"),
+                        addition.GetString("anchor"),
+                        addition.GetInt("x"),
+                        addition.GetInt("y"),
+                        addition.GetInt("width"),
+                        addition.GetInt("height"),
+                        new GameTime(addition.GetLong("appliedAt")),
+                        addition.GetString("ref")));
                 }
 
                 foreach (JsonValue occupant in json.GetArray("occupants"))

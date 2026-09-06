@@ -167,6 +167,16 @@ namespace BrilliantQuesting.Plugin
                 VanillaCapability.BuildPlaceStructure,
                 "no zone creation or map-piece application has been exercised on this build; StageSite binds to the loaded zone and creates nothing (ELIN-Q-0032)");
 
+            // BQ-143. Adding to a place that already exists needs everything the line above needs
+            // and two things more: a write into a map the game has already generated and saved, and
+            // a read of what is standing on the ground before writing (`ELIN-Q-0033`). Neither has
+            // been exercised, and the second is the same gap BQ-090 is waiting on
+            // (`ELIN-Q-0008`), so `InspectGround` answers Unknown, `ApplySiteAddition` refuses, and
+            // `SiteMutation` never reaches either of them on this build.
+            MarkUnsupported(
+                VanillaCapability.AddPlaceFixture,
+                "no write into an already-generated map and no read of what stands on its ground have been exercised on this build (ELIN-Q-0033)");
+
             Probe(
                 VanillaCapability.TransferItems,
                 () => EClass.pc == null || EClass.pc.things == null ? null : "Chara.Pick transfer path available; source inventory count " + EClass.pc.things.Count);
@@ -1010,6 +1020,21 @@ namespace BrilliantQuesting.Plugin
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Never anything but <see cref="VanillaGround.Unknown"/> on this build (BQ-143).
+        ///
+        /// There is no read here that answers it. A site's grid is BQ's own bounded ground and
+        /// nothing has ever lined it up against a live map; `EClass._map.things` - the read that
+        /// would say what is standing on a tile at all - is the same one BQ-090 is still waiting on
+        /// (`ELIN-Q-0008`); and no zone this mod owns has ever been created for one to be lined up
+        /// against (`ELIN-Q-0032`, `ELIN-Q-0033`). Answering anything else would be the adapter
+        /// telling the simulation that ground it has never looked at is empty.
+        /// </summary>
+        public VanillaGround InspectGround(EntityId zoneId, int x, int y, int width, int height)
+        {
+            return VanillaGround.Unknown;
         }
 
         // -- helpers --------------------------------------------------------------------------

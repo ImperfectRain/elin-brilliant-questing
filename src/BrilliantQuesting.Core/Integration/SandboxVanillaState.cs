@@ -17,6 +17,29 @@ namespace BrilliantQuesting.Integration
     /// </summary>
     public sealed class SandboxVanillaState : VanillaStateBase, IVanillaState
     {
+        private struct GroundPatch : IEquatable<GroundPatch>
+        {
+            private readonly EntityId _zone;
+            private readonly int _x;
+            private readonly int _y;
+
+            internal GroundPatch(EntityId zone, int x, int y)
+            {
+                _zone = zone;
+                _x = x;
+                _y = y;
+            }
+
+            public bool Equals(GroundPatch other) => _zone == other._zone && _x == other._x && _y == other._y;
+
+            public override bool Equals(object obj) => obj is GroundPatch other && Equals(other);
+
+            public override int GetHashCode()
+            {
+                return ((_zone.GetHashCode() * 397) ^ _x) * 397 ^ _y;
+            }
+        }
+
         private sealed class CharaState
         {
             public readonly Dictionary<VanillaAttribute, int> Attributes = new Dictionary<VanillaAttribute, int>();
@@ -53,6 +76,10 @@ namespace BrilliantQuesting.Integration
         private readonly Dictionary<GuildId, int> _guildRanks = new Dictionary<GuildId, int>();
         private readonly Dictionary<GuildId, int> _guildContribution = new Dictionary<GuildId, int>();
         private readonly HashSet<VanillaCapability> _capabilities = new HashSet<VanillaCapability>();
+
+        /// <summary>One square of one place's ground, and what a test said is standing on it.</summary>
+        private readonly Dictionary<GroundPatch, VanillaGround> _ground =
+            new Dictionary<GroundPatch, VanillaGround>();
         private readonly List<string> _refusals = new List<string>();
 
         /// <summary>
@@ -553,6 +580,47 @@ namespace BrilliantQuesting.Integration
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// What the laboratory was told stands on a patch of a place's ground.
+        ///
+        /// Ground is free here unless a test said otherwise, which is the opposite of the live
+        /// adapter's answer and deliberately so: headless, this is the bench where an addition can
+        /// be proved to land, be refused, and be refused again for each separate reason. The
+        /// capability still gates it, so a build that cannot add a fixture cannot read the ground
+        /// either - the two are one question (`ELIN-Q-0033`).
+        /// </summary>
+        public VanillaGround InspectGround(EntityId zoneId, int x, int y, int width, int height)
+        {
+            if (!Supports(VanillaCapability.AddPlaceFixture) || width <= 0 || height <= 0)
+            {
+                return VanillaGround.Unknown;
+            }
+
+            for (int gx = x; gx < x + width; gx++)
+            {
+                for (int gy = y; gy < y + height; gy++)
+                {
+                    VanillaGround ground;
+                    if (_ground.TryGetValue(new GroundPatch(zoneId, gx, gy), out ground)
+                        && ground != VanillaGround.Free)
+                    {
+                        return ground;
+                    }
+                }
+            }
+
+            return VanillaGround.Free;
+        }
+
+        /// <summary>
+        /// Says what stands on one square of a place's ground, so a test can put a player's cellar
+        /// where an addition wants to go.
+        /// </summary>
+        public void SetGround(EntityId zoneId, int x, int y, VanillaGround ground)
+        {
+            _ground[new GroundPatch(zoneId, x, y)] = ground;
         }
 
         /// <summary>
