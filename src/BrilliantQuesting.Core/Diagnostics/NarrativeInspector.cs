@@ -711,6 +711,13 @@ namespace BrilliantQuesting.Diagnostics
                 sb.Append(action.Action).Append(" -> ").Append(action.Outcome)
                   .Append(" via ").Append(action.Style).Append(" score ")
                   .Append(action.Score.ToString("0.00")).Append('\n');
+
+                // Which registered verb this approach would actually be attempted as, or why
+                // none of them means it (BQ-093). Without this line the trace says what the
+                // actor decided and not what they could do about it.
+                sb.Append(action.IsAttemptable
+                    ? "      = verb " + action.RegisteredActionId
+                    : "      = no registered verb: " + action.UnboundBecause).Append('\n');
                 for (int i = 0; i < action.ScoreTerms.Count; i++)
                 {
                     sb.Append("      - ").Append(action.ScoreTerms[i]).Append('\n');
@@ -726,6 +733,102 @@ namespace BrilliantQuesting.Diagnostics
 
             sb.Append("  chosen action: ").Append(trace.ChosenAction.Action)
               .Append(" -> ").Append(trace.ChosenAction.Outcome).Append('\n');
+            sb.Append("  attempted as: ").Append(trace.ChosenAction.IsAttemptable
+                ? trace.ChosenAction.RegisteredActionId
+                : "nothing - " + trace.ChosenAction.UnboundBecause).Append('\n');
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// One actor's intention carried all the way through the shared action system: the verb it
+        /// chose, who may take that verb, what it needs from a body, whether it applied here, how
+        /// it rolled and what history it wrote (BQ-093).
+        ///
+        /// The whole reason the step is inspectable rather than merely tested. A reader must be
+        /// able to see, in one place, that an NPC's bribe went through the registry, through the
+        /// verb's own availability question, through the shared resolver and into the same ledger
+        /// - and, where it did not, which of those said no.
+        /// </summary>
+        public static string DescribeAttempt(NarrativeWorldState world, ActionAttempt attempt)
+        {
+            if (attempt == null)
+            {
+                return "attempt: none\n";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            ActionIntent intent = attempt.Intent;
+            sb.Append("attempt by ")
+              .Append(intent == null ? "nobody" : world.Registry.NameOf(intent.Actor))
+              .Append('\n');
+
+            if (intent != null)
+            {
+                sb.Append("  intends: ").Append(intent.ActionId);
+                if (!intent.Target.IsNone)
+                {
+                    sb.Append(" against ").Append(world.Registry.NameOf(intent.Target));
+                }
+
+                sb.Append('\n');
+                if (intent.Because.Length > 0)
+                {
+                    sb.Append("  because: ").Append(intent.Because).Append('\n');
+                }
+            }
+
+            if (attempt.Action == null)
+            {
+                sb.Append("  verb: not registered\n");
+                sb.Append("  nothing resolved: ").Append(attempt.Refusal).Append('\n');
+                return sb.ToString();
+            }
+
+            sb.Append("  verb: ").Append(attempt.Action.Id)
+              .Append(" (").Append(attempt.Action.Family).Append(")\n");
+            sb.Append("  who may take it: ").Append(attempt.Action.ActorScope).Append('\n');
+            sb.Append("  ").Append(attempt.Action.Embodiment.Describe()).Append('\n');
+            sb.Append("  availability: ").Append(attempt.Availability).Append('\n');
+
+            if (!attempt.Resolved)
+            {
+                sb.Append("  nothing resolved: ").Append(attempt.Refusal).Append('\n');
+                return sb.ToString();
+            }
+
+            ActionOutcome outcome = attempt.Outcome;
+            if (outcome.Check != null)
+            {
+                sb.Append("  ").Append(outcome.Check.Explain()).Append('\n');
+            }
+            else
+            {
+                sb.Append("  resolved without a roll\n");
+            }
+
+            for (int i = 0; i < outcome.Notes.Count; i++)
+            {
+                sb.Append("  - ").Append(outcome.Notes[i]).Append('\n');
+            }
+
+            if (outcome.Events.Count == 0)
+            {
+                sb.Append("  recorded: nothing\n");
+            }
+
+            for (int i = 0; i < outcome.Events.Count; i++)
+            {
+                Events.WorldEvent recorded = outcome.Events[i];
+                sb.Append("  recorded ").Append(recorded.Type)
+                  .Append(": ").Append(world.Registry.NameOf(recorded.Actor));
+                if (!recorded.Target.IsNone)
+                {
+                    sb.Append(" -> ").Append(world.Registry.NameOf(recorded.Target));
+                }
+
+                sb.Append(" (").Append(recorded.Witnesses.Count).Append(" witnessed)\n");
+            }
+
             return sb.ToString();
         }
 
@@ -899,7 +1002,7 @@ namespace BrilliantQuesting.Diagnostics
         /// went next.
         ///
         /// The pipeline's own answer to "why did that happen". Every line of it is read back off
-        /// what the layers already produced - the intent scores are <c>ActorIntent</c>'s trace, the
+        /// what the layers already produced - the intent scores are <c>ActionIntent</c>'s trace, the
         /// check line is <c>CheckResult.Explain</c>, the words are the realizer's - so the report
         /// cannot disagree with the scene and cannot be produced when the scene was not.
         /// </summary>

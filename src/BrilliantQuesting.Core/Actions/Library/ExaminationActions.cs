@@ -64,7 +64,7 @@ namespace BrilliantQuesting.Actions.Library
             return context.Vanilla.GetInventory(context.Actor);
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.ReadInventory))
             {
@@ -76,7 +76,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.NotRelevant(NothingToRead);
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             if (!TryFindReading(context, out ItemDescriptor item, out Fact fact))
             {
@@ -390,19 +390,19 @@ namespace BrilliantQuesting.Actions.Library
                 : context.Vanilla.GetInventory(context.Target);
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
                 return Availability.NotRelevant("nobody here keeps records");
             }
 
-            return base.GetAvailability(context);
+            return base.GetAvailabilityCore(context);
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
-            ActionOutcome outcome = base.Perform(context);
+            ActionOutcome outcome = base.PerformCore(context);
 
             // Being caught with your hands in somebody's papers is the risk that makes this
             // different from reading your own. The reading itself already happened above; this is

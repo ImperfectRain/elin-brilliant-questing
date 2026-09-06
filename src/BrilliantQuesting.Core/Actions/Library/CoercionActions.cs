@@ -18,7 +18,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -33,7 +33,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             ActionBinding binding = ActionBinding.Infer(context);
             EntityId factId = !binding.PropositionFact.IsNone
@@ -44,10 +44,18 @@ namespace BrilliantQuesting.Actions.Library
                 .With(SituationalModifiers.LegalStanding(context, helpfulWhenNotorious: true));
 
             // Friends are harder to frighten - they do not believe you would go through with it.
-            int affinity = context.Affinity;
-            if (affinity > 25)
+            // Only the player has such a number to read; for anybody else the term is absent
+            // rather than zero, and says so (BQ-093, `D017`).
+            if (context.TryGetAffinityToActor(context.Target, out int affinity))
             {
-                request.WithModifier("they trust you too much to be scared", affinity / 25);
+                if (affinity > 25)
+                {
+                    request.WithModifier("they trust you too much to be scared", affinity / 25);
+                }
+            }
+            else
+            {
+                request.WithUnreadTerm("their trust in the actor unread: vanilla keeps goodwill toward the player only");
             }
 
             NarrativeNpc npc = context.TargetNpc;
@@ -180,7 +188,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -221,7 +229,7 @@ namespace BrilliantQuesting.Actions.Library
             return (int)(basePrice * multiplier);
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             int price = PriceFor(context);
             EntityId factId = ActionSupport.FindTeachableFact(context);

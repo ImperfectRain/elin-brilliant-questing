@@ -22,7 +22,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (context.SubjectFact.IsNone)
             {
@@ -43,7 +43,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Fact fact = context.World.Knowledge.GetFact(context.SubjectFact);
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Investigation, context.Actor, EntityId.None);
@@ -179,7 +179,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -204,7 +204,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             EntityId factId = context.SubjectFact;
             Fact fact = context.World.Knowledge.GetFact(factId);
@@ -291,7 +291,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -311,7 +311,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             ItemDescriptor item = Subject(context);
             IReadOnlyList<ProvenanceEntry> recognized =

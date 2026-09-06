@@ -71,10 +71,20 @@ namespace BrilliantQuesting.Actions.Library
             return EntityId.None;
         }
 
-        /// <summary>Whether this contact will take work from this actor at all.</summary>
+        /// <summary>
+        /// Whether this contact will take work from this actor at all.
+        ///
+        /// All three routes in are the player's standing and nothing else: the Thieves' card,
+        /// Karma, and the contact's goodwill toward the player. Elin keeps one of each and there
+        /// is no NPC reading of any of them, so for a non-player actor the question is not
+        /// answered "no", it is not answered at all - and an unanswered gate refuses rather than
+        /// guesses (`D012`, `D017`, BQ-093). The verbs say so in
+        /// <see cref="NarrativeAction.ActorScope"/>, which refuses first; this stays the player's
+        /// arithmetic.
+        /// </summary>
         public static bool WillDealWith(ActionContext context, EntityId contact)
         {
-            if (contact.IsNone)
+            if (contact.IsNone || !context.ActorIsPlayer)
             {
                 return false;
             }
@@ -136,7 +146,19 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        /// <summary>
+        /// Not player-specific in meaning - a village blacksmith has a fence too - and refused for
+        /// anybody else all the same, because whether the receiver deals with somebody is read
+        /// entirely off the player's Thieves' card, Karma and personal goodwill
+        /// (<see cref="UnderworldContacts.WillDealWith"/>). BQ owns no standing an NPC has with the
+        /// trade, and manufacturing one would be a second underworld reputation disagreeing with
+        /// the visible one. It arrives when that standing does, not before (BQ-093).
+        /// </summary>
+        public override ActorScope ActorScope => ActorScope.AwaitingCapability(
+            "a contact's willingness is read off the player's Thieves' card, Karma and goodwill;"
+            + " BQ keeps no underworld standing for anybody else");
+
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.TransferItems)
                 || !context.Vanilla.Supports(VanillaCapability.SpendMoney))
@@ -161,7 +183,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             EntityId contact = UnderworldPolicy.FindContact(context, UnderworldPolicy.FenceRole);
             ItemDescriptor goods = Goods(context);
@@ -288,7 +310,19 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        /// <summary>
+        /// Not player-specific in meaning - a village blacksmith has a fence too - and refused for
+        /// anybody else all the same, because whether the receiver deals with somebody is read
+        /// entirely off the player's Thieves' card, Karma and personal goodwill
+        /// (<see cref="UnderworldContacts.WillDealWith"/>). BQ owns no standing an NPC has with the
+        /// trade, and manufacturing one would be a second underworld reputation disagreeing with
+        /// the visible one. It arrives when that standing does, not before (BQ-093).
+        /// </summary>
+        public override ActorScope ActorScope => ActorScope.AwaitingCapability(
+            "a contact's willingness is read off the player's Thieves' card, Karma and goodwill;"
+            + " BQ keeps no underworld standing for anybody else");
+
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.SpendMoney))
             {
@@ -318,7 +352,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available("costs " + price + " orens");
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             EntityId contact = UnderworldPolicy.FindContact(context, UnderworldPolicy.ForgerRole);
             ItemDescriptor exemplar = Exemplar(context);
@@ -486,7 +520,19 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        /// <summary>
+        /// Not player-specific in meaning - a village blacksmith has a fence too - and refused for
+        /// anybody else all the same, because whether the receiver deals with somebody is read
+        /// entirely off the player's Thieves' card, Karma and personal goodwill
+        /// (<see cref="UnderworldContacts.WillDealWith"/>). BQ owns no standing an NPC has with the
+        /// trade, and manufacturing one would be a second underworld reputation disagreeing with
+        /// the visible one. It arrives when that standing does, not before (BQ-093).
+        /// </summary>
+        public override ActorScope ActorScope => ActorScope.AwaitingCapability(
+            "a contact's willingness is read off the player's Thieves' card, Karma and goodwill;"
+            + " BQ keeps no underworld standing for anybody else");
+
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.TransferItems))
             {
@@ -514,7 +560,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             EntityId carrier = UnderworldPolicy.FindContact(context, UnderworldPolicy.SmugglerRole);
             ItemDescriptor cargo = Cargo(context);

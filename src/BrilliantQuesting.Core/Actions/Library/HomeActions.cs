@@ -161,6 +161,16 @@ namespace BrilliantQuesting.Actions.Library
             Undertaking = undertaking;
         }
 
+        /// <summary>
+        /// The Home is the player's, and Elin keeps exactly one (`D018`). "Nessa takes the
+        /// stranger in" is a sentence about a settlement that does not exist, and admitting
+        /// somebody on an NPC's behalf would put them on the player's roll - so the verb is
+        /// refused for anybody else rather than quietly resolved against the player's land
+        /// (BQ-093).
+        /// </summary>
+        public override ActorScope ActorScope => ActorScope.PlayerOnly(
+            "the Home is the player's settlement; vanilla keeps no other");
+
         protected CheckProfile Profile { get; }
 
         /// <summary>What the household is promising, recorded in the fact this writes.</summary>
@@ -179,7 +189,7 @@ namespace BrilliantQuesting.Actions.Library
         /// <summary>Whether this verb applies to this person at all, beyond the shared checks.</summary>
         protected abstract Availability Eligible(ActionContext context, HomeState home);
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             HomeState home = context.Vanilla.GetHomeState();
             if (home == null)
@@ -235,7 +245,7 @@ namespace BrilliantQuesting.Actions.Library
             return Eligible(context, home);
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Availability availability = GetAvailability(context);
             if (!availability.IsAvailable)
@@ -667,6 +677,16 @@ namespace BrilliantQuesting.Actions.Library
         }
 
         /// <summary>
+        /// The Home is the player's, and Elin keeps exactly one (`D018`). "Nessa takes the
+        /// stranger in" is a sentence about a settlement that does not exist, and admitting
+        /// somebody on an NPC's behalf would put them on the player's roll - so the verb is
+        /// refused for anybody else rather than quietly resolved against the player's land
+        /// (BQ-093).
+        /// </summary>
+        public override ActorScope ActorScope => ActorScope.PlayerOnly(
+            "the Home is the player's settlement; vanilla keeps no other");
+
+        /// <summary>
         /// Which of the settlement's numbers answers a demand. Food uses the verified fFood Home
         /// Skill, currently known as a capacity input rather than a measured pantry; everything
         /// else comes out of how well the place is run, because a settlement that can find timber,
@@ -680,7 +700,7 @@ namespace BrilliantQuesting.Actions.Library
                 : HomeMetric.Administration;
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             HomeState home = context.Vanilla.GetHomeState();
             if (home == null)
@@ -716,7 +736,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available("your settlement can find " + spec.Describe());
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Availability availability = GetAvailability(context);
             if (!availability.IsAvailable)
@@ -809,7 +829,17 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        /// <summary>
+        /// The Home is the player's, and Elin keeps exactly one (`D018`). "Nessa takes the
+        /// stranger in" is a sentence about a settlement that does not exist, and admitting
+        /// somebody on an NPC's behalf would put them on the player's roll - so the verb is
+        /// refused for anybody else rather than quietly resolved against the player's land
+        /// (BQ-093).
+        /// </summary>
+        public override ActorScope ActorScope => ActorScope.PlayerOnly(
+            "the Home is the player's settlement; vanilla keeps no other");
+
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.TransferItems))
             {
@@ -833,7 +863,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available("somebody at home can keep " + proof.Name);
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Availability availability = GetAvailability(context);
             if (!availability.IsAvailable)

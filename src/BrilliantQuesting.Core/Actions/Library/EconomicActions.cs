@@ -82,7 +82,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -108,7 +108,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available("costs " + amount + " orens");
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Fact debt = Debt.FindPayable(context, out int amount);
             if (debt == null)
@@ -154,7 +154,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.SpendMoney))
             {
@@ -173,7 +173,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available("costs " + cost + " orens");
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             ActionOutcome outcome = new ActionOutcome(Id, null, "You buy out the failing business and its debt stops hanging over the counter.");
             if (!DistressedBusinessSituation.TryMarkBought(context, out int cost, outcome))
@@ -198,7 +198,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.SpendMoney))
             {
@@ -218,7 +218,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available("costs " + cost + " orens and may still fail");
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             BusinessRecord business = DistressedBusinessSituation.FindFailedBusiness(context);
             Fact debt = DistressedBusinessSituation.FindDebtById(context, business?.CauseFactId ?? EntityId.None, out int amount);
@@ -282,7 +282,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.SpendMoney))
             {
@@ -306,7 +306,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available("costs " + cost + " orens to procure " + spec.Describe());
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Fact demand = ProductionDemand.Find(context, out ProductionSpec spec);
             if (demand == null)
@@ -400,7 +400,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.SpendMoney))
             {
@@ -424,7 +424,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available("invests " + cost + " orens in " + context.NameOf(owner));
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Fact damage = FindSupplierFailure(context, out EntityId cause, out EntityId owner);
             if (damage == null)

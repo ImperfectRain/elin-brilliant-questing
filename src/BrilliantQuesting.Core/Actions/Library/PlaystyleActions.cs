@@ -15,7 +15,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -27,7 +27,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available("uses Music to turn the room toward " + context.NameOf(context.Target));
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Fact trouble = FindSocialTrouble(context);
             if (trouble == null)
@@ -134,7 +134,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -156,7 +156,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available("settles the honour debt with a real museum piece");
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Fact debt = FindDebtOfHonour(context);
             ItemDescriptor piece = FindMuseumPiece(context);
@@ -237,7 +237,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -259,7 +259,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available("gives a bred animal as a relationship-changing gift");
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Fact matter = FindGiftMatter(context);
             ItemDescriptor animal = FindBredAnimal(context);
@@ -395,7 +395,7 @@ namespace BrilliantQuesting.Actions.Library
             _routeName = routeName;
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -427,7 +427,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available("uses a real " + _routeName + " to answer " + spec.Describe());
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Fact demand = ProductionDemand.Find(context, out ProductionSpec spec);
             ItemDescriptor supply = FindSupply(context);

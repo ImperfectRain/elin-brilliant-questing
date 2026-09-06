@@ -412,7 +412,19 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        /// <summary>
+        /// A guild card is the player's. `IsGuildMember`, `GetGuildRank` and `GetGuildContribution`
+        /// take no character: Elin keeps one membership, one rank and one contribution ledger per
+        /// guild and they are the player's, so asked during an NPC's attempt they would answer
+        /// about the player. Standing gates contacts (`D012`) and this is the same shape: without
+        /// a card there is no attempt that might come off. An NPC's relation to a hall is a
+        /// different thing that BQ would have to own itself, and inventing one here would be the
+        /// second membership register `VS 6` forbids (BQ-093).
+        /// </summary>
+        public override ActorScope ActorScope => ActorScope.PlayerOnly(
+            "a guild card, rank and contribution are the player's; vanilla keeps no others");
+
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             // A build that cannot report standing loses the route rather than opening it to
             // everybody: the safe direction for an unread number, exactly as quality zero and an
@@ -435,7 +447,7 @@ namespace BrilliantQuesting.Actions.Library
                                          + ActionSupport.Describe(context, commission.Matter.Id));
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             // A projected choice can outlive the state it was drawn against: the officer may have
             // gone off duty, the matter may have been answered another way, and the hall may

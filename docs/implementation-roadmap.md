@@ -2840,7 +2840,71 @@ resolve abstractly. Core does not acquire movement, pathfinding or routine-task 
 branch.
 - **Depends** BQ-062, BQ-031, BQ-135.
 - **Done when** an NPC performs an existing verb through the same code path, with the same four outcomes, **and** an action needing embodiment either delegates to a verified vanilla path or resolves coarsely, with the choice visible in the inspector and no movement controller in Core.
-- **Sources** CD §47.5; PM §35; LW §6.8; VS §3.1, §3.2; D021.
+- **Current implementation** the base was already actor-generic and was not redesigned: `ActionContext`
+  has always carried an `Actor` independent of the player, `ActionRegistry` discovers from that
+  context, `NarrativeAction` owns availability and performance, `VanillaStyleCheckResolver` reads the
+  request's own actor and target, `NarrativeWorldState.Record` is actor-keyed, and `ConsequenceEngine`
+  already refused to move vanilla affinity, Karma or Fame for a non-player actor (BQ-064). What this
+  step added is the gate, the honesty and the join.
+  **The gate is structural.** `NarrativeAction.GetAvailability` and `Perform` are no longer virtual;
+  each asks the verb's declared `ActorScope` and only then calls the verb's own
+  `GetAvailabilityCore` / `PerformCore`. `Perform` refuses too, with no roll and no events, so a
+  caller that skips the availability question cannot drop an NPC into a body written for the player.
+  Three classifications, each carrying its reason: `AnyActor`; `PlayerOnly` for the four Home verbs
+  and `invoke_authority`, where Elin keeps exactly one Home and one guild card and they are the
+  player's; `AwaitingCapability` for `fence`, `forge` and `smuggle`, whose contacts are gated
+  entirely on the player's Thieves' card, Karma and goodwill (`D012`). Ten declarations in all:
+  fifty-eight of the sixty-eight registered verbs stay actor-generic.
+  **Standing nobody keeps for an NPC now reads as unread rather than as the player's.**
+  `SituationalModifiers.Rapport`, `Reputation`, `LegalStanding` and `GuildAuthority` silently read
+  player standing for whoever was acting; four availability and modifier sites read
+  `GetAffinity(target)`, which is affinity *toward the player*. Each now contributes nothing for a
+  non-player actor and records a named zero through `CheckRequest.WithUnreadTerm` — the one kind of
+  zero worth carrying, so an inspector can tell "counted for nothing" from "never asked" (`D017`).
+  `Settlement`'s own long-standing unread term was being dropped by the same rule and is now printed.
+  **Selection joins resolution at one named point.** `GoalActionTrace.RegisteredActionId` binds a
+  goal candidate to the registered verb it would be attempted as; the seven `MissingGoat` candidates
+  carry the binding beside the candidates that know how abstract they are being. Four bind
+  (`report`, `question`, `bribe`, `make_offering`); three are deliberately unbound with a reason —
+  accusing a rival is neither `lie` nor `report`, taking a beast out of a field is not `pickpocket`,
+  and waiting is the absence of an attempt. `ActionIntent.FromGoalChoice` returns null for an unbound
+  choice rather than substituting the best-scoring attemptable one. `ActionAttempt.Run` is the same
+  three calls the player's surface makes — registry lookup, the verb's availability question, the
+  verb's `Perform` — and has no actor branch in it.
+  **An NPC has to be placed before it can act, which is the actual work.** `ActorContexts.TryBuild`
+  is the general form of what the conversation surface did by hand: the actor's whereabouts come from
+  BQ-135's `GetActorActivity` rather than a new probe, witnesses are drawn from *that* actor's zone,
+  and it refuses when nothing answered where they are, when the parties are not in the same place, or
+  when vanilla is already carrying the actor between zones (`VS §3.3`). Unknown movement is not a
+  refusal; on a build answering no travel facet everything would be refused.
+  **Embodiment is declared and printed.** `ActorEmbodiment` reuses `RouteEvidence` and
+  `SpatialRouteClaim.CanLeanOn` rather than growing a second grading vocabulary: `Narrative` claims
+  nothing physical, `Delegated` names the seam write and its capabilities, `Coarse` names what is
+  deliberately not asserted. Nine verbs declare something other than `Narrative`: `rescue`, `escort`,
+  `capture`, `restrain` and `mine_bypass` were already coarse for the player and now say so, and
+  `carry`, `transport`, `clear_obstruction` and `break_barrier` delegate to `TransferItems` or
+  `DestroyItems`. The branch is stamped on `ActionOutcome` and printed by `Explain()` and
+  `NarrativeInspector.DescribeAttempt`.
+  **Proof.** `dotnet run --project tools/BrilliantQuesting.Lab -- run actor-action` walks Nessa from a
+  need to a recorded consequence, prints the verb her chosen approach binds to, her availability, her
+  roll and her ledger entry, then runs the same verb for the player against the same person and shows
+  it is the same object; then asks three verbs she may not take why not. 29 tests in
+  `PlayerNpcActionSymmetryTests` and 6 in `ActorActionScenarioTests`, including a census proving that
+  moving the player's Karma, Fame, guild rank and the target's affinity changes no actor-generic
+  verb's verdict for an NPC while still changing the player's own. Core 1549 and Lab 140 pass.
+- **Unverified, and not claimed** none of this has run in a live Elin session and the plugin was not
+  compiled, because this machine has no Elin assemblies. Every coarse resolution is coarse precisely
+  because no vanilla path for carrying an actor anywhere has been verified: no NPC physical act may
+  be read as live-working on the strength of its semantic resolver passing headlessly. BQ-135's own
+  live diagnostic is still unrun, so `GetActorActivity` stands at `SOURCE-OBSERVED` and the travel
+  reading `ActorContexts` refuses on has never been observed answering `Moving` in play
+  (`ELIN-Q-0014`). The three `AwaitingCapability` verbs name a capability nobody has scheduled.
+- **Out of scope** any scheduler, tick or periodic pass — nothing here acts unbidden, and the one
+  intention in the laboratory is asked for by the run (BQ-094). No NPC-facing narration: an outcome's
+  `Narration` is second-person player text and is presentation, not the record; what an NPC act means
+  is its ledger events. No BQ-owned NPC guild membership, underworld standing, Karma, Fame or Home,
+  and no movement, pathfinding or routine-task logic in Core.
+- **Sources** CD §47.5; PM §35; LW §6.8; VS §3.1, §3.2; D021, D073.
 
 #### BQ-094 — First autonomous intervention
 One NPC pursues one situation off-screen and can succeed, fail, or make it worse.

@@ -85,15 +85,52 @@ namespace BrilliantQuesting.World
 
     public static class MissingGoatProblemSolver
     {
+        /// <summary>
+        /// The seven approaches this problem admits, each bound to the registered verb it would
+        /// actually be attempted as, or to nothing with a reason (BQ-093).
+        ///
+        /// The binding is here, beside the candidates, rather than in a table somewhere else,
+        /// because these candidates are what knows how abstract it is being: `AskAuthority` is a
+        /// disposition and <c>report</c> is a verb, and only the list that authored the first can
+        /// say which instance of the second it meant. Three are deliberately unbound. Forcing them
+        /// onto an approximate verb would make the trace claim an attempt that was never made,
+        /// and adding an NPC-only verb to carry them would be exactly the second vocabulary this
+        /// step exists to prevent (`CD 47.5`).
+        /// </summary>
         private static readonly Candidate[] Candidates =
         {
-            new Candidate(ProblemSolvingStyle.AskAuthority, MissingGoatResponse.ReportToGuards),
-            new Candidate(ProblemSolvingStyle.AskFriends, MissingGoatResponse.AskNeighbors),
-            new Candidate(ProblemSolvingStyle.PaySomeone, MissingGoatResponse.OfferPayment),
-            new Candidate(ProblemSolvingStyle.Manipulate, MissingGoatResponse.AccuseRival),
-            new Candidate(ProblemSolvingStyle.Conceal, MissingGoatResponse.StealReplacement),
-            new Candidate(ProblemSolvingStyle.SeekReligiousHelp, MissingGoatResponse.PrayForReturn),
-            new Candidate(ProblemSolvingStyle.Wait, MissingGoatResponse.ComplainAndWait)
+            Candidate.Attempting(
+                ProblemSolvingStyle.AskAuthority,
+                MissingGoatResponse.ReportToGuards,
+                "report"),
+            Candidate.Attempting(
+                ProblemSolvingStyle.AskFriends,
+                MissingGoatResponse.AskNeighbors,
+                "question"),
+            Candidate.Attempting(
+                ProblemSolvingStyle.PaySomeone,
+                MissingGoatResponse.OfferPayment,
+                "bribe"),
+            Candidate.Unbound(
+                ProblemSolvingStyle.Manipulate,
+                MissingGoatResponse.AccuseRival,
+                "naming a rival for something the actor does not believe is neither `lie`,"
+                + " which misleads a listener about a matter, nor `report`, which carries a belief"
+                + " to somebody with standing; no registered verb means it yet"),
+            Candidate.Unbound(
+                ProblemSolvingStyle.Conceal,
+                MissingGoatResponse.StealReplacement,
+                "the registered theft verb takes an object out of somebody's keeping"
+                + " (`pickpocket`); taking a beast out of a field is not that"),
+            Candidate.Attempting(
+                ProblemSolvingStyle.SeekReligiousHelp,
+                MissingGoatResponse.PrayForReturn,
+                "make_offering"),
+            Candidate.Unbound(
+                ProblemSolvingStyle.Wait,
+                MissingGoatResponse.ComplainAndWait,
+                "waiting is the absence of an attempt; there is no verb to perform and there"
+                + " should not be one")
         };
 
         public static MissingGoatDecision Choose(NarrativeNpc actor)
@@ -300,7 +337,9 @@ namespace BrilliantQuesting.World
                 candidate.Response.ToString(),
                 score.Total,
                 score.Terms,
-                ruling);
+                ruling,
+                candidate.RegisteredActionId,
+                candidate.UnboundBecause);
         }
 
         private static string ProblemSummary(MissingGoatProblem problem)
@@ -475,15 +514,41 @@ namespace BrilliantQuesting.World
 
         private struct Candidate
         {
-            public Candidate(ProblemSolvingStyle style, MissingGoatResponse response)
+            /// <summary>An approach the shared library already has a verb for.</summary>
+            public static Candidate Attempting(
+                ProblemSolvingStyle style, MissingGoatResponse response, string registeredActionId)
+            {
+                return new Candidate(style, response, registeredActionId, string.Empty);
+            }
+
+            /// <summary>An approach no registered verb means, and why.</summary>
+            public static Candidate Unbound(
+                ProblemSolvingStyle style, MissingGoatResponse response, string because)
+            {
+                return new Candidate(style, response, string.Empty, because);
+            }
+
+            private Candidate(
+                ProblemSolvingStyle style,
+                MissingGoatResponse response,
+                string registeredActionId,
+                string unboundBecause)
             {
                 Style = style;
                 Response = response;
+                RegisteredActionId = registeredActionId;
+                UnboundBecause = unboundBecause;
             }
 
             public ProblemSolvingStyle Style { get; }
 
             public MissingGoatResponse Response { get; }
+
+            /// <summary>The registered verb this approach is attempted as, or empty.</summary>
+            public string RegisteredActionId { get; }
+
+            /// <summary>Why no registered verb means it. Empty when one does.</summary>
+            public string UnboundBecause { get; }
         }
 
         private sealed class ScoreBreakdown

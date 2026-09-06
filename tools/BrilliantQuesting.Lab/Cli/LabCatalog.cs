@@ -43,6 +43,7 @@ namespace BrilliantQuesting.Lab.Cli
                 new NewsScenario(),
                 new GuildsScenario(),
                 new AuthorityScenario(),
+                new ActorActionScenario(),
                 new PlaygroundScenario(),
                 new PlaygroundContrastScenario(),
                 new PlaygroundSweepScenario(),

@@ -3,7 +3,7 @@ namespace BrilliantQuesting.Actions.Library
     /// <summary>
     /// The verb set the headless laboratories run on.
     ///
-    /// Sixty-six verbs, spanning all eight solution families. The target was roughly forty - but
+    /// Sixty-eight verbs, spanning all eight solution families. The target was roughly forty - but
     /// only once each verb has proven it can carry a situation on its own, since a verb that
     /// cannot be the whole answer to some problem is not pulling its weight.
     /// </summary>

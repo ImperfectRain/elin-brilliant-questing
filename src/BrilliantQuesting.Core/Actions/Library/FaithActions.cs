@@ -342,7 +342,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!Devotion.CanRead(context))
             {
@@ -377,7 +377,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available("lays " + gift.Name + " on " + ground.Deity + "'s altar");
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             DevotionSpec ground = Devotion.CanRead(context) ? Devotion.GroundHere(context) : null;
             if (ground == null || !ground.IsFollowedBy(context.Vanilla.GetWorshippedDeity(context.Actor)))
@@ -457,7 +457,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!Devotion.CanRead(context))
             {
@@ -500,7 +500,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available("asks " + spec.Deity + " to lift " + Trouble(trouble));
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Fact sacred = null;
             DevotionSpec spec = null;

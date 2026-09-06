@@ -71,9 +71,18 @@ namespace BrilliantQuesting.Actions.Library
                 needs.ToArray());
         }
 
+        /// <summary>
+        /// The barrier is an object standing in the place, and taking it out of the world is a
+        /// seam write vanilla performs - the same `DestroyItems` capability the route claim above
+        /// already needs, asked for here so an outcome says which branch it took (`D021`).
+        /// </summary>
+        public override ActorEmbodiment Embodiment => _removesBarrier
+            ? ActorEmbodiment.Delegated("taking the obstruction out of the world", VanillaCapability.DestroyItems)
+            : ActorEmbodiment.Coarse("which way round the obstruction was taken");
+
         public SpatialRouteClaim SpatialRoute { get; }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             Fact blockage = FindBlockage(context, out ItemDescriptor barrier, out NarrativeSite blockedSite, out PhysicalObstacleSpec spec);
             if (blockage == null)
@@ -89,7 +98,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available("answers the " + barrier.Name + " blocking " + blockedSite.Name);
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Fact blockage = FindBlockage(context, out ItemDescriptor barrier, out NarrativeSite blockedSite, out PhysicalObstacleSpec spec);
             if (blockage == null)
@@ -294,7 +303,13 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        /// <summary>
+        /// The object actually changes hands through the seam; what stays unclaimed is the walk.
+        /// </summary>
+        public override ActorEmbodiment Embodiment => ActorEmbodiment.Delegated(
+            "moving the object between keepings", VanillaCapability.TransferItems);
+
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.TransferItems))
             {
@@ -306,7 +321,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.NotRelevant("nothing here to carry");
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.TransferItems))
             {
@@ -355,7 +370,13 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        /// <summary>
+        /// The object actually changes hands through the seam; what stays unclaimed is the walk.
+        /// </summary>
+        public override ActorEmbodiment Embodiment => ActorEmbodiment.Delegated(
+            "moving the object between keepings", VanillaCapability.TransferItems);
+
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.TransferItems))
             {
@@ -372,7 +393,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.TransferItems))
             {
@@ -413,9 +434,9 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
-            Availability baseAvailability = base.GetAvailability(context);
+            Availability baseAvailability = base.GetAvailabilityCore(context);
             if (!baseAvailability.IsAvailable)
             {
                 return baseAvailability;
@@ -426,12 +447,12 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available("escorts " + context.NameOf(context.Target) + " so " + spec.Describe() + " reaches town");
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Fact demand = FindEscortDemand(context, out ProductionSpec spec);
             if (demand == null)
             {
-                return base.Perform(context);
+                return base.PerformCore(context);
             }
 
             if (!ActionSupport.Present(context, context.Target))
@@ -544,7 +565,22 @@ namespace BrilliantQuesting.Actions.Library
             _eventType = eventType;
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        /// <summary>
+        /// Nobody is moved. Rescuing, escorting, capturing and restraining are physical acts and
+        /// there is no verified vanilla path by which BQ may carry an actor to a place, so the
+        /// resolution stays coarse: the record says what was attempted, whether it came off and
+        /// what it meant, and asserts no route, no position and no moment (`VS 3.2`, `D021`).
+        /// Core acquires no movement controller on this branch, which is the point of declaring
+        /// it rather than leaving it implicit (BQ-093).
+        ///
+        /// This was already true for the player; it is only now written down. `TrySendAway` is
+        /// not the missing path: it is the absence lifecycle's alone and is never called
+        /// speculatively (`D020`).
+        /// </summary>
+        public override ActorEmbodiment Embodiment => ActorEmbodiment.Coarse(
+            "where anybody stood, which way they went, or when");
+
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target) || context.Target == context.Actor)
             {
@@ -559,7 +595,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {

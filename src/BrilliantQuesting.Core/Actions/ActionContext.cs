@@ -61,7 +61,47 @@ namespace BrilliantQuesting.Actions
 
         public GameTime Now => Vanilla.Now;
 
-        public int Affinity => Target.IsNone ? 0 : Vanilla.GetAffinity(Target);
+        /// <summary>
+        /// Whether the acting character is the player (BQ-093).
+        ///
+        /// Not a permission and not a branch in a verb's meaning: it is the one question that
+        /// decides whether the standing Elin keeps - affinity, Karma, Fame, influence, a guild
+        /// card - is *about this actor at all*. Elin keeps exactly one of each, and it is the
+        /// player's. Asking it of an NPC act does not return a smaller number, it returns
+        /// somebody else's.
+        /// </summary>
+        public bool ActorIsPlayer => Actor == Vanilla.PlayerId;
+
+        /// <summary>
+        /// How <paramref name="who"/> feels about the acting character, when the game keeps such
+        /// a number at all.
+        ///
+        /// True only for the player, because <see cref="IVanillaState.GetAffinity"/> is affinity
+        /// *toward the player* and there is no second reading for anybody else. False is "the
+        /// game does not keep this", which is not zero and not indifference: a caller must let it
+        /// contribute nothing rather than let it read as a stranger (`D017`).
+        /// </summary>
+        public bool TryGetAffinityToActor(EntityId who, out int affinity)
+        {
+            if (who.IsNone || !ActorIsPlayer)
+            {
+                affinity = 0;
+                return false;
+            }
+
+            affinity = Vanilla.GetAffinity(who);
+            return true;
+        }
+
+        /// <summary>Whether <see cref="Affinity"/> is a reading rather than a stand-in for one.</summary>
+        public bool AffinityKnown => TryGetAffinityToActor(Target, out int _);
+
+        /// <summary>
+        /// How the target feels about the acting character. Zero when the game keeps no such
+        /// number for this actor - check <see cref="AffinityKnown"/> before letting it decide
+        /// anything.
+        /// </summary>
+        public int Affinity => TryGetAffinityToActor(Target, out int affinity) ? affinity : 0;
 
         public NarrativeNpc TargetNpc => World.Registry.GetNpc(Target);
 

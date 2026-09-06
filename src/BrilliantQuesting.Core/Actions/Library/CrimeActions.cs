@@ -21,7 +21,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -41,7 +41,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             ItemDescriptor item = SelectTarget(context);
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Pickpocketing, context.Actor, context.Target);
@@ -143,7 +143,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (context.ThirdParty.IsNone)
             {
@@ -163,7 +163,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             ItemDescriptor item = FindPlantable(context);
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Fabrication, context.Actor, context.ThirdParty)
@@ -285,7 +285,7 @@ namespace BrilliantQuesting.Actions.Library
             RouteEvidence.BqAuthored,
             string.Empty);
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             NarrativeSite site = ActionSupport.SiteHere(context);
             if (site == null || !site.Restricted)
@@ -301,7 +301,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             NarrativeSite site = ActionSupport.SiteHere(context);
             if (site == null || site.Admits(context.Actor))
@@ -405,7 +405,7 @@ namespace BrilliantQuesting.Actions.Library
 
         protected abstract string Narrate(ActionContext context, ItemDescriptor item);
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.DestroyItems))
             {
@@ -417,7 +417,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             ItemDescriptor item = Selected(context);
             if (item == null)
@@ -590,14 +590,14 @@ namespace BrilliantQuesting.Actions.Library
             return "The " + item.Name + " will not be any use to " + context.NameOf(context.Target) + " again.";
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
                 return Availability.NotRelevant("nobody here to do that to");
             }
 
-            return base.GetAvailability(context);
+            return base.GetAvailabilityCore(context);
         }
     }
 
@@ -622,7 +622,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target) || context.Target == context.Actor)
             {
@@ -647,7 +647,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Fact leverage = FindLeverage(context);
             if (leverage == null)
@@ -823,7 +823,7 @@ namespace BrilliantQuesting.Actions.Library
             "reading the credentials the actor is carrying (API-017)",
             VanillaCapability.ReadInventory);
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target) || context.Target == context.Actor)
             {
@@ -835,7 +835,11 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.Impossible("nothing about you says you are anyone else");
             }
 
-            if (context.Vanilla.GetAffinity(context.Target) >= KnowsYourFaceAt)
+            // Familiarity is read as affinity, and vanilla keeps affinity toward the player only.
+            // For anybody else the question goes unanswered, and an unanswered one may not close
+            // the route: hiding a verb on a number nobody read is exactly the guess `D017`
+            // refuses, and the availability model refuses it twice over (BQ-093).
+            if (context.TryGetAffinityToActor(context.Target, out int familiarity) && familiarity >= KnowsYourFaceAt)
             {
                 return Availability.Impossible(context.NameOf(context.Target) + " knows your face too well");
             }
@@ -843,7 +847,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             ItemDescriptor papers = Credentials(context);
             if (papers == null)
@@ -960,7 +964,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -970,7 +974,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             IReadOnlyList<EntityId> seen = ActionSupport.Bystanders(context, true);
             ActionOutcome outcome = new ActionOutcome(Id, null, "You go for " + context.NameOf(context.Target) + ".");

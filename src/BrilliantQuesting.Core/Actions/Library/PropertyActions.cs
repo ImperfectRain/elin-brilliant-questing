@@ -77,7 +77,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -97,7 +97,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             ItemDescriptor item = Ownership.FindOwnedBy(context, context.Target);
             context.Vanilla.TryTransferItem(item.Id, context.Actor, context.Target);
@@ -135,7 +135,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.ReadInventory))
             {
@@ -150,7 +150,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.NotRelevant("nothing of anyone else's to keep");
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             FindSomeoneElsesProperty(context, out ItemDescriptor item, out EntityId owner);
 

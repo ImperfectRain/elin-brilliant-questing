@@ -27,7 +27,7 @@ namespace BrilliantQuesting.Actions.Library
 
         private const int RepeatCooldownMinutes = GameTime.MinutesPerHour * 6;
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -38,7 +38,11 @@ namespace BrilliantQuesting.Actions.Library
             // person, banking affinity each time. Pleasantries do not compound forever: past a
             // point somebody is as well-disposed towards a near-stranger as small talk can make
             // them, and going round again is the player farming a number rather than playing.
-            if (context.Affinity >= WarmthCeiling)
+            // The ceiling is read off vanilla affinity, which exists toward the player only. An
+            // NPC building rapport is not thereby at the ceiling and is not thereby a stranger:
+            // the number was never asked, so it decides nothing and the cooldown below - which is
+            // BQ's own ledger and actor-keyed - is what paces them instead (BQ-093, `D017`).
+            if (context.TryGetAffinityToActor(context.Target, out int warmth) && warmth >= WarmthCeiling)
             {
                 return Availability.NotRelevant("small talk has taken you as far as it will with them");
             }
@@ -51,7 +55,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             string who = context.NameOf(context.Target);
             ActionOutcome outcome = new ActionOutcome(Id, null, "You keep the conversation light. " + who + " seems a little more willing to hear you out.");
@@ -123,7 +127,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -138,7 +142,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             EntityId factId = ActionSupport.FindTeachableFact(context);
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Interrogation, context.Actor, context.Target)
@@ -227,7 +231,7 @@ namespace BrilliantQuesting.Actions.Library
             RouteEvidence.BqAuthored,
             string.Empty);
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -242,7 +246,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Persuasion, context.Actor, context.Target)
                 .With(SituationalModifiers.Rapport(context))
@@ -369,7 +373,7 @@ namespace BrilliantQuesting.Actions.Library
             RouteEvidence.BqAuthored,
             string.Empty);
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -389,7 +393,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available("spends the favour they owe you");
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             ActionBinding binding = ActionBinding.Infer(context);
             string who = context.NameOf(context.Target);
@@ -482,7 +486,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -502,7 +506,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             EntityId factId = context.SubjectFact;
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Deception, context.Actor, context.Target)

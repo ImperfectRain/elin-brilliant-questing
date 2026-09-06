@@ -78,7 +78,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (context.Zone.IsNone)
             {
@@ -90,7 +90,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             EntityId quarry = FindQuarry(context);
             if (quarry.IsNone)
@@ -223,7 +223,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target) || context.Target == context.Actor)
             {
@@ -238,7 +238,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             CheckResult check = context.Checks.Resolve(
                 new CheckRequest(ProceduralCheckProfiles.Shadowing, context.Actor, context.Target),
@@ -359,7 +359,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             List<EntityId> present = Talkers(context);
             if (present.Count < 2)
@@ -372,7 +372,7 @@ namespace BrilliantQuesting.Actions.Library
                 : Availability.Available();
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             List<EntityId> present = Talkers(context);
             Fact overheard = FindOverheard(context, present, out EntityId speaker);
@@ -508,14 +508,14 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             return FindConflict(context, out Fact _, out Fact _)
                 ? Availability.Available()
                 : Availability.NotRelevant("nothing you have heard contradicts anything else you have heard");
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             if (!FindConflict(context, out Fact truth, out Fact falsehood))
             {

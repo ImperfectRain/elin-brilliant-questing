@@ -36,10 +36,27 @@ namespace BrilliantQuesting.Actions
         /// <summary>Free-form trace lines for the "why did that happen" inspector.</summary>
         public List<string> Notes { get; }
 
+        /// <summary>
+        /// Which embodiment branch this attempt took (BQ-093, `D021`), stamped by
+        /// <see cref="NarrativeAction.Perform"/> from the verb's own declaration so that an
+        /// outcome cannot describe a branch its verb did not take.
+        ///
+        /// It is on the outcome and printed by <see cref="Explain"/> because the roadmap asks for
+        /// the choice to be *visible*: a reader of the inspector must be able to tell a physical
+        /// result vanilla actually performed from one BQ resolved coarsely, without reading the
+        /// verb's source.
+        /// </summary>
+        public ActorEmbodiment Embodiment { get; internal set; } = ActorEmbodiment.Narrative;
+
         public string Explain()
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(ActionId).Append(": ").Append(Narration);
+            if (Embodiment != null && Embodiment.Mode != EmbodimentMode.Narrative)
+            {
+                sb.Append("\n  ").Append(Embodiment.Describe());
+            }
+
             if (Check != null)
             {
                 sb.Append("\n  ").Append(Check.Explain());

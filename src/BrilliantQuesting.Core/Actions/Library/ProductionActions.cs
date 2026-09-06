@@ -253,7 +253,7 @@ namespace BrilliantQuesting.Actions.Library
         /// <summary>What the thread is called once this verb has ended it.</summary>
         protected virtual string Resolution => "need_met";
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
             {
@@ -292,7 +292,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available("works " + needed + " of what you are carrying into " + spec.Describe());
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Fact demand = ProductionDemand.Find(context, out ProductionSpec spec);
             if (demand == null || !CanAnswer(spec))
@@ -609,7 +609,7 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
-        public override Availability GetAvailability(ActionContext context)
+        protected override Availability GetAvailabilityCore(ActionContext context)
         {
             Fact damage = FindDamage(context, out ItemDescriptor broken, out EntityId _);
             if (damage == null)
@@ -631,7 +631,7 @@ namespace BrilliantQuesting.Actions.Library
             return Availability.Available("uses what you are carrying on the " + broken.Name);
         }
 
-        public override ActionOutcome Perform(ActionContext context)
+        protected override ActionOutcome PerformCore(ActionContext context)
         {
             Fact damage = FindDamage(context, out ItemDescriptor broken, out EntityId holder);
             if (damage == null)

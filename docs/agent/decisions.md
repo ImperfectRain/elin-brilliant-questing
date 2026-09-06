@@ -2133,3 +2133,64 @@ the map does not have (`ELIN-Q-0033`).
 Reason: the cheap version reapplies a "make sure the place has X" step on every load and calls it
 idempotent because the map looks right. It duplicates the moment a save is loaded on a build that
 answers differently, and it overwrites whatever the player put there, because it never asked.
+
+## D073 — One verb vocabulary for both actor kinds; who may take a verb is declared, and standing nobody keeps for them reads as unread
+
+BQ-093. Player and NPC narrative actions share the same semantic verb, the same availability
+contract, the same check path and the same consequence path. There is no `PlayerBribe` and no
+`NpcBribe`; there is `bribe`, and `ActionContext.Actor` says who is offering (`CD §47.5`, `PM §35`).
+Selection may differ freely and embodiment may differ; the semantic action system may not.
+
+**Selection and resolution are separate questions with a named join.** Needs, values, emotion,
+`ProblemSolvingProfile`, personal prohibitions and opportunity answer *what an actor wants to
+attempt*, and nothing in the action library knows about any of them. `ActionIntent` is the handover
+and carries a registered `NarrativeAction.Id`. A goal candidate is deliberately more abstract than a
+verb — `AskAuthority` is a disposition, `report` is a verb — so `GoalActionTrace.RegisteredActionId`
+binds the two, beside the candidates that know how abstract they are being. Unbound is a real answer
+with a reason: forcing an approximate verb would make the trace claim an attempt nobody made, and
+adding a verb to carry it would be the second vocabulary this rule exists to prevent.
+
+**The actor gate is structural, not remembered.** `NarrativeAction.GetAvailability` and `Perform` are
+not virtual. Each asks the verb's declared `ActorScope` first and only then hands over to
+`GetAvailabilityCore` / `PerformCore`, so a verb whose body was written with the player in mind
+cannot be reached by anybody else because its author did not think to check, and a verb written next
+year inherits the refusal. `Perform` refuses too: an attempt by an actor the verb does not admit
+produces an outcome with no roll and no events, never a body that reads the player's purse.
+
+**Three classifications, and the reason is part of the answer.** `AnyActor` is actor-generic.
+`PlayerOnly` is for a vanilla mechanic that is genuinely the player's — the Home is the player's
+settlement, a guild card is the player's membership, Karma and Fame are the player's standing, and
+Elin keeps exactly one of each. That is not a gap to close later; an NPC equivalent would be a second
+mechanic disagreeing with the visible one (`D014`, `D018`, `VS §6`). `AwaitingCapability` is for a
+verb that is generic in meaning and refused because BQ has no reading yet — the underworld verbs,
+whose contacts are gated entirely on the player's Thieves' card, Karma and goodwill (`D012`).
+A shared library does not require every verb to be executable by every actor.
+
+**Standing vanilla keeps for the player alone reads as unread, and says so.** Affinity is affinity
+*toward the player*; Karma, Fame and guild rank are the player's. Asked during somebody else's
+attempt they do not return a smaller number, they return the player's. Every such term therefore
+contributes nothing for a non-player actor and is recorded as a named zero
+(`CheckRequest.WithUnreadTerm`), so a reader can tell "their notoriety counted for nothing" from
+"their notoriety was never asked about" (`D017`). Availability may never be closed on such a reading.
+
+**Embodiment is declared, and coarse is a complete answer rather than a degraded one.**
+`NarrativeAction.Embodiment` says which of three branches a verb takes: `Narrative` claims nothing
+physical, `Delegated` names the seam write vanilla performs and the capabilities it needs, and
+`Coarse` names the physical detail the resolution deliberately does not assert. It reuses
+`RouteEvidence` and `SpatialRouteClaim.CanLeanOn` rather than growing a second grading vocabulary.
+The branch is stamped on the outcome and printed by the inspector, because the choice has to be
+visible to be checkable. Core acquires no movement, pathfinding or routine-task logic on any branch
+(`D021`, `VS §3.2`).
+
+**An NPC has to be placed before it can act, and that is the actual work.** `ActorContexts.TryBuild`
+is the general form of what the player's conversation surface always did by hand: it reads where the
+actor is from the BQ-135 activity snapshot rather than adding a probe of its own, draws witnesses
+from *that* actor's zone, and refuses when nothing answered where they are, when the two parties are
+not in the same place, or when vanilla is already carrying the actor between zones (`VS §3.3`). An
+unread travel facet is not a refusal: on a build that answers none of them everything would be
+refused, and unknown is never "not travelling".
+
+Reason: a parallel NPC action system diverges from the player's within one release — different
+checks, different consequences, a second event history — and the divergence is invisible until
+somebody notices NPCs are playing a different game. Making the shared path structural costs one
+template method; discovering the split later costs the content built on both halves.

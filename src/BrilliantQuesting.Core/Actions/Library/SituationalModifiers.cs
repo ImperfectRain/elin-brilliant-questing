@@ -9,6 +9,14 @@ namespace BrilliantQuesting.Actions.Library
     /// Turns standing world state into difficulty. These are the terms that make the same verb
     /// feel different depending on who you are and what you have already done - and because each
     /// carries a label, the debug inspector can show the player's history as arithmetic.
+    ///
+    /// Four of them read standing Elin keeps for the player and for nobody else: affinity is
+    /// affinity *toward the player*, and Karma, Fame and a guild card are the player's own. Asked
+    /// during an NPC's attempt they would not return a smaller number, they would return the
+    /// player's - so an NPC would be easy to talk round exactly when the player is famous. Each
+    /// therefore contributes nothing for a non-player actor and says so by name, which is the
+    /// shape <see cref="Settlement"/> already used for a Home element this build never answered
+    /// (BQ-093, `D017`).
     /// </summary>
     public static class SituationalModifiers
     {
@@ -27,7 +35,11 @@ namespace BrilliantQuesting.Actions.Library
         /// </summary>
         public static CheckRequestExtensions.Modifier Rapport(ActionContext context, EntityId who)
         {
-            int affinity = who.IsNone ? 0 : context.Vanilla.GetAffinity(who);
+            if (!context.TryGetAffinityToActor(who, out int affinity))
+            {
+                return CheckRequestExtensions.Modifier.Unreadable("rapport unread: vanilla keeps goodwill toward the player only");
+            }
+
             return new CheckRequestExtensions.Modifier("rapport", -(affinity / 12));
         }
 
@@ -37,6 +49,11 @@ namespace BrilliantQuesting.Actions.Library
         /// </summary>
         public static CheckRequestExtensions.Modifier Reputation(ActionContext context, bool helpfulWhenFamous)
         {
+            if (!context.ActorIsPlayer)
+            {
+                return CheckRequestExtensions.Modifier.Unreadable("fame unread: vanilla keeps Fame for the player only");
+            }
+
             int band = context.Vanilla.Fame / 500;
             if (band == 0)
             {
@@ -53,6 +70,11 @@ namespace BrilliantQuesting.Actions.Library
         /// </summary>
         public static CheckRequestExtensions.Modifier LegalStanding(ActionContext context, bool helpfulWhenNotorious)
         {
+            if (!context.ActorIsPlayer)
+            {
+                return CheckRequestExtensions.Modifier.Unreadable("karma unread: vanilla keeps Karma for the player only");
+            }
+
             int karma = context.Vanilla.Karma;
             if (karma >= 0)
             {
@@ -123,7 +145,7 @@ namespace BrilliantQuesting.Actions.Library
             string label = metric.ToString().ToLowerInvariant();
             if (home == null || !home.TryGetMetric(metric, out int value))
             {
-                return new CheckRequestExtensions.Modifier("home " + label + " (unread)", 0);
+                return CheckRequestExtensions.Modifier.Unreadable("home " + label + " unread");
             }
 
             return new CheckRequestExtensions.Modifier("home " + label, -Clamp(value / 20, -4, 4));
@@ -140,6 +162,12 @@ namespace BrilliantQuesting.Actions.Library
         /// </summary>
         public static CheckRequestExtensions.Modifier GuildAuthority(ActionContext context, GuildId guild)
         {
+            if (!context.ActorIsPlayer)
+            {
+                return CheckRequestExtensions.Modifier.Unreadable(
+                    guild + " standing unread: vanilla keeps a guild card for the player only");
+            }
+
             int rank = context.Vanilla.GetGuildRank(guild);
             int contribution = context.Vanilla.GetGuildContribution(guild);
             return new CheckRequestExtensions.Modifier(
@@ -163,18 +191,45 @@ namespace BrilliantQuesting.Actions.Library
         public readonly struct Modifier
         {
             public Modifier(string label, int delta)
+                : this(label, delta, false)
+            {
+            }
+
+            private Modifier(string label, int delta, bool unread)
             {
                 Label = label;
                 Delta = delta;
+                Unread = unread;
             }
 
             public string Label { get; }
 
             public int Delta { get; }
+
+            /// <summary>
+            /// Whether this term contributes nothing because nobody could read the number, as
+            /// opposed to because the number was zero.
+            ///
+            /// The difference is the whole of `D017` and it has to survive as far as the
+            /// inspector: an ordinary zero is dropped, because a check listing every term that
+            /// happened not to matter is unreadable, and an unread one is kept, because a reader
+            /// asking why an NPC's threat landed the way it did needs to see that the actor's
+            /// notoriety was never consulted rather than assume it was consulted and found
+            /// wanting.
+            /// </summary>
+            public bool Unread { get; }
+
+            /// <summary>A term nobody could read: no contribution, and named so in the trace.</summary>
+            public static Modifier Unreadable(string label) => new Modifier(label, 0, true);
         }
 
         public static Checks.CheckRequest With(this Checks.CheckRequest request, Modifier modifier)
         {
+            if (modifier.Unread)
+            {
+                return request.WithUnreadTerm(modifier.Label);
+            }
+
             return request.WithModifier(modifier.Label, modifier.Delta);
         }
     }

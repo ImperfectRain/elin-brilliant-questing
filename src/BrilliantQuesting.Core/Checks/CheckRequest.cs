@@ -35,6 +35,22 @@ namespace BrilliantQuesting.Checks
 
             return this;
         }
+
+        /// <summary>
+        /// Records a term nobody could read: no contribution to the difficulty, and a named line
+        /// in the trace saying it was never consulted.
+        ///
+        /// The one kind of zero worth carrying. An ordinary zero is dropped because a check that
+        /// listed every term that happened not to matter would be unreadable; this one is kept
+        /// because "the actor's notoriety counted for nothing" and "the actor's notoriety was
+        /// never asked about" are different facts and only the second is a limit of the mod
+        /// (`D017`, BQ-093).
+        /// </summary>
+        public CheckRequest WithUnreadTerm(string label)
+        {
+            Modifiers.Add(new SituationalModifier(label, 0));
+            return this;
+        }
     }
 
     public readonly struct SituationalModifier
