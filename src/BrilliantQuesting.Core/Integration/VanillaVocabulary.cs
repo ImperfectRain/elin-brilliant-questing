@@ -126,6 +126,26 @@ namespace BrilliantQuesting.Integration
         ReadCharacterIdentity,
 
         /// <summary>
+        /// The game will say what an actor is doing right now: the timetable and its current span,
+        /// the goal vanilla has them at, and whether the off-screen mechanism is carrying them
+        /// somewhere.
+        ///
+        /// Separate from <see cref="ReadCharacterIdentity"/> because the two are different reads
+        /// of different things with different lifetimes - identity comes off the source sheets and
+        /// trait subclasses, activity off live `Chara` members and the hourly global mechanism -
+        /// and a build can lose either alone. It earns its place rather than taking it for
+        /// symmetry: none of the members behind it has been watched work on a running game
+        /// (`ELIN-Q-0014`, `API-048`), so the live adapter's own probe is what decides, and a build
+        /// that answers no facet for the player reports this unsupported.
+        ///
+        /// Unsupported means every facet is unknown for everybody, which closes nothing and opens
+        /// nothing: activity is a plausibility input, never a gate on presence, testimony or
+        /// safety. What it must never become is a licence - a readable timetable is not a reason
+        /// to set one, and a readable global goal is not a reason to write one (`D019`, `D021`).
+        /// </summary>
+        ReadActorActivity,
+
+        /// <summary>
         /// Somebody can be moved into the player's Home as a resident.
         ///
         /// Separate from <see cref="ReadHomeState"/> for the same reason destruction is separate

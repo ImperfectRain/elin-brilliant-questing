@@ -13,7 +13,7 @@ Player actions: load into a town/Home, talk to at least one ordinary NPC and one
 Log values:
 
 - Actor sample: uid, source id/name, trait type, source tags, `IsUnique`, `IsImportant`, `c_uniqueData != null`, `c_isImportant`, `quest != null`, `IsGlobal`, `IsHomeMember`, `IsBranchMember`, BQ classifier result.
-- Activity sample: `idTimeTable`, current span/goal type, work/hobby goal type, `TraitChara.UseGlobalGoal`, `global.goal` type, `global.transition` state/coordinates/last-zone uid, current zone uid, active-zone match.
+- Activity sample (BQ-135, now the adapter's own log lines rather than a bespoke probe): the `BQ actor activity:` shape line, the per-actor `activity <name> [<id>]:` lines, the `Actor activity read for N loaded actor(s)` tally naming every unanswered facet, and the `Actor activity: N global actor(s) listed, E eligible ...` line. Also record the `capability ReadActorActivity:` line, since a build that answers no facet reports it unavailable and every downstream reading is then `Unknown` by design.
 - Dialogue/bark: chosen route (`Card.SayRaw`, `Card.TalkRaw`, or `Msg.SayRaw`), whether speaker is synced, whether raw line is visible before/after `DramaManager.sequence.Exit()`.
 - Choice layout: total vanilla+BQ choice count and whether choices are visible/scrollable/clickable.
 - Journal shape: `LayerJournal` window count, `Window.setting.tabs` count/names before build, selected `idTab`, content component names, switch callback sequence.
@@ -26,7 +26,14 @@ Expected interpretations:
 - Global-goal availability can be exposed read-only if samples match `GameDate.AdvanceHour` predicates.
 - Bark/open-Drama display remains `UNRESOLVED` unless the line is visually confirmed.
 - Journal tabs remain implementation-risky until a BQ content object can be switched without layout/lifecycle issues.
-- `ActPerformed` remains observation-only for act payloads; production still needs separate hook evidence if no production act publishes.
+- `ActPerformed` remains observation-only for act payloads; production still needs separate hook evidence if no production act publishes. BQ-135 did not change this: activity is read by asking a `Chara`, never by turning the act event into an activity bus.
+- BQ-135 activity facets stay `SOURCE-OBSERVED`/`VERIFIED-METADATA` until this session runs. Promote a facet to `VERIFIED-RUNTIME` only on the evidence named beside it:
+  - **timetable** — an ordinary resident's line shows `timetable <id>` rather than `timetable ?`. A town where every line reads `?` answers `ELIN-Q-0014`'s first half negatively and is worth recording as such.
+  - **routine span** — a line shows a span other than `?`. If every span reads `?` while timetables read, the span member has been renamed or reshaped: record the real member name and enum members, because the reader matches on the value's own name.
+  - **current activity** — record which concrete `AIAct` type names actually appear, and specifically how many lines read `activity Other`. A high `Other` count is the mapping table being wrong, not the game being unfamiliar.
+  - **`UseGlobalGoal`** — the eligible count on the global line. Record whether ordinary town citizens appear among the eligible or only adventurer/traveller kinds; that is `ELIN-Q-0014` proper.
+  - **`global.goal` / `global.transition`** — a global sample line showing `global-activity` and `transition` as something other than `?`, and at least one actor reading `vanilla-moving Moving`. Record whether a transition is visible at attach at all.
+  - **still not probed, and deliberately** — whether `GetGoalFromTimeTable`, `GetGoalWork` and `GetGoalHobby` are side-effect-free. BQ-135 does not call them, so this session does not answer it. Answering it needs its own deliberate step (call one on a disposable save and compare the actor's `ai`, needs and position before and after), and until it is answered the routine's projected goal stays out of the snapshot.
 
 Disposable save required: no.
 

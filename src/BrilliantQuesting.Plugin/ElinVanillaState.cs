@@ -229,6 +229,31 @@ namespace BrilliantQuesting.Plugin
                 },
                 "no character loaded, or this build answered none of the six identity facets");
 
+            // Probed on the player for the same reason identity is - they are the one actor
+            // certain to exist while this runs - and granted only if the read actually answered
+            // something. None of the members behind it has been watched work on a running game
+            // (`ELIN-Q-0014`, `API-048`), so this probe is the whole of the evidence, and a build
+            // that answers no facet reports the capability unavailable rather than serving
+            // fully-unknown snapshots that look like readings.
+            Probe(
+                VanillaCapability.ReadActorActivity,
+                () =>
+                {
+                    if (EClass.pc == null)
+                    {
+                        return null;
+                    }
+
+                    // Deliberately probed with no zone. The zone is read elsewhere on the seam
+                    // and would answer on any build at all, so feeding it in here would let a
+                    // build that exposes none of the activity members still report the capability
+                    // available on the strength of knowing where the player is standing.
+                    ActorActivity activity = ElinActorActivity.Read(
+                        EClass.pc, PlayerId, EntityId.None, _log);
+                    return activity.IsFullyUnknown ? null : "pc activity => " + activity.Describe();
+                },
+                "no character loaded, or this build answered none of the activity facets");
+
             Probe(
                 VanillaCapability.WriteHomeResidents,
                 () =>
@@ -383,6 +408,27 @@ namespace BrilliantQuesting.Plugin
 
             Chara resolved = chara == PlayerId ? EClass.pc : _bindings.ResolveChara(chara);
             return ElinCharacterIdentity.Read(resolved, chara, _log);
+        }
+
+        /// <summary>
+        /// What the game is having this actor do now. An actor this build cannot resolve, and a
+        /// build that cannot read activity at all, are both somebody every facet is unknown about
+        /// - which is never read as idle, awake, available or staying put.
+        ///
+        /// Reads only. It resolves an existing binding, never mints one, materialises nobody, sets
+        /// no goal or timetable and moves nobody. The zone comes from
+        /// <see cref="GetZoneOf"/> rather than from a second read, so the snapshot and the seam's
+        /// own whereabouts answer cannot disagree.
+        /// </summary>
+        protected override ActorActivity GetActorActivityCore(EntityId chara)
+        {
+            if (!Supports(VanillaCapability.ReadActorActivity))
+            {
+                return ActorActivity.UnknownFor(chara);
+            }
+
+            Chara resolved = chara == PlayerId ? EClass.pc : _bindings.ResolveChara(chara);
+            return ElinActorActivity.Read(resolved, chara, GetZoneOf(chara), _log);
         }
 
         /// <param name="absentReason">

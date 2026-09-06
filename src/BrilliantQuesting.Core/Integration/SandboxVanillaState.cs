@@ -69,6 +69,14 @@ namespace BrilliantQuesting.Integration
             /// everybody who happens to exist.
             /// </summary>
             public CharacterIdentity Identity;
+
+            /// <summary>
+            /// What the laboratory says this actor is doing now. Null - every facet unknown -
+            /// unless a test said otherwise, and deliberately not defaulted to idle: a headless
+            /// world that answered "idle" for everybody it was never told about would be making
+            /// exactly the guess D017 refuses, in the one implementation the tests can see it in.
+            /// </summary>
+            public ActorActivity Activity;
         }
 
         private readonly Dictionary<EntityId, CharaState> _charas = new Dictionary<EntityId, CharaState>();
@@ -221,6 +229,21 @@ namespace BrilliantQuesting.Integration
         public SandboxVanillaState SetCharacterIdentity(EntityId chara, CharacterIdentity identity)
         {
             Ensure(chara).Identity = identity;
+            return this;
+        }
+
+        /// <summary>
+        /// Says what the game is having this actor do now. Built through
+        /// <see cref="ActorActivityBuilder"/> so a headless laboratory expresses "this facet was
+        /// never read" exactly the way the live adapter does.
+        ///
+        /// Overwrites whatever was there, because that is what a transient observation is: a test
+        /// that puts somebody to bed and then reads them gets the bed, and one that moves them on
+        /// gets where they went. Nothing accumulates and nothing is remembered.
+        /// </summary>
+        public SandboxVanillaState SetActorActivity(EntityId chara, ActorActivity activity)
+        {
+            Ensure(chara).Activity = activity;
             return this;
         }
 
@@ -659,6 +682,55 @@ namespace BrilliantQuesting.Integration
             return _charas.TryGetValue(chara, out CharaState state) && state.Identity != null
                 ? state.Identity
                 : CharacterIdentity.UnknownFor(chara);
+        }
+
+        /// <summary>
+        /// The activity nobody authored is the activity nobody knows. Read through
+        /// <see cref="Dictionary{TKey,TValue}.TryGetValue"/> for the same reason the identity
+        /// observation is: the contract says the read registers nobody, and a read that quietly
+        /// created a character would break it here first.
+        ///
+        /// The zone is filled in from the world rather than from the authored observation when the
+        /// test did not name one, so the snapshot and <see cref="GetZoneOf"/> cannot disagree
+        /// about where somebody is - a live adapter has one answer to that question and so does
+        /// this.
+        /// </summary>
+        protected override ActorActivity GetActorActivityCore(EntityId chara)
+        {
+            if (!Supports(VanillaCapability.ReadActorActivity))
+            {
+                return ActorActivity.UnknownFor(chara);
+            }
+
+            if (!_charas.TryGetValue(chara, out CharaState state))
+            {
+                return ActorActivity.UnknownFor(chara);
+            }
+
+            ActorActivity authored = state.Activity;
+            if (authored != null && !authored.CurrentZone.IsNone)
+            {
+                return authored;
+            }
+
+            ActorActivityBuilder builder = new ActorActivityBuilder(chara).WithZone(state.Zone);
+            if (authored == null)
+            {
+                // Somebody the laboratory knows of but was never told anything about. Their
+                // whereabouts are still the world's answer - the live adapter fills the zone from
+                // `GetZoneOf` whatever else it could read - and every activity facet is unknown.
+                return builder.Build();
+            }
+
+            return builder
+                .WithPresence(authored.Presence)
+                .WithTimeTable(authored.TimeTableKnown ? authored.TimeTableId : null)
+                .WithSpan(authored.CurrentSpan)
+                .WithActivity(authored.CurrentActivity)
+                .WithGlobalGoalEligibility(authored.UsesGlobalGoal)
+                .WithGlobalActivity(authored.GlobalActivity)
+                .WithZoneTransition(authored.PendingZoneTransition)
+                .Build();
         }
 
         protected override void OnMutationRefused(string message) => _refusals.Add(message);

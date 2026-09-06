@@ -64,6 +64,32 @@ namespace BrilliantQuesting.Integration
         /// </summary>
         CharacterIdentity GetCharacterIdentity(EntityId chara);
 
+        /// <summary>
+        /// What the game is having this actor do right now: where they are, the routine span they
+        /// are in, the semantic family of their current goal, and whether vanilla's own off-screen
+        /// mechanism is already carrying them somewhere.
+        ///
+        /// The one observation seam for transient vanilla activity (BQ-135), and it exists so that
+        /// the autonomy systems share it rather than each growing a private probe into a `Chara`.
+        /// Always an observation, never null - an actor this build cannot resolve is somebody
+        /// every facet is unknown about, which is a true statement and a usable one.
+        ///
+        /// Strictly a read. It sets no timetable, writes no goal, moves nobody, registers nobody
+        /// and materialises nobody; a member being readable is not a reason to acquire the
+        /// matching write (`D019`, `D021`).
+        ///
+        /// A live read, like <see cref="GetHomeState"/> and <see cref="GetCharacterIdentity"/>,
+        /// and more urgently than either: this is the most perishable thing the seam reports.
+        /// Nothing here is persisted, a consumer holds it for one pass, and a caller that needs to
+        /// know what somebody is doing asks again rather than remembering.
+        ///
+        /// Separate from <see cref="GetCharacterIdentity"/> on purpose, and neither read answers
+        /// the other's question. What somebody is doing now says nothing about who they are, what
+        /// they know, what they value or what they want; an actor at a work goal is activity, and
+        /// the job they hold is identity.
+        /// </summary>
+        ActorActivity GetActorActivity(EntityId chara);
+
         // -- characters -------------------------------------------------------------------
 
         /// <summary>

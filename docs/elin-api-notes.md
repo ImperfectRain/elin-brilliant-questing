@@ -325,6 +325,18 @@ authority rule it establishes is decision `D021`.
 `GoalNeeds` dispatches from real `Chara` state — hunger reaching `AI_Eat`, bladder reaching
 `AI_Bladder`. Bodily need is therefore a vanilla mechanism, not a gap for the mod to fill.
 
+**What BQ-135 reads, and what it refuses to call.** `ElinActorActivity` is the one adapter-side
+reader over this table. It reads `Chara.currentZone`, `Chara.idTimeTable`, the current routine span,
+the `AIAct` already sitting on `Chara.ai`, `trait.UseGlobalGoal` and `Chara.global`'s `goal` and
+`transition` — all of them state the actor is already holding.
+
+It does **not** call `GetGoalFromTimeTable`, `GetGoalWork` or `GetGoalHobby`. Those construct goal
+objects, the table above records their side-effect freedom as unknown on the live build, and BQ-135's
+done-when requires the read to have none. The routine's *projected* goal is therefore unread, and
+stays unread until a live session establishes that calling them is free — which is a question for
+Session A, not an assumption for the adapter. This is a deliberate gap, and `Unknown` is what it
+reports.
+
 **Off-screen global actors.**
 
 | Member | What the source shows | What is unknown on the live build |

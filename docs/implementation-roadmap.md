@@ -2765,6 +2765,62 @@ system.
   build did not answer is `Unknown` rather than `false` or zero (`D017`); the read has no side effects
   and registers no actors; a live diagnostic logs the snapshot for at least one ordinary resident and
   one eligible global actor; and tests prove an unavailable member degrades only its own fields.
+- **Current implementation** `IVanillaState.GetActorActivity(EntityId)` returns an
+  `ActorActivity`: `Presence`, `CurrentZone`, `TimeTableId`/`TimeTableKnown`, `CurrentSpan`,
+  `CurrentActivity`, `UsesGlobalGoal`, `GlobalActivity` and `PendingZoneTransition`, each its own
+  typed field built through `ActorActivityBuilder` so that "not read" means the same thing in the
+  live adapter and in `SandboxVanillaState`. Every facet is a purpose-named enum with `Unknown` as
+  its first member, so an unread facet cannot be spelled as `false`, `0` or `Idle`; `Presence` is
+  three-valued rather than a bool for the same reason, and the zone comes from `GetZoneOf` rather
+  than from a second read so the snapshot and the seam cannot disagree about whereabouts.
+  `ActivityFamily` distinguishes `Other` — the game answered with a goal this build has no family
+  for — from `Unknown`, the build answering nothing; collapsing them would hide every gap behind a
+  reading. The one derived answer is `VanillaMovementState()`, which reports `Moving` only when the
+  game said so, `NotMoving` only on a settled negative (no global goal, or ineligible, and no
+  pending transition), and `Unknown` for everything between — an unrecognized global goal never
+  reads as nobody travelling.
+  `ElinActorActivity` does the reading, in one adapter-side file rather than spread through
+  `ElinVanillaState`: `Chara.currentZone` against the active zone for presence, `Chara.idTimeTable`,
+  the current routine span, the `AIAct` already on `Chara.ai` mapped onto a family by walking its
+  base chain, `trait.UseGlobalGoal` as a tri-state, and `Chara.global`'s `goal` and `transition`.
+  Each facet is read inside its own guard, so a member this build renamed costs that facet and
+  leaves the others standing, and an absent member is distinguished from a member that answered
+  null — a `global` that is null is the game saying there is no global record, and a `global` member
+  that is not there at all leaves both global facets unknown.
+  **`GetGoalFromTimeTable`, `GetGoalWork` and `GetGoalHobby` are deliberately not called.** They
+  construct goal objects, whether constructing one is free of side effects has never been asked of a
+  running build (`VS §7.2`), and the done-when requires this read to have none. So the current act
+  is read from state the actor already holds, and the routine's *projected* goal stays unread until
+  a live probe says those calls are safe.
+  `VanillaCapability.ReadActorActivity` exists because availability changes behaviour, not for
+  symmetry: it is granted only when the live probe's read of the player answers at least one
+  *activity* facet — the probe deliberately supplies no zone, so knowing where the player is
+  standing cannot stand in for reading a timetable, a goal or a global record — and unsupported
+  means every facet is unknown for everybody, which is why a build that cannot see travel reports
+  `Unknown` movement rather than `NotMoving`. On attach a diagnostic logs the
+  snapshot for the loaded population and tallies the facets nobody answered, then reads
+  `game.cards.globalCharas` separately and reports how many are eligible for hourly advancement and
+  how many vanilla is currently moving — the two halves are different populations and only the
+  second can answer the global facets at all.
+  Nothing is persisted: `WorldStateSerializer` carries no activity vocabulary and a test asserts it.
+  Activity is not identity and neither is a BQ goal — losing either read costs only itself, and
+  reading a vanilla work goal neither creates, weights, satisfies nor replaces an `NpcGoal`.
+  Vanilla travel is observed, never recorded: reading it writes no `ActorAbsence`, and the absence
+  ledger stays the only record of a BQ-owned departure (`D020`).
+  24 focused tests in `ActorActivityTests`, plus a tri-state flag-read test and the seam census
+  that now lists `GetActorActivity` as a read; Core 1520 and Lab 134 pass.
+- **Unverified, and not claimed** none of this has run in a live Elin session, and the plugin was not
+  compiled because this machine has no Elin assemblies — the adapter reader and the diagnostic were
+  type-checked against Elin-shaped stubs and nothing more. **The done-when's live diagnostic half is
+  written but unrun**: the code that would log an ordinary resident and an eligible global actor is
+  in place and no session has produced either line, so "one eligible global actor" is still owed. Every activity facet therefore stands at
+  `SOURCE-OBSERVED`/`VERIFIED-METADATA` and none at `VERIFIED-RUNTIME`: whether ordinary citizens
+  carry a timetable, what the span enum is really called and what its members are, which concrete
+  `AIAct` types appear in ordinary play, which real traits report `UseGlobalGoal`, and whether
+  `global.transition` is visible at the moments the mod would look are all unanswered
+  (`ELIN-Q-0014`, `API-048`). `docs/elin/verification/runtime-probes.md` Session A is the probe that
+  would answer them, and until it runs the capability is expected to report unavailable on some
+  builds and the honest reading of that is "unknown", never "idle" or "not travelling".
 - **Out of scope** setting a timetable, setting an AI goal, writing a `GlobalGoal`, any pathfinding,
   persisting the snapshot, and any autonomous decision made from it. No new `VanillaCapability` is
   granted for a member nobody has watched work.

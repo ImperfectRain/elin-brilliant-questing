@@ -426,6 +426,7 @@ namespace BrilliantQuesting.Plugin
             _lastReconciledZone = _vanilla.GetZoneOf(_vanilla.PlayerId);
             RegisterLocalVanillaActors(_lastReconciledZone);
             ReportCharacterIdentity();
+            ReportActorActivity();
             EstablishEarlyContacts(_lastReconciledZone);
             MaybeGenerateLocalSituation(_lastReconciledZone);
             MaybeGenerateHomeResidentSituation();
@@ -732,6 +733,213 @@ namespace BrilliantQuesting.Plugin
                 _log.LogError("Character identity diagnostic failed: " + ex);
             }
         }
+
+        /// <summary>
+        /// BQ-135. Prints what the game says the people here are doing, and - separately - what it
+        /// says about the actors its own hourly mechanism carries around off-screen.
+        ///
+        /// The two halves are read from two different places because they are two different
+        /// populations, and the roadmap asks for both: an ordinary resident standing in the zone
+        /// answers the timetable and current-act facets, and only an actor outside the active zone
+        /// can answer the global-goal ones - `GameDate.AdvanceHour` advances exactly the global,
+        /// non-party actors the player is not standing next to.
+        ///
+        /// The tally is the part worth having. "Nobody in this town is travelling" and "this build
+        /// cannot see travel" look identical in a per-actor list and are entirely different
+        /// problems, and until a live session prints this we do not know which one we have
+        /// (`ELIN-Q-0014`).
+        ///
+        /// Reads only, and registers nobody. The loaded half goes through the seam, which is the
+        /// path the S8 systems will use. The global half cannot: those actors are deliberately not
+        /// bound, and binding them to log a line would be a diagnostic enrolling the world.
+        /// </summary>
+        private void ReportActorActivity()
+        {
+            if (!_vanilla.Supports(VanillaCapability.ReadActorActivity))
+            {
+                _log.LogInfo("Actor activity: unavailable on this build - every facet is unknown "
+                             + "for everybody, and nothing reads that as idle or as staying put.");
+                return;
+            }
+
+            try
+            {
+                int loaded = ReportLoadedActorActivity();
+                int globals = ReportGlobalActorActivity();
+
+                if (loaded == 0 && globals == 0)
+                {
+                    _log.LogInfo("Actor activity: nobody here to read, and no global actors listed.");
+                }
+            }
+            catch (Exception ex)
+            {
+                // A population that cannot be described is a diagnostic that says so. It must
+                // never be a reason the save fails to attach.
+                _log.LogError("Actor activity diagnostic failed: " + ex);
+            }
+        }
+
+        /// <summary>
+        /// The people standing here, through the seam. Bounded, because this runs on attach and a
+        /// crowded town would otherwise bury the tally underneath it.
+        /// </summary>
+        private int ReportLoadedActorActivity()
+        {
+            if (EClass._map?.charas == null)
+            {
+                return 0;
+            }
+
+            System.Collections.Generic.Dictionary<ActivityFacetKind, int> unread =
+                new System.Collections.Generic.Dictionary<ActivityFacetKind, int>();
+            int read = 0;
+            int printed = 0;
+
+            foreach (Chara chara in EClass._map.charas)
+            {
+                if (chara == null || chara.isDead || chara.IsPC)
+                {
+                    continue;
+                }
+
+                EntityId id = _bindings.IdOf(chara, _vanilla.PlayerId);
+                if (id.IsNone)
+                {
+                    continue;
+                }
+
+                ActorActivity activity = _vanilla.GetActorActivity(id);
+                read++;
+                if (printed < ActivitySamplesLogged)
+                {
+                    printed++;
+                    _log.LogInfo("  activity " + chara.Name + " [" + id + "]: " + activity.Describe());
+                }
+
+                System.Collections.Generic.IReadOnlyList<ActivityFacetKind> missing = activity.UnreadFacets;
+                for (int i = 0; i < missing.Count; i++)
+                {
+                    unread.TryGetValue(missing[i], out int count);
+                    unread[missing[i]] = count + 1;
+                }
+            }
+
+            if (read == 0)
+            {
+                return 0;
+            }
+
+            _log.LogInfo("Actor activity read for " + read + " loaded actor(s)." + DescribeGaps(unread, read));
+            return read;
+        }
+
+        /// <summary>
+        /// The actors Elin carries around off-screen, read straight through the adapter's reader.
+        ///
+        /// This is the half nothing in the project has ever seen answer. Whether ordinary town
+        /// citizens appear here at all, or only adventurers and travellers, is `ELIN-Q-0014`, and
+        /// this line is what will settle it: the eligible tally is the answer, and the sampled
+        /// lines say what an eligible actor's global state actually looks like.
+        /// </summary>
+        private int ReportGlobalActorActivity()
+        {
+            System.Collections.IEnumerable listed = GlobalCharas();
+            if (listed == null)
+            {
+                _log.LogInfo("Actor activity: this build exposes no global actor list, so whether "
+                             + "vanilla is carrying anybody is unknown rather than no.");
+                return 0;
+            }
+
+            int seen = 0;
+            int eligible = 0;
+            int travelling = 0;
+            int printed = 0;
+
+            foreach (object entry in listed)
+            {
+                Chara chara = entry as Chara;
+                if (chara == null || chara.isDead || chara == EClass.pc)
+                {
+                    continue;
+                }
+
+                seen++;
+                ActorActivity activity = ElinActorActivity.Read(
+                    chara, _bindings.IdOf(chara, _vanilla.PlayerId), ElinPresence.IdOf(chara.currentZone), _log);
+
+                bool isEligible = activity.UsesGlobalGoal == GlobalGoalEligibility.Eligible;
+                if (isEligible)
+                {
+                    eligible++;
+                }
+
+                if (activity.VanillaMovementState() == VanillaMovement.Moving)
+                {
+                    travelling++;
+                }
+
+                // Sample the eligible ones first: an ineligible global actor answers the question
+                // this is here to ask only by not being the answer.
+                if (isEligible && printed < ActivitySamplesLogged)
+                {
+                    printed++;
+                    _log.LogInfo("  global activity " + chara.Name + ": " + activity.Describe());
+                }
+            }
+
+            _log.LogInfo("Actor activity: " + seen + " global actor(s) listed, " + eligible
+                         + " eligible for hourly advancement, " + travelling
+                         + " that vanilla is currently moving."
+                         + (eligible == 0
+                             ? " No eligible actor was found, which is a finding about this save"
+                               + " rather than proof that none exists."
+                             : string.Empty));
+            return seen;
+        }
+
+        /// <summary>
+        /// Whatever this build lists as its global actors, or null when it lists none. Read
+        /// through reflection rather than against the shipped type because the collection's shape
+        /// is source-observed and unverified; a dictionary answers through `Values`, anything
+        /// already enumerable answers as itself.
+        /// </summary>
+        private static System.Collections.IEnumerable GlobalCharas()
+        {
+            object cards = VanillaApiReflection.ReadObject(EClass.game, "cards");
+            object listed = VanillaApiReflection.ReadObject(cards, "globalCharas");
+            if (listed == null)
+            {
+                return null;
+            }
+
+            return (VanillaApiReflection.ReadObject(listed, "Values") ?? listed)
+                as System.Collections.IEnumerable;
+        }
+
+        private static string DescribeGaps(
+            System.Collections.Generic.Dictionary<ActivityFacetKind, int> unread, int read)
+        {
+            System.Collections.Generic.List<string> gaps = new System.Collections.Generic.List<string>();
+            foreach (ActivityFacetKind facet in (ActivityFacetKind[])Enum.GetValues(typeof(ActivityFacetKind)))
+            {
+                if (unread.TryGetValue(facet, out int count))
+                {
+                    gaps.Add(facet + " unread for " + count + " of " + read);
+                }
+            }
+
+            return gaps.Count == 0
+                ? " Every facet answered."
+                : " Unanswered facets: " + string.Join(", ", gaps.ToArray()) + ".";
+        }
+
+        /// <summary>
+        /// How many actors get a line of their own before the tally takes over. Enough to see the
+        /// shape of a real answer, few enough that attaching in a busy town stays readable.
+        /// </summary>
+        private const int ActivitySamplesLogged = 3;
 
         /// <summary>
         /// BQ-115. Names the handful of faces this save keeps bringing back, before it is asked to

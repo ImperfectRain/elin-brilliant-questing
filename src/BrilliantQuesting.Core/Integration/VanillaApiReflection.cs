@@ -284,7 +284,16 @@ namespace BrilliantQuesting.Integration
             return null;
         }
 
-        private static bool TryReadBool(object target, string name, out bool value)
+        /// <summary>
+        /// A flag the build actually answered, and whether it answered at all.
+        ///
+        /// The tri-state half of <see cref="HasTrueFlag"/>, and public because an adapter that
+        /// could only ask "is this true" would have to report a flag it never read as false -
+        /// which is the guess `D017` refuses. A caller that needs the distinction (the activity
+        /// read needs it for `UseGlobalGoal`) asks this; one that only needs a permissive
+        /// "definitely true" keeps <see cref="HasTrueFlag"/>.
+        /// </summary>
+        public static bool TryReadBool(object target, string name, out bool value)
         {
             value = false;
             object read = ReadObject(target, name);

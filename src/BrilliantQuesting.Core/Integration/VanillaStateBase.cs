@@ -63,6 +63,22 @@ namespace BrilliantQuesting.Integration
             return GetCharacterIdentityCore(chara) ?? CharacterIdentity.UnknownFor(chara);
         }
 
+        /// <summary>
+        /// What the game is having this actor do now. Nobody named, an implementation that
+        /// answered nothing, and a build that cannot read activity at all give the same reply: an
+        /// observation with every facet unknown, which is never mistaken for idle, awake,
+        /// available or staying put.
+        /// </summary>
+        public ActorActivity GetActorActivity(EntityId chara)
+        {
+            if (chara.IsNone)
+            {
+                return ActorActivity.UnknownFor(chara);
+            }
+
+            return GetActorActivityCore(chara) ?? ActorActivity.UnknownFor(chara);
+        }
+
         // -- the gated writes ---------------------------------------------------------------
         //
         // One shape throughout: refuse and change nothing, or delegate. A void write that is
@@ -163,6 +179,14 @@ namespace BrilliantQuesting.Integration
         /// failing the whole observation.
         /// </summary>
         protected abstract CharacterIdentity GetCharacterIdentityCore(EntityId chara);
+
+        /// <summary>
+        /// The activity observation for an actor this implementation has been given a name for.
+        /// A read with no side effects: it registers nobody, mutates nothing, sets no goal or
+        /// timetable, and an implementation that cannot answer a facet leaves that facet unknown
+        /// rather than failing the whole observation.
+        /// </summary>
+        protected abstract ActorActivity GetActorActivityCore(EntityId chara);
 
         /// <summary>
         /// Says that a write was refused and why. A write that quietly does nothing is

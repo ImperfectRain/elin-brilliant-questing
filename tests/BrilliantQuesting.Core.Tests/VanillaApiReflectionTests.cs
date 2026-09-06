@@ -68,6 +68,29 @@ namespace BrilliantQuesting.Tests
             Assert.Equal("Find", method.Name);
         }
 
+        /// <summary>
+        /// BQ-135's read of `UseGlobalGoal` turns on this distinction. A flag the build never
+        /// exposed and a flag the build says is false are different answers, and only one of them
+        /// may be read as "vanilla does not carry this actor" (`D017`).
+        /// </summary>
+        [Fact]
+        public void AFlagThatWasReadFalseIsNotAFlagThatWasNeverRead()
+        {
+            GlobalTrait answers = new GlobalTrait { UseGlobalGoal = true };
+
+            Assert.True(VanillaApiReflection.TryReadBool(answers, "UseGlobalGoal", out bool eligible));
+            Assert.True(eligible);
+
+            answers.UseGlobalGoal = false;
+            Assert.True(VanillaApiReflection.TryReadBool(answers, "UseGlobalGoal", out eligible));
+            Assert.False(eligible);
+
+            // A build that renamed it answers nothing at all, and the caller must not read the
+            // out-parameter's false as the game saying no.
+            Assert.False(VanillaApiReflection.TryReadBool(new StaleTrait(), "UseGlobalGoal", out _));
+            Assert.False(VanillaApiReflection.TryReadBool(null, "UseGlobalGoal", out _));
+        }
+
         [Fact]
         public void MovementGlobalPreconditionRequiresExistingGlobalRecord()
         {
@@ -199,6 +222,16 @@ namespace BrilliantQuesting.Tests
             public bool IsGlobal = false;
             public void MoveZone(Zone zone, ZoneTransition.EnterState state) { }
             public void MoveZone(Zone zone, ZoneTransition transition) { }
+        }
+
+        private sealed class GlobalTrait
+        {
+            public bool UseGlobalGoal { get; set; }
+        }
+
+        private sealed class StaleTrait
+        {
+            public bool UsesGlobalGoal { get; set; }
         }
 
         private sealed class StaleChara
