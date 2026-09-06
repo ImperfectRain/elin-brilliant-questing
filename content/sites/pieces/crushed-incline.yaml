@@ -1,0 +1,11 @@
+# The incline took the fall instead: steeper, longer, and no wider than the ways round it need.
+id: piece.mine.crushed_incline
+kind: site-piece
+payload:
+  family: mine
+  socket: mine_fall
+  width: 3
+  height: 5
+  ways: 3
+  provides:
+    - hazard

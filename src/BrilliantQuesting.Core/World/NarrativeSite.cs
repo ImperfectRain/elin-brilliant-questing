@@ -113,6 +113,17 @@ namespace BrilliantQuesting.World
         public string GrammarId { get; set; } = string.Empty;
 
         /// <summary>
+        /// What a matter came to this place for: the spatial requirement BQ-092 chose its plan
+        /// against, held as the affordance's own name and empty on a place nobody planned that way.
+        ///
+        /// Additive and optional on read, like <see cref="GrammarId"/>, and stored for the same
+        /// reason: the plan is recomposed from content rather than saved, and a place that has
+        /// forgotten which part of itself the matter was about cannot be rebuilt as the same
+        /// problem (BQ-140).
+        /// </summary>
+        public string Objective { get; set; } = string.Empty;
+
+        /// <summary>
         /// The ways in this place was made with. At least one that goes through somebody and at
         /// least one that does not - see <see cref="SiteApproach"/>.
         /// </summary>

@@ -1928,6 +1928,105 @@ namespace BrilliantQuesting.Diagnostics
         /// so the inspector shows what the matter named and did not leave here, and which part of
         /// the plan stayed empty because nothing in the world filled it.
         /// </summary>
+        /// <summary>
+        /// BQ-140. The place as it was actually built: which authored piece stands for each part,
+        /// where it is, what joins them, what the plan asked for and did not get, and every check
+        /// the built place was put through.
+        ///
+        /// The omissions and the failed checks are the point, in the same way BQ-090's refusals
+        /// are. A site that quietly built an open drift where the plan wanted a hidden way would
+        /// read perfectly well here; a site that dropped it and said so cannot be mistaken for one
+        /// that had it.
+        /// </summary>
+        public static string DescribeSiteStructure(SiteRealizationResult realization)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (realization == null)
+            {
+                sb.Append("site structure: nothing built\n");
+                return sb.ToString();
+            }
+
+            for (int i = 0; i < realization.Refusals.Count; i++)
+            {
+                sb.Append("  refused    ").Append(realization.Refusals[i]).Append('\n');
+            }
+
+            SiteStructure structure = realization.Structure;
+            if (structure == null)
+            {
+                if (realization.Refusals.Count == 0)
+                {
+                    sb.Append("site structure: nothing built and no reason given\n");
+                }
+
+                return sb.ToString();
+            }
+
+            sb.Append("site structure ").Append(structure.GrammarId)
+              .Append(" [").Append(structure.Family).Append("] seed ").Append(structure.Seed)
+              .Append(", for an errand after ").Append(structure.Objective)
+              .Append(" in ").Append(structure.ObjectiveNodeId).Append('\n');
+            sb.Append("  ground ").Append(structure.Width).Append('x').Append(structure.Height).Append('\n');
+
+            sb.Append("  pieces ").Append(structure.Placements.Count).Append('\n');
+            for (int i = 0; i < structure.Placements.Count; i++)
+            {
+                SitePlacement placement = structure.Placements[i];
+                sb.Append("    ").Append(placement.NodeId).Append(" = ").Append(placement.Piece.Id)
+                  .Append(" at ").Append(placement.X).Append(',').Append(placement.Y)
+                  .Append(" (").Append(placement.Piece.Width).Append('x').Append(placement.Piece.Height)
+                  .Append("), ").Append(placement.Depth).Append(" way(s) in");
+                AppendAffordances(sb, placement.Piece.Provides);
+                sb.Append('\n');
+            }
+
+            sb.Append("  ways ").Append(structure.Connectors.Count).Append('\n');
+            for (int i = 0; i < structure.Connectors.Count; i++)
+            {
+                SiteConnector connector = structure.Connectors[i];
+                sb.Append(connector.Passable ? "    open       " : "    shut       ")
+                  .Append(connector.From).Append(" -> ").Append(connector.To)
+                  .Append(" (").Append(connector.Kind).Append(')');
+                if (!connector.Passable)
+                {
+                    sb.Append("; ").Append(connector.Refusal);
+                }
+
+                sb.Append('\n');
+            }
+
+            for (int i = 0; i < structure.Anchors.Count; i++)
+            {
+                SiteAnchor anchor = structure.Anchors[i];
+                sb.Append("    holds      ").Append(anchor.Kind == SiteAnchorKind.Cargo ? "cargo " : "person ")
+                  .Append(anchor.Id.Value).Append(" in ").Append(anchor.NodeId);
+                if (anchor.Why.Length > 0)
+                {
+                    sb.Append("; ").Append(anchor.Why);
+                }
+
+                sb.Append('\n');
+            }
+
+            for (int i = 0; i < structure.Omitted.Count; i++)
+            {
+                SiteStructureOmission omission = structure.Omitted[i];
+                sb.Append("    not here   ").Append(omission.What).Append("; ").Append(omission.Reason).Append('\n');
+            }
+
+            for (int i = 0; i < realization.Checks.Count; i++)
+            {
+                SiteStructureCheck check = realization.Checks[i];
+                sb.Append(check.Held ? "    checked    " : "    FAILED     ")
+                  .Append(check.What).Append("; ").Append(check.Detail).Append('\n');
+            }
+
+            SiteTopology topology = structure.Topology();
+            sb.Append("  shape ").Append(topology.Signature).Append('\n');
+            return sb.ToString();
+        }
+
         public static string DescribeSiteContents(NarrativeWorldState world, SiteContentsReading contents)
         {
             StringBuilder sb = new StringBuilder();

@@ -2544,6 +2544,14 @@ requirements. No Elin map writes.
 - **Done when** at least two grammars produce deterministic abstract plans whose inspector output explains every node, edge, requirement and rejection reason, and a seed replay reproduces the same selected plan.
 - **Sources** PP §3, §4; LW §7.1, §7.6.
 - **Not this step.** No general Nefia replacement, no settlement generator, no tile placement, no custom puzzle mechanics.
+- **Where the representation actually lives** no separate step was implemented and none is needed: the
+  abstract plan this step names is `SiteLayout` (BQ-089's deterministic composition, recomposed from
+  grammar id and seed), its required affordances and objective/evidence anchors are `SiteAffordance`
+  and `SiteContents`' node ids (BQ-090, BQ-091), its validation requirements and rejection reasons are
+  `SiteFlaw` and the BQ-090 evidence gate, and seed replay of a *selected* plan is BQ-092's. The one
+  part of the list nothing filled was the authored-piece socket, which BQ-089 deliberately carried and
+  left empty; BQ-140 fills it. Read this step as satisfied by BQ-089...BQ-092 plus BQ-140 rather than
+  as work still owed.
 
 #### BQ-140 — First procedural scenario dungeon
 Build one BQ-owned bounded site whose scenario graph is generated and whose physical realization uses
@@ -2555,6 +2563,62 @@ hazardous route, optional hidden route, controlled descent/exit, causal evidence
 - **Sources** PP §4, §7, §8; LW §7.9.
 - **Evidence gate** `GenBounds.TryAddMapPiece`, `PartialMap.Apply`, native site registration, locked exits, traps, locks, diggable/breakable bypasses and any custom `Trait`/`Zone` hooks used by this step must be rechecked against the exact installed build and recorded in the Elin evidence docs before being treated as runtime-semantic proof.
 - **Tier-2 rule** a generic Trigger -> Condition -> Effect scenario state machine may be spiked here only if Tier-1 Elin verbs and BQ-090 affordances cannot express the proof. It is not a prerequisite architecture for the first good scenario dungeon.
+- **Current implementation** one family: worked-out mines somebody is holding. `ScenarioDungeon` is
+  the join and owns no vocabulary of its own - BQ-092 chooses the plan for the errand, BQ-091 derives
+  what the matter left in it, `SiteRealization` gives it a body, and `SiteGenesis` makes the place,
+  which already refuses to build a second one over a place the world knows (`D070`).
+  **A body is authored pieces put down where the plan says.** `content/sites/pieces/` carries thirteen
+  mine pieces read through the same compiler as grammars (`D066`), and each records the socket it
+  fills, its footprint, how many ways can meet in it, what standing in it affords, and what building
+  it leans on. A part of the plan gets a piece that fills its socket, affords what it requires and has
+  room for its ways; a route becomes the connector its own affordances name; the pieces are laid out
+  by how far into the place they are, which is the mine's own descent counted rather than authored.
+  The capacity is load-bearing rather than flavour: the narrow portal cannot be used by a mine that
+  also keeps its powder behind the mouth, and the crossing drifts cannot be used by one with every
+  side working open to it.
+  **Different seeds are different problems, and that is measured.** `SiteTopology` is the walkable
+  graph, its loops, and what a walk to what the place keeps actually asks of somebody - and it never
+  sees a piece id, so a reshuffle of galleries cannot be mistaken for variety. Sixteen seeds produce
+  **nine distinct navigation shapes and four distinct sets of things to get past**, every one of them
+  with at least one loop and at least two genuinely different ways to the objective
+  (`dotnet run --project tools/BrilliantQuesting.Lab -- run dungeon` prints them).
+  **Validation happens after realization as well as before it.** The plan was already judged by
+  BQ-092; the built place is then checked for the things only a thing with a shape can get wrong -
+  two pieces in the same ground, a chamber carrying more ways than it has, a part standing behind a
+  connector nobody can pass, cargo anchored somewhere nothing reaches, the two ways in surviving.
+  A failed check refuses the whole realization and nothing is staged.
+  **Persistence is Elin's and the plan's, with no third copy.** A site records the grammar, the seed
+  and the errand (`NarrativeSite.Objective`, additive and optional on read); the structure is derived
+  from those three on demand. So a return visit runs the same derivation rather than a second act of
+  building, `Established` still refuses genesis outright, and `SandboxStager.Built` proves the stager
+  is asked to build exactly one structure across establish, reload and a second establish.
+- **What the evidence gate found** a scenario dungeon cannot be made in game today.
+  `VanillaCapability.BuildPlaceStructure` names the write - create a zone this mod owns and apply
+  authored pieces into it - and `ElinVanillaState` reports it unsupported because
+  `Region.CreateRandomSite`, `addMap`, `GenBounds.TryAddMapPiece`, `PartialMap.Apply` and
+  visited-zone map persistence are all unexercised on this build (`ELIN-Q-0032`). `SiteRealization`
+  refuses to plan a structure on a build that does not advertise it, and `ElinSituationStager.StageSite`
+  refuses any blueprint that carries one, on which genesis already fails closed. The failure
+  direction is a place that cannot be made rather than a place built out of pieces nobody applied.
+  The authored hidden stope is refused twice over for the same kind of reason: its piece leans on
+  revealing a passage that has to be found (`ELIN-Q-0008`), and no registered verb answers
+  `HiddenPassage`, so the part is dropped **and said to be dropped** rather than rebuilt as an
+  ordinary drift. BQ-092 also scores a plan carrying it down, so no shipped mine gets one at all.
+- **Deferred, and not claimed** nothing was rewired to route through a scenario dungeon - the
+  archetypes that write places down still do so directly, as BQ-088 through BQ-092 also left them.
+  No second site family, because one is the proof and two would be a demonstration of extensibility;
+  no trap, lock, stair or door was adapted, so `TrapCluster`, `ObservationPoint` and `PrisonCell`
+  remain requirements no piece and no verb answers. The descent is a real ordering - pieces are laid
+  out by how far in they are, and the air shaft is a way out that is not a way in - but a *controlled*
+  exit condition, an exit that opens on the errand being answered, is not implemented: that needs
+  scenario state this step's Tier-2 rule keeps out until Tier-1 verbs demonstrably cannot express the
+  proof, and they could. Occupants are anchored to a part only where the
+  simulation says which part they are in (`BQ-091`), and nobody is placed at a coordinate, because
+  vanilla owns embodiment (`D021`). Distinct occupant regions beyond that wait on vanilla
+  hostility/faction behaviour being read rather than assumed. Additive change to a built place is
+  BQ-143's and was not started. Everything above is proven headlessly - Core 1453 tests and Lab 134
+  pass - the plugin was not built because this machine has no Elin assemblies, and none of it has
+  run in a live Elin session.
 
 #### BQ-143 — Additive BQ-owned site mutation proof
 On a disposable BQ-owned site, prove one bounded authored physical addition can be applied after

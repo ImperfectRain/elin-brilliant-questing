@@ -9135,16 +9135,19 @@
             "id": "fall",
             "affordances": [
               "hazard"
-            ]
+            ],
+            "socket": "mine_fall"
           },
           {
-            "id": "workings"
+            "id": "workings",
+            "socket": "mine_workings"
           },
           {
             "id": "face",
             "affordances": [
               "evidence_cache"
-            ]
+            ],
+            "socket": "mine_face"
           }
         ],
         "optionalNodes": [
@@ -9152,22 +9155,33 @@
             "id": "flooded_drift",
             "affordances": [
               "hazard"
-            ]
+            ],
+            "socket": "mine_water"
           },
           {
             "id": "air_shaft",
             "affordances": [
               "alternate_exit"
-            ]
+            ],
+            "socket": "mine_shaft"
           },
           {
-            "id": "tool_store"
+            "id": "tool_store",
+            "socket": "mine_store"
           },
           {
             "id": "deeper_cut",
             "affordances": [
               "hazard"
-            ]
+            ],
+            "socket": "mine_deep"
+          },
+          {
+            "id": "blind_stope",
+            "affordances": [
+              "hidden_passage"
+            ],
+            "socket": "mine_hidden"
           }
         ],
         "routes": [
@@ -9235,7 +9249,17 @@
           },
           {
             "from": "mouth",
-            "to": "tool_store"
+            "to": "tool_store",
+            "affordances": [
+              "locked_barrier"
+            ]
+          },
+          {
+            "from": "workings",
+            "to": "blind_stope",
+            "affordances": [
+              "hidden_passage"
+            ]
           },
           {
             "from": "workings",
@@ -9469,6 +9493,178 @@
             "to": "outside"
           }
         ]
+      }
+    },
+    {
+      "id": "piece.mine.abandoned_stope",
+      "kind": "site-piece",
+      "payload": {
+        "family": "mine",
+        "socket": "mine_face",
+        "width": 4,
+        "height": 4,
+        "ways": 3,
+        "provides": [
+          "evidence_cache"
+        ]
+      }
+    },
+    {
+      "id": "piece.mine.adit_mouth",
+      "kind": "site-piece",
+      "payload": {
+        "family": "mine",
+        "socket": "mine_mouth",
+        "width": 4,
+        "height": 3,
+        "ways": 5
+      }
+    },
+    {
+      "id": "piece.mine.air_shaft_head",
+      "kind": "site-piece",
+      "payload": {
+        "family": "mine",
+        "socket": "mine_shaft",
+        "width": 2,
+        "height": 2,
+        "ways": 2,
+        "provides": [
+          "alternate_exit"
+        ]
+      }
+    },
+    {
+      "id": "piece.mine.blind_stope",
+      "kind": "site-piece",
+      "payload": {
+        "family": "mine",
+        "socket": "mine_hidden",
+        "width": 3,
+        "height": 3,
+        "ways": 2,
+        "provides": [
+          "hidden_passage"
+        ],
+        "evidence": "source_observed",
+        "leansOn": "revealing a passage that has to be found before it can be used (ELIN-Q-0008)",
+        "needs": [
+          "read_place_contents"
+        ]
+      }
+    },
+    {
+      "id": "piece.mine.crossing_drifts",
+      "kind": "site-piece",
+      "payload": {
+        "family": "mine",
+        "socket": "mine_workings",
+        "width": 5,
+        "height": 5,
+        "ways": 7
+      }
+    },
+    {
+      "id": "piece.mine.crushed_incline",
+      "kind": "site-piece",
+      "payload": {
+        "family": "mine",
+        "socket": "mine_fall",
+        "width": 3,
+        "height": 5,
+        "ways": 3,
+        "provides": [
+          "hazard"
+        ]
+      }
+    },
+    {
+      "id": "piece.mine.deep_cut",
+      "kind": "site-piece",
+      "payload": {
+        "family": "mine",
+        "socket": "mine_deep",
+        "width": 3,
+        "height": 4,
+        "ways": 2,
+        "provides": [
+          "hazard"
+        ]
+      }
+    },
+    {
+      "id": "piece.mine.ore_face",
+      "kind": "site-piece",
+      "payload": {
+        "family": "mine",
+        "socket": "mine_face",
+        "width": 3,
+        "height": 3,
+        "ways": 2,
+        "provides": [
+          "evidence_cache"
+        ]
+      }
+    },
+    {
+      "id": "piece.mine.pillar_hall",
+      "kind": "site-piece",
+      "payload": {
+        "family": "mine",
+        "socket": "mine_workings",
+        "width": 6,
+        "height": 5,
+        "ways": 9
+      }
+    },
+    {
+      "id": "piece.mine.rockfall_gallery",
+      "kind": "site-piece",
+      "payload": {
+        "family": "mine",
+        "socket": "mine_fall",
+        "width": 4,
+        "height": 4,
+        "ways": 4,
+        "provides": [
+          "hazard"
+        ]
+      }
+    },
+    {
+      "id": "piece.mine.sump",
+      "kind": "site-piece",
+      "payload": {
+        "family": "mine",
+        "socket": "mine_water",
+        "width": 3,
+        "height": 3,
+        "ways": 2,
+        "provides": [
+          "hazard"
+        ]
+      }
+    },
+    {
+      "id": "piece.mine.timbered_portal",
+      "kind": "site-piece",
+      "payload": {
+        "family": "mine",
+        "socket": "mine_mouth",
+        "width": 3,
+        "height": 3,
+        "ways": 4
+      }
+    },
+    {
+      "id": "piece.mine.tool_niche",
+      "kind": "site-piece",
+      "payload": {
+        "family": "mine",
+        "socket": "mine_store",
+        "width": 2,
+        "height": 3,
+        "ways": 2
       }
     },
     {

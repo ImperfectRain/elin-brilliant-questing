@@ -1,0 +1,11 @@
+# A stope worked out and left. The same keeping, in a bigger room with one more way out of it.
+id: piece.mine.abandoned_stope
+kind: site-piece
+payload:
+  family: mine
+  socket: mine_face
+  width: 4
+  height: 4
+  ways: 3
+  provides:
+    - evidence_cache

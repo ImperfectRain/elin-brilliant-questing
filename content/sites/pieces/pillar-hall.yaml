@@ -1,0 +1,9 @@
+# Room-and-pillar workings: the widest thing in a mine and the part everything else opens off.
+id: piece.mine.pillar_hall
+kind: site-piece
+payload:
+  family: mine
+  socket: mine_workings
+  width: 6
+  height: 5
+  ways: 9

@@ -161,6 +161,26 @@ namespace BrilliantQuesting.World
 
         public List<SiteApproach> Approaches { get; }
 
+        /// <summary>
+        /// What the matter came to this place for, as the affordance BQ-092 chose the plan
+        /// against, or empty on a plan nobody drew for an errand.
+        ///
+        /// Recorded on the place rather than derived, because a plan is only judged good for the
+        /// errand it was judged against: without it a return visit could rebuild the same shape and
+        /// no longer know which part of it the matter was about.
+        /// </summary>
+        public string Objective { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The physical shape the place is to be built with, where something realized one
+        /// (BQ-140). Null on a plan that only binds to a place the game already made.
+        ///
+        /// Carried on the plan rather than passed beside it so that genesis's one refusal path
+        /// covers it too: an adapter that cannot build a structure answers <see cref="ISituationStager.StageSite"/>
+        /// with nothing, and a place with a body nobody could build is never registered.
+        /// </summary>
+        public SiteStructure Structure { get; set; }
+
         public bool Restricted { get; set; } = true;
 
         public SitePersistence Persistence { get; set; } = SitePersistence.Persistent;
@@ -305,7 +325,8 @@ namespace BrilliantQuesting.World
                 Persistent = plan.Persistence == SitePersistence.Persistent,
                 Restricted = plan.Restricted,
                 DangerLevel = plan.DangerLevel,
-                Seed = plan.Seed
+                Seed = plan.Seed,
+                Structure = plan.Structure
             };
 
             string zoneRef = stager.StageSite(blueprint);
@@ -328,6 +349,7 @@ namespace BrilliantQuesting.World
                 DangerLevel = plan.DangerLevel,
                 GenerationSeed = plan.Seed,
                 GrammarId = plan.GrammarId,
+                Objective = plan.Objective,
                 Established = true,
                 EstablishedAt = now
             };

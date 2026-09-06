@@ -299,6 +299,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("persistence", (int)site.Persistence)
                     .Set("seed", site.GenerationSeed.ToString())
                     .Set("grammar", site.GrammarId)
+                    .Set("objective", site.Objective)
                     .Set("restricted", site.Restricted)
                     .Set("established", site.Established)
                     .Set("establishedAt", site.EstablishedAt.TotalMinutes)
@@ -737,6 +738,10 @@ namespace BrilliantQuesting.Persistence
                     // Additive and optional again: a place written before grammars existed reads
                     // back planned by nobody, which is exactly what it was.
                     GrammarId = json.GetString("grammar"),
+
+                    // Additive and optional in the same way: a place written before scenario
+                    // dungeons reads back as made for no particular errand, which is what it was.
+                    Objective = json.GetString("objective"),
 
                     // Additive and optional: a save written before locked places existed has no
                     // node here, reads back as an open site, and behaves exactly as it did.

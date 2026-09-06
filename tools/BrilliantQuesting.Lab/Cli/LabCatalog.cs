@@ -48,7 +48,8 @@ namespace BrilliantQuesting.Lab.Cli
                 new PlaygroundSweepScenario(),
                 new PlaygroundSystemsScenario(),
                 new IntegrationScenario(),
-                new SeedProbeScenario()
+                new SeedProbeScenario(),
+                new DungeonScenario()
             });
         }
 

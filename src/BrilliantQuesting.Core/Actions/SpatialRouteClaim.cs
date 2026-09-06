@@ -108,25 +108,44 @@ namespace BrilliantQuesting.Actions
         /// </summary>
         public bool CanPromise(IVanillaState vanilla, out string refusal)
         {
-            for (int i = 0; i < Needs.Count; i++)
+            return CanLeanOn(vanilla, Evidence, LeansOn, Needs, out refusal);
+        }
+
+        /// <summary>
+        /// The gate itself, over the three things anything leaning on the live build has: what it
+        /// needs the adapter to advertise, what it leans on, and how well that is evidenced.
+        ///
+        /// Shared rather than reimplemented, because an authored map piece asks the same question
+        /// a route verb does (BQ-140): a place that is built out of pieces nobody has exercised is
+        /// the spatial form of a route promised on a primitive nobody has run.
+        /// </summary>
+        public static bool CanLeanOn(
+            IVanillaState vanilla,
+            RouteEvidence evidence,
+            string leansOn,
+            IReadOnlyList<VanillaCapability> needs,
+            out string refusal)
+        {
+            int required = needs == null ? 0 : needs.Count;
+            for (int i = 0; i < required; i++)
             {
                 if (vanilla == null)
                 {
-                    refusal = "no build has said whether it can " + Needs[i];
+                    refusal = "no build has said whether it can " + needs[i];
                     return false;
                 }
 
-                if (!vanilla.Supports(Needs[i]))
+                if (!vanilla.Supports(needs[i]))
                 {
-                    refusal = "this build cannot " + Needs[i];
+                    refusal = "this build cannot " + needs[i];
                     return false;
                 }
             }
 
-            if (Needs.Count == 0 && (Evidence == RouteEvidence.SourceObserved || Evidence == RouteEvidence.MetadataOnly))
+            if (required == 0 && (evidence == RouteEvidence.SourceObserved || evidence == RouteEvidence.MetadataOnly))
             {
-                refusal = "it leans on " + (LeansOn.Length > 0 ? LeansOn : "something unverified")
-                          + ", which is " + Evidence + " and nothing on this build can be asked about it";
+                refusal = "it leans on " + (string.IsNullOrEmpty(leansOn) ? "something unverified" : leansOn)
+                          + ", which is " + evidence + " and nothing on this build can be asked about it";
                 return false;
             }
 

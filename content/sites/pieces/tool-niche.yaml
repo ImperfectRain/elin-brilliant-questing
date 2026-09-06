@@ -1,0 +1,9 @@
+# Powder, picks and the lamp store, behind the one door in the mine anybody bothered to lock.
+id: piece.mine.tool_niche
+kind: site-piece
+payload:
+  family: mine
+  socket: mine_store
+  width: 2
+  height: 3
+  ways: 2

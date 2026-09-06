@@ -1,0 +1,20 @@
+# A stope the workings do not show you: there, and not apparent until it is found.
+#
+# Authored, and refused on every build this repository can currently describe. Finding a way that
+# has to be found means reading what stands in the place, which the live adapter cannot do
+# (`ELIN-Q-0008`), so the piece records what it leans on and the evidence gate drops the part
+# rather than quietly building an ordinary drift and calling it hidden.
+id: piece.mine.blind_stope
+kind: site-piece
+payload:
+  family: mine
+  socket: mine_hidden
+  width: 3
+  height: 3
+  ways: 2
+  provides:
+    - hidden_passage
+  evidence: source_observed
+  leansOn: revealing a passage that has to be found before it can be used (ELIN-Q-0008)
+  needs:
+    - read_place_contents

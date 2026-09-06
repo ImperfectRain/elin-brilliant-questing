@@ -97,7 +97,11 @@ namespace BrilliantQuesting.Plugin
         /// Gives a generated place a body by binding it to the zone the player is standing in, and
         /// answers with the handle every other read is already keyed on.
         ///
-        /// It does not create a zone. Native site creation - `Region.CreateRandomSite`, `addMap`
+        /// It does not create a zone, and it refuses outright when the blueprint carries a physical
+        /// structure (BQ-140): a place whose plan was validated on authored pieces must not be
+        /// answered with a bare binding to whatever zone the player happens to be standing in.
+        ///
+        /// Native site creation - `Region.CreateRandomSite`, `addMap`
         /// for a predeclared mod zone, and whether a created site's map survives a save at all -
         /// is unverified on this build (`ELIN-Q-0032`, `PP §7`), and guessing at it would put a
         /// place in the save that the game might not agree exists. Binding is the one embodiment
@@ -110,6 +114,19 @@ namespace BrilliantQuesting.Plugin
         {
             if (blueprint == null)
             {
+                return string.Empty;
+            }
+
+            // BQ-140. A blueprint with a shape is asking for terrain, not for a binding. This
+            // adapter cannot make terrain - zone creation and map-piece application are unexercised
+            // on this build (`ELIN-Q-0032`) - and binding the loaded zone instead would hand back a
+            // place with none of the pieces, none of the barriers and none of the ways the plan was
+            // validated on. Refusing costs an unmade site; answering would cost a site that lies.
+            if (blueprint.Structure != null)
+            {
+                _log.LogWarning(
+                    "Cannot build " + blueprint.Name + ": " + blueprint.Structure.Placements.Count
+                    + " authored piece(s) were planned and this build cannot apply any (ELIN-Q-0032).");
                 return string.Empty;
             }
 

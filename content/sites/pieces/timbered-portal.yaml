@@ -1,0 +1,10 @@
+# A narrower portal, half fallen in. One way fewer meets here, so a mine that also keeps its
+# powder behind the mouth is not built out of this one.
+id: piece.mine.timbered_portal
+kind: site-piece
+payload:
+  family: mine
+  socket: mine_mouth
+  width: 3
+  height: 3
+  ways: 4

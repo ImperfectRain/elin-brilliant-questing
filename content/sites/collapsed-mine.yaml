@@ -13,21 +13,32 @@ payload:
     - id: fall
       affordances:
         - hazard
+      socket: mine_fall
     - id: workings
+      socket: mine_workings
     - id: face
       affordances:
         - evidence_cache
+      socket: mine_face
   optionalNodes:
     - id: flooded_drift
       affordances:
         - hazard
+      socket: mine_water
     - id: air_shaft
       affordances:
         - alternate_exit
+      socket: mine_shaft
     - id: tool_store
+      socket: mine_store
     - id: deeper_cut
       affordances:
         - hazard
+      socket: mine_deep
+    - id: blind_stope
+      affordances:
+        - hidden_passage
+      socket: mine_hidden
   routes:
     - from: outside
       to: mouth
@@ -69,6 +80,12 @@ payload:
       to: deeper_cut
     - from: mouth
       to: tool_store
+      affordances:
+        - locked_barrier
+    - from: workings
+      to: blind_stope
+      affordances:
+        - hidden_passage
     - from: workings
       to: air_shaft
     - from: air_shaft

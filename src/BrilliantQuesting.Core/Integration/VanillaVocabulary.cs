@@ -165,6 +165,22 @@ namespace BrilliantQuesting.Integration
         /// <see cref="BrilliantQuesting.Relationships.PlayerHousehold.CompanionsRead"/> is what
         /// says which of the two it is.
         /// </summary>
-        ReadPlayerCompanions
+        ReadPlayerCompanions,
+
+        /// <summary>
+        /// The game will make a place with a physical shape: a zone this mod owns, with authored
+        /// map pieces applied into it.
+        ///
+        /// Separate from every read above because it is the one write that creates terrain, and
+        /// separate from staging a character into a loaded zone because that binds to a place the
+        /// game already made. `Region.CreateRandomSite`, `addMap` for a predeclared mod zone,
+        /// `GenBounds.TryAddMapPiece`, `PartialMap.Apply` and whether a created site's map survives
+        /// a save are all unanswered on the installed build (`ELIN-Q-0032`), so an adapter that has
+        /// not exercised them reports this unsupported and a scenario dungeon is then impossible
+        /// rather than half-built: <see cref="BrilliantQuesting.World.SiteRealization"/> refuses to
+        /// plan one, and <see cref="ISituationStager.StageSite"/> refuses a blueprint that carries
+        /// a structure, on which genesis already fails closed.
+        /// </summary>
+        BuildPlaceStructure
     }
 }

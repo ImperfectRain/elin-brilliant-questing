@@ -1,0 +1,11 @@
+# Where the water goes when the pumps stop.
+id: piece.mine.sump
+kind: site-piece
+payload:
+  family: mine
+  socket: mine_water
+  width: 3
+  height: 3
+  ways: 2
+  provides:
+    - hazard

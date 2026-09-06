@@ -156,6 +156,17 @@ namespace BrilliantQuesting.Plugin
                 VanillaCapability.ReadPlaceContents,
                 "GetInventory resolves a Chara and nothing else on this build, so nothing standing loose in a place can be read (ELIN-Q-0008)");
 
+            // BQ-140. Making a place with a physical shape means creating a zone and applying
+            // authored map pieces into it, and every part of that is unanswered on this build:
+            // `Region.CreateRandomSite`, `addMap` for a predeclared mod zone,
+            // `GenBounds.TryAddMapPiece`, `PartialMap.Apply`, and whether a created site's map
+            // survives a save at all (`ELIN-Q-0032`). None of it has been exercised, so this stays
+            // off and a scenario dungeon is refused before anything is drawn rather than half
+            // built into a save the game may not agree with.
+            MarkUnsupported(
+                VanillaCapability.BuildPlaceStructure,
+                "no zone creation or map-piece application has been exercised on this build; StageSite binds to the loaded zone and creates nothing (ELIN-Q-0032)");
+
             Probe(
                 VanillaCapability.TransferItems,
                 () => EClass.pc == null || EClass.pc.things == null ? null : "Chara.Pick transfer path available; source inventory count " + EClass.pc.things.Count);

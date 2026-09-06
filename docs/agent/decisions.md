@@ -1978,3 +1978,47 @@ choice depend on a derivation that has not happened yet.
 Reason: the cheap version composes one plan and uses it, and the failures are invisible until
 somebody plays them — an errand after a strongbox in a place whose second way in reaches only the
 yard, three approaches that are all the doorman, a dug route promised on a build that cannot dig.
+
+## D070 — A place gets a body out of authored pieces, and is refused rather than half built
+
+BQ-140. `SiteRealization` turns the plan BQ-092 chose into a `SiteStructure`: one authored piece
+per functional part, laid out by how far into the place it is, joined by connectors the plan's own
+affordances name. `ScenarioDungeon` is the join — selection, contents, realization, genesis — and
+owns no vocabulary of its own.
+
+**Structure comes from the plan, never from geometry.** A part gets a piece that can fill its
+socket, affords what it requires and has room for the ways that meet in it; a route becomes the
+connector its affordances describe. So two seeds are different places because their *plans* are
+different, and `SiteTopology` — the walkable graph, the loops, and what a walk to the objective
+asks of somebody — is what "different" is measured on. Piece ids are excluded from that signature
+on purpose: a different gallery in the same corridor is decoration, and a metric that counted it
+would let the generator pass its own test by reshuffling furniture.
+
+**Pieces are content, and they carry their own evidence.** `content/sites/pieces/` is read by
+`SitePieceContent` through the same compiler as grammars (`D066`), and a piece records what it
+leans on from the live build with BQ-090's grades. That is not decoration either: the shipped
+hidden stope leans on revealing a passage that has to be found, which no build here can do, so it
+is refused by the same gate that refuses a route promise (`D067`). One rule, asked of a thing
+rather than of a verb.
+
+**Refusing is the safe direction, and dropping is never substituting.** A required part with no
+piece, a required part nothing built can reach, an objective behind a connector nobody can pass:
+each refuses the whole realization and nothing is staged, because a half-built site is in the save
+and a refused one is not (`BQ-087`). An optional part that cannot be built is dropped *and said to
+have been dropped*. It is never quietly replaced by something the build can do — a hidden way
+rebuilt as an open drift would be the place asserting a feature the plan's requirement never got.
+
+**Nothing physical is written to a save.** A site records the grammar, the seed and the errand;
+the structure is derived from those three whenever anybody asks, so Elin keeps the map it made and
+BQ keeps the plan it was made from, and neither holds a copy of the other's (`PP §6`). That is
+also why a return visit cannot regenerate a place: there is no second act of building to avoid,
+only the same derivation run again, and `NarrativeSite.Established` still refuses genesis outright.
+
+**One family, deliberately.** `site.collapsed_mine` and the `mine` pieces. A second family would
+demonstrate extensibility rather than the thing itself, and the standing rule against a general
+random dungeon generator (`LW §7`, `PP`) is kept by not writing one: another kind of site is
+another grammar file, another set of piece files, and the evidence to back them.
+
+Reason: the cheap version applies map pieces straight from a grammar and calls the result a
+dungeon. It cannot say whether the place can be walked, it cannot say which of its promises this
+build keeps, and the first unsupported feature becomes a room that looks right and does nothing.

@@ -1,0 +1,11 @@
+# The cut nobody finished. Bad air, and a floor that was never made safe.
+id: piece.mine.deep_cut
+kind: site-piece
+payload:
+  family: mine
+  socket: mine_deep
+  width: 3
+  height: 4
+  ways: 2
+  provides:
+    - hazard

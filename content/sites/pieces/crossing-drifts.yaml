@@ -1,0 +1,10 @@
+# Two drifts crossing, which is a smaller way to work the same ground: fewer ways can meet here,
+# so a mine with every side working open to it is not built out of this one.
+id: piece.mine.crossing_drifts
+kind: site-piece
+payload:
+  family: mine
+  socket: mine_workings
+  width: 5
+  height: 5
+  ways: 7

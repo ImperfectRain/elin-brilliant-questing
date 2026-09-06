@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
+using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Integration
 {
@@ -94,6 +95,18 @@ namespace BrilliantQuesting.Integration
 
         /// <summary>Recorded so the same place can be rebuilt identically if it ever has to be.</summary>
         public ulong Seed { get; set; }
+
+        /// <summary>
+        /// The physical shape to build the place with - which authored piece stands for each part
+        /// of it, where each one goes and what joins them - or null where the place is only being
+        /// bound to one the game already made (BQ-140).
+        ///
+        /// The one thing on this seam with coordinates in it, and deliberately still not a map: no
+        /// tiles, no objects, no doors. An adapter that cannot apply authored pieces answers
+        /// <see cref="ISituationStager.StageSite"/> with nothing when this is set, and genesis then
+        /// registers no site at all.
+        /// </summary>
+        public SiteStructure Structure { get; set; }
     }
 
     /// <summary>
@@ -125,6 +138,11 @@ namespace BrilliantQuesting.Integration
     public sealed class SandboxStager : ISituationStager
     {
         private readonly SandboxVanillaState _vanilla;
+
+        private readonly Dictionary<EntityId, SiteStructure> _structures =
+            new Dictionary<EntityId, SiteStructure>();
+
+        private readonly List<EntityId> _built = new List<EntityId>();
 
         public SandboxStager(SandboxVanillaState vanilla)
         {
@@ -169,7 +187,33 @@ namespace BrilliantQuesting.Integration
         /// </summary>
         public string StageSite(SiteBlueprint blueprint)
         {
-            return blueprint == null || blueprint.SiteId.IsNone ? string.Empty : blueprint.SiteId.Value;
+            if (blueprint == null || blueprint.SiteId.IsNone)
+            {
+                return string.Empty;
+            }
+
+            if (blueprint.Structure != null)
+            {
+                _structures[blueprint.SiteId] = blueprint.Structure;
+                _built.Add(blueprint.SiteId);
+            }
+
+            return blueprint.SiteId.Value;
         }
+
+        /// <summary>
+        /// The shape each place was built with, and one entry per act of building.
+        ///
+        /// Two collections rather than one because they answer different questions: what a place
+        /// is, and how many times something built it. A site established twice is the defect
+        /// BQ-087 exists to prevent, and it is only visible in the count.
+        /// </summary>
+        public SiteStructure StructureOf(EntityId siteId)
+        {
+            SiteStructure structure;
+            return _structures.TryGetValue(siteId, out structure) ? structure : null;
+        }
+
+        public IReadOnlyList<EntityId> Built => _built;
     }
 }

@@ -1,0 +1,11 @@
+# The face itself. What the mine keeps is in the ground here, and in what was left beside it.
+id: piece.mine.ore_face
+kind: site-piece
+payload:
+  family: mine
+  socket: mine_face
+  width: 3
+  height: 3
+  ways: 2
+  provides:
+    - evidence_cache

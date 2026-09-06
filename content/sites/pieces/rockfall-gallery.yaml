@@ -1,0 +1,12 @@
+# The gallery the roof came down in. Loose above and underfoot, and wide enough that the ways
+# round the fall still meet in it.
+id: piece.mine.rockfall_gallery
+kind: site-piece
+payload:
+  family: mine
+  socket: mine_fall
+  width: 4
+  height: 4
+  ways: 4
+  provides:
+    - hazard

@@ -14,6 +14,18 @@ development lives in [`../../design/procedural-places-and-spatial-history.md`](.
 
 Consequence for return visits: `GetCharactersInZone` still reads the loaded `EClass._map.charas` rather than an arbitrary saved zone (`ELIN-Q-0008`), so `SiteGenesis.Visit` is accurate for the place the player is standing in and reports drift it cannot see for one they are not.
 
+## Procedural Scenario Dungeons (BQ-140)
+
+A BQ-owned site can now carry a *physical structure*: authored pieces placed on a bounded grid, joined by connectors derived from the plan's own affordances (`BrilliantQuesting.World.SiteStructure`). It reaches the adapter on `SiteBlueprint.Structure`.
+
+Nothing on this build can apply one. `VanillaCapability.BuildPlaceStructure` names the write - create a zone this mod owns and apply authored map pieces into it - and `ElinVanillaState` reports it `unsupported` with `ELIN-Q-0032` as the reason: `Region.CreateRandomSite(...)`, `addMap` for a predeclared mod zone, `GenBounds.TryAddMapPiece`, `PartialMap.Apply(...)` and visited-zone map persistence are all unexercised. Consequently:
+
+- `SiteRealization.Realize` refuses to plan a structure on a build that does not advertise the capability, before any piece is chosen;
+- `ElinSituationStager.StageSite` refuses any blueprint that carries a structure and returns the empty string, on which `SiteGenesis` already fails closed;
+- so a scenario dungeon on the live build is a place that cannot be made, never a place made out of pieces the game did not apply.
+
+Everything BQ-140 claims is therefore headless. Turning it on means exercising the four calls above on the exact installed build, recording them here and in [`../verification/unresolved.md`](../verification/unresolved.md), and then advertising the capability from a probe rather than from intent.
+
 ## Grade-B Absence / Movement
 
 Current BQ implementation: `ElinPresence.ResolveMove` searches for `Chara.MoveZone(Zone, ZoneTransition.EnterState)` and `ElinPresence.ResolveFindZone` searches for `EClass.game.spatials.Find(int)`. The adapter refuses movement when the actor is not already global, and Grade-B absence remains configuration-gated pending disposable-save runtime validation (`SOURCE-OBSERVED`, `STUB-VERIFIED`, `UNRESOLVED` runtime).

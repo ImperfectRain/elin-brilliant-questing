@@ -1,0 +1,10 @@
+# The mouth of a working adit: cut square, timbered, and wide enough that every way the plan
+# brings to the surface can meet in it.
+id: piece.mine.adit_mouth
+kind: site-piece
+payload:
+  family: mine
+  socket: mine_mouth
+  width: 4
+  height: 3
+  ways: 5

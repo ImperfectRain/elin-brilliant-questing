@@ -252,6 +252,20 @@ namespace BrilliantQuesting.World
             return new SiteRouteProjection(layout, objectiveNodeId, ways, string.Empty);
         }
 
+        /// <summary>
+        /// One route read on its own: the verbs that answer it, whether this build can be offered
+        /// any of them, and the reason where it cannot.
+        ///
+        /// The same judgement <see cref="Project"/> makes of every leg, exposed because physical
+        /// realization asks it of one route at a time (BQ-140): a connector nobody can get past is
+        /// not a way from one part of a place to the next, and deciding that twice would let the
+        /// plan and the map disagree about which routes are real.
+        /// </summary>
+        public static SiteRouteLeg Leg(SiteLayoutRoute route, ActionRegistry actions, IVanillaState vanilla)
+        {
+            return route == null ? null : Evaluate(route, actions, vanilla);
+        }
+
         private static void Walk(
             SiteLayout layout,
             string from,

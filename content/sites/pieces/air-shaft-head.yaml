@@ -1,0 +1,11 @@
+# The foot of the air shaft. Up and out, and not the way anybody came in.
+id: piece.mine.air_shaft_head
+kind: site-piece
+payload:
+  family: mine
+  socket: mine_shaft
+  width: 2
+  height: 2
+  ways: 2
+  provides:
+    - alternate_exit

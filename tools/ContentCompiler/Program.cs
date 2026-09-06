@@ -174,6 +174,10 @@ namespace BrilliantQuesting.ContentCompiler
             {
                 SiteGrammarContent.LoadGrammars(bundle, out diagnostics);
             }
+            else if (string.Equals(source.Kind, SitePieceContent.Kind, StringComparison.Ordinal))
+            {
+                SitePieceContent.LoadPieces(bundle, out diagnostics);
+            }
             else
             {
                 return;
