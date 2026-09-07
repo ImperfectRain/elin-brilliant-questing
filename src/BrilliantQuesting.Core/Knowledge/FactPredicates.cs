@@ -175,6 +175,17 @@ namespace BrilliantQuesting.Knowledge
         public const string Settled = "settled";
 
         /// <summary>
+        /// An adventuring party tried to answer a rescue matter, and what came of the attempt.
+        ///
+        /// Subject is the party, object is the person they went after, and <see cref="Fact.Value"/>
+        /// carries the attempt outcome - for example "rescued" or "rescue_failed". It is a claim,
+        /// not a dispatch order and not a travel record: the ledger says what the party actually
+        /// did, while this gives somebody a thing they can tell the player without handing them
+        /// the whole off-screen state for free.
+        /// </summary>
+        public const string AttemptedRescue = "attempted_rescue";
+
+        /// <summary>
         /// Whether this is the kind of thing people repeat to each other.
         ///
         /// Gossip is about what happened, not about how the world is arranged. "Kip stole the
@@ -224,6 +235,9 @@ namespace BrilliantQuesting.Knowledge
                 // That somebody put a matter right is the news the town most reliably repeats,
                 // and it is how a player who was elsewhere finds out the world solved it.
                 case Settled:
+                // A failed adventurer rescue is still actionable news: it is how the player
+                // learns the world tried, and that the matter may be worse rather than solved.
+                case AttemptedRescue:
                     return true;
 
                 // Standing arrangements. True, queryable, and nobody's news: who owns what, who

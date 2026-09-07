@@ -855,6 +855,21 @@ namespace BrilliantQuesting.Diagnostics
             return sb.ToString();
         }
 
+        /// <summary>
+        /// BQ-096. Reads the party layer in the same shape as autonomous intervention: what
+        /// group took the matter up, which ordinary verb its leader attempted, and which claim
+        /// can carry the result back to the player.
+        /// </summary>
+        public static string DescribeAdventurerEcology(NarrativeWorldState world, AdventurerEcologyTrace trace)
+        {
+            if (trace == null)
+            {
+                return "adventurer ecology: none\n";
+            }
+
+            return trace.Describe(world);
+        }
+
         public static string DescribeInterpretation(NarrativeWorldState world, ActorInterpretationTrace trace)
         {
             if (trace == null)

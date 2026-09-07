@@ -49,6 +49,7 @@ namespace BrilliantQuesting.Plugin
         private ThreadEngine _threads;
         private AutonomousInterventions _autonomy;
         private OffScreenSchemes _schemes;
+        private AdventurerEcology _adventurers;
         private ElinActionObserver _actionObserver;
         private RumorCirculation _gossip;
         private AmbientTalk _ambient;
@@ -385,6 +386,7 @@ namespace BrilliantQuesting.Plugin
             _threads = new ThreadEngine();
             _autonomy = new AutonomousInterventions();
             _schemes = new OffScreenSchemes();
+            _adventurers = new AdventurerEcology();
             RumorSystem rumors = new RumorSystem(_world.Knowledge, _world.Ledger, _world.Ids);
 
             // One policy, shared. A story that garbles in the market and a thief who names
@@ -539,6 +541,7 @@ namespace BrilliantQuesting.Plugin
                 int escalations = _threads.Advance(_world, _vanilla.Now);
                 AdvanceAutonomy();
                 AdvanceSchemes();
+                AdvanceAdventurers();
                 if (lifecycleChanges == 0 && escalations == 0)
                 {
                     return;
@@ -643,6 +646,48 @@ namespace BrilliantQuesting.Plugin
             catch (Exception ex)
             {
                 _log.LogWarning("Off-screen schemes skipped after an exception: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Lets an adventuring party take up a rescue matter the player left alone (BQ-096).
+        ///
+        /// This sits beside the other autonomy passes: the party is a persistent organization,
+        /// but the rescue itself is still an ordinary action attempt by its leader through the
+        /// shared verb library. No movement, route or live party state is asserted here.
+        /// </summary>
+        private void AdvanceAdventurers()
+        {
+            if (_adventurers == null || _actions == null || _checks == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_adventurers.Advance(_world, _vanilla, _checks, _actions, _vanilla.Now) == 0)
+                {
+                    return;
+                }
+
+                foreach (AdventurerEcologyTrace trace in _adventurers.LastPass)
+                {
+                    if (!trace.Acted)
+                    {
+                        continue;
+                    }
+
+                    _log.LogInfo("Adventuring party "
+                                 + _world.Registry.NameOf(trace.PartyId)
+                                 + " attempted " + trace.ActionId
+                                 + " for " + trace.ArchetypeId
+                                 + " and reported " + trace.OutcomeName
+                                 + " at " + _vanilla.Now + ".");
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning("Adventurer ecology skipped after an exception: " + ex.Message);
             }
         }
 
@@ -1532,6 +1577,7 @@ namespace BrilliantQuesting.Plugin
             _threads = null;
             _autonomy = null;
             _schemes = null;
+            _adventurers = null;
             _actionObserver = null;
             _lastAdvancedDay = long.MinValue;
             _bindings?.Clear();

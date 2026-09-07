@@ -108,6 +108,9 @@ namespace BrilliantQuesting.Actions
                 case "return_item":
                     return binding.HasItem;
 
+                case "rescue":
+                    return binding.HasProposition || binding.HasDestination || !string.IsNullOrEmpty(binding.Purpose);
+
                 case "escort":
                 case "capture":
                 case "restrain":

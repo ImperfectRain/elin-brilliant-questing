@@ -149,7 +149,7 @@ No system is allowed to disappear from this table.
 | Sites, scenario dungeons & location grammars | Absent | Playable | BQ-087 ... BQ-092, BQ-139 ... BQ-141 |
 | BQ-owned additive site mutation proof | Absent | Spiked | BQ-143 |
 | Safe vanilla mutation policy | Prototype | Hardened | BQ-031, BQ-032 |
-| NPC autonomy | Absent | Playable | BQ-093 … BQ-096 |
+| NPC autonomy | Playable | Playable | BQ-093 … BQ-096 |
 | Traveling groups | Absent | Playable | BQ-097, BQ-098 |
 | Narrative director | Absent | Playable | BQ-099 … BQ-103 |
 | Debug & explainability | Prototype | Hardened | BQ-012, BQ-104 |
@@ -3017,6 +3017,31 @@ NPCs steal, court, invest, flee debt, hire help, hide evidence and seek revenge 
 Other adventurers pursue situations, and can die, fail, take credit, or become recurring rivals.
 - **Depends** BQ-094.
 - **Done when** an adventuring party attempts a rescue the player declined, and their outcome is discoverable.
+- **Current implementation** `AdventurerEcology.Advance` consumes existing `Organization`
+  records whose type is `adventuring_party`, chooses an unsatisfied rescue goal that names a live
+  `AtRisk` matter the player has not acted in, requires the party to know one of the matter facts,
+  and runs the leader through the ordinary `rescue` `NarrativeAction` using
+  `ActorContexts.TryBuildOffScreen`. `rescue` now declares `SettlesMatters`, is available only for a
+  standing `AtRisk` rescue objective, supersedes that risk on success, records `Rescued`, and
+  resolves the thread as `rescued`; failure leaves the matter open and critical failure records only
+  the action's own harm.
+  The party itself records one `OrganizationActed` attempt tagged `adventuring_party` /
+  `adventurer_rescue_attempt`, plus an `attempted_rescue` claim held by the party members. On
+  success it also records a `settled` claim with the party as subject so the Chronicle can credit
+  the party once the claim reaches the player. No route, exact place, travel, or witness is
+  asserted.
+  **Proof.** `dotnet run --project tools/BrilliantQuesting.Lab -- run adventurer-ecology` creates
+  an abduction matter the player heard about and left alone; the Bracken Knives attempt `rescue`,
+  the matter resolves, the player's Chronicle remains empty until Nessa tells them, then it reports
+  the party credited under "What happened without you". Six `AdventurerEcologyTests` cover
+  successful rescue, failed discoverable rescue, no free player knowledge, player-in-hand refusal,
+  save/load same-day non-repeat, and inspector output. Core 1578 and Lab 140 pass; Plugin build
+  passes.
+- **Unverified, and not claimed** no live Elin session has run this pass. The implementation uses
+  the already-unverified BQ-135 activity/movement seam through off-screen context building, and the
+  plugin wiring is compiled but not runtime-executed. Adventuring parties are consumed when present
+  as BQ `Organization` records; live generation/intake of vanilla adventurer parties, party travel,
+  death/materialization, and rivalry escalation are not claimed here.
 - **Sources** PM §33; LW §6.8.
 
 #### BQ-097 — Traveling groups

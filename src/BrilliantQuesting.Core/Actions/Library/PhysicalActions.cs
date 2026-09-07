@@ -429,6 +429,131 @@ namespace BrilliantQuesting.Actions.Library
         public RescueAction() : base("rescue", "Rescue them", ProceduralCheckProfiles.Rescue, WorldEventType.Rescued)
         {
         }
+
+        /// <summary>A successful rescue answers the matter that made someone unsafe.</summary>
+        public override bool SettlesMatters => true;
+
+        protected override Availability GetAvailabilityCore(ActionContext context)
+        {
+            if (!ActionSupport.Present(context, context.Target) || context.Target == context.Actor)
+            {
+                return Availability.NotRelevant("nobody here to rescue");
+            }
+
+            return ActionBinding.HasRequiredSemanticSlots(Id, context) && RescueMatter(context) != null
+                ? Availability.Available()
+                : Availability.NotRelevant("no standing risk to answer");
+        }
+
+        protected override ActionOutcome PerformCore(ActionContext context)
+        {
+            if (!ActionSupport.Present(context, context.Target))
+            {
+                return new ActionOutcome(Id, null, "There is nobody here for that.");
+            }
+
+            Fact risk = RescueMatter(context);
+            CheckResult check = context.Checks.Resolve(new CheckRequest(ProceduralCheckProfiles.Rescue, context.Actor, context.Target), context.Rng);
+            if (!check.Outcome.IsSuccess())
+            {
+                ActionOutcome failed = new ActionOutcome(Id, check, context.NameOf(context.Target) + " is not brought out.");
+                if (check.Outcome == CheckOutcome.CriticalFail)
+                {
+                    failed.Events.Add(context.World.Record(
+                        WorldEventType.Harmed,
+                        context.Actor,
+                        context.Actor,
+                        context.Now,
+                        0.3,
+                        context.Zone,
+                        related: risk == null ? null : new[] { risk.Id },
+                        witnesses: ActionSupport.Bystanders(context, true),
+                        threadId: context.Thread?.Id ?? EntityId.None));
+                }
+
+                failed.Notes.Add("the rescue matter still stands");
+                return failed;
+            }
+
+            if (risk != null)
+            {
+                risk.Truth = TruthState.Superseded;
+            }
+
+            ActionOutcome outcome = new ActionOutcome(Id, check, context.NameOf(context.Target) + " is brought out alive.");
+            outcome.Events.Add(context.World.Record(
+                WorldEventType.Rescued,
+                context.Actor,
+                context.Target,
+                context.Now,
+                check.Outcome == CheckOutcome.CriticalPass ? 0.8 : 0.6,
+                context.Zone,
+                related: risk == null ? null : new[] { risk.Id },
+                witnesses: ActionSupport.Bystanders(context, true),
+                threadId: context.Thread?.Id ?? EntityId.None));
+
+            if (context.Thread != null && !AnyOpenRisk(context))
+            {
+                ActionSupport.Resolve(context, outcome, "rescued", 0.75);
+            }
+
+            return outcome;
+        }
+
+        private static Fact RescueMatter(ActionContext context)
+        {
+            if (context == null)
+            {
+                return null;
+            }
+
+            if (!context.SubjectFact.IsNone)
+            {
+                Fact named = context.World.Knowledge.GetFact(context.SubjectFact);
+                if (IsOpenRiskFor(named, context.Target))
+                {
+                    return named;
+                }
+            }
+
+            if (context.Thread == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < context.Thread.FactIds.Count; i++)
+            {
+                Fact fact = context.World.Knowledge.GetFact(context.Thread.FactIds[i]);
+                if (IsOpenRiskFor(fact, context.Target))
+                {
+                    return fact;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool AnyOpenRisk(ActionContext context)
+        {
+            for (int i = 0; i < context.Thread.FactIds.Count; i++)
+            {
+                Fact fact = context.World.Knowledge.GetFact(context.Thread.FactIds[i]);
+                if (fact != null && fact.Predicate == FactPredicates.AtRisk && fact.Truth == TruthState.True)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsOpenRiskFor(Fact fact, EntityId target)
+        {
+            return fact != null
+                   && fact.Predicate == FactPredicates.AtRisk
+                   && fact.Truth == TruthState.True
+                   && (target.IsNone || fact.Subject == target);
+        }
     }
 
     public sealed class EscortAction : PhysicalPersonAction
