@@ -71,6 +71,9 @@ namespace BrilliantQuesting.Actions.Library
                 needs.ToArray());
         }
 
+        /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
+        public override bool SettlesMatters => true;
+
         /// <summary>
         /// The barrier is an object standing in the place, and taking it out of the world is a
         /// seam write vanilla performs - the same `DestroyItems` capability the route claim above
@@ -433,6 +436,9 @@ namespace BrilliantQuesting.Actions.Library
         public EscortAction() : base("escort", "Escort them", ProceduralCheckProfiles.Escort, WorldEventType.Helped)
         {
         }
+
+        /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
+        public override bool SettlesMatters => true;
 
         protected override Availability GetAvailabilityCore(ActionContext context)
         {

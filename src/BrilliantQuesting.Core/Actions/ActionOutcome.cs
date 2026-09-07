@@ -48,6 +48,17 @@ namespace BrilliantQuesting.Actions
         /// </summary>
         public ActorEmbodiment Embodiment { get; internal set; } = ActorEmbodiment.Narrative;
 
+        /// <summary>
+        /// How much of the room was read when this was resolved (BQ-094), stamped by
+        /// <see cref="NarrativeAction.Perform"/> from the context it ran in.
+        ///
+        /// Beside <see cref="Embodiment"/> because it answers the neighbouring question and has
+        /// the same failure mode if it is left implicit: an outcome with no witnesses is somebody
+        /// acting in an empty room when the room was looked at, and somebody acting where nobody
+        /// was looking when it was not. Only one of those is evidence of anything.
+        /// </summary>
+        public ContextObservation Observation { get; internal set; } = ContextObservation.Observed;
+
         public string Explain()
         {
             StringBuilder sb = new StringBuilder();
@@ -55,6 +66,11 @@ namespace BrilliantQuesting.Actions
             if (Embodiment != null && Embodiment.Mode != EmbodimentMode.Narrative)
             {
                 sb.Append("\n  ").Append(Embodiment.Describe());
+            }
+
+            if (Observation == ContextObservation.OffScreen)
+            {
+                sb.Append("\n  nobody was watching: witnesses unread, not absent");
             }
 
             if (Check != null)

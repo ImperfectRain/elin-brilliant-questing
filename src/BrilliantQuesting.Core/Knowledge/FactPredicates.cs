@@ -158,6 +158,23 @@ namespace BrilliantQuesting.Knowledge
         public const string WonCompetition = "won_competition";
 
         /// <summary>
+        /// Somebody put a standing matter right, and it can be said out loud (BQ-094).
+        ///
+        /// Subject is whoever ended it, object is whoever or whatever the matter was about, and
+        /// <see cref="Fact.Value"/> carries the outcome name history recorded - "debt_paid",
+        /// "supplier_funded" - so the claim answers *how* rather than merely *that*.
+        ///
+        /// It is not a second copy of the <c>ThreadResolved</c> entry, and the difference is the
+        /// one the whole knowledge subsystem rests on. The ledger says what happened; this says
+        /// what somebody is in a position to claim happened, which is the only kind of thing that
+        /// travels. Without it, a matter the world solved while the player was elsewhere could
+        /// only ever reach them by their being told the truth for free, and background simulation
+        /// granting the player omniscience is exactly what the invariant forbids. With it, the
+        /// ending gossips, decays, and can be got wrong in the retelling like anything else.
+        /// </summary>
+        public const string Settled = "settled";
+
+        /// <summary>
         /// Whether this is the kind of thing people repeat to each other.
         ///
         /// Gossip is about what happened, not about how the world is arranged. "Kip stole the
@@ -204,6 +221,9 @@ namespace BrilliantQuesting.Knowledge
                 // it is what turns hearing about a theft into being able to go and look.
                 case LocatedAt:
                 case WonCompetition:
+                // That somebody put a matter right is the news the town most reliably repeats,
+                // and it is how a player who was elsewhere finds out the world solved it.
+                case Settled:
                     return true;
 
                 // Standing arrangements. True, queryable, and nobody's news: who owns what, who

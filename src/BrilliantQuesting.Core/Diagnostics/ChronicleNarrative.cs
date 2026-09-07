@@ -628,6 +628,16 @@ namespace BrilliantQuesting.Diagnostics
             }
         }
 
+        /// <summary>
+        /// The finished matters, under the two headings they actually belong to.
+        ///
+        /// A trophy case is a claim about the player, so a matter somebody else settled while the
+        /// player was elsewhere cannot sit under "what you finished" - it would be the chronicle
+        /// taking credit on their behalf, which is exactly the flattery BQ-117 is written against.
+        /// It gets its own heading and names whoever the player believes ended it, because a world
+        /// that solves its own problems is worth reading about and is not the same as a life
+        /// (`LW 10.5`, BQ-094).
+        /// </summary>
         private static void AppendMatters(StringBuilder sb, NarrativeWorldState world, ChronicleLife life)
         {
             if (life.Matters.Count == 0)
@@ -635,13 +645,41 @@ namespace BrilliantQuesting.Diagnostics
                 return;
             }
 
-            sb.Append("\nWhat you finished\n");
+            AppendMatters(sb, world, life, "\nWhat you finished\n", true);
+            AppendMatters(sb, world, life, "\nWhat happened without you\n", false);
+        }
+
+        private static void AppendMatters(
+            StringBuilder sb,
+            NarrativeWorldState world,
+            ChronicleLife life,
+            string heading,
+            bool theirOwn)
+        {
+            bool headed = false;
             for (int i = 0; i < life.Matters.Count; i++)
             {
                 ChronicleEntry entry = life.Matters[i];
+                if ((entry.ResolvedBy == life.Player) != theirOwn)
+                {
+                    continue;
+                }
+
+                if (!headed)
+                {
+                    sb.Append(heading);
+                    headed = true;
+                }
+
                 sb.Append("  ").Append(Chronicle.Words(entry.ArchetypeId)).Append(" - ")
                   .Append(Chronicle.Words(entry.Outcome))
-                  .Append(" (day ").Append(entry.ResolvedAt.TotalDays).Append(")\n");
+                  .Append(" (day ").Append(entry.ResolvedAt.TotalDays).Append(")");
+                if (!theirOwn && TryName(world, entry.ResolvedBy, out string ender))
+                {
+                    sb.Append(" - as you heard it, ").Append(ender).Append(" settled it");
+                }
+
+                sb.Append('\n');
 
                 for (int k = 0; k < entry.WhatWasKnown.Count; k++)
                 {

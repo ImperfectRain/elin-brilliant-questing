@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using BrilliantQuesting.Actions;
 using BrilliantQuesting.Actions.Library;
+using BrilliantQuesting.Autonomy;
 using BrilliantQuesting.Checks;
 using BrilliantQuesting.Continuity;
 using BrilliantQuesting.Developments;
@@ -826,9 +827,31 @@ namespace BrilliantQuesting.Diagnostics
                     sb.Append(" -> ").Append(world.Registry.NameOf(recorded.Target));
                 }
 
-                sb.Append(" (").Append(recorded.Witnesses.Count).Append(" witnessed)\n");
+                sb.Append(outcome.Observation == ContextObservation.OffScreen
+                    ? " (nobody was watching: witnesses unread, not absent)\n"
+                    : " (" + recorded.Witnesses.Count + " witnessed)\n");
             }
 
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Why the world did or did not take a matter up on its own (BQ-094).
+        ///
+        /// Prints the working the pass threw away: who was weighed, what their activity read was
+        /// worth, every option scored including the ones a personal line took off the table, and
+        /// then the attempt itself through <see cref="DescribeAttempt"/> so an autonomous act and
+        /// a player's act are read in the same words.
+        /// </summary>
+        public static string DescribeIntervention(NarrativeWorldState world, InterventionTrace trace)
+        {
+            if (trace == null)
+            {
+                return "intervention: none\n";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append(trace.Describe(world)).Append('\n');
             return sb.ToString();
         }
 

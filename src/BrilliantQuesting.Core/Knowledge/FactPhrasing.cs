@@ -30,6 +30,19 @@ namespace BrilliantQuesting.Knowledge
             string obj = registry.AllNpcs.ContainsKey(fact.Object)
                 ? registry.NameOf(fact.Object)
                 : !string.IsNullOrEmpty(fact.Value) ? fact.Value : fact.Object.Value;
+
+            // The one predicate the plain "subject predicate object" reading gets wrong, because
+            // its object is who the trouble was about rather than what was done to them, and its
+            // value is an outcome identifier rather than a word. Which ending it was is printed
+            // beside the claim by whichever surface is showing it - not spelled into the sentence
+            // here, where it would arrive as "debt_paid" (BQ-094).
+            if (fact.Predicate == FactPredicates.Settled)
+            {
+                return fact.Object.IsNone
+                    ? subject + " settled the trouble"
+                    : subject + " settled the trouble with " + obj;
+            }
+
             return (subject + " " + fact.Predicate.Replace('_', ' ') + " " + obj).Trim();
         }
     }

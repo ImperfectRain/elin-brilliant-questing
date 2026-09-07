@@ -15,6 +15,9 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
+        public override bool SettlesMatters => true;
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -134,6 +137,9 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
+        public override bool SettlesMatters => true;
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -236,6 +242,9 @@ namespace BrilliantQuesting.Actions.Library
         public GiveBredAnimalAction() : base("give_bred_animal", ActionFamily.HomeCommunity, "Give a bred animal")
         {
         }
+
+        /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
+        public override bool SettlesMatters => true;
 
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
@@ -394,6 +403,9 @@ namespace BrilliantQuesting.Actions.Library
             _stockKinds = stockKinds;
             _routeName = routeName;
         }
+
+        /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
+        public override bool SettlesMatters => true;
 
         protected override Availability GetAvailabilityCore(ActionContext context)
         {

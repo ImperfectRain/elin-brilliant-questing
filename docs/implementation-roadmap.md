@@ -2910,7 +2910,69 @@ branch.
 One NPC pursues one situation off-screen and can succeed, fail, or make it worse.
 - **Depends** BQ-093.
 - **Done when** a situation the player ignored is resolved by somebody else, and the player can find out how, with only the causally meaningful steps recorded — not the actor's working day.
-- **Sources** PM §33, §72 stage 8; LW §14 P7; VS §5.3, §5.4.
+- **Current implementation** `AutonomousInterventions.Advance` is a pass, not a clock: it runs where
+  `ThreadEngine.Advance` already runs, on the two hooks the game is known to have moved time forward,
+  and a pass nobody calls leaves the world as it was. It takes up at most one matter per pass.
+  **"Ignored" is read from history rather than stored.** A live matter with no act by the player
+  naming it — through `NarrativeThread.IsNamedBy`, the same attribution rule the Chronicle uses to
+  find what the player did inside a matter — that has stood longer than `Patience`, is available to
+  somebody else. One act by the player takes it back.
+  **Who may act is two existing answers and no new state.** Knowing about it is
+  `KnowledgeGraph.Knows` over the thread's own facts, exactly as it is for the player; a stake is
+  either that the standing-trouble claim is about them or that they hold an `NpcGoal` naming
+  something the matter names. Neither, and they stay out of it.
+  **What they may do is the library's own answer, narrowed twice.** `ActionRegistry.Discover` runs
+  against an off-screen context with the thread in hand; a route survives only if the verb declares
+  `SettlesMatters` — a new declaration beside `ActorScope` and `Embodiment`, true for the thirteen
+  classes that reach `ActionSupport.Resolve` — and only if it is *not* also available when the same
+  two people are asked about nothing in particular. The second filter needs no declaration at all:
+  availability is a pure question, so it is asked twice. Together they are what stops a shortage
+  making `bribe` as applicable to the hungry person as `buy_supplies`. Neither filter reaches the
+  player's surfaces: a player may still try what will not help.
+  **The choice is scored and every term is named.** Opportunity from BQ-135's activity snapshot, the
+  actor's own `ProblemSolvingProfile` read through the verb's `ActionFamily`, and their stake; a
+  personal line takes a candidate off the table under BQ-077's own rule, and the score of a forbidden
+  candidate is still recorded. The family reading is coarse and says so — a verb declares no
+  disposition, and inventing sixty-eight of them would be a second personality vocabulary.
+  **Activity is a weight, not a gate.** Co-location, the timetable and the current activity move the
+  number; an unread facet moves nothing and is printed as unread; the one hard refusal is an actor
+  vanilla is already carrying between zones (`VS §3.3`). The whole reading is transient and reaches
+  no event, fact or memory: what is recorded is the deed and the ending, and nothing about the
+  actor's day.
+  **Off screen is declared rather than implied.** `ContextObservation` separates a witness list that
+  was read from one that was not, is stamped on the outcome the way embodiment is, and is printed by
+  the inspector, so an empty list is never read as an alibi (`D017`). The two parties need not be in
+  one place, because there is no observation to check against and inventing the meeting is the
+  fabricated detail `D021` forbids. A `Delegated` verb is not asked for at all — nobody has watched a
+  vanilla write behave for an actor the game is not running — and the trace names which branch it
+  declined. In the blocked-passage proof the coarse route is taken and the two delegated ones are
+  refused by name.
+  **Finding out is a claim, not a gift.** The resolution event names no facts on purpose, so the pass
+  mints one `FactPredicates.Settled` claim held by whoever ended it, provable by nobody, carrying the
+  outcome name so it answers *how*. It circulates, decays and garbles like any other claim.
+  `Chronicle` shows a matter somebody else ended only once such a claim has reached the player, keyed
+  to the version they hold, and `ChronicleNarrative` puts it under "What happened without you" rather
+  than under what they finished.
+  **Proof.** `dotnet run --project tools/BrilliantQuesting.Lab -- run autonomy` leaves a shortage
+  alone for five days, lets the world get a turn, and prints the whole working: who was weighed, what
+  their activity was worth, which routes could have ended it, the attempt, the two ledger entries,
+  the empty chronicle, and then the same chronicle after two people mention it in the street. 18
+  tests in `AutonomousInterventionTests`. Core 1567 and Lab 140 pass.
+- **Unverified, and not claimed** none of this has run in a live Elin session and the plugin was not
+  compiled, because this machine has no Elin assemblies. The pass is wired into the plugin's existing
+  `AdvanceThreads` hooks and that wiring is unexecuted. Every activity reading behind the opportunity
+  weight still stands at `SOURCE-OBSERVED` through BQ-135, whose own live diagnostic is unrun, so no
+  autonomous act may be read as live-working on the strength of a headless pass; in particular the
+  travel refusal has never been observed answering `Moving` in play (`ELIN-Q-0014`). Whether a seam
+  write a verb performs — money moving, an item changing hands — behaves for an actor the game is not
+  running is unverified, which is why `Delegated` verbs are refused off screen and not why the others
+  are allowed: the money routes go through the same capability gate the player's do and have the same
+  live evidence, which is to say the gate has been exercised headlessly and nowhere else.
+- **Out of scope** off-screen schemes on a schedule (BQ-095), rival adventurers (BQ-096), travel
+  (BQ-097) and consequences arriving at the player (BQ-098). No BQ-owned movement, timetable or
+  routine logic; no second resolver; no autonomous act that is not a route to ending the matter it
+  is taken up inside — an NPC doing something for its own sake is BQ-095's subject, not this one's.
+- **Sources** PM §33, §72 stage 8; LW §14 P7; VS §5.3, §5.4; D021, D073, D074.
 - **Note** activity constrains opportunity where it is readable, and normally as a plausibility weight rather than a hard gate. Coarse co-location, an overlapping timetable or a shared workplace mean opportunity only: none of them may produce eyewitness testimony, proof, a location claim or recognition of a person.
 
 #### BQ-095 — Off-screen schemes

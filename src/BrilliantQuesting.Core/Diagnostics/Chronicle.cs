@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
+using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 
@@ -17,7 +18,8 @@ namespace BrilliantQuesting.Diagnostics
             string outcome,
             GameTime resolvedAt,
             IReadOnlyList<JournalEntry> whatWasKnown,
-            IReadOnlyList<ChronicleAct> whatThePlayerDid)
+            IReadOnlyList<ChronicleAct> whatThePlayerDid,
+            EntityId resolvedBy)
         {
             ThreadId = threadId;
             ArchetypeId = archetypeId;
@@ -25,6 +27,7 @@ namespace BrilliantQuesting.Diagnostics
             ResolvedAt = resolvedAt;
             WhatWasKnown = whatWasKnown;
             WhatThePlayerDid = whatThePlayerDid;
+            ResolvedBy = resolvedBy;
         }
 
         public EntityId ThreadId { get; }
@@ -43,6 +46,15 @@ namespace BrilliantQuesting.Diagnostics
         public IReadOnlyList<JournalEntry> WhatWasKnown { get; }
 
         public IReadOnlyList<ChronicleAct> WhatThePlayerDid { get; }
+
+        /// <summary>
+        /// Who ended it, as the player has reason to think (BQ-094).
+        ///
+        /// The player for a matter they ended themselves, and otherwise whoever the claim they
+        /// believe names - a belief, like everything else in the entry, so a matter the town got
+        /// wrong in the retelling reads back as the town's version rather than as the truth.
+        /// </summary>
+        public EntityId ResolvedBy { get; }
     }
 
     /// <summary>Something the player did inside a matter, as history recorded it.</summary>
@@ -104,7 +116,7 @@ namespace BrilliantQuesting.Diagnostics
             for (int i = 0; i < events.Count; i++)
             {
                 WorldEvent resolution = events[i];
-                if (resolution.Type != WorldEventType.ThreadResolved || resolution.Actor != player)
+                if (resolution.Type != WorldEventType.ThreadResolved)
                 {
                     continue;
                 }
@@ -115,17 +127,100 @@ namespace BrilliantQuesting.Diagnostics
                     continue;
                 }
 
-                string outcome = ThreadResolution.OutcomeOf(resolution);
+                if (resolution.Actor == player)
+                {
+                    string outcome = ThreadResolution.OutcomeOf(resolution);
+                    entries.Add(new ChronicleEntry(
+                        thread.Id,
+                        thread.ArchetypeId,
+                        string.IsNullOrEmpty(outcome) ? thread.Resolution ?? string.Empty : outcome,
+                        resolution.Time,
+                        KnownFacts(thread, beliefs),
+                        ActsBy(world, player, thread, resolution.Time),
+                        player));
+                    continue;
+                }
+
+                if (!HeardHowItEnded(world, player, thread, out Fact claim, out KnowledgeRecord belief))
+                {
+                    continue;
+                }
+
+                // The claim's own words, not the ledger's. The player was told how a matter they
+                // were not part of ended; what they hold is the telling, and a telling that named
+                // the wrong person or the wrong ending is what should read back here.
                 entries.Add(new ChronicleEntry(
                     thread.Id,
                     thread.ArchetypeId,
-                    string.IsNullOrEmpty(outcome) ? thread.Resolution ?? string.Empty : outcome,
-                    resolution.Time,
+                    string.IsNullOrEmpty(claim.Value) ? string.Empty : claim.Value,
+                    belief.LearnedAt,
                     KnownFacts(thread, beliefs),
-                    ActsBy(world, player, thread, resolution.Time)));
+                    ActsBy(world, player, thread, resolution.Time),
+                    claim.Subject));
             }
 
             return entries;
+        }
+
+        /// <summary>
+        /// Whether the player has been told how a matter somebody else ended actually ended
+        /// (BQ-094).
+        ///
+        /// The gate that keeps this surface honest once the world can solve its own problems. A
+        /// resolution event is not player knowledge - it names no facts on purpose - so a matter
+        /// finished elsewhere stays out of the chronicle until a <see cref="FactPredicates.Settled"/>
+        /// claim about it has actually reached the player, by rumour, by asking, or by being
+        /// there. Anything looser would hand them every ending in the world for free, which is the
+        /// omniscience the background simulation is not allowed to grant.
+        ///
+        /// A garbled retelling counts, and counts as itself: a belief in a distortion of the true
+        /// claim is still the player having heard, and what they hold is the version they were
+        /// given.
+        /// </summary>
+        private static bool HeardHowItEnded(
+            NarrativeWorldState world,
+            EntityId player,
+            NarrativeThread thread,
+            out Fact claim,
+            out KnowledgeRecord belief)
+        {
+            claim = null;
+            belief = null;
+
+            foreach (KnowledgeRecord held in world.Knowledge.BeliefsOf(player))
+            {
+                Fact fact = world.Knowledge.GetFact(held.FactId);
+                if (fact == null || fact.Predicate != FactPredicates.Settled)
+                {
+                    continue;
+                }
+
+                if (!NamesThisMatter(thread, fact))
+                {
+                    continue;
+                }
+
+                if (belief == null || held.LearnedAt.TotalMinutes < belief.LearnedAt.TotalMinutes)
+                {
+                    claim = fact;
+                    belief = held;
+                }
+            }
+
+            return claim != null;
+        }
+
+        private static bool NamesThisMatter(NarrativeThread thread, Fact claim)
+        {
+            for (int i = 0; i < thread.FactIds.Count; i++)
+            {
+                if (claim.IsVersionOf(thread.FactIds[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static string Describe(NarrativeWorldState world, EntityId player)
@@ -144,7 +239,13 @@ namespace BrilliantQuesting.Diagnostics
             {
                 ChronicleEntry entry = entries[i];
                 sb.Append("  ").Append(entry.ArchetypeId).Append(" - ").Append(Words(entry.Outcome));
-                sb.Append(" (day ").Append(entry.ResolvedAt.TotalDays).Append(")\n");
+                sb.Append(" (day ").Append(entry.ResolvedAt.TotalDays).Append(")");
+                if (entry.ResolvedBy != player)
+                {
+                    sb.Append(" - ended by ").Append(world.Registry.NameOf(entry.ResolvedBy));
+                }
+
+                sb.Append('\n');
 
                 for (int k = 0; k < entry.WhatWasKnown.Count; k++)
                 {
@@ -209,7 +310,7 @@ namespace BrilliantQuesting.Diagnostics
                     continue;
                 }
 
-                if (worldEvent.ThreadId != thread.Id && !NamesAFactOf(worldEvent, thread))
+                if (!thread.IsNamedBy(worldEvent))
                 {
                     continue;
                 }
@@ -218,19 +319,6 @@ namespace BrilliantQuesting.Diagnostics
             }
 
             return acts;
-        }
-
-        private static bool NamesAFactOf(WorldEvent worldEvent, NarrativeThread thread)
-        {
-            for (int i = 0; i < worldEvent.Related.Count; i++)
-            {
-                if (thread.FactIds.Contains(worldEvent.Related[i]))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         /// <summary>

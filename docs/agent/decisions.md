@@ -2194,3 +2194,58 @@ Reason: a parallel NPC action system diverges from the player's within one relea
 checks, different consequences, a second event history — and the divergence is invisible until
 somebody notices NPCs are playing a different game. Making the shared path structural costs one
 template method; discovering the split later costs the content built on both halves.
+
+## D074 — The world may end a matter nobody took up, and its ending is a claim rather than a gift
+
+BQ-094. Situations do not belong to the player (`PM §33`, `LW §6.8`). An actor who knows about a
+live matter, has a stake in it, and holds a route that could end it may attempt that route without
+being asked, and the attempt goes through the shared verb library on the shared check path — the
+same three calls the player's surface makes, with no branch that knows it came from a pass.
+
+**A pass, not a clock.** Autonomy runs where thread escalation already runs, on the hooks the game
+is known to have moved time forward. Nothing polls, and a pass that is never called leaves the world
+exactly as it was.
+
+**"Ignored" is read from history, never stored.** A matter with no act by the player naming it, that
+has stood longer than the pass's patience, is available to somebody else. The first thing the player
+does inside it takes it back off the table — not because they own problems, but because being solved
+out from under an attempt is a bad hour rather than a living world.
+
+**Nobody acts on a matter that is not theirs, or that they have not heard of.** Knowing is the
+knowledge graph's answer and nothing else, exactly as it is for the player. A stake is either that
+the trouble is about them or that they hold a goal naming something the matter names; there is no
+third source, so a town does not fill with strangers fixing things for the love of it.
+
+**Only routes that could end it are taken.** Availability cannot tell an answer from a coincidence —
+a shortage makes bribing the hungry person exactly as applicable as buying them food — so a verb
+declares `SettlesMatters`, beside `ActorScope` and `Embodiment`, and a route must also be open
+*because of* this matter: a differential the pure availability question answers by being asked twice.
+Neither filter says anything about whether the attempt will work, and the player's own surfaces read
+neither: a player may always try what will not help.
+
+**Vanilla activity is a weight and almost never a gate** (`VS §5.4`). Co-location, a timetable and a
+workplace change how plausible an opening looks and may never become eyewitness testimony, proof, a
+location claim or recognition of a person. An unread facet moves nothing and is named as unread. The
+one hard refusal is an actor vanilla is already carrying between zones (`VS §3.3`). The reading is
+transient and never reaches history — the actor's day is weighed and thrown away, and what is
+recorded is the deed and the ending.
+
+**An off-screen act says that nobody was watching.** `ContextObservation` distinguishes a witness
+list that was read from one that was not, and is stamped on the outcome the way embodiment is, so an
+empty list is never read as an alibi (`D017`). The two parties are not required to be in one place,
+because there is no observation to check against and inventing the meeting is the fabricated physical
+detail `D021` forbids. A verb whose embodiment is `Delegated` is not asked for at all: nobody has
+watched a vanilla write behave for an actor the game is not running, so the pass declines and names
+the gap rather than resolving a physical act quietly.
+
+**The ending is a claim somebody can make, not a fact the player is given.** The ledger's resolution
+event names no facts on purpose, so a matter ended elsewhere would otherwise be unreachable except by
+telling the player for free. The pass mints one `settled` claim, held by whoever ended it, provable
+by nobody, carrying the outcome name so it answers *how*. It travels, decays and garbles like any
+other claim, and the Chronicle shows a matter somebody else ended only once such a claim has actually
+reached the player — under its own heading, because a trophy case that takes credit for the town's
+work is worse than one that is empty.
+
+Reason: a world that pauses until the player accepts is a quest log with scenery. The risk in fixing
+that is not the acting, it is the bookkeeping: an autonomous actor is the easiest place to
+accidentally grant omniscience, fabricate a location, or record somebody's working day as history.

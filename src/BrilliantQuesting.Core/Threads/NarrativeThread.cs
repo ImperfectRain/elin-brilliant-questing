@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 
 namespace BrilliantQuesting.Threads
@@ -112,6 +113,42 @@ namespace BrilliantQuesting.Threads
         public string LifecycleReason { get; set; }
 
         public bool IsLive => State == ThreadState.Latent || State == ThreadState.Active;
+
+        /// <summary>
+        /// Whether history already says this act belongs to this matter.
+        ///
+        /// Two links, both recorded at the time by the verb itself rather than inferred back in
+        /// from who was standing where: the event names the thread, or it names one of the facts
+        /// the thread rests on. A verb that records neither leaves its act out, which is a smaller
+        /// error than attributing somebody's unrelated day to a situation they were near.
+        ///
+        /// One method because every reader of this history has to answer it the same way. The
+        /// Chronicle asks it to find what the player did inside a matter, and the autonomy pass
+        /// asks it to find out whether the player has the matter in hand at all; two copies of the
+        /// rule is how those two readings start disagreeing about the same ledger.
+        /// </summary>
+        public bool IsNamedBy(WorldEvent worldEvent)
+        {
+            if (worldEvent == null)
+            {
+                return false;
+            }
+
+            if (worldEvent.ThreadId == Id)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < worldEvent.Related.Count; i++)
+            {
+                if (FactIds.Contains(worldEvent.Related[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         public EscalationStep NextStep(GameTime now)
         {

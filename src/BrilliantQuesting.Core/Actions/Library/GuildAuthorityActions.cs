@@ -412,6 +412,9 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
+        public override bool SettlesMatters => true;
+
         /// <summary>
         /// A guild card is the player's. `IsGuildMember`, `GetGuildRank` and `GetGuildContribution`
         /// take no character: Elin keeps one membership, one rank and one contribution ledger per

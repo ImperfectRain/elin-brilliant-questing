@@ -457,6 +457,9 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
+        public override bool SettlesMatters => true;
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!Devotion.CanRead(context))

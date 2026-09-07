@@ -4,6 +4,7 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using BrilliantQuesting.Actions;
 using BrilliantQuesting.Actions.Library;
+using BrilliantQuesting.Autonomy;
 using BrilliantQuesting.Checks;
 using BrilliantQuesting.Consequences;
 using BrilliantQuesting.Foundation;
@@ -46,6 +47,7 @@ namespace BrilliantQuesting.Plugin
         private ActionRegistry _actions;
         private DramaChoiceProjector _drama;
         private ThreadEngine _threads;
+        private AutonomousInterventions _autonomy;
         private ElinActionObserver _actionObserver;
         private RumorCirculation _gossip;
         private AmbientTalk _ambient;
@@ -380,6 +382,7 @@ namespace BrilliantQuesting.Plugin
             DramaChoiceProjector.Current = _drama;
 
             _threads = new ThreadEngine();
+            _autonomy = new AutonomousInterventions();
             RumorSystem rumors = new RumorSystem(_world.Knowledge, _world.Ledger, _world.Ids);
 
             // One policy, shared. A story that garbles in the market and a thief who names
@@ -532,6 +535,7 @@ namespace BrilliantQuesting.Plugin
             {
                 int lifecycleChanges = ThreadLifecycle.Review(_world, _vanilla, _vanilla.Now);
                 int escalations = _threads.Advance(_world, _vanilla.Now);
+                AdvanceAutonomy();
                 if (lifecycleChanges == 0 && escalations == 0)
                 {
                     return;
@@ -550,6 +554,51 @@ namespace BrilliantQuesting.Plugin
             catch (Exception ex)
             {
                 _log.LogWarning("Thread escalation skipped after an exception: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Lets the world act on a matter nobody has taken up (BQ-094).
+        ///
+        /// On the same hooks as <see cref="AdvanceThreads"/> and for the same reason: those are
+        /// the two moments the game is known to have moved time forward, and autonomy is a pass
+        /// over what escalation has just finished changing rather than a clock of its own. It runs
+        /// after escalation so that a matter which has just deteriorated is taken up in the state
+        /// it deteriorated into.
+        ///
+        /// Caught separately, because an autonomous act failing must not stop the escalation
+        /// reporting that has already happened from being logged.
+        /// </summary>
+        private void AdvanceAutonomy()
+        {
+            if (_autonomy == null || _actions == null || _checks == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_autonomy.Advance(_world, _vanilla, _checks, _actions, _vanilla.Now) == 0)
+                {
+                    return;
+                }
+
+                foreach (InterventionTrace trace in _autonomy.LastPass)
+                {
+                    if (!trace.Acted)
+                    {
+                        continue;
+                    }
+
+                    _log.LogInfo("Somebody else took up " + trace.ArchetypeId + ": "
+                                 + trace.Attempt.Intent.ActionId
+                                 + (trace.Resolved ? ", and it ended as " + trace.Resolution : ", and it did not settle it")
+                                 + " at " + _vanilla.Now + ".");
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning("Autonomous intervention skipped after an exception: " + ex.Message);
             }
         }
 
@@ -1437,6 +1486,7 @@ namespace BrilliantQuesting.Plugin
         private void End()
         {
             _threads = null;
+            _autonomy = null;
             _actionObserver = null;
             _lastAdvancedDay = long.MinValue;
             _bindings?.Clear();

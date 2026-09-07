@@ -263,5 +263,73 @@ namespace BrilliantQuesting.Actions
             refusal = string.Empty;
             return true;
         }
+
+        /// <summary>
+        /// A context for an act nobody is watching: <paramref name="actor"/> acting on
+        /// <paramref name="target"/> somewhere the game is not running moment to moment (BQ-094).
+        ///
+        /// The same construction as <see cref="TryBuild"/> minus the two things that only a
+        /// loaded zone can answer, and it is important that they are *absent* rather than
+        /// answered pessimistically:
+        ///
+        /// - <b>no room is read</b>, so the context is marked
+        ///   <see cref="ContextObservation.OffScreen"/> and carries no witnesses. Off-screen
+        ///   co-location, an overlapping timetable and a shared workplace mean opportunity and
+        ///   nothing more, and none of them may become eyewitness testimony, proof, an exact
+        ///   location claim or recognition of a person (`VS 5.4`).
+        /// - <b>the two parties are not required to be in one place</b>. On screen that is a real
+        ///   check against acting on somebody who left town; off screen there is no observation to
+        ///   check against, and inventing the meeting - a tavern, a road, a tile - is precisely
+        ///   the fabricated physical detail `VS 3.2` and `D021` forbid. What is recorded is that
+        ///   somebody did something and what it meant, never where anybody stood.
+        ///
+        /// The one thing it still refuses on is the one thing the seam can answer: an actor
+        /// vanilla is already carrying between zones is not available to a BQ intention at all
+        /// (`VS 3.3`). Unknown movement is not a refusal, for the same reason it is not on screen.
+        /// </summary>
+        public static bool TryBuildOffScreen(
+            NarrativeWorldState world,
+            IVanillaState vanilla,
+            ICheckResolver checks,
+            DeterministicRng rng,
+            EntityId actor,
+            EntityId target,
+            out ActionContext context,
+            out string refusal)
+        {
+            context = null;
+
+            if (world == null || vanilla == null || checks == null || rng == null)
+            {
+                refusal = "no world to act in";
+                return false;
+            }
+
+            if (actor.IsNone || !vanilla.IsAlive(actor))
+            {
+                refusal = "the actor is not somebody the game can answer for";
+                return false;
+            }
+
+            if (vanilla.GetActorActivity(actor).VanillaMovementState() == VanillaMovement.Moving)
+            {
+                refusal = "vanilla is already carrying them between zones";
+                return false;
+            }
+
+            if (!target.IsNone && (!vanilla.IsAlive(target) || world.Absences.IsPhysicallyAbsent(target)))
+            {
+                refusal = "the other party is not somebody who can be dealt with";
+                return false;
+            }
+
+            context = new ActionContext(world, vanilla, checks, rng, actor, target)
+            {
+                Observation = ContextObservation.OffScreen
+            };
+
+            refusal = string.Empty;
+            return true;
+        }
     }
 }

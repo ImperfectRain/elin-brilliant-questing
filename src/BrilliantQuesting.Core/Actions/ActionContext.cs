@@ -8,6 +8,32 @@ using BrilliantQuesting.World;
 namespace BrilliantQuesting.Actions
 {
     /// <summary>
+    /// How much of the physical world was actually read when this context was built (BQ-094).
+    ///
+    /// It exists because <see cref="ActionContext.Witnesses"/> is empty for two opposite reasons
+    /// and a reader cannot tell them apart from the list. In a zone the game is running, an empty
+    /// list is an observation: the caller read the room and nobody was in it. For an act nobody
+    /// was watching, it is a gap: no presence was read at all, and concluding "nobody saw" from
+    /// it would manufacture an alibi out of the fact that the simulation was not looking
+    /// (`D017`, `VS 5.4`).
+    /// </summary>
+    public enum ContextObservation
+    {
+        /// <summary>
+        /// The zone's contents were read. <see cref="ActionContext.Witnesses"/> is that reading,
+        /// and an empty one means the place was empty.
+        /// </summary>
+        Observed,
+
+        /// <summary>
+        /// Nobody's presence was read. <see cref="ActionContext.Witnesses"/> is empty because it
+        /// is unread, never because the place was empty, and no eyewitness testimony, proof,
+        /// location claim or recognition of a person may come out of an act resolved here.
+        /// </summary>
+        OffScreen
+    }
+
+    /// <summary>
     /// Everything an action needs to decide whether it applies and what happens when it does.
     /// Actions are stateless; all state arrives here.
     /// </summary>
@@ -54,8 +80,20 @@ namespace BrilliantQuesting.Actions
         /// <summary>
         /// Who is close enough to notice. The caller fills this from the real zone contents; the
         /// consequence layer propagates knowledge from here rather than telling the whole town.
+        ///
+        /// Read together with <see cref="Observation"/>: an empty list means "nobody was there"
+        /// only when the room was actually looked at.
         /// </summary>
         public List<EntityId> Witnesses { get; }
+
+        /// <summary>
+        /// Whether <see cref="Witnesses"/> is an observation or a gap (BQ-094).
+        ///
+        /// Observed by default, because every surface that built a context before this existed
+        /// read a live zone to fill the list, and a default of <see cref="ContextObservation.OffScreen"/>
+        /// would quietly relabel all of those as unread.
+        /// </summary>
+        public ContextObservation Observation { get; set; } = ContextObservation.Observed;
 
         public EntityId Zone => Vanilla.GetZoneOf(Actor);
 

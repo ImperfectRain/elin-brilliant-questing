@@ -235,6 +235,9 @@ namespace BrilliantQuesting.Actions.Library
             Stock = stock;
         }
 
+        /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
+        public override bool SettlesMatters => true;
+
         protected CheckProfile Profile { get; }
 
         /// <summary>
@@ -608,6 +611,9 @@ namespace BrilliantQuesting.Actions.Library
         public RepairAction() : base("repair", ActionFamily.Crafting, "Repair it")
         {
         }
+
+        /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
+        public override bool SettlesMatters => true;
 
         protected override Availability GetAvailabilityCore(ActionContext context)
         {

@@ -161,6 +161,9 @@ namespace BrilliantQuesting.Actions.Library
             Undertaking = undertaking;
         }
 
+        /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
+        public override bool SettlesMatters => true;
+
         /// <summary>
         /// The Home is the player's, and Elin keeps exactly one (`D018`). "Nessa takes the
         /// stranger in" is a sentence about a settlement that does not exist, and admitting
@@ -675,6 +678,9 @@ namespace BrilliantQuesting.Actions.Library
             : base("provide_supplies", ActionFamily.HomeCommunity, "Send supplies from home")
         {
         }
+
+        /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
+        public override bool SettlesMatters => true;
 
         /// <summary>
         /// The Home is the player's, and Elin keeps exactly one (`D018`). "Nessa takes the

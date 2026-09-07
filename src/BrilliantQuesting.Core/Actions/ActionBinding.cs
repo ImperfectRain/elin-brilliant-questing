@@ -1,5 +1,7 @@
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Knowledge;
+using BrilliantQuesting.Threads;
+using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Actions
 {
@@ -47,25 +49,48 @@ namespace BrilliantQuesting.Actions
                 return binding;
             }
 
-            if (context.Thread != null)
+            Fact trouble = StandingTrouble(context.World, context.Thread);
+            if (trouble != null)
             {
-                for (int i = 0; i < context.Thread.FactIds.Count; i++)
+                binding.PropositionFact = trouble.Id;
+                if (!trouble.Object.IsNone)
                 {
-                    Fact fact = context.World.Knowledge.GetFact(context.Thread.FactIds[i]);
-                    if (fact != null && fact.Truth == TruthState.True && FactPredicates.IsStandingTrouble(fact.Predicate))
-                    {
-                        binding.PropositionFact = fact.Id;
-                        if (!fact.Object.IsNone)
-                        {
-                            binding.Item = fact.Object;
-                        }
-
-                        return binding;
-                    }
+                    binding.Item = trouble.Object;
                 }
+
+                return binding;
             }
 
             return binding.HasPurpose ? binding : Empty;
+        }
+
+        /// <summary>
+        /// The still-standing thing that is wrong in this matter, or null when the thread rests on
+        /// history rather than on a condition.
+        ///
+        /// The first true <see cref="FactPredicates.IsStandingTrouble"/> claim the thread names,
+        /// in the order the thread names them, so the same matter answers the same way twice.
+        /// Public because it is the question "what is this situation about, mechanically" and more
+        /// than one caller now asks it: a verb inferring what it is being pointed at, and the
+        /// autonomy pass working out who has a stake in the matter and where it is.
+        /// </summary>
+        public static Fact StandingTrouble(NarrativeWorldState world, NarrativeThread thread)
+        {
+            if (world == null || thread == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < thread.FactIds.Count; i++)
+            {
+                Fact fact = world.Knowledge.GetFact(thread.FactIds[i]);
+                if (fact != null && fact.Truth == TruthState.True && FactPredicates.IsStandingTrouble(fact.Predicate))
+                {
+                    return fact;
+                }
+            }
+
+            return null;
         }
 
         public static bool HasRequiredSemanticSlots(string actionId, ActionContext context)

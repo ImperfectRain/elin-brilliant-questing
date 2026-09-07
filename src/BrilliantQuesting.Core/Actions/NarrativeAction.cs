@@ -48,6 +48,28 @@ namespace BrilliantQuesting.Actions
         public virtual ActorEmbodiment Embodiment => ActorEmbodiment.Narrative;
 
         /// <summary>
+        /// Whether a successful use of this verb can end the matter it was used inside (BQ-094).
+        ///
+        /// A statement about what the verb is *for*, and the third thing a verb declares about
+        /// itself beside <see cref="ActorScope"/> and <see cref="Embodiment"/>. It is declared
+        /// rather than derived because availability cannot tell the difference: a shortage makes
+        /// <c>bribe</c> and <c>buy_supplies</c> equally applicable to the hungry person, and only
+        /// one of them is an answer. A caller choosing a verb on somebody's behalf has to know
+        /// which, and the verb is the only thing that does - a table of helpful verbs kept beside
+        /// the library would be the hand-kept list that drifts.
+        ///
+        /// False by default, and false is not a demotion: most of the library exists to find
+        /// things out, get somebody's attention, take something, or make somebody feel a way
+        /// about you, and none of that ends a situation. What is true here is exactly the set that
+        /// reaches <c>ActionSupport.Resolve</c>, which is the one place a matter is ever closed.
+        ///
+        /// It is not a promise of success and never a reason to hide an option from the player.
+        /// The player's surfaces do not read it: a player is entitled to try anything the library
+        /// offers, including things that will not help.
+        /// </summary>
+        public virtual bool SettlesMatters => false;
+
+        /// <summary>
         /// Whether this makes sense here at all. Must be side-effect free: the discovery pass
         /// calls it for every registered action, including ones it will never show.
         ///
@@ -76,6 +98,7 @@ namespace BrilliantQuesting.Actions
                 ActionOutcome refused = new ActionOutcome(Id, null, "That is not something they can do.");
                 refused.Notes.Add("refused before any roll: " + admits.Reason);
                 refused.Embodiment = Embodiment;
+                refused.Observation = context.Observation;
                 return refused;
             }
 
@@ -83,6 +106,7 @@ namespace BrilliantQuesting.Actions
             if (outcome != null)
             {
                 outcome.Embodiment = Embodiment;
+                outcome.Observation = context.Observation;
             }
 
             return outcome;

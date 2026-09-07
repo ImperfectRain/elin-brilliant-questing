@@ -75,6 +75,13 @@ Threads         NarrativeThread, EscalationStep, ThreadEngine
 Situations      PettyTheftSituation, PettyTheftEscalation, TheftLaboratory
                 one generated archetype, its escalation, and the harness that runs it headless
 
+Autonomy        AutonomousInterventions, InterventionOpportunity, InterventionTrace
+                the world taking up a matter nobody else has: who knows about it, whose it is,
+                which routes could end it, and how plausible vanilla's own activity read makes
+                the attempt. It owns no resolver - the attempt goes through the shared verb
+                library on the shared check path - and it writes only the deed, the ending, and
+                one claim that the ending can be spoken about (`D074`)
+
 Continuity      CallbackHook(s), CallbackRecurrence, ItemProvenance, LocationHistory
                 history read back per person, per object and per place; all three are derivations
                 over the ledger with no store of their own, so old business cannot outlive or
