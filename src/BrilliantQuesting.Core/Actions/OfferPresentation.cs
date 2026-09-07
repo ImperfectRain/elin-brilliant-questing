@@ -150,6 +150,7 @@ namespace BrilliantQuesting.Actions
                 case "smuggle":
                 case "sabotage":
                 case "destroy_evidence":
+                case "go_to_ground":
                 // Putting proof beyond reach is the mirror of destroying it, and belongs on the
                 // same tier: it protects a case without advancing the one in front of the player.
                 case "store_evidence":

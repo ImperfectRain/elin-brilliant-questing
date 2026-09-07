@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using BrilliantQuesting.Actions;
+using BrilliantQuesting.Actions.Library;
+using BrilliantQuesting.Autonomy;
+using BrilliantQuesting.Checks;
 using BrilliantQuesting.Consequences;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
@@ -27,6 +31,7 @@ namespace BrilliantQuesting.Lab
         public SettlementSituationGenerator SettlementGenerator { get; set; }
         public OrganizationActivity Organizations { get; set; }
         public AbsenceLifecycle Absences { get; set; }
+        public OffScreenSchemes Schemes { get; set; }
         public int RumorTells { get; set; }
         public int RumorRoutes { get; set; }
         public int ThreadEscalations { get; set; }
@@ -35,6 +40,7 @@ namespace BrilliantQuesting.Lab
         /// <summary>BQ-115. Faces the settlement elected to keep bringing back.</summary>
         public int EarlyContacts { get; set; }
         public int OrganizationActions { get; set; }
+        public int SchemeActions { get; set; }
         public int AbsenceReturns { get; set; }
         public int AbsenceEnforcements { get; set; }
         public int MemoriesCompacted { get; set; }
@@ -90,6 +96,7 @@ namespace BrilliantQuesting.Lab
                 new ProductionSystemDescriptor("thread_lifecycle", HarnessPhase.Daily, ReviewThreadLifecycle, "production Core"),
                 new ProductionSystemDescriptor("thread_escalation", HarnessPhase.Daily, AdvanceThreads, "production Core"),
                 new ProductionSystemDescriptor("organization_activity", HarnessPhase.Daily, AdvanceOrganizations, "production Core"),
+                new ProductionSystemDescriptor("off_screen_schemes", HarnessPhase.Daily, AdvanceSchemes, "production Core"),
                 new ProductionSystemDescriptor("absence_lifecycle", HarnessPhase.Daily, ReconcileAbsences, "production Core"),
                 new ProductionSystemDescriptor("rumor_circulation", HarnessPhase.Daily, CirculateRumors, "production Core"),
                 new ProductionSystemDescriptor("memory_compaction", HarnessPhase.Daily, CompactMemories, "production Core"),
@@ -191,6 +198,19 @@ namespace BrilliantQuesting.Lab
         {
             runtime.Organizations ??= new OrganizationActivity(state.World);
             runtime.OrganizationActions += runtime.Organizations.Advance(state.Vanilla.Now);
+        }
+
+        private static void AdvanceSchemes(HarnessState state, HarnessRuntime runtime)
+        {
+            runtime.Schemes ??= new OffScreenSchemes();
+            ActionRegistry actions = StandardActions.CreateRegistry();
+            ICheckResolver checks = new VanillaStyleCheckResolver(state.Vanilla);
+            runtime.SchemeActions += runtime.Schemes.Advance(
+                state.World,
+                state.Vanilla,
+                checks,
+                actions,
+                state.Vanilla.Now);
         }
 
         private static void ReconcileAbsences(HarnessState state, HarnessRuntime runtime)

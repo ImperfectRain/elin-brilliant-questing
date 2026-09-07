@@ -2979,6 +2979,37 @@ One NPC pursues one situation off-screen and can succeed, fail, or make it worse
 NPCs steal, court, invest, flee debt, hire help, hide evidence and seek revenge on a coarse schedule.
 - **Depends** BQ-094, BQ-022.
 - **Done when** returning to a town after a month shows changes attributable to named actors and recorded events, **and** an actor Elin is already moving through its own global travel is left to it rather than scheduled twice.
+- **Current implementation** `OffScreenSchemes.Advance` is a coarse catch-up pass keyed to each
+  canonical NPC's saved `LastSimulatedAt`. It scans due actors, reads their existing `NpcGoal`
+  entries, maps those intentions onto ordinary `NarrativeAction` ids, weighs BQ-135 opportunity
+  and the actor's `ProblemSolvingProfile`, then resolves through `ActionAttempt.Run`. The schedule
+  decides when an actor gets another opening, not what happens.
+  **Coverage is composition, not a scheme minigame set.** Stealing uses `pickpocket`; courtship and
+  help-seeking use `rapport`, `persuade` and `bribe`; debt settlement uses `pay_debt`; investment
+  uses `invest_in_supplier`/`buy_supplies`; hiding evidence uses `destroy_evidence`/`lie`; revenge
+  uses `intimidate`/`sabotage`. The only new shared verb is `go_to_ground`, because fleeing a debt
+  needs a semantic Grade A absence without asserting BQ-owned travel before BQ-097.
+  **Vanilla owns embodiment.** Before an actor is considered, the scheduler reads the actor's
+  BQ-135 activity. `VanillaMovement.Moving` is a hard refusal: Elin is already carrying the actor
+  through global travel, so BQ records no competing absence or relocation. Delegated physical verbs
+  remain barred off screen; ordinary semantic consequences still pass through the same capability
+  gates and event ledger as player actions.
+  **Opportunity is not proof.** Off-screen contexts carry `ContextObservation.OffScreen`, no witness
+  list, and no exact location claim. Co-location and timetable terms appear only in the trace as
+  plausibility. A destructive off-screen critical failure can worsen the world through a `Harmed`
+  event, but it does not mint `CrimeWitnessed` or eyewitness knowledge when nobody was observed.
+  **Proof.** `dotnet run --project tools/BrilliantQuesting.Lab -- run off-screen-schemes` creates
+  Cordwall, moves the player to the far road for thirty days, and records named actions by Lysa
+  (`Theft`), Merren (`Helped`/`Conversed`), Pavel (`WentAbsent`), Nessa (`EvidenceDestroyed`),
+  Caro (`Harmed` on a failed revenge attempt), and Ivet (`Helped`/`ThreadResolved`). Ordel is marked
+  as travelling under vanilla global activity and is refused with no BQ absence. Saving, reloading
+  and processing the same elapsed interval again produces zero attempts and zero new events. Five
+  `OffScreenSchemeTests` cover the month-away chain, inspector explanation, existing-action
+  selection and save/reload idempotency.
+- **Unverified, and not claimed** live Elin `GlobalGoal`/activity reconciliation remains the BQ-135
+  unverified seam. The scheduler consumes that seam and fails closed on `Moving`, but no live Elin
+  session has yet proved that a real travelling actor reports the relevant activity facets at the
+  moment this pass runs.
 - **Sources** PM §26; LW §6.8; VS §3.2, §3.3, §5.5.
 - **Note** an off-screen scheme says what was attempted and what it meant, never where anybody stood (`D021`). Vanilla moving an actor on its own is a fact to interpret — an arrival that intersects an old debt is content BQ did not have to invent.
 

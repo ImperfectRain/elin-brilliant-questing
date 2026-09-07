@@ -48,6 +48,7 @@ namespace BrilliantQuesting.Plugin
         private DramaChoiceProjector _drama;
         private ThreadEngine _threads;
         private AutonomousInterventions _autonomy;
+        private OffScreenSchemes _schemes;
         private ElinActionObserver _actionObserver;
         private RumorCirculation _gossip;
         private AmbientTalk _ambient;
@@ -383,6 +384,7 @@ namespace BrilliantQuesting.Plugin
 
             _threads = new ThreadEngine();
             _autonomy = new AutonomousInterventions();
+            _schemes = new OffScreenSchemes();
             RumorSystem rumors = new RumorSystem(_world.Knowledge, _world.Ledger, _world.Ids);
 
             // One policy, shared. A story that garbles in the market and a thief who names
@@ -536,6 +538,7 @@ namespace BrilliantQuesting.Plugin
                 int lifecycleChanges = ThreadLifecycle.Review(_world, _vanilla, _vanilla.Now);
                 int escalations = _threads.Advance(_world, _vanilla.Now);
                 AdvanceAutonomy();
+                AdvanceSchemes();
                 if (lifecycleChanges == 0 && escalations == 0)
                 {
                     return;
@@ -599,6 +602,47 @@ namespace BrilliantQuesting.Plugin
             catch (Exception ex)
             {
                 _log.LogWarning("Autonomous intervention skipped after an exception: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Lets actor-local goals keep moving on a coarse off-screen schedule (BQ-095).
+        ///
+        /// This is not a second clock or a second resolver. The scheduler only decides that an
+        /// actor is due for another opening; vanilla activity can refuse physical ownership, and
+        /// the selected intention is resolved by the ordinary action library.
+        /// </summary>
+        private void AdvanceSchemes()
+        {
+            if (_schemes == null || _actions == null || _checks == null)
+            {
+                return;
+            }
+
+            try
+            {
+                if (_schemes.Advance(_world, _vanilla, _checks, _actions, _vanilla.Now) == 0)
+                {
+                    return;
+                }
+
+                foreach (OffScreenSchemeTrace trace in _schemes.LastPass)
+                {
+                    if (!trace.Acted)
+                    {
+                        continue;
+                    }
+
+                    _log.LogInfo("Off-screen scheme: " + _world.Registry.NameOf(trace.Actor)
+                                 + " chose " + trace.Attempt.Intent.ActionId
+                                 + " for " + trace.Chosen.GoalKind
+                                 + (trace.Attempt.Outcome.Succeeded ? " and changed history" : " and made it worse")
+                                 + " at " + _vanilla.Now + ".");
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning("Off-screen schemes skipped after an exception: " + ex.Message);
             }
         }
 
@@ -1487,6 +1531,7 @@ namespace BrilliantQuesting.Plugin
         {
             _threads = null;
             _autonomy = null;
+            _schemes = null;
             _actionObserver = null;
             _lastAdvancedDay = long.MinValue;
             _bindings?.Clear();

@@ -432,6 +432,7 @@ namespace BrilliantQuesting.Actions.Library
                 case "perform": return Performance;
                 case "persuade": return Persuasion;
                 case "lie": return Deception;
+                case "go_to_ground": return Deception;
                 case "intimidate": return Intimidation;
                 case "bribe": return Bribery;
                 case "search": return Investigation;

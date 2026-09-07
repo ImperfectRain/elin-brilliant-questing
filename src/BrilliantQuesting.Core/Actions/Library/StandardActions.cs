@@ -21,6 +21,7 @@ namespace BrilliantQuesting.Actions.Library
                 .Register(new IntimidateAction())
                 .Register(new BribeAction())
                 .Register(new PayDebtAction())
+                .Register(new GoToGroundAction())
                 .Register(new DonateToMuseumAction())
                 .Register(new BuyDistressedBusinessAction())
                 .Register(new ReopenFailedBusinessAction())

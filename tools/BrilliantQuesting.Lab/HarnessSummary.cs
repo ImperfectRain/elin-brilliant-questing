@@ -34,6 +34,7 @@ namespace BrilliantQuesting.Lab
         /// <summary>BQ-115. Faces the primary settlement elected to keep bringing back.</summary>
         public int EarlyContacts { get; set; }
         public int OrganizationActions { get; set; }
+        public int SchemeActions { get; set; }
         public int AbsenceReturns { get; set; }
         public int AbsenceEnforcements { get; set; }
         public int MemoriesCompacted { get; set; }
@@ -68,6 +69,7 @@ namespace BrilliantQuesting.Lab
                 GeneratedSituations = runtime.GeneratedSituations,
                 EarlyContacts = runtime.EarlyContacts,
                 OrganizationActions = runtime.OrganizationActions,
+                SchemeActions = runtime.SchemeActions,
                 AbsenceReturns = runtime.AbsenceReturns,
                 AbsenceEnforcements = runtime.AbsenceEnforcements,
                 MemoriesCompacted = runtime.MemoriesCompacted,
@@ -141,6 +143,7 @@ namespace BrilliantQuesting.Lab
                 .Set("generatedSituations", GeneratedSituations)
                 .Set("earlyContacts", EarlyContacts)
                 .Set("organizationActions", OrganizationActions)
+                .Set("schemeActions", SchemeActions)
                 .Set("absenceReturns", AbsenceReturns)
                 .Set("absenceEnforcements", AbsenceEnforcements)
                 .Set("memoriesCompacted", MemoriesCompacted)

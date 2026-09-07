@@ -446,7 +446,9 @@ namespace BrilliantQuesting.Actions.Library
                 return refused;
             }
 
-            bool seen = check.Outcome == CheckOutcome.CriticalFail;
+            bool seen = check.Outcome == CheckOutcome.CriticalFail
+                        && context.Observation == ContextObservation.Observed
+                        && context.Witnesses.Count > 0;
             IReadOnlyList<EntityId> witnesses = ActionSupport.Bystanders(context, seen);
             ActionOutcome outcome = new ActionOutcome(Id, check, Narrate(context, item)
                 + (seen ? " Somebody was watching you do it." : string.Empty));
