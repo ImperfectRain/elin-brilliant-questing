@@ -64,6 +64,7 @@ namespace BrilliantQuesting.Persistence
             root.Set("obligations", ObligationsToJson(world));
             root.Set("threads", ThreadsToJson(world));
             root.Set("absences", AbsencesToJson(world));
+            root.Set("travelingGroups", TravelingGroupsToJson(world));
             root.Set("demands", DemandsToJson(world));
             root.Set("businesses", BusinessesToJson(world));
             return root;
@@ -124,6 +125,7 @@ namespace BrilliantQuesting.Persistence
             ReadObligations(world, root);
             ReadThreads(world, root, diagnostics);
             ReadAbsences(world, root);
+            ReadTravelingGroups(world, root);
             ReadDemands(world, root);
             ReadBusinesses(world, root);
             return new WorldStateLoadResult(world, diagnostics);
@@ -209,6 +211,49 @@ namespace BrilliantQuesting.Persistence
                     .Set("expectedReturn", absence.ExpectedReturn.TotalMinutes)
                     .Set("awayZone", absence.AwayZoneId.Value)
                     .Set("homeZone", absence.HomeZoneId.Value));
+            }
+
+            return array;
+        }
+
+        private static JsonValue TravelingGroupsToJson(NarrativeWorldState world)
+        {
+            JsonValue array = JsonValue.Array();
+            foreach (TravelingGroup group in world.TravelingGroups.Groups)
+            {
+                JsonValue members = JsonValue.Array();
+                foreach (TravelingGroupMember member in group.Members)
+                {
+                    members.Add(JsonValue.Object()
+                        .Set("actor", member.ActorId.Value)
+                        .Set("movement", member.Movement.ToString())
+                        .Set("lastKnownZone", member.LastKnownZone.Value)
+                        .Set("note", member.Note));
+                }
+
+                array.Add(JsonValue.Object()
+                    .Set("id", group.Id.Value)
+                    .Set("kind", group.Kind)
+                    .Set("origin", group.OriginId.Value)
+                    .Set("destination", group.DestinationId.Value)
+                    .Set("purpose", group.Purpose)
+                    .Set("createdAt", group.CreatedAt.TotalMinutes)
+                    .Set("departureAt", group.DepartureAt.TotalMinutes)
+                    .Set("expectedArrivalAt", group.ExpectedArrivalAt.TotalMinutes)
+                    .Set("physicalPlan", group.PhysicalPlan.ToString())
+                    .Set("routeRisk", group.RouteRisk)
+                    .Set("state", group.State.ToString())
+                    .Set("stateChangedAt", group.StateChangedAt.TotalMinutes)
+                    .Set("thread", group.ThreadId.Value)
+                    .Set("interruptionCause", group.InterruptionCauseId.Value)
+                    .Set("interruptionSite", group.InterruptionSiteId.Value)
+                    .Set("plannedEvent", group.PlannedEventId.Value)
+                    .Set("departedEvent", group.DepartedEventId.Value)
+                    .Set("arrivedEvent", group.ArrivedEventId.Value)
+                    .Set("interruptedEvent", group.InterruptedEventId.Value)
+                    .Set("failedEvent", group.FailedEventId.Value)
+                    .Set("members", members)
+                    .Set("cargo", Ids(group.CargoIds)));
             }
 
             return array;
@@ -679,6 +724,59 @@ namespace BrilliantQuesting.Persistence
                     new GameTime(json.GetLong("expectedReturn", ActorAbsence.NoScheduledReturn.TotalMinutes)),
                     EntityId.Parse(json.GetString("awayZone")),
                     EntityId.Parse(json.GetString("homeZone"))));
+            }
+        }
+
+        private static void ReadTravelingGroups(NarrativeWorldState world, JsonValue root)
+        {
+            foreach (JsonValue json in root.GetArray("travelingGroups"))
+            {
+                TravelingGroup group = new TravelingGroup(
+                    EntityId.Parse(json.GetString("id")),
+                    json.GetString("kind"),
+                    EntityId.Parse(json.GetString("origin")),
+                    EntityId.Parse(json.GetString("destination")),
+                    json.GetString("purpose"),
+                    new GameTime(json.GetLong("createdAt")),
+                    new GameTime(json.GetLong("departureAt")),
+                    new GameTime(json.GetLong("expectedArrivalAt")),
+                    ParseEnum(json.GetString("physicalPlan", "SemanticOnly"), TravelPhysicalPlan.SemanticOnly))
+                {
+                    RouteRisk = json.GetNumber("routeRisk"),
+                    State = ParseEnum(json.GetString("state", "Planned"), TravelingGroupState.Planned),
+                    StateChangedAt = new GameTime(json.GetLong("stateChangedAt")),
+                    ThreadId = EntityId.Parse(json.GetString("thread")),
+                    InterruptionCauseId = EntityId.Parse(json.GetString("interruptionCause")),
+                    InterruptionSiteId = EntityId.Parse(json.GetString("interruptionSite")),
+                    PlannedEventId = EntityId.Parse(json.GetString("plannedEvent")),
+                    DepartedEventId = EntityId.Parse(json.GetString("departedEvent")),
+                    ArrivedEventId = EntityId.Parse(json.GetString("arrivedEvent")),
+                    InterruptedEventId = EntityId.Parse(json.GetString("interruptedEvent")),
+                    FailedEventId = EntityId.Parse(json.GetString("failedEvent"))
+                };
+
+                foreach (JsonValue memberJson in json.GetArray("members"))
+                {
+                    EntityId actor = EntityId.Parse(memberJson.GetString("actor"));
+                    if (!group.AddMember(actor))
+                    {
+                        continue;
+                    }
+
+                    TravelingGroupMember member = group.Member(actor);
+                    member.Movement = ParseEnum(
+                        memberJson.GetString("movement", "Unknown"),
+                        TravelMovementOwnership.Unknown);
+                    member.LastKnownZone = EntityId.Parse(memberJson.GetString("lastKnownZone"));
+                    member.Note = memberJson.GetString("note");
+                }
+
+                foreach (JsonValue cargo in json.GetArray("cargo"))
+                {
+                    group.AddCargo(EntityId.Parse(cargo.StringValue));
+                }
+
+                world.TravelingGroups.Restore(group);
             }
         }
 
@@ -1515,6 +1613,12 @@ namespace BrilliantQuesting.Persistence
             }
 
             return proofs;
+        }
+
+        private static T ParseEnum<T>(string value, T fallback) where T : struct
+        {
+            T parsed;
+            return Enum.TryParse(value, out parsed) && Enum.IsDefined(typeof(T), parsed) ? parsed : fallback;
         }
     }
 

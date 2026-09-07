@@ -24,6 +24,7 @@ namespace BrilliantQuesting.Persistence
             Register(7, AddEmotionalStateProfiles);
             Register(8, AddStoryletFirings);
             Register(9, AddNegativeSpaceProfiles);
+            Register(10, AddTravelingGroups);
         }
 
         /// <summary>Registers an upgrade from <paramref name="fromVersion"/> to the next version.</summary>
@@ -265,6 +266,16 @@ namespace BrilliantQuesting.Persistence
             }
 
             return root.Set("schemaVersion", 10);
+        }
+
+        private static JsonValue AddTravelingGroups(JsonValue root)
+        {
+            if (root["travelingGroups"] == null)
+            {
+                root.Set("travelingGroups", JsonValue.Array());
+            }
+
+            return root.Set("schemaVersion", 11);
         }
 
         private static JsonValue NeutralValueProfile()

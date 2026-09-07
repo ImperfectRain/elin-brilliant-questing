@@ -361,6 +361,12 @@ namespace BrilliantQuesting.Continuity
                     role = SiteHistoryRole.Cleared;
                     return true;
 
+                case WorldEventType.TravelArrived:
+                case WorldEventType.TravelInterrupted:
+                case WorldEventType.TravelFailed:
+                    role = SiteHistoryRole.Incident;
+                    return true;
+
                 default:
                     role = SiteHistoryRole.Incident;
                     return CallbackHooks.KindsOf(type).Count > 0;

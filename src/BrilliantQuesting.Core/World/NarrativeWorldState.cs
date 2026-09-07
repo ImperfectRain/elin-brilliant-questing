@@ -19,7 +19,7 @@ namespace BrilliantQuesting.World
     public sealed class NarrativeWorldState
     {
         /// <summary>Bumped whenever the persisted shape changes; drives save migration.</summary>
-        public const int CurrentSchemaVersion = 10;
+        public const int CurrentSchemaVersion = 11;
 
         public NarrativeWorldState(ulong worldSeed)
         {
@@ -34,6 +34,7 @@ namespace BrilliantQuesting.World
             Obligations = new SocialObligationLedger();
             Threads = new List<NarrativeThread>();
             Absences = new AbsenceLedger();
+            TravelingGroups = new TravelingGroupLedger();
             Demands = new LocalDemandLedger();
             Businesses = new BusinessLedger();
             Rng = new DeterministicRng(worldSeed);
@@ -73,6 +74,12 @@ namespace BrilliantQuesting.World
         /// <see cref="AbsenceLifecycle"/> is what puts records in and takes them out.
         /// </summary>
         public AbsenceLedger Absences { get; }
+
+        /// <summary>
+        /// Semantic journeys: caravans, patrols and parties moving for a reason at coarse
+        /// milestones. Members and cargo are referenced by id, never copied into the group.
+        /// </summary>
+        public TravelingGroupLedger TravelingGroups { get; }
 
         /// <summary>
         /// Coarse local pressures such as Food, Medicine and Safety. These are persistent

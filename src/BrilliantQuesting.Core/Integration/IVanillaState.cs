@@ -207,6 +207,18 @@ namespace BrilliantQuesting.Integration
         bool TryAdmitResident(EntityId chara);
 
         /// <summary>
+        /// Moves a character to another zone as a durable relocation, and reports whether the
+        /// game actually put that same character there.
+        ///
+        /// This is the relocation rung directly, not a temporary absence and not a withdrawal.
+        /// It exists for coarse BQ-owned travel once the movement is allowed by the mutation
+        /// policy; callers still have to decide whether vanilla is already moving the actor
+        /// before they ask for it.
+        /// </summary>
+        [VanillaMutation(MutationKind.Relocate, "chara")]
+        bool TryRelocate(EntityId chara, EntityId zone);
+
+        /// <summary>
         /// Who keeps the player company, as the game currently has it: the party they travel
         /// with, pets and adventurers-turned-companions alike.
         ///

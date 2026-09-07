@@ -147,6 +147,12 @@ namespace BrilliantQuesting.Integration
                    && TryAdmitResidentCore(chara);
         }
 
+        public bool TryRelocate(EntityId chara, EntityId zone)
+        {
+            return Allows(MutationKind.Relocate, "relocate", chara)
+                   && MoveToZoneCore(chara, zone);
+        }
+
         public bool TrySendAway(EntityId chara, EntityId zone)
         {
             // The highest rung the mod reaches, and the only one that changes where a save keeps

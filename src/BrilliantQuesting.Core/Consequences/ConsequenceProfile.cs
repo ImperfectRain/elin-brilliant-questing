@@ -120,6 +120,11 @@ namespace BrilliantQuesting.Consequences
                 // to where they had gone.
                 { WorldEventType.WentAbsent, new ConsequenceProfile("went_away", MemoryWeight.Notable, 0) },
                 { WorldEventType.Returned, new ConsequenceProfile("came_back", MemoryWeight.Notable, 0) },
+                { WorldEventType.TravelPlanned, new ConsequenceProfile("travel_planned", MemoryWeight.Routine, 0) },
+                { WorldEventType.TravelDeparted, new ConsequenceProfile("travel_departed", MemoryWeight.Notable, 0) },
+                { WorldEventType.TravelArrived, new ConsequenceProfile("travel_arrived", MemoryWeight.Notable, 0) },
+                { WorldEventType.TravelInterrupted, new ConsequenceProfile("travel_interrupted", MemoryWeight.Important, 0) },
+                { WorldEventType.TravelFailed, new ConsequenceProfile("travel_failed", MemoryWeight.Important, 0) },
                 { WorldEventType.BusinessStateChanged, new ConsequenceProfile("business_changed", MemoryWeight.Notable, 0) },
                 { WorldEventType.Recruited, new ConsequenceProfile("joined_me", MemoryWeight.Defining, 10) },
                 { WorldEventType.OrganizationJoined, new ConsequenceProfile("joined_organization", MemoryWeight.Notable, 4, 1) },

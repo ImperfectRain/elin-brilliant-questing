@@ -8,6 +8,7 @@ using BrilliantQuesting.Checks;
 using BrilliantQuesting.Continuity;
 using BrilliantQuesting.Developments;
 using BrilliantQuesting.Dialogue;
+using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
@@ -62,6 +63,94 @@ namespace BrilliantQuesting.Diagnostics
 
             HashSet<ActionFamily> families = registry.AvailableFamilies(context);
             sb.Append("  solution families open: ").Append(families.Count).Append('\n');
+            return sb.ToString();
+        }
+
+        public static string DescribeTravelingGroup(NarrativeWorldState world, EntityId groupId)
+        {
+            StringBuilder sb = new StringBuilder();
+            if (world == null)
+            {
+                return "traveling group: no world\n";
+            }
+
+            TravelingGroup group = world.TravelingGroups.Of(groupId);
+            if (group == null)
+            {
+                return "traveling group " + groupId + ": not found\n";
+            }
+
+            sb.Append("traveling group ").Append(group.Id.Value).Append('\n');
+            sb.Append("  kind:        ").Append(group.Kind).Append('\n');
+            sb.Append("  route:       ").Append(world.Registry.NameOf(group.OriginId))
+              .Append(" -> ").Append(world.Registry.NameOf(group.DestinationId)).Append('\n');
+            sb.Append("  purpose:     ").Append(group.Purpose).Append('\n');
+            sb.Append("  physical:    ").Append(group.PhysicalPlan).Append('\n');
+            sb.Append("  milestone:   ").Append(group.State)
+              .Append(" since ").Append(group.StateChangedAt).Append('\n');
+            sb.Append("  schedule:    depart ").Append(group.DepartureAt)
+              .Append(", expected ").Append(group.ExpectedArrivalAt).Append('\n');
+            sb.Append("  route risk:  ").Append(group.RouteRisk.ToString("0.00", CultureInfo.InvariantCulture)).Append('\n');
+
+            if (!group.ThreadId.IsNone)
+            {
+                sb.Append("  thread:      ").Append(group.ThreadId.Value).Append('\n');
+            }
+
+            if (!group.InterruptionCauseId.IsNone || !group.InterruptionSiteId.IsNone)
+            {
+                sb.Append("  cause:       ").Append(world.Registry.NameOf(group.InterruptionCauseId))
+                  .Append(" at ").Append(world.Registry.NameOf(group.InterruptionSiteId)).Append('\n');
+            }
+
+            sb.Append("  members ").Append(group.Members.Count).Append('\n');
+            for (int i = 0; i < group.Members.Count; i++)
+            {
+                TravelingGroupMember member = group.Members[i];
+                sb.Append("    ").Append(world.Registry.NameOf(member.ActorId))
+                  .Append("  movement ").Append(member.Movement);
+                if (!member.LastKnownZone.IsNone)
+                {
+                    sb.Append("  last-zone ").Append(world.Registry.NameOf(member.LastKnownZone));
+                }
+
+                if (!string.IsNullOrEmpty(member.Note))
+                {
+                    sb.Append("; ").Append(member.Note);
+                }
+
+                sb.Append('\n');
+            }
+
+            sb.Append("  cargo ").Append(group.CargoIds.Count).Append('\n');
+            for (int i = 0; i < group.CargoIds.Count; i++)
+            {
+                sb.Append("    ").Append(group.CargoIds[i].Value).Append('\n');
+            }
+
+            sb.Append("  events\n");
+            AppendTravelEvent(sb, world, "planned", group.PlannedEventId);
+            AppendTravelEvent(sb, world, "departed", group.DepartedEventId);
+            AppendTravelEvent(sb, world, "arrived", group.ArrivedEventId);
+            AppendTravelEvent(sb, world, "interrupted", group.InterruptedEventId);
+            AppendTravelEvent(sb, world, "failed", group.FailedEventId);
+            return sb.ToString();
+        }
+
+        public static string DescribeTravelRound(TravelingGroupRound round)
+        {
+            if (round == null)
+            {
+                return "travel round: none\n";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("travel round: ").Append(round).Append('\n');
+            for (int i = 0; i < round.Notes.Count; i++)
+            {
+                sb.Append("  ").Append(round.Notes[i]).Append('\n');
+            }
+
             return sb.ToString();
         }
 
@@ -2741,6 +2830,35 @@ namespace BrilliantQuesting.Diagnostics
             }
 
             return false;
+        }
+
+        private static void AppendTravelEvent(StringBuilder sb, NarrativeWorldState world, string label, EntityId eventId)
+        {
+            sb.Append("    ").Append(label.PadRight(12));
+            if (eventId.IsNone)
+            {
+                sb.Append("not recorded\n");
+                return;
+            }
+
+            WorldEvent found = null;
+            for (int i = 0; i < world.Ledger.Events.Count; i++)
+            {
+                if (world.Ledger.Events[i].Id == eventId)
+                {
+                    found = world.Ledger.Events[i];
+                    break;
+                }
+            }
+
+            if (found == null)
+            {
+                sb.Append(eventId.Value).Append(" missing from ledger\n");
+                return;
+            }
+
+            sb.Append(found.Type).Append(" at ").Append(found.Time)
+              .Append(" in ").Append(world.Registry.NameOf(found.Zone)).Append('\n');
         }
 
         private static string Render(NarrativeWorldState world, Fact fact)

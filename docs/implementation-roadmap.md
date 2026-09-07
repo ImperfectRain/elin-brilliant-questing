@@ -3049,6 +3049,45 @@ Caravans, adventurers, pilgrims, refugees, bandits, patrols: origin, destination
 expected arrival, route risk, cargo, members. Resolved at milestones, never pathfound.
 - **Depends** BQ-032, BQ-053, BQ-135.
 - **Done when** a caravan that never arrives is a caravan that actually failed, with a findable cause, **and** a bounded spike has recorded against the live build whether `GlobalGoal`, `GlobalGoalVisitTown`, `GlobalGoalVisitAndStay`, `MoveZone` and `ZoneTransition` are safe and useful at materialization boundaries — a negative answer being an equally valid result, written up in `elin-api-notes.md`.
+- **Current implementation** `TravelingGroup` is a persistent semantic entity with stable id, kind,
+  member ids, cargo ids, origin, destination, purpose, route risk, departure/expected-arrival times,
+  causal thread id, milestone state and event ids for milestones already written. It stores
+  references only: no actor record, item record, route tile, authored prose or copied vanilla state.
+  `NarrativeWorldState.TravelingGroups` is saved under schema 11, and old saves migrate with an
+  empty traveling-group ledger. Restored events are not redispatched, and saved milestone event ids
+  prevent departure/arrival/failure from being recorded twice after reload.
+  `TravelingGroupLifecycle.Advance` runs as a coarse pass. Planned groups depart when their
+  departure time is reached, then arrive at their expected arrival time only if each member's
+  movement ownership can be reconciled honestly. `SemanticOnly` groups can record semantic arrival
+  without claiming physical whereabouts. `BqRelocation` groups reserve a single arrival-time
+  relocation only for actors whose activity read says vanilla is not moving them, whose current zone
+  is known and matches the origin, whose mutation policy permits `Relocate`, and whose build
+  supports the existing move-between-zones capability. The actual move goes through
+  `IVanillaState.TryRelocate`, a new `MutationKind.Relocate` seam member implemented by the same
+  `VanillaStateBase.MoveToZoneCore` path and policy gate as the existing relocation/absence writes.
+  If BQ-135 reports vanilla movement, the member is `VanillaGlobalGoal`: BQ schedules no physical
+  move and arrival waits until vanilla reports the intended destination. If movement or whereabouts
+  are unknown, physical advancement is refused and the round says why; no location fact is invented.
+  `TryInterrupt` and `TryFail` record `TravelInterrupted` and `TravelFailed` against a cause entity
+  or event and site, so a missing caravan can be a failed caravan with a findable cause rather than a
+  generated quest hook. Interrupted and failed groups do not later arrive through a duplicate
+  processing pass. Travel events carry origin, destination, members, cargo and cause in `related`
+  ids, use the group id as target, and are visible to later economy, news, encounters, location
+  history, organization and BQ-098 consumers without spawning a quest now.
+  The plugin wires the lifecycle into the same low-frequency load/day/zone-change surfaces as
+  thread escalation, absence reconciliation, off-screen schemes and adventurer ecology. The lab
+  scenario `dotnet run --project tools/BrilliantQuesting.Lab -- run traveling-groups` prints
+  semantic travel, BQ-relocated travel, vanilla-owned travel reconciliation, failed/interrupted
+  travel, event production and save/load idempotency. Nine `TravelingGroupTests` cover semantic
+  travel, BQ relocation, vanilla movement ownership, save/load mid-journey, interruption/failure,
+  duplicate processing, cargo/member identity, unknown whereabouts, and unrelated absence records.
+- **Unverified, and not claimed** no live Elin session was available for this step, so the bounded
+  `GlobalGoal` spike did not produce runtime samples. `GlobalGoal`, `GlobalGoalVisitTown`,
+  `GlobalGoalVisitAndStay`, `MoveZone` and `ZoneTransition` remain at the evidence levels already
+  recorded in `elin-api-notes.md`: source-observed/metadata-known, not runtime-verified. Direct
+  `GlobalGoal` writes are still absent. BQ-owned physical travel therefore fails closed unless it
+  can use the gated relocation seam on an actor vanilla is not already moving; vanilla-owned travel
+  is observed and reconciled only.
 - **Sources** PM §34; LW §6.7; MD §18; VS §2.4, §3.3, §7.
 - **Note** milestone travel stays the design; the spike lives inside this step and does not become a system. If the spike does not prove them safe, BQ travel stays fully abstract and reconciles on arrival. **Direct `GlobalGoal` writes are not a 1.0 dependency** and may only become one if runtime evidence shows they make travel more reliable, not merely more native.
 

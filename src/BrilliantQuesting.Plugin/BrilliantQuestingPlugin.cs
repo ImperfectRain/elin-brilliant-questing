@@ -50,6 +50,7 @@ namespace BrilliantQuesting.Plugin
         private AutonomousInterventions _autonomy;
         private OffScreenSchemes _schemes;
         private AdventurerEcology _adventurers;
+        private TravelingGroupLifecycle _travelingGroups;
         private ElinActionObserver _actionObserver;
         private RumorCirculation _gossip;
         private AmbientTalk _ambient;
@@ -251,6 +252,7 @@ namespace BrilliantQuesting.Plugin
 
             _lastReconciledZone = here;
             ReconcileAbsences();
+            AdvanceTravelingGroups();
         }
 
         /// <summary>
@@ -387,6 +389,7 @@ namespace BrilliantQuesting.Plugin
             _autonomy = new AutonomousInterventions();
             _schemes = new OffScreenSchemes();
             _adventurers = new AdventurerEcology();
+            _travelingGroups = new TravelingGroupLifecycle(_world, _vanilla);
             RumorSystem rumors = new RumorSystem(_world.Knowledge, _world.Ledger, _world.Ids);
 
             // One policy, shared. A story that garbles in the market and a thief who names
@@ -542,6 +545,7 @@ namespace BrilliantQuesting.Plugin
                 AdvanceAutonomy();
                 AdvanceSchemes();
                 AdvanceAdventurers();
+                AdvanceTravelingGroups();
                 if (lifecycleChanges == 0 && escalations == 0)
                 {
                     return;
@@ -688,6 +692,38 @@ namespace BrilliantQuesting.Plugin
             catch (Exception ex)
             {
                 _log.LogWarning("Adventurer ecology skipped after an exception: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Advances semantic travel milestones (BQ-097). This is deliberately a coarse pass:
+        /// vanilla-owned movement is reconciled, BQ-owned movement uses the gated relocation seam,
+        /// and unknown whereabouts remain unknown.
+        /// </summary>
+        private void AdvanceTravelingGroups()
+        {
+            if (_travelingGroups == null)
+            {
+                return;
+            }
+
+            try
+            {
+                TravelingGroupRound round = _travelingGroups.Advance(_vanilla.Now);
+                if (!round.DidAnything)
+                {
+                    return;
+                }
+
+                _log.LogInfo("Traveling groups: " + round + " at " + _vanilla.Now + ".");
+                foreach (string note in round.Notes)
+                {
+                    _log.LogInfo("  " + note);
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning("Traveling groups skipped after an exception: " + ex.Message);
             }
         }
 
@@ -1578,6 +1614,7 @@ namespace BrilliantQuesting.Plugin
             _autonomy = null;
             _schemes = null;
             _adventurers = null;
+            _travelingGroups = null;
             _actionObserver = null;
             _lastAdvancedDay = long.MinValue;
             _bindings?.Clear();

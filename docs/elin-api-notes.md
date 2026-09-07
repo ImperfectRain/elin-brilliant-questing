@@ -374,6 +374,19 @@ both argue against. Whether a low-frequency event or hook can see these changes 
 of the runtime list in the design document, and it should be answered before an adapter is written,
 not after.
 
+**BQ-097 traveling-group spike status.** No live Elin session was available during the BQ-097
+implementation pass, so no runtime probe has yet established whether `GlobalGoal`,
+`GlobalGoalVisitTown`, `GlobalGoalVisitAndStay`, direct `GlobalGoal` writes, `MoveZone`, or
+`ZoneTransition` are safe and useful at materialization boundaries. The implemented system therefore
+does not write `GlobalData.goal`, does not construct or steer `GlobalGoal` objects, and does not read
+a source-observed travel goal as a permission to schedule a competing BQ move. A traveler whose
+BQ-135 activity snapshot reports vanilla movement is reconciled by observing `currentZone` and
+pending transition state only. A traveler whose movement or whereabouts cannot be read remains
+physically unadvanced by BQ. BQ-owned coarse arrival uses only the gated relocation seam on actors
+whose current zone is known, whose mutation policy permits `Relocate`, and whose build supports the
+same move-between-zones primitive already used by absence reconciliation. Evidence level remains
+`SOURCE-OBSERVED`/`VERIFIED-METADATA`, not `VERIFIED-RUNTIME`, until a live probe records samples.
+
 ## Character identity — what the six facets are worth in play
 
 Read off a running game rather than off metadata, which is why it is here and not in the section

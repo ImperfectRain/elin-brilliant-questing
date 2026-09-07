@@ -133,6 +133,11 @@ namespace BrilliantQuesting.Events
 
         /// <summary>They are back, and whatever they do they are doing again.</summary>
         Returned,
+        TravelPlanned,
+        TravelDeparted,
+        TravelArrived,
+        TravelInterrupted,
+        TravelFailed,
         /// <summary>
         /// A business changed durable continuity state: failed, recovered, changed operator, or
         /// entered a real interruption. A sleeping operator is not this event.
