@@ -23,10 +23,12 @@ namespace BrilliantQuesting.Threads
         public double ConsequenceVisibility { get; internal set; }
         public double Repetition { get; internal set; }
         public double RecentExposure { get; internal set; }
+        public double ShapeRepetition { get; internal set; }
+        public string FingerprintEvidence { get; internal set; }
         public string Refusal { get; internal set; }
         public double Total => Salience + Tension + (Proximity ?? 0) + Recurrence
             + UnresolvedHistory + (UnderusedMechanics ?? 0) + ConsequenceVisibility
-            - Repetition - RecentExposure;
+            - Repetition - RecentExposure - ShapeRepetition;
 
         public string Explain()
         {
@@ -38,6 +40,8 @@ namespace BrilliantQuesting.Threads
                 + ", consequence visibility=" + Number(ConsequenceVisibility)
                 + ", repetition penalty=" + Number(Repetition)
                 + ", recent exposure penalty=" + Number(RecentExposure)
+                + ", shape repetition penalty=" + Number(ShapeRepetition)
+                + " (" + FingerprintEvidence + ")"
                 + ", total=" + Number(Total);
         }
 
@@ -96,6 +100,8 @@ namespace BrilliantQuesting.Threads
                     if (participants.Contains(actor)) score.Recurrence = 0.5;
             }
             score.Repetition = Math.Min(1, repeats * 0.25);
+            score.ShapeRepetition = SituationRepetition.Read(world, player, matters, factId, now, out string fingerprint);
+            score.FingerprintEvidence = fingerprint;
             if (verbs.Count > 0) score.UnderusedMechanics = 0.5 / (1 + mechanicExposures);
 
             foreach (KnowledgeRecord belief in world.Knowledge.BeliefsOf(player))

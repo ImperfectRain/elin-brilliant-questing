@@ -3242,6 +3242,37 @@ Track experiential shape — violent/social/economic, urgent/slow, public/secret
 penalize repeated topology even when the nouns differ.
 - **Depends** BQ-100.
 - **Done when** two consecutive situations of the same shape are demonstrably less likely.
+- **Current implementation** `SituationFingerprint` derives noun-independent semantics from the
+  proposed claim and player-held claims, tension (urgent at 50), claim secrecy, prior recorded
+  familiarity with named people, and the sorted set of declared recovery verbs. The semantic
+  classifier reads predicates, never archetype ids, actor names, item values or truth verdicts.
+  Unclassified predicates and missing route/participant evidence remain unknown; death alone is
+  not classified as violence. Familiarity reads earlier player beliefs and observed ledger events.
+  `DevelopmentScoring` subtracts the new shape penalty alongside its existing terms, and its
+  inspector explanation includes the fingerprints and comparison ids.
+- **Bounded policy / adaptation** compare the three most recently first-encountered distinct
+  matters within seven game days, deriving encounter time from existing player beliefs. Resolved
+  matters still count; quarantined and unseen matters do not. Shared encountered claims cannot
+  fill the recent window repeatedly or count against their own carriers. Matching known domains
+  are required; each matching known axis contributes 0.2, with unknown axes contributing nothing.
+  The strongest match is weighted by encounter rank and linear seven-day recency, capped at 1;
+  backwards time cannot erase it. Selection/inspection writes no exposure, knowledge or save
+  state. Successful existing delivery supplies the belief that affects the next selection.
+- **Evidence limits** this is current shape reconstructed from encountered matters, not a saved
+  snapshot of how a resolved matter looked when first encountered. Recovery verbs describe
+  declared possibilities, not actual action use or availability. Arrivals without player beliefs
+  retain BQ-099/BQ-100 pacing but do not supply a claim fingerprint. Travel, tone, stakes and full
+  played route topology are not inferred from missing evidence. The integration stays at BQ-100's
+  ambient proposal ranking; it neither regenerates situations nor adds BQ-102 niche selection.
+- **Validation** 47 focused fingerprint/director/attention/ambient tests pass, including 12 new
+  fingerprint cases; all 1664 Core tests and 146 Lab tests pass. The Plugin builds with zero
+  warnings/errors and its ContentCompiler bundle check passes. Existing test/Lab analyzer warnings
+  remain. Tests prove changed ambient selection after delivery, cross-archetype semantic matches,
+  hidden-claim isolation, unknown features, shared-claim deduplication, bounded recent history,
+  observed familiarity, read-only inspection and deterministic reload. No content changed.
+- **Live verification still required** compare successive ambient deliveries and inspector
+  explanations across competing shapes and save/reload in Elin. The headless selection change
+  proves the penalty affects delivery proposals, not live pacing quality or native rendering.
 - **Sources** CD §33, §34.
 
 #### BQ-102 — Quality-diversity selection
