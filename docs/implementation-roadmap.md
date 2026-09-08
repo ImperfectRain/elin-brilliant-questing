@@ -3096,6 +3096,29 @@ Consequences arrive at Home and at the player: creditors, refugees, accusers, gu
 former enemies.
 - **Depends** BQ-048, BQ-095.
 - **Done when** a consequence of an earlier choice arrives without the player travelling to it.
+- **Current implementation** `ConsequenceArrivals` is the narrow surface for earned arrivals. A
+  caller must name an unresolved thread, the already-known actor carrying the consequence, the
+  target, the surface (`Home` or the player's current zone), the stable reason and the related
+  facts that made the arrival due. The pass records no new quest and no director choice: it only
+  projects existing history to a place the player can encounter it. It refuses if the thread is
+  closed, the actor is not registered, the actor is not verifiably alive, the actor's whereabouts
+  are unknown, the player/Home surface cannot be read, the relocation capability is unavailable, or
+  the mutation policy refuses the actor. A successful arrival verifies the actor at the surface,
+  relocating that same actor through `TryRelocate` only when needed, reactivates a latent/dormant
+  thread, and records one tagged ledger event (`consequence_arrival`, `surface:player` or `surface:home`,
+  `arrival_reason:*`) carrying the related facts. The ledger tags are the idempotency key, so
+  replaying the same arrival after save/load produces no second history entry.
+  The BQ-048 leaked-sanctuary path now uses this surface when a guard follows a sheltered witness
+  home; if the move cannot be verified the inquiry is not recorded. The lab scenario
+  `dotnet run --project tools/BrilliantQuesting.Lab -- run consequence-arrivals` demonstrates a
+  creditor arriving at the player's current zone while the player stays put, a guard arriving at
+  Home, and save/load replay refusing a duplicate arrival. `ConsequenceArrivalTests` cover
+  player-zone arrival, Home arrival, idempotency, fail-closed relocation, and the hunted-witness
+  integration.
+- **Unverified, and not claimed** no live Elin session has run this pass. The physical arrival uses
+  the same gated move-between-zones seam as BQ-097, which remains source-observed/metadata-known and
+  headless-tested here, not live-runtime-verified. If a live build cannot verify the move, BQ-098
+  records no arrival and leaves the consequence in history rather than claiming a visitor appeared.
 - **Sources** PM §10; LW §6.4.
 
 > **Checkpoint S8.** The world is no longer waiting. Situations begin, change and end without the

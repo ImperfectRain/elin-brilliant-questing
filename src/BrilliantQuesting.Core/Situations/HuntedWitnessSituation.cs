@@ -285,7 +285,17 @@ namespace BrilliantQuesting.Situations
                 return;
             }
 
-            if (!_vanilla.TrySendAway(guard, home.ZoneId))
+            EntityId[] related = shelter == null ? new[] { exposure.Id } : new[] { shelter.Id, exposure.Id };
+            ConsequenceArrivalResult arrival = new ConsequenceArrivals(world, _vanilla).TryBringToHome(
+                thread,
+                guard,
+                witness,
+                now,
+                Undertakings.ResidentDiscoveredStep,
+                related,
+                WorldEventType.InquiryOpened,
+                0.45);
+            if (!arrival.DidArrive)
             {
                 return;
             }
@@ -294,16 +304,6 @@ namespace BrilliantQuesting.Situations
             {
                 world.Knowledge.Teach(guard, shelter.Id, KnowledgeSource.Hearsay, 0.75, now, false);
             }
-
-            world.Record(
-                WorldEventType.InquiryOpened,
-                guard,
-                witness,
-                now,
-                0.45,
-                home.ZoneId,
-                related: shelter == null ? new[] { exposure.Id } : new[] { shelter.Id, exposure.Id },
-                threadId: thread.Id);
         }
 
         private static Fact FindShelter(NarrativeWorldState world, EntityId witness)
