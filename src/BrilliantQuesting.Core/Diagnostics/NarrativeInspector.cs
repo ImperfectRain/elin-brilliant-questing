@@ -1493,23 +1493,18 @@ namespace BrilliantQuesting.Diagnostics
         public static string DescribeAmbientTalk(NarrativeWorldState world, IVanillaState vanilla)
         {
             AmbientTalk talk = new AmbientTalk(new RumorSystem(world.Knowledge, world.Ledger, world.Ids));
-            SpokenRemark remark = talk.Next(world, vanilla, vanilla.Now);
+            SpokenRemark remark = talk.Next(world, vanilla, vanilla.Now, out string reason);
+            AttentionSnapshot attention = world.AttentionBudget.Read(world, vanilla.PlayerId, vanilla.Now, talk.MinutesBetweenRemarks);
+            string budget = "  attention: live " + world.AttentionBudget.LiveCount(world) + "/"
+                + world.AttentionBudget.MaximumLiveThreads + ", exposed " + attention.ExposedThreadCount + "/"
+                + world.AttentionBudget.MaximumExposedThreads + "; ambient salience floor "
+                + world.AttentionBudget.MinimumRemarkSalience + ".\n";
             if (remark != null)
             {
-                return "  " + remark.SpeakerName + ": \"" + remark.Line + "\"  [" + remark.FactId + "]\n";
+                return budget + "  " + remark.SpeakerName + ": \"" + remark.Line + "\"  [" + remark.FactId + "]\n";
             }
 
-            long last = world.LastAmbientRemarkMinute;
-            if (last != NarrativeWorldState.NothingSaidYet
-                && vanilla.Now.TotalMinutes - last < talk.MinutesBetweenRemarks)
-            {
-                return "  nothing yet: somebody spoke " + (vanilla.Now.TotalMinutes - last)
-                       + " minute(s) ago, and the next remark is due after "
-                       + talk.MinutesBetweenRemarks + ".\n";
-            }
-
-            return "  nothing: nobody in this zone is repeating anything the player has not already"
-                   + " heard. First-hand knowledge is not repeated here - it is asked for.\n";
+            return budget + "  nothing: " + reason + ". First-hand knowledge is asked for.\n";
         }
 
         /// <summary>

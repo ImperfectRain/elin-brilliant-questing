@@ -53,7 +53,7 @@ namespace BrilliantQuesting.Situations
             _candidates == null ? (IReadOnlyList<SituationCandidate>)NoCandidates : _candidates;
 
         /// <summary>
-        /// Proposals the world state supported but repetition rules refused, each with its reason,
+        /// Proposals the world state supported but repetition or admission rules refused, with reasons,
         /// so an empty candidate list can be told apart from a quiet settlement.
         /// </summary>
         public IReadOnlyList<SuppressedCandidate> Suppressed =>
@@ -76,7 +76,7 @@ namespace BrilliantQuesting.Situations
         /// <summary>
         /// How long the world remembers that it already told this story.
         ///
-        /// Conservative on purpose. This is repetition suppression, not the narrative director of
+        /// Conservative on purpose. This is repetition suppression, not the attention budget of
         /// BQ-099: it stops the same person robbing the same person of the same thing again, and
         /// deliberately does not model global content density, pacing or player attention.
         /// </summary>
@@ -120,7 +120,8 @@ namespace BrilliantQuesting.Situations
 
                     candidate = PreferRecognisableFaces(profile, candidate);
 
-                    string refusal = RepetitionReason(world, candidate, vanilla.Now);
+                    string refusal = RepetitionReason(world, candidate, vanilla.Now)
+                        ?? world.AttentionBudget.GenerationRefusal(world);
                     if (refusal != null)
                     {
                         suppressed.Add(new SuppressedCandidate(candidate, refusal));
@@ -159,7 +160,8 @@ namespace BrilliantQuesting.Situations
             EntityId zoneId,
             GameTime now)
         {
-            if (plan == null)
+            // A plan can outlive its admission slot. Recheck before any founding item transfer.
+            if (plan == null || world.AttentionBudget.GenerationRefusal(world) != null)
             {
                 return null;
             }

@@ -2249,3 +2249,22 @@ work is worse than one that is empty.
 Reason: a world that pauses until the player accepts is a quest log with scenery. The risk in fixing
 that is not the acting, it is the bookkeeping: an autonomous actor is the easiest place to
 accidentally grant omniscience, fabricate a location, or record somebody's working day as history.
+
+## D075 — Attention limits admit suggestions without rewriting consequences
+
+BQ-099 limits new generated live matters and unsolicited introductions. It derives occupied
+slots from live threads, player beliefs and recorded arrivals at the player, using the existing
+ambient timestamp for remark pacing. There is no separate exposure ledger, saved director score,
+or copy of player knowledge. A Home arrival reserves attention only if its event recorded player
+co-location; today's position cannot establish yesterday's presence. Co-location reserves attention
+but teaches no facts.
+
+Generation checks before a founding vanilla mutation and checks again when committing an older
+plan. Ambient filtering happens before selecting and wording the best eligible remark. Deliberate
+inquiry remains available when the unsolicited budget is full. Existing history, escalation and
+earned arrivals are not cancelled or evicted to satisfy a presentation limit; they may exceed it.
+This is an admission budget, not a new authority over whether an event happened.
+
+Reason: pacing the world by deleting matters or preventing earned consequences would make attention
+authoritative over truth. Keeping selection, delivery and belief distinct also lets a failed bark
+spend no knowledge, a known matter receive an update, and a quiet town remain investigable.

@@ -153,6 +153,44 @@ namespace BrilliantQuesting.Tests
                 && e.Related.Contains(situation.NeedFactId));
         }
 
+        [Fact]
+        public void BudgetRefusalCreatesNoFactsAndADormantProblemCanRetryAfterASlotOpens()
+        {
+            NarrativeWorldState world = new NarrativeWorldState(42);
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.SetHome(LowFoodHome());
+            world.AttentionBudget.MaximumLiveThreads = 0;
+            Assert.Null(HomeResidentSituation.TryGenerate(world, vanilla, vanilla.Now));
+            Assert.Empty(world.Knowledge.Facts);
+            Assert.Empty(world.Threads);
+
+            world.AttentionBudget.MaximumLiveThreads = 1;
+            HomeResidentSituation first = HomeResidentSituation.TryGenerate(world, vanilla, vanilla.Now);
+            Assert.NotNull(first);
+            first.Thread.State = ThreadState.Dormant;
+            NarrativeThread blocker = new NarrativeThread(world.NewId("thread"), "other_pressure", vanilla.Now);
+            world.Threads.Add(blocker);
+            int facts = world.Knowledge.Facts.Count();
+            Assert.Null(HomeResidentSituation.TryGenerate(world, vanilla, vanilla.Now));
+            Assert.Equal(ThreadState.Dormant, first.Thread.State);
+            Assert.Equal(facts, world.Knowledge.Facts.Count());
+            blocker.State = ThreadState.Resolved;
+            Assert.Same(first.Thread, HomeResidentSituation.TryGenerate(world, vanilla, vanilla.Now).Thread);
+        }
+
+        [Fact]
+        public void DirectHomeIntroductionAlsoNeedsAnExposureSlot()
+        {
+            NarrativeWorldState world = new NarrativeWorldState(42);
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.SetHome(LowFoodHome());
+            world.AttentionBudget.MaximumExposedThreads = 0;
+            Assert.Null(HomeResidentSituation.TryGenerate(world, vanilla, vanilla.Now));
+            Assert.Empty(world.Knowledge.Facts);
+            world.AttentionBudget.MaximumExposedThreads = 1;
+            Assert.NotNull(HomeResidentSituation.TryGenerate(world, vanilla, vanilla.Now));
+        }
+
         private static HomeState LowFoodHome()
         {
             return new HomeStateBuilder(Home, "Willow Hall")

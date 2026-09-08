@@ -64,6 +64,8 @@ namespace BrilliantQuesting.World
 
         public List<NarrativeThread> Threads { get; }
 
+        public NarrativeAttentionBudget AttentionBudget { get; } = new NarrativeAttentionBudget();
+
         /// <summary>
         /// Who is away and why. Procedural state in the strictest sense: for a Grade A absence
         /// nothing in Elin has changed at all, and for a Grade B one this is the only thing that

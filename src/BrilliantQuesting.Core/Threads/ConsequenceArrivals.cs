@@ -59,6 +59,7 @@ namespace BrilliantQuesting.Threads
         public const string ArrivalTag = "consequence_arrival";
         public const string HomeSurfaceTag = "surface:home";
         public const string PlayerSurfaceTag = "surface:player";
+        public const string PlayerPresentTag = "player_present_at_arrival";
 
         private readonly NarrativeWorldState _world;
         private readonly IVanillaState _vanilla;
@@ -198,6 +199,14 @@ namespace BrilliantQuesting.Threads
             }
 
             thread.LastAdvancedAt = now;
+            List<string> tags = new List<string> { ArrivalTag, surfaceTag, reasonTag };
+            // Co-location is enough to reserve attention, not to teach the visitor's business.
+            // Persist the observation now; the player's position on a later read proves nothing
+            // about whether they were Home when this visitor arrived.
+            if (!_vanilla.PlayerId.IsNone && _vanilla.GetZoneOf(_vanilla.PlayerId) == zone)
+            {
+                tags.Add(PlayerPresentTag);
+            }
             WorldEvent recorded = _world.Record(
                 eventType,
                 actor,
@@ -206,7 +215,7 @@ namespace BrilliantQuesting.Threads
                 magnitude,
                 zone,
                 related: related,
-                tags: new[] { ArrivalTag, surfaceTag, reasonTag },
+                tags: tags,
                 threadId: thread.Id);
 
             return ConsequenceArrivalResult.Arrived(recorded, "arrived at " + zone);

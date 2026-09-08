@@ -1160,8 +1160,8 @@ namespace BrilliantQuesting.Plugin
         ///
         /// Bootstrap only, and knowingly so: this fires once, on attach, in whichever zone the
         /// player is standing in. The reactive triggers that would let any settlement produce
-        /// something when its state actually changes are the director's work at BQ-099, not this
-        /// step's, and pretending otherwise by firing on every zone entry would make generation a
+        /// something when its state actually changes remain later director work. Firing on every
+        /// zone entry would make generation a
         /// function of where the player walks. Guarding on "this world already has a thread" is what
         /// keeps a reload from being a way to roll for another one.
         /// </summary>
@@ -1192,7 +1192,7 @@ namespace BrilliantQuesting.Plugin
                 SettlementSituationPlan plan = generator.Evaluate(_world, _vanilla, zoneId);
                 for (int i = 0; i < plan.Suppressed.Count; i++)
                 {
-                    _log.LogInfo("  not repeated: " + plan.Suppressed[i].Reason);
+                    _log.LogInfo("  not generated: " + plan.Suppressed[i].Reason);
                 }
 
                 if (plan.Candidates.Count == 0)
@@ -1208,7 +1208,9 @@ namespace BrilliantQuesting.Plugin
                 PettyTheftSituation situation = generator.TryGenerate(_world, _vanilla, plan, zoneId, _vanilla.Now);
                 if (situation == null)
                 {
-                    _log.LogInfo("Local situation generation found pressure, but vanilla refused the founding item transfer.");
+                    _log.LogInfo("Local situation generation deferred: "
+                        + (_world.AttentionBudget.GenerationRefusal(_world)
+                            ?? "vanilla refused the founding item transfer") + ".");
                     return;
                 }
 
@@ -1226,9 +1228,8 @@ namespace BrilliantQuesting.Plugin
 
         /// <summary>
         /// Lets the Home's own resident roll originate a situation when no settlement-local one
-        /// did. This is still bootstrap generation, not a scheduler: BQ-099 owns reactive world
-        /// pacing, and this pass only proves that residents are read as narrative actors rather
-        /// than as names printed in the attach log.
+        /// did. This remains bootstrap generation, subject to BQ-099's admission budget.
+        /// Reactive candidate selection is still deferred director work.
         /// </summary>
         private void MaybeGenerateHomeResidentSituation()
         {
@@ -1253,7 +1254,9 @@ namespace BrilliantQuesting.Plugin
                 HomeResidentSituation situation = HomeResidentSituation.TryGenerate(_world, _vanilla, _vanilla.Now);
                 if (situation == null)
                 {
-                    _log.LogInfo("Home resident situation generation found no eligible resident pressure.");
+                    _log.LogInfo("Home resident situation generation deferred: "
+                        + (HomeResidentSituation.AdmissionRefusal(_world, _vanilla, _vanilla.Now)
+                            ?? "no eligible resident pressure") + ".");
                     return;
                 }
 

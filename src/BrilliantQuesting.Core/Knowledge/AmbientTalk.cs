@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
+using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Knowledge
@@ -76,7 +77,13 @@ namespace BrilliantQuesting.Knowledge
         /// </summary>
         public SpokenRemark Next(NarrativeWorldState world, IVanillaState vanilla, GameTime now)
         {
-            if (world == null || vanilla == null || !IsDue(world, now))
+            return Next(world, vanilla, now, out _);
+        }
+
+        public SpokenRemark Next(NarrativeWorldState world, IVanillaState vanilla, GameTime now, out string reason)
+        {
+            reason = "nobody here has eligible hearsay the player has not heard";
+            if (world == null || vanilla == null)
             {
                 return null;
             }
@@ -84,6 +91,13 @@ namespace BrilliantQuesting.Knowledge
             EntityId player = vanilla.PlayerId;
             if (player.IsNone || !vanilla.IsAlive(player))
             {
+                return null;
+            }
+
+            AttentionSnapshot attention = world.AttentionBudget.Read(world, player, now, MinutesBetweenRemarks);
+            if (attention.CoolingDown)
+            {
+                reason = "unsolicited exposure cooldown";
                 return null;
             }
 
@@ -99,17 +113,25 @@ namespace BrilliantQuesting.Knowledge
 
             TalkRules rules = new TalkRules(SpeakerFloor, SecrecyCeiling);
             SpokenRemark best = null;
+            string budgetRefusal = null;
             for (int i = 0; i < speakers.Count; i++)
             {
-                // One each: the best any of them has is the only line that could be said now, and
-                // the rest of their repertoire is what the player would get for asking.
-                List<SpokenRemark> said = _repertoire.Of(world, vanilla, speakers[i], player, rules, 1);
+                // Filter before wording and before taking the best line. A blocked new matter
+                // must neither starve an eligible update nor make us realize a whole repertoire.
+                List<SpokenRemark> said = _repertoire.Of(world, vanilla, speakers[i], player, rules, 1,
+                    (fact, salience) =>
+                    {
+                        string refusal = attention.RemarkRefusal(world, fact, salience);
+                        if (refusal != null) budgetRefusal = refusal;
+                        return refusal == null;
+                    });
                 if (said.Count > 0 && TalkRepertoire.Beats(said[0], best))
                 {
                     best = said[0];
                 }
             }
 
+            reason = best != null ? null : budgetRefusal ?? reason;
             return best;
         }
 
@@ -131,22 +153,6 @@ namespace BrilliantQuesting.Knowledge
 
             world.LastAmbientRemarkMinute = now.TotalMinutes;
             return _rumors.Tell(remark.Speaker, vanilla.PlayerId, remark.FactId, now);
-        }
-
-        /// <summary>
-        /// Whether enough of the clock has passed.
-        ///
-        /// A clock reading earlier than the stamp counts as due rather than as a very long wait.
-        /// Nothing writes here - the stamp is corrected by the next remark that actually happens -
-        /// because a read that quietly repaired the world would make <see cref="Next"/> something
-        /// a caller has to be careful about calling.
-        /// </summary>
-        private bool IsDue(NarrativeWorldState world, GameTime now)
-        {
-            long last = world.LastAmbientRemarkMinute;
-            return last == NarrativeWorldState.NothingSaidYet
-                   || now.TotalMinutes < last
-                   || now.TotalMinutes - last >= Math.Max(0, MinutesBetweenRemarks);
         }
 
         private static int CompareIds(EntityId a, EntityId b)

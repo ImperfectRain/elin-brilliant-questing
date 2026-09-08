@@ -65,10 +65,21 @@ namespace BrilliantQuesting.Situations
                     return null;
                 }
 
-                return ReactivateFoodProblem(world, home, resident, food, now, existing);
+                return AdmissionRefusal(world, vanilla, now) == null
+                    ? ReactivateFoodProblem(world, home, resident, food, now, existing)
+                    : null;
             }
 
-            return CreateFoodProblem(world, vanilla.PlayerId, home, resident, food, now);
+            return AdmissionRefusal(world, vanilla, now) == null
+                ? CreateFoodProblem(world, vanilla.PlayerId, home, resident, food, now)
+                : null;
+        }
+
+        /// <summary>This bootstrap route teaches the player directly, so it needs both slots.</summary>
+        public static string AdmissionRefusal(NarrativeWorldState world, IVanillaState vanilla, GameTime now)
+        {
+            return world.AttentionBudget.GenerationRefusal(world)
+                ?? world.AttentionBudget.Read(world, vanilla.PlayerId, now, 0).IntroductionRefusal(1);
         }
 
         private static HomeResidentSituation CreateFoodProblem(

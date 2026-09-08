@@ -3164,6 +3164,40 @@ Limit how many threads are live and how many reach the player at once. Protect o
 farming, building, exploring — from constant interruption.
 - **Depends** BQ-039.
 - **Done when** a tester plays an hour of ordinary Elin without being interrupted, and still finds situations when they look.
+- **Current implementation** `NarrativeAttentionBudget` gates admission and unsolicited information,
+  using existing live threads, player beliefs, the saved ambient timestamp and BQ-098 arrival
+  events. Default limits are six generated live matters and three simultaneously exposed live
+  matters; ambient remarks also require the existing repertoire's salience to reach 0.5 and keep
+  BQ-035's 90 in-game-minute cooldown. A shared claim must fit every live matter it would introduce.
+  Settlement generation reports budget refusals and rechecks admission before moving the founding
+  item, including when a caller holds an older plan. Home resident generation and reactivation
+  require a live slot and an exposure slot because that route directly teaches the player.
+  Ambient selection filters before wording and before selecting a speaker's best line, so a
+  deferred introduction cannot starve an eligible update to an already-known matter. The inspector
+  reports counts, limits and refusal reasons. Asking for town news, investigation, boards and the
+  journal remain voluntary discovery routes; the budget does not hide or delete known information.
+  Counts derive again after reload, without a second exposure history or a save schema change.
+  Clock rollback cannot reset the ambient cooldown.
+- **Boundary / adaptation** these are admission and attention limits, not eviction or simulation
+  limits. Observed events, earned consequences and player-chosen engagement may exceed the counts;
+  existing threads keep their history and escalation. An earned arrival at the player counts as
+  exposure and suppresses an immediate ambient remark, without teaching its hidden facts. A Home
+  arrival reserves attention only when player co-location was observed and tagged on that arrival;
+  older Home events without that observation are not guessed from the player's current position.
+  An arrival away from the player is not treated as player awareness. No arrival is cancelled to meet
+  a presentation quota. BQ-039's generation still runs at bootstrap: reactive candidate selection,
+  richer director scoring and player configuration remain later work. No new native operation,
+  authored wording, intensity preset or BQ-100 scoring term is introduced.
+- **Validation** all 1621 Core tests and 140 Lab tests pass, including 17 new regression cases.
+  Focused attention/generation/discovery tests passed before full validation. The Plugin builds
+  with zero warnings/errors and its ContentCompiler bundle check passes. No content changed.
+- **Verification still required** the headless attention tests exercise a quiet simulated hour,
+  optional discovery under saturation, admission before mutation, topic fallback, salience, shared
+  claims, earned arrivals, closure, save/load and backwards time. They do **not** prove an hour of
+  ordinary live Elin. Play for one real hour across farming/crafting, travel and save/reload; check
+  that ambient barks stay passive and sparse, that town news/boards/investigation still find
+  eligible matters, and that arrivals do not trigger a burst of extra news. The Done-when live
+  acceptance test remains unverified; pacing values need that runtime assessment.
 - **Sources** LW §10.7, §11; MD §8.3.
 
 #### BQ-100 — Director scoring

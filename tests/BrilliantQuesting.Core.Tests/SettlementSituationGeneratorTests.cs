@@ -661,6 +661,26 @@ namespace BrilliantQuesting.Tests
 
         // -- helpers --------------------------------------------------------------------------------
 
+        [Fact]
+        public void LiveBudgetRefusesAStalePlanBeforeMovingItsRealItemAndReleasesOnClosure()
+        {
+            Lab lab = PressuredMarket();
+            SettlementSituationGenerator generator = new SettlementSituationGenerator();
+            SettlementSituationPlan plan = generator.Evaluate(lab.World, lab.Vanilla, Market);
+            Assert.NotEmpty(plan.Candidates);
+            var inventory = lab.Vanilla.GetInventory(lab.Victim).Select(item => item.Id).ToArray();
+            for (int i = 0; i < lab.World.AttentionBudget.MaximumLiveThreads; i++)
+                lab.World.Threads.Add(new NarrativeThread(lab.World.NewId("thread"), "other_pressure", lab.Vanilla.Now));
+            Assert.Null(generator.TryGenerate(lab.World, lab.Vanilla, plan, Market, lab.Vanilla.Now));
+            Assert.Equal(inventory, lab.Vanilla.GetInventory(lab.Victim).Select(item => item.Id).ToArray());
+            Assert.DoesNotContain(lab.World.Ledger.Events, e => e.Type == WorldEventType.Theft);
+            SettlementSituationPlan full = generator.Evaluate(lab.World, lab.Vanilla, Market);
+            Assert.Empty(full.Candidates);
+            Assert.Contains(full.Suppressed, candidate => candidate.Reason.Contains("live-thread budget"));
+            lab.World.Threads[0].State = ThreadState.Dormant;
+            Assert.NotNull(generator.TryGenerate(lab.World, lab.Vanilla, Market, lab.Vanilla.Now));
+        }
+
         private static string Explain(Lab lab, PettyTheftSituation situation)
         {
             ActionContext context = new ActionContext(

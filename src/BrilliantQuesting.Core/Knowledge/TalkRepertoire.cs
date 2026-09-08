@@ -137,7 +137,8 @@ namespace BrilliantQuesting.Knowledge
             EntityId speaker,
             EntityId listener,
             TalkRules rules,
-            int limit)
+            int limit,
+            Func<EntityId, double, bool> mayMention = null)
         {
             List<SpokenRemark> remarks = new List<SpokenRemark>();
             if (world == null || vanilla == null || limit <= 0 || !CanSpeak(world, vanilla, speaker, listener))
@@ -157,7 +158,9 @@ namespace BrilliantQuesting.Knowledge
                 if (IsWorthMentioning(world, speaker, listener, fact, belief, rules))
                 {
                     GuildFraming framing = GuildNetworks.FirstReading(world, networks, fact, out GuildId network);
-                    candidates.Add(new Candidate(fact, belief, Score(world, fact, belief, framing), framing, network));
+                    double salience = Score(world, fact, belief, framing);
+                    if (mayMention == null || mayMention(fact.Id, salience))
+                        candidates.Add(new Candidate(fact, belief, salience, framing, network));
                 }
             }
 
