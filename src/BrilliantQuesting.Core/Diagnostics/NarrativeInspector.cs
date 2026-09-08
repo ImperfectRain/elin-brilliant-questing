@@ -1493,12 +1493,27 @@ namespace BrilliantQuesting.Diagnostics
         public static string DescribeAmbientTalk(NarrativeWorldState world, IVanillaState vanilla)
         {
             AmbientTalk talk = new AmbientTalk(new RumorSystem(world.Knowledge, world.Ledger, world.Ids));
-            SpokenRemark remark = talk.Next(world, vanilla, vanilla.Now, out string reason);
+            SpokenRemark remark = talk.Next(world, vanilla, vanilla.Now, out string reason, out List<DevelopmentScore> scores);
             AttentionSnapshot attention = world.AttentionBudget.Read(world, vanilla.PlayerId, vanilla.Now, talk.MinutesBetweenRemarks);
             string budget = "  attention: live " + world.AttentionBudget.LiveCount(world) + "/"
                 + world.AttentionBudget.MaximumLiveThreads + ", exposed " + attention.ExposedThreadCount + "/"
                 + world.AttentionBudget.MaximumExposedThreads + "; ambient salience floor "
                 + world.AttentionBudget.MinimumRemarkSalience + ".\n";
+            scores.Sort((a, b) =>
+            {
+                int order = b.Total.CompareTo(a.Total);
+                if (order == 0) order = string.CompareOrdinal(a.FactId.Value, b.FactId.Value);
+                return order != 0 ? order : string.CompareOrdinal(a.Speaker.Value, b.Speaker.Value);
+            });
+            var scoring = new StringBuilder();
+            foreach (DevelopmentScore score in scores)
+            {
+                bool selected = remark != null && score.FactId == remark.FactId && score.Speaker == remark.Speaker;
+                scoring.Append("  director ").Append(score.FactId).Append(" via ").Append(score.Speaker)
+                    .Append(": ").Append(selected ? "selected for delivery" : score.Refusal ?? "not selected: lower score or stable id tie-break")
+                    .Append("; ").Append(score.Explain()).Append('\n');
+            }
+            budget += scoring.ToString();
             if (remark != null)
             {
                 return budget + "  " + remark.SpeakerName + ": \"" + remark.Line + "\"  [" + remark.FactId + "]\n";

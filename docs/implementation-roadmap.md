@@ -3205,6 +3205,35 @@ Score developments by tension, proximity, recurrence, unresolved history, underu
 consequence visibility, penalizing repetition and recent exposure.
 - **Depends** BQ-099.
 - **Done when** the inspector explains why one development was surfaced and another was not.
+- **Current implementation** ambient news ranks eligible claims with `DevelopmentScoring` before
+  taking each speaker's best candidate. The existing repertoire still owns hearsay eligibility,
+  confidence, secrecy and wording; BQ-099's salience floor, cooldown and exposure refusals still
+  govern admission. The ambient inspector uses the same selection call and reports every candidate's
+  contributions, total, refusal or selection, with stable fact/speaker-id tie breaking. A selection
+  is only a proposal for delivery; knowledge and pacing change through the existing delivery path.
+  Requested town news retains its existing ordering and remains available under budget saturation.
+- **Evidence / bounded policy** scores add existing repertoire salience, live tension (up to 1),
+  observed subject/player zone proximity (0.5), recurring participants from known matters or direct
+  player event history (0.5), age of known unresolved matters (up to 0.5 over seven in-game days),
+  declared recovery-verb diversity (up to 0.5), and player-involved/witnessed consequences (0.5).
+  They subtract known same-archetype matters (0.25 each, capped at 1) and same-matter belief/observed
+  arrival recency (up to 1, decaying over one in-game day). Shared claims take maximum contributions
+  rather than multiplying tension by thread membership. Backwards time cannot erase recency.
+  Unknown subject/player locations and absent recovery-verb declarations remain explicitly unknown
+  and contribute no bonus. Mechanic diversity counts prior known matters exposing the declared
+  recovery verbs, **not** inferred action use or a promise that a recovery action is currently legal.
+  The inspector labels that limited evidence. There is no new save state, history, knowledge store,
+  vanilla operation or authored wording. Actual action-use telemetry, experiential fingerprints,
+  quality-diversity selection and simulation-budget scheduling are not supplied by this step.
+- **Validation** 46 focused director/attention/ambient/news tests, all 1631 Core tests and all
+  140 Lab tests pass; the Plugin builds with zero warnings/errors, including its ContentCompiler bundle check. The
+  behavioral tests prove ranking before per-speaker truncation, explanations for alternatives,
+  hard budget refusal, unknown observations, history/visibility/diversity contributions, recency,
+  deterministic reload and read-only inspection. No content changed.
+- **Live verification still required** compare ambient inspector proposals with successfully
+  rendered remarks in Elin, including competing local matters and save/reload. Headless tests do
+  not establish live pacing quality; BQ-099's one-hour ordinary-play acceptance remains open.
+  BQ-127's inserted S7 sincerity budget is now dependency-ready and precedes further S9 work.
 - **Sources** MD §8.3; PM §54; LW §11.
 
 #### BQ-101 — Situation fingerprinting

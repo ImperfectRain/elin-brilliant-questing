@@ -82,6 +82,14 @@ namespace BrilliantQuesting.Knowledge
 
         public SpokenRemark Next(NarrativeWorldState world, IVanillaState vanilla, GameTime now, out string reason)
         {
+            return Next(world, vanilla, now, out reason, out _);
+        }
+
+        public SpokenRemark Next(NarrativeWorldState world, IVanillaState vanilla, GameTime now,
+            out string reason, out List<DevelopmentScore> scores)
+        {
+            var readings = new List<DevelopmentScore>();
+            scores = readings;
             reason = "nobody here has eligible hearsay the player has not heard";
             if (world == null || vanilla == null)
             {
@@ -118,13 +126,18 @@ namespace BrilliantQuesting.Knowledge
             {
                 // Filter before wording and before taking the best line. A blocked new matter
                 // must neither starve an eligible update nor make us realize a whole repertoire.
+                var byFact = new Dictionary<EntityId, DevelopmentScore>();
                 List<SpokenRemark> said = _repertoire.Of(world, vanilla, speakers[i], player, rules, 1,
                     (fact, salience) =>
                     {
                         string refusal = attention.RemarkRefusal(world, fact, salience);
+                        DevelopmentScore score = DevelopmentScoring.Read(world, vanilla, speakers[i], fact, salience, now);
+                        score.Refusal = refusal;
+                        readings.Add(score);
+                        byFact[fact] = score;
                         if (refusal != null) budgetRefusal = refusal;
                         return refusal == null;
-                    });
+                    }, (fact, salience) => byFact[fact].Total);
                 if (said.Count > 0 && TalkRepertoire.Beats(said[0], best))
                 {
                     best = said[0];

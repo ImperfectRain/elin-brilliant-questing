@@ -15,13 +15,14 @@ namespace BrilliantQuesting.Knowledge
     /// </summary>
     public sealed class SpokenRemark
     {
-        internal SpokenRemark(EntityId speaker, string speakerName, EntityId factId, string line, double salience, GuildFraming framing = GuildFraming.None, GuildId network = GuildId.None)
+        internal SpokenRemark(EntityId speaker, string speakerName, EntityId factId, string line, double salience, GuildFraming framing = GuildFraming.None, GuildId network = GuildId.None, double? selectionScore = null)
         {
             Speaker = speaker;
             SpeakerName = speakerName;
             FactId = factId;
             Line = line;
             Salience = salience;
+            SelectionScore = selectionScore ?? salience;
             Framing = framing;
             Network = network;
         }
@@ -43,6 +44,8 @@ namespace BrilliantQuesting.Knowledge
         /// the ordering, not something the player is ever shown a number for.
         /// </summary>
         internal double Salience { get; }
+
+        internal double SelectionScore { get; }
 
         /// <summary>
         /// What the speaker's guild makes of it, when speaker and listener are both inside a
@@ -138,7 +141,8 @@ namespace BrilliantQuesting.Knowledge
             EntityId listener,
             TalkRules rules,
             int limit,
-            Func<EntityId, double, bool> mayMention = null)
+            Func<EntityId, double, bool> mayMention = null,
+            Func<EntityId, double, double> rank = null)
         {
             List<SpokenRemark> remarks = new List<SpokenRemark>();
             if (world == null || vanilla == null || limit <= 0 || !CanSpeak(world, vanilla, speaker, listener))
@@ -160,7 +164,7 @@ namespace BrilliantQuesting.Knowledge
                     GuildFraming framing = GuildNetworks.FirstReading(world, networks, fact, out GuildId network);
                     double salience = Score(world, fact, belief, framing);
                     if (mayMention == null || mayMention(fact.Id, salience))
-                        candidates.Add(new Candidate(fact, belief, salience, framing, network));
+                        candidates.Add(new Candidate(fact, belief, salience, framing, network, rank == null ? salience : rank(fact.Id, salience)));
                 }
             }
 
@@ -181,7 +185,7 @@ namespace BrilliantQuesting.Knowledge
                     Words(world, candidates[i].Fact, candidates[i].Belief, candidates[i].Framing),
                     candidates[i].Salience,
                     candidates[i].Framing,
-                    candidates[i].Network));
+                    candidates[i].Network, candidates[i].SelectionScore));
             }
 
             return remarks;
@@ -190,11 +194,12 @@ namespace BrilliantQuesting.Knowledge
         /// <summary>One thing the speaker could bring up, before anybody has put it into words.</summary>
         private readonly struct Candidate
         {
-            internal Candidate(Fact fact, KnowledgeRecord belief, double salience, GuildFraming framing, GuildId network)
+            internal Candidate(Fact fact, KnowledgeRecord belief, double salience, GuildFraming framing, GuildId network, double selectionScore)
             {
                 Fact = fact;
                 Belief = belief;
                 Salience = salience;
+                SelectionScore = selectionScore;
                 Framing = framing;
                 Network = network;
             }
@@ -204,6 +209,7 @@ namespace BrilliantQuesting.Knowledge
             internal KnowledgeRecord Belief { get; }
 
             internal double Salience { get; }
+            internal double SelectionScore { get; }
 
             /// <summary>What a network both of them are inside makes of it, when there is one.</summary>
             internal GuildFraming Framing { get; }
@@ -216,9 +222,9 @@ namespace BrilliantQuesting.Knowledge
             /// </summary>
             internal static int Compare(Candidate a, Candidate b)
             {
-                if (a.Salience != b.Salience)
+                if (a.SelectionScore != b.SelectionScore)
                 {
-                    return a.Salience > b.Salience ? -1 : 1;
+                    return a.SelectionScore > b.SelectionScore ? -1 : 1;
                 }
 
                 return string.CompareOrdinal(a.Fact.Id.Value, b.Fact.Id.Value);
@@ -295,8 +301,8 @@ namespace BrilliantQuesting.Knowledge
         internal static bool Beats(SpokenRemark candidate, SpokenRemark best)
         {
             return best == null
-                   || candidate.Salience > best.Salience
-                   || (candidate.Salience == best.Salience
+                   || candidate.SelectionScore > best.SelectionScore
+                   || (candidate.SelectionScore == best.SelectionScore
                        && string.CompareOrdinal(candidate.FactId.Value, best.FactId.Value) < 0);
         }
 
