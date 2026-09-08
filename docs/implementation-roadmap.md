@@ -3668,6 +3668,27 @@ No sincere situation is marked as one — no framing line, no tonal cue, no jour
 difference in presentation. The player discovers the register from the content.
 - **Depends** BQ-074, BQ-127.
 - **Done when** a reviewer given a mixed set of surfaced situations cannot sort them by intended register from presentation alone.
+- **Current implementation / review evidence** the Lab scene host offers `--presentation`, a
+  review surface containing only speaker names and successfully rendered dialogue. It uses the
+  same router and BQ-127 admission gate as the diagnostic run. No storylet IDs, casting reports,
+  tonal labels, budget refusals, semantic traces or history summaries enter its standard output.
+  Failed or unworded scenes emit no replacement text and acknowledge no presentation. Ordinary
+  diagnostic runs retain the inspector, including sincerity telemetry. This is a Lab review
+  surface, not a new live player surface or a second wording authority.
+- **Validation** six focused tests pass. Four situation fixtures (theft, debt, shortage,
+  extortion) render byte-identically when only their intended-register metadata changes between
+  ordinary and `rare_sincerity`, after independently earning budget admission. A silent danger
+  fixture proves the same absence of framing in both registers. Repeated projection is identical;
+  the command-line test verifies diagnostics do not enter the review packet. All 1,639 Core and
+  146 Lab tests pass. No authored content, save state, Core or Plugin code changed.
+- **Review boundary** this controlled comparison establishes that the headless presentation
+  supplies no information by which to sort the mixed registers. It does not relabel shipped
+  scenes as emotionally sincere or measure whether their prose succeeds. D049 still applies:
+  the Plugin does not consume routed storylet wording. Once it does, repeat the blinded review
+  on actual dialogue, journal, notification, sound and visual surfaces; live parity is unverified.
+  Reproduce the text surface with `dotnet run --project tools/BrilliantQuesting.Lab -- run scene
+  --seed 15 --dry --presentation` (redirect standard output alone for review; build first or use
+  `--no-build` to keep build messages out). BQ-101 is the next canonical step.
 - **Sources** SP §4, §8; CD §21.
 - **Why** `character-dialogue-system.md` already forbids explaining the joke. The same rule protects the sincerity, and for the same reason: the contrast is the mechanism, and announcing it spends it.
 

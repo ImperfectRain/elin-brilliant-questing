@@ -49,7 +49,8 @@ namespace BrilliantQuesting.Lab.Cli.Scenarios
             new LabOption("situation", "id", "which starting world to play against", SceneSituations.DefaultId),
             new LabOption("list-situations", null, "print the available situations and stop"),
             new LabOption("storylet", "id", "play only this storylet", "every routed one"),
-            new LabOption("dry", null, "play for inspection and write nothing to the world")
+            new LabOption("dry", null, "play for inspection and write nothing to the world"),
+            new LabOption("presentation", null, "print only surfaced dialogue for a blind presentation review")
         };
 
         public override int Run(LabRunContext context)
@@ -89,6 +90,7 @@ namespace BrilliantQuesting.Lab.Cli.Scenarios
 
             string only = context.Arguments.String("storylet", null);
             bool apply = !context.Arguments.Has("dry");
+            bool presentation = context.Arguments.Has("presentation");
 
             StoryletRouter router = new StoryletRouter(
                 new DialogueRealizer(library), new VanillaStyleCheckResolver(fixture.Vanilla));
@@ -96,11 +98,14 @@ namespace BrilliantQuesting.Lab.Cli.Scenarios
             IReadOnlyList<StoryletOpportunity> opportunities = engine.Find(new StoryletCastingContext(
                 fixture.World, fixture.Vanilla, fixture.Thread, fixture.FocusFactId));
 
-            context.Header("the situation");
-            context.WriteLine(situation.Id + " - " + situation.Summary);
-            context.WriteLine("focus: " + Describe(fixture));
-            context.WriteLine();
-            context.WriteLine(NarrativeInspector.DescribeThread(fixture.World, fixture.Thread));
+            if (!presentation)
+            {
+                context.Header("the situation");
+                context.WriteLine(situation.Id + " - " + situation.Summary);
+                context.WriteLine("focus: " + Describe(fixture));
+                context.WriteLine();
+                context.WriteLine(NarrativeInspector.DescribeThread(fixture.World, fixture.Thread));
+            }
 
             int played = 0;
             foreach (StoryletOpportunity opportunity in opportunities.OrderBy(o => o.Definition.Id, StringComparer.Ordinal))
@@ -115,8 +120,11 @@ namespace BrilliantQuesting.Lab.Cli.Scenarios
                     continue;
                 }
 
-                context.Header(opportunity.Definition.Id);
-                context.WriteLine(NarrativeInspector.DescribeCasting(opportunity));
+                if (!presentation)
+                {
+                    context.Header(opportunity.Definition.Id);
+                    context.WriteLine(NarrativeInspector.DescribeCasting(opportunity));
+                }
 
                 bool presented = engine.TryPresent(opportunity, () =>
                 {
@@ -128,14 +136,15 @@ namespace BrilliantQuesting.Lab.Cli.Scenarios
                         ApplyConsequences = apply
                     });
 
-                    context.WriteLine(NarrativeInspector.DescribeStoryletPlay(fixture.World, play));
                     if (play.Played) played++;
+                    if (presentation) return ScenePresentation.Write(context.Output, fixture.World, play);
+                    context.WriteLine(NarrativeInspector.DescribeStoryletPlay(fixture.World, play));
                     return play.Played && play.Beats.Any(beat => beat.Line != null && beat.Line.Rendered);
                 });
-                if (!presented) context.WriteLine("No presentation acknowledged (budget deferred, scene refused, or no wording).");
+                if (!presented && !presentation) context.WriteLine("No presentation acknowledged (budget deferred, scene refused, or no wording).");
             }
 
-            context.WriteLine(NarrativeInspector.DescribeSincerityBudget(engine.SincerityBudget));
+            if (!presentation) context.WriteLine(NarrativeInspector.DescribeSincerityBudget(engine.SincerityBudget));
 
             if (played == 0)
             {
@@ -148,8 +157,11 @@ namespace BrilliantQuesting.Lab.Cli.Scenarios
                 return LabExit.ScenarioFailure;
             }
 
-            context.Header("what the town is left with");
-            context.WriteLine(NarrativeInspector.DescribeHistory(fixture.World, limit: 12));
+            if (!presentation)
+            {
+                context.Header("what the town is left with");
+                context.WriteLine(NarrativeInspector.DescribeHistory(fixture.World, limit: 12));
+            }
             return LabExit.Success;
         }
 
