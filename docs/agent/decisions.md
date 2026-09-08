@@ -2268,3 +2268,38 @@ This is an admission budget, not a new authority over whether an event happened.
 Reason: pacing the world by deleting matters or preventing earned consequences would make attention
 authoritative over truth. Keeping selection, delivery and belief distinct also lets a failed bark
 spend no knowledge, a known matter receive an update, and a quiet town remain investigable.
+
+## D076 — One native journal mount, with disposable BQ-owned pages
+
+The native journal is a view over existing authorities, never a quest database or a second
+Chronicle. NativeJournalSurface owns the single top-level LayerJournal mount and tab-memory
+protection. JournalPageRegistry owns ordered stable page ids, labels, read-only availability
+and projection callbacks. NativeJournalRenderer converts immutable sections/items to native
+widgets. Each switch reads current authorities again; only the selected internal page id lives
+with the native window. Nothing from this UI is persisted in a save.
+
+Initial pages are Overview and Chronicle. Overview reuses NarrativeContentProjection for
+known active matters, StandingSheet for earned standing, and NarrativeJournal for claims and
+people named in those claims. Chronicle reuses ChronicleNarrative.Export, including what the
+player knew and did. The DTO only arranges that reading and replaces diagnostic identity
+fallbacks with unnamed wording; it does not resolve uncertainty. Known/Reported/Suspected/
+Disputed/Rumour remain distinct. Voluntary journal reading neither spends an exposure budget
+nor teaches knowledge. Director/tone metadata, numeric confidence, tension and NPC importance
+are not presentation fields.
+
+A future page adds one descriptor and a projection callback (optionally availability); mounting
+and native rendering stay unchanged. Items can optionally link to another registered BQ page.
+Any future inspect/focus action must use existing authorities through an explicit adapter;
+putting a callback on a widget is not permission to manufacture facts or outcomes.
+
+Native templates are presentation scaffolding only. The current renderer copies root geometry
+and native scrollbar art but creates every control and listener itself. It never clones a
+ContentQuest hierarchy. The Window/view and vanilla tabs remain untouched. A future template
+must not carry its semantic controls or mutable references into BQ. A note layout is not a
+whole content screen: UINote.Clear clears its assigned layout children, and replacing UIContent
+alone cannot remove the rest of a quest prefab. Failure restores temporary skin state, contains
+switch exceptions, rolls back an owned partial mount and enables the existing dialogue/log route.
+Memory normalization must continue even after the native surface is disabled.
+
+Evidence and the unverified visual acceptance checklist live in docs/elin/api/journal-ui.md.
+This is a native UI corrective boundary, not implementation of the next roadmap feature.

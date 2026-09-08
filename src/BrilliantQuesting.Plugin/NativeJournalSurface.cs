@@ -1,16 +1,11 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Reflection;
 using BepInEx.Logging;
 using BrilliantQuesting.Diagnostics;
-using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
-using BrilliantQuesting.Knowledge;
-using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
 using HarmonyLib;
-using UnityEngine;
 
 namespace BrilliantQuesting.Plugin
 {
@@ -26,12 +21,6 @@ namespace BrilliantQuesting.Plugin
         private static ManualLogSource _log;
         private static NarrativeWorldState _world;
         private static ElinVanillaState _vanilla;
-        private static bool _reportedTemplateContent;
-        private static bool _reportedContentLifecycleInstantiate;
-        private static bool _reportedContentLifecycleSwitch;
-        private static bool _reportedContentRefresh;
-        private static bool _reportedContentBuilt;
-        private static bool _reportedContentMount;
         private static string _exportedChronicle;
 
         internal static bool UseDialogueFallback => !_patchesAvailable || _disabled;
@@ -116,6 +105,7 @@ namespace BrilliantQuesting.Plugin
 
         private static void BeforeBuildTabs(Window __instance)
         {
+            UIContent owned = null;
             try
             {
                 if (_disabled || __instance == null || !IsJournal(__instance) || HasBrilliantQuestingTab(__instance))
@@ -123,15 +113,15 @@ namespace BrilliantQuesting.Plugin
                     return;
                 }
 
-                UIContent content = CreateContent(__instance);
-                if (content == null)
+                owned = CreateContent(__instance);
+                if (owned == null)
                 {
                     _disabled = true;
                     _log?.LogWarning("Native Brilliant Questing journal disabled: no usable journal content template was available. Dialogue/log fallback remains enabled.");
                     return;
                 }
 
-                __instance.AddTab(TabId, content, null, null, TabId);
+                __instance.AddTab(TabId, owned, null, null, TabId);
                 object stored = BrilliantQuestingTabContent(__instance);
                 _log?.LogInfo("Native Brilliant Questing journal tab added to LayerJournal window "
                               + __instance.GetInstanceID() + "; stored content "
@@ -139,8 +129,24 @@ namespace BrilliantQuesting.Plugin
             }
             catch (Exception ex)
             {
-                _disabled = true;
-                _log?.LogWarning("Native Brilliant Questing journal failed closed: " + ex.GetType().Name + ": " + ex.Message + ". Vanilla journal remains untouched after this point; dialogue/log fallback remains enabled.");
+                // Roll back only entries pointing at this attempt's owned content, even if
+                // AddTab appended before failing. Never remove or destroy a vanilla object.
+                try
+                {
+                    if (owned != null)
+                    {
+                        IList tabs = ReadField(ReadField(__instance, "setting"), "tabs") as IList;
+                        if (tabs != null)
+                            for (int i = tabs.Count - 1; i >= 0; i--)
+                                if (ReferenceEquals(ReadField(tabs[i], "content"), owned)) tabs.RemoveAt(i);
+                        UnityEngine.Object.DestroyImmediate(owned.gameObject);
+                    }
+                }
+                catch (Exception cleanup)
+                {
+                    _log?.LogWarning("Native Brilliant Questing journal cleanup failed: " + cleanup.Message);
+                }
+                FailSurface(ex);
             }
         }
 
@@ -152,53 +158,31 @@ namespace BrilliantQuesting.Plugin
                 return null;
             }
 
-            UIContent instantiated = Util.Instantiate(template, window.view);
-            if (instantiated == null)
-            {
-                return null;
-            }
+            // Copy only RectTransform values. Never instantiate a quest hierarchy or retain
+            // its component/layout references. The Window and its view remain vanilla-owned.
+            return NativeJournalRenderer.Create(window, template, RefreshPage, FailSurface, _log);
+        }
 
-            GameObject gameObject = instantiated.gameObject;
-            gameObject.name = "BrilliantQuestingJournalContent";
-            gameObject.SetActive(false);
+        private static void RefreshPage(NativeJournalRenderer content)
+        {
+            content.Render(_world, _vanilla);
+            if (_world == null || _vanilla == null) return;
+            string text = ChronicleNarrative.Export(_world, _vanilla.PlayerId, _vanilla.Now);
+            if (string.Equals(text, _exportedChronicle, StringComparison.Ordinal)) return;
+            _exportedChronicle = text;
+            foreach (string line in text.Split('\n')) _log?.LogInfo(line);
+        }
 
-            if (!_reportedTemplateContent)
-            {
-                _reportedTemplateContent = true;
-                _log?.LogInfo("Native Brilliant Questing journal content template type: "
-                              + TypeName(template) + ".");
-            }
-
-            Dictionary<string, object> copied = CopyFields(
-                instantiated,
-                "target",
-                "prof",
-                "skinType",
-                "idDefaultText",
-                "layout");
-            UnityEngine.Object.DestroyImmediate(instantiated);
-
-            BrilliantQuestingJournalContent content = gameObject.AddComponent<BrilliantQuestingJournalContent>();
-            ApplyFields(content, copied);
-            content.OnInstantiate();
-            if (!_reportedContentMount)
-            {
-                _reportedContentMount = true;
-                _log?.LogInfo("Native Brilliant Questing journal content mounted after Util.Instantiate: parentIsWindowViewTransform="
-                              + (window.view != null && content.transform.parent == window.view.transform)
-                              + "; isPrefab="
-                              + content.IsPrefab()
-                              + "; UIContent components="
-                              + ContentComponentTypes(gameObject)
-                              + ".");
-            }
-
-            return content;
+        private static void FailSurface(Exception ex)
+        {
+            _disabled = true;
+            _log?.LogWarning("Native Brilliant Questing journal failed closed: " + ex.GetType().Name
+                + ": " + ex.Message + ". Dialogue/log fallback remains enabled.");
         }
 
         private static void NormalizeRememberedJournalTab(Window window, Layer initLayer, string phase)
         {
-            if (_disabled || window == null || !IsJournal(window, initLayer))
+            if (window == null || !IsJournal(window, initLayer))
             {
                 return;
             }
@@ -324,7 +308,7 @@ namespace BrilliantQuesting.Plugin
                 return true;
             }
 
-            return ReadField(tab, "content") is BrilliantQuestingJournalContent;
+            return ReadField(tab, "content") is NativeJournalRenderer;
         }
 
         private static IDictionary ReadRememberedTabs(Window window)
@@ -356,68 +340,9 @@ namespace BrilliantQuesting.Plugin
             return field == null ? null : field.GetValue(instance);
         }
 
-        private static Dictionary<string, object> CopyFields(object instance, params string[] names)
-        {
-            Dictionary<string, object> values = new Dictionary<string, object>();
-            if (instance == null || names == null)
-            {
-                return values;
-            }
-
-            for (int i = 0; i < names.Length; i++)
-            {
-                FieldInfo field = AccessTools.Field(instance.GetType(), names[i]);
-                if (field != null)
-                {
-                    values[names[i]] = field.GetValue(instance);
-                }
-            }
-
-            return values;
-        }
-
-        private static void ApplyFields(object instance, Dictionary<string, object> values)
-        {
-            if (instance == null || values == null)
-            {
-                return;
-            }
-
-            foreach (KeyValuePair<string, object> pair in values)
-            {
-                FieldInfo field = AccessTools.Field(instance.GetType(), pair.Key);
-                if (field != null)
-                {
-                    field.SetValue(instance, pair.Value);
-                }
-            }
-        }
-
         private static string StringValue(object value)
         {
             return value == null ? string.Empty : value.ToString();
-        }
-
-        private static string ContentComponentTypes(GameObject gameObject)
-        {
-            if (gameObject == null)
-            {
-                return "none";
-            }
-
-            UIContent[] contents = gameObject.GetComponents<UIContent>();
-            if (contents == null || contents.Length == 0)
-            {
-                return "none";
-            }
-
-            List<string> names = new List<string>();
-            for (int i = 0; i < contents.Length; i++)
-            {
-                names.Add(TypeName(contents[i]));
-            }
-
-            return string.Join(", ", names.ToArray());
         }
 
         private static string TypeName(object value)
@@ -442,387 +367,5 @@ namespace BrilliantQuesting.Plugin
             }
         }
 
-        private sealed class BrilliantQuestingJournalContent : UIContent
-        {
-            public override void OnInstantiate()
-            {
-                if (!_reportedContentLifecycleInstantiate)
-                {
-                    _reportedContentLifecycleInstantiate = true;
-                    _log?.LogInfo("Native Brilliant Questing journal content OnInstantiate invoked.");
-                }
-
-                Refresh();
-            }
-
-            public override void OnSwitchContent(int idTab)
-            {
-                if (!_reportedContentLifecycleSwitch)
-                {
-                    _reportedContentLifecycleSwitch = true;
-                    _log?.LogInfo("Native Brilliant Questing journal content OnSwitchContent invoked for tab " + idTab + ".");
-                }
-
-                Refresh();
-            }
-
-            private void Refresh()
-            {
-                if (!_reportedContentRefresh)
-                {
-                    _reportedContentRefresh = true;
-                    _log?.LogInfo("Native Brilliant Questing journal content Refresh invoked.");
-                }
-
-                Clear();
-                AddHeader("Brilliant Questing", null);
-
-                NarrativeWorldState world = _world;
-                ElinVanillaState vanilla = _vanilla;
-                if (world == null || vanilla == null)
-                {
-                    AddText("No Brilliant Questing state is loaded.", FontColor.Default);
-                    Build();
-                    return;
-                }
-
-                EntityId player = vanilla.PlayerId;
-                AddActiveMatters(world, player);
-                AddStanding(world, vanilla);
-                AddKnownPeople(world, player);
-                AddKnownClaims(world, player);
-                AddChronicle(world, vanilla);
-                Build();
-                if (!_reportedContentBuilt)
-                {
-                    _reportedContentBuilt = true;
-                    _log?.LogInfo("Native Brilliant Questing journal content Build completed with "
-                                  + world.Registry.Npcs.Count + " people, "
-                                  + world.Ledger.Count + " events, "
-                                  + world.Threads.Count + " thread(s).");
-                }
-            }
-
-            private void AddActiveMatters(NarrativeWorldState world, EntityId player)
-            {
-                AddHeader("Active content", null);
-                IReadOnlyList<NarrativeContentEntry> entries = NarrativeContentProjection.Entries(world, player);
-                if (entries.Count == 0)
-                {
-                    AddText("No active matters.", FontColor.Default);
-                    return;
-                }
-
-                AddContentGroup(world, player, entries, NarrativeContentClass.Situation, "Situations");
-                AddContentGroup(world, player, entries, NarrativeContentClass.Request, "Requests");
-                AddContentGroup(world, player, entries, NarrativeContentClass.Opportunity, "Opportunities");
-                AddContentGroup(world, player, entries, NarrativeContentClass.Event, "Events");
-            }
-
-            private void AddContentGroup(
-                NarrativeWorldState world,
-                EntityId player,
-                IReadOnlyList<NarrativeContentEntry> entries,
-                NarrativeContentClass contentClass,
-                string heading)
-            {
-                bool any = false;
-                for (int i = 0; i < entries.Count; i++)
-                {
-                    NarrativeContentEntry entry = entries[i];
-                    if (entry.ContentClass != contentClass)
-                    {
-                        continue;
-                    }
-
-                    if (!any)
-                    {
-                        AddHeader(heading, null);
-                        any = true;
-                    }
-
-                    AddText(entry.Title + (string.IsNullOrEmpty(entry.Detail) ? string.Empty : "  " + entry.Detail), FontColor.Topic);
-                    if (contentClass == NarrativeContentClass.Situation)
-                    {
-                        NarrativeThread thread = world.GetThread(entry.ThreadId);
-                        if (thread != null)
-                        {
-                            AddCaseNotes(world, player, thread);
-                        }
-                    }
-                }
-            }
-
-            private void AddCaseNotes(NarrativeWorldState world, EntityId player, NarrativeThread thread)
-            {
-                IReadOnlyList<JournalEntry> entries = KnownEntriesForThread(world, player, thread);
-                if (entries.Count == 0)
-                {
-                    AddText("You do not know enough to summarize this matter yet.", FontColor.Default);
-                    return;
-                }
-
-                AddText("Known people: " + Names(world, KnownPeopleIn(world, entries)), FontColor.Default);
-                for (int i = 0; i < entries.Count; i++)
-                {
-                    JournalEntry entry = entries[i];
-                    AddText(EntryLine(entry), entry.CanProve ? FontColor.Good : FontColor.Default);
-                }
-            }
-
-            private void AddKnownPeople(NarrativeWorldState world, EntityId player)
-            {
-                AddHeader("Known people", null);
-                IReadOnlyList<JournalEntry> entries = NarrativeJournal.Entries(world, player);
-                List<EntityId> known = KnownPeopleIn(world, entries);
-                for (int i = 0; i < known.Count; i++)
-                {
-                    NarrativeNpc npc = world.Registry.GetNpc(known[i]);
-                    AddText(npc.Name + "  " + npc.Importance, FontColor.Default);
-                }
-
-                if (known.Count == 0)
-                {
-                    AddText("No one tied to a known claim yet.", FontColor.Default);
-                }
-            }
-
-            private void AddKnownClaims(NarrativeWorldState world, EntityId player)
-            {
-                AddHeader("Known claims and proof", null);
-                IReadOnlyList<JournalEntry> entries = NarrativeJournal.Entries(world, player);
-                if (entries.Count == 0)
-                {
-                    AddText("Nothing known yet.", FontColor.Default);
-                    return;
-                }
-
-                for (int i = 0; i < entries.Count; i++)
-                {
-                    JournalEntry entry = entries[i];
-                    AddText(EntryLine(entry), entry.CanProve ? FontColor.Good : FontColor.Default);
-                }
-            }
-
-            /// <summary>
-            /// BQ-118: what the player holds that is neither money nor an item.
-            ///
-            /// Placed directly under the open matters and above what is known, because it is the
-            /// half of the journal the player consults to decide what to do next rather than to
-            /// remember what happened. Everything below it is recollection.
-            /// </summary>
-            private void AddStanding(NarrativeWorldState world, ElinVanillaState vanilla)
-            {
-                AddHeader("Standing", null);
-                IReadOnlyList<StandingEntry> entries = StandingSheet.Entries(world, vanilla);
-                if (entries.Count == 0)
-                {
-                    AddText("You have earned nothing yet that is not money or an item.", FontColor.Default);
-                    return;
-                }
-
-                AddStandingGroup(entries, StandingKind.OwedToYou, "Owed to you");
-                AddStandingGroup(entries, StandingKind.YouOwe, "You owe");
-                AddStandingGroup(entries, StandingKind.Access, "Doors open to you");
-                AddStandingGroup(entries, StandingKind.Membership, "You belong to");
-                AddStandingGroup(entries, StandingKind.VanillaStanding, "Standing");
-            }
-
-            private void AddStandingGroup(IReadOnlyList<StandingEntry> entries, StandingKind kind, string heading)
-            {
-                bool any = false;
-                for (int i = 0; i < entries.Count; i++)
-                {
-                    StandingEntry entry = entries[i];
-                    if (entry.Kind != kind)
-                    {
-                        continue;
-                    }
-
-                    if (!any)
-                    {
-                        AddHeader(heading, null);
-                        any = true;
-                    }
-
-                    // Good marks what can still be spent, so a favour the world can no longer
-                    // honour never reads as an offer.
-                    AddText(
-                        entry.Title + (string.IsNullOrEmpty(entry.Detail) ? string.Empty : "  " + entry.Detail),
-                        entry.Callable ? FontColor.Good : FontColor.Default);
-                }
-            }
-
-            /// <summary>
-            /// BQ-117: the chronicle as a trophy case - who the player became, and then what they
-            /// finished.
-            ///
-            /// The people, places and businesses come first and the finished matters last, because
-            /// the first three are what a player retells and the last is the record they check.
-            /// Nothing here decides anything: every line is a reading
-            /// <see cref="ChronicleNarrative"/> already derived.
-            /// </summary>
-            private void AddChronicle(NarrativeWorldState world, ElinVanillaState vanilla)
-            {
-                ChronicleLife life = ChronicleNarrative.Read(world, vanilla.PlayerId, vanilla.Now);
-
-                AddHeader("Who you dealt with", null);
-                if (life.Figures.Count == 0)
-                {
-                    AddText("Nobody yet.", FontColor.Default);
-                }
-
-                for (int i = 0; i < life.Figures.Count; i++)
-                {
-                    ChronicleFigure figure = life.Figures[i];
-                    AddText(figure.Name + "  " + figure.Dealings + (figure.Dealings == 1 ? " dealing" : " dealings")
-                            + (figure.Tie == null ? string.Empty : "  " + Chronicle.Words(figure.Tie.Kind.ToString())),
-                        FontColor.Topic);
-                }
-
-                if (life.Places.Count > 0)
-                {
-                    AddHeader("Places that carry your name", null);
-                    for (int i = 0; i < life.Places.Count; i++)
-                    {
-                        ChroniclePlace place = life.Places[i];
-                        AddText(place.Name + "  day " + place.Last.TotalDays, FontColor.Topic);
-                    }
-                }
-
-                if (life.Works.Count > 0)
-                {
-                    AddHeader("Businesses you changed", null);
-                    for (int i = 0; i < life.Works.Count; i++)
-                    {
-                        ChronicleWork work = life.Works[i];
-                        string keeper = work.OperatorId.IsNone ? string.Empty : world.Registry.NameOf(work.OperatorId) + "  ";
-                        AddText(keeper + Chronicle.Words(work.Left.ToString()) + "  day " + work.At.TotalDays,
-                            work.Holds ? FontColor.Good : FontColor.Default);
-                    }
-                }
-
-                AddHeader("Resolved matters", null);
-                if (life.Matters.Count == 0)
-                {
-                    AddText("Nothing resolved yet.", FontColor.Default);
-                }
-
-                for (int i = 0; i < life.Matters.Count; i++)
-                {
-                    ChronicleEntry entry = life.Matters[i];
-                    AddText(Chronicle.Words(entry.ArchetypeId) + "  " + Chronicle.Words(entry.Outcome) + "  day " + entry.ResolvedAt.TotalDays, FontColor.Topic);
-                    for (int a = 0; a < entry.WhatThePlayerDid.Count; a++)
-                    {
-                        ChronicleAct act = entry.WhatThePlayerDid[a];
-                        AddText("You: " + Chronicle.Words(act.Type.ToString()) + (act.Towards.IsNone ? string.Empty : " - " + world.Registry.NameOf(act.Towards)), FontColor.Default);
-                    }
-                }
-
-                ExportChronicle(world, vanilla);
-            }
-
-            /// <summary>
-            /// BQ-117's "exportable as text", through the route BQ-012's report already uses: the
-            /// whole chronicle goes to `BepInEx/LogOutput.log`, which is a text file the player can
-            /// read, paste and share with the game shut, and the page says so in one line.
-            ///
-            /// Written only when the text has changed since the last write, so opening the journal
-            /// twice in a row does not put two copies in the log. A dedicated `.txt` beside the
-            /// save would be better and is deliberately not attempted here: it needs a writable
-            /// path verified in a live install, and guessing one is how a surface that silently
-            /// writes nothing gets shipped.
-            /// </summary>
-            private void ExportChronicle(NarrativeWorldState world, ElinVanillaState vanilla)
-            {
-                string text;
-                try
-                {
-                    text = ChronicleNarrative.Export(world, vanilla.PlayerId, vanilla.Now);
-                }
-                catch (Exception ex)
-                {
-                    _log?.LogError("Chronicle export failed: " + ex);
-                    return;
-                }
-
-                if (!string.Equals(text, _exportedChronicle, StringComparison.Ordinal))
-                {
-                    _exportedChronicle = text;
-                    foreach (string line in text.Split('\n'))
-                    {
-                        _log?.LogInfo(line);
-                    }
-                }
-
-                AddText("A copy of this chronicle is in BepInEx/LogOutput.log.", FontColor.Default);
-            }
-
-            private static string EntryLine(JournalEntry entry)
-            {
-                return "[" + entry.Tag + "] " + entry.Text + " (" + entry.Source + ", confidence "
-                       + entry.Confidence.ToString("0.00") + (entry.CanProve ? ", proof)" : ", no proof)");
-            }
-
-            private static IReadOnlyList<JournalEntry> KnownEntriesForThread(NarrativeWorldState world, EntityId player, NarrativeThread thread)
-            {
-                List<JournalEntry> known = new List<JournalEntry>();
-                IReadOnlyList<JournalEntry> entries = NarrativeJournal.Entries(world, player);
-                for (int i = 0; i < entries.Count; i++)
-                {
-                    if (thread.FactIds.Contains(entries[i].FactId))
-                    {
-                        known.Add(entries[i]);
-                    }
-                }
-
-                return known;
-            }
-
-            private static List<EntityId> KnownPeopleIn(NarrativeWorldState world, IReadOnlyList<JournalEntry> entries)
-            {
-                List<EntityId> known = new List<EntityId>();
-                for (int i = 0; i < entries.Count; i++)
-                {
-                    Fact fact = world.Knowledge.GetFact(entries[i].FactId);
-                    if (fact == null)
-                    {
-                        continue;
-                    }
-
-                    AddKnownPerson(world, known, fact.Subject);
-                    AddKnownPerson(world, known, fact.Object);
-                }
-
-                return known;
-            }
-
-            private static void AddKnownPerson(NarrativeWorldState world, List<EntityId> known, EntityId id)
-            {
-                if (id.IsNone || world.Registry.GetNpc(id) == null || known.Contains(id))
-                {
-                    return;
-                }
-
-                known.Add(id);
-            }
-
-            private static string Names(NarrativeWorldState world, IReadOnlyList<EntityId> ids)
-            {
-                if (ids == null || ids.Count == 0)
-                {
-                    return "none";
-                }
-
-                List<string> names = new List<string>();
-                for (int i = 0; i < ids.Count; i++)
-                {
-                    names.Add(world.Registry.NameOf(ids[i]));
-                }
-
-                return string.Join(", ", names);
-            }
-
-        }
     }
 }
