@@ -3233,7 +3233,8 @@ consequence visibility, penalizing repetition and recent exposure.
 - **Live verification still required** compare ambient inspector proposals with successfully
   rendered remarks in Elin, including competing local matters and save/reload. Headless tests do
   not establish live pacing quality; BQ-099's one-hour ordinary-play acceptance remains open.
-  BQ-127's inserted S7 sincerity budget is now dependency-ready and precedes further S9 work.
+  BQ-127's inserted S7 sincerity budget follows this step; BQ-128's review gate follows it
+  before further S9 work.
 - **Sources** MD §8.3; PM §54; LW §11.
 
 #### BQ-101 — Situation fingerprinting
@@ -3627,6 +3628,38 @@ The director tracks sincere content the way `CD §22.2` tracks weirdness: rare, 
 surrounded by the ordinary and the absurd.
 - **Depends** BQ-065, BQ-099, BQ-100.
 - **Done when** the director can report the sincerity rate of a session, and the rate holds under long play without a hand-tuned exception.
+- **Current implementation** `StoryletEngine` owns one transient `SincerityBudget` per host
+  session. `FindForPresentation` narrows semantically eligible suggestions; `TryPresent` rechecks
+  immediately before invoking the host's delivery callback and counts only an acknowledged
+  presentation. Ordinary `Find`, `Evaluate`, `Fire` and routed simulation retain their semantics.
+  The existing authored storylet `toneTags` field accepts `rare_sincerity` for rare emotional
+  scenes. This is not the dialogue fragment tone vocabulary, a truthfulness judgment, or an
+  inference from family membership, sadness, a confession, or an ordinary sincere sentence.
+  Nine other acknowledged scenes must precede the first sincere scene and separate each subsequent
+  one, giving a maximum 10% rate at every session prefix. Allowance is capped, so a long ordinary
+  stretch cannot fund a burst. Failed delivery, inspection and rejected proposals count nothing.
+  `NarrativeInspector.DescribeSincerityBudget` reports numerator, denominator, rate (unobserved
+  before any delivery), spacing and ceiling. This is diagnostic telemetry, not player framing.
+- **Architecture / evidence boundary** the host keeps its engine across scenes; constructing a
+  new engine begins a new session, including after reload. No counters enter a save or duplicate
+  the event ledger. Restored firings are not evidence of presentation. The Lab `run scene` path
+  uses the gate and acknowledges only after writing a played scene containing rendered wording;
+  a printed dry run counts in that Lab session because its words were displayed. This proves
+  headless presentation, not live Elin exposure. The Plugin does not yet consume routed storylet
+  wording (D049), so wiring a fictitious live acknowledgement here would misreport success.
+  Existing content is not reclassified by guesswork: untagged scenes remain outside this rare
+  register, and the long-run proof uses synthetic tagged definitions. The policy caps frequency,
+  not a quota requiring sincere scenes when none qualify.
+- **Validation** eight focused regression tests pass, including 1,000 presentations with the
+  ceiling checked at every prefix, spacing, no banked bursts, stale proposals, rejected/failed
+  delivery, reentrancy, read-only inspection, save independence and authored bundle metadata.
+  All 1,639 Core tests and 140 Lab tests pass. The Plugin builds with zero warnings/errors,
+  including its ContentCompiler bundle check. No shipped content changed. The Lab scene probe
+  reports six acknowledged presentations and excludes two unworded scenes from its denominator.
+- **Live verification still required** when routed storylets acquire a live presentation host,
+  retain one engine for its session, acknowledge only successful display, and compare its report
+  with observed scenes over extended play. The 10% ceiling is a bounded policy awaiting tonal
+  playtesting, not an observed preference or a claim about all vanilla/BQ dialogue.
 - **Sources** SP §4; CD §22.2.
 - **Why** Pael's mother and the Strange Diary are remembered *because* they sit in a game that wants you to die smiling and does not comment on cannibalism. Frequency would destroy the exact thing that makes them land.
 

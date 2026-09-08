@@ -118,25 +118,32 @@ namespace BrilliantQuesting.Lab.Cli.Scenarios
                 context.Header(opportunity.Definition.Id);
                 context.WriteLine(NarrativeInspector.DescribeCasting(opportunity));
 
-                StoryletPlay play = router.Play(opportunity, new StoryletPlayContext(
-                    fixture.World, fixture.Vanilla, fixture.Thread)
+                bool presented = engine.TryPresent(opportunity, () =>
                 {
-                    Rng = new DeterministicRng(context.Seed),
-                    InPublic = opportunity.Definition.ToneTags.Contains("public"),
-                    ApplyConsequences = apply
-                });
+                    StoryletPlay play = router.Play(opportunity, new StoryletPlayContext(
+                        fixture.World, fixture.Vanilla, fixture.Thread)
+                    {
+                        Rng = new DeterministicRng(context.Seed),
+                        InPublic = opportunity.Definition.ToneTags.Contains("public"),
+                        ApplyConsequences = apply
+                    });
 
-                context.WriteLine(NarrativeInspector.DescribeStoryletPlay(fixture.World, play));
-                played++;
+                    context.WriteLine(NarrativeInspector.DescribeStoryletPlay(fixture.World, play));
+                    if (play.Played) played++;
+                    return play.Played && play.Beats.Any(beat => beat.Line != null && beat.Line.Rendered);
+                });
+                if (!presented) context.WriteLine("No presentation acknowledged (budget deferred, scene refused, or no wording).");
             }
+
+            context.WriteLine(NarrativeInspector.DescribeSincerityBudget(engine.SincerityBudget));
 
             if (played == 0)
             {
                 // Why nothing played is the interesting half of a probe like this, and it is the
                 // engine's own answer rather than a guess: `Evaluate` names the rule that refused.
-                context.Error.WriteLine("no routed storylet could be cast on " + situation.Id
+                context.Error.WriteLine("no routed storylet played on " + situation.Id
                     + (only == null ? string.Empty : " matching " + only)
-                    + ". The engine refused every one; nothing here invents a scene to fill the gap.");
+                    + ". Check casting refusals and presentation budget diagnostics above.");
                 Refusals(context, bundle, fixture, only);
                 return LabExit.ScenarioFailure;
             }

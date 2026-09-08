@@ -12,6 +12,30 @@ namespace BrilliantQuesting.Storylets
     {
         private readonly List<StoryletDefinition> _definitions = new List<StoryletDefinition>();
 
+        /// <summary>One host session, shared across all its storylets; a new engine starts a new session.</summary>
+        public SincerityBudget SincerityBudget { get; } = new SincerityBudget();
+
+        /// <summary>
+        /// Director admission for suggested presentations. Ordinary Find/Evaluate still describe
+        /// semantic eligibility, including scenes deferred only by pacing.
+        /// </summary>
+        public IReadOnlyList<StoryletOpportunity> FindForPresentation(StoryletCastingContext context)
+        {
+            List<StoryletOpportunity> admitted = new List<StoryletOpportunity>();
+            foreach (StoryletOpportunity opportunity in Find(context))
+            {
+                if (SincerityBudget.Allows(opportunity.Definition)) admitted.Add(opportunity);
+            }
+            return admitted;
+        }
+
+        /// <summary>Fresh pacing check on a previously selected proposal, with delivery acknowledged by the host.</summary>
+        public bool TryPresent(StoryletOpportunity opportunity, Func<bool> present)
+        {
+            if (opportunity == null) throw new ArgumentNullException(nameof(opportunity));
+            return opportunity.IsAvailable && SincerityBudget.TryPresent(opportunity.Definition, present);
+        }
+
         public void Register(StoryletDefinition definition)
         {
             if (definition == null)

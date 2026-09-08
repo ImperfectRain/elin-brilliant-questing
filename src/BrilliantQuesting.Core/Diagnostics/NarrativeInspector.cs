@@ -1115,6 +1115,20 @@ namespace BrilliantQuesting.Diagnostics
             return sb.ToString();
         }
 
+        /// <summary>Read-only telemetry for a host session; no claim of live Elin delivery.</summary>
+        public static string DescribeSincerityBudget(SincerityBudget budget)
+        {
+            if (budget == null) return "sincerity session: unavailable\n";
+            return "sincerity session (acknowledged storylet presentations only): "
+                + budget.SincereScenes + "/" + budget.PresentedScenes
+                + "; rate=" + (budget.Rate.HasValue
+                    ? budget.Rate.Value.ToString("P1", System.Globalization.CultureInfo.InvariantCulture)
+                    : "unobserved")
+                + "; other scenes since sincerity=" + budget.OtherScenesSinceSincerity
+                + "/" + SincerityBudget.RequiredOtherScenes
+                + "; ceiling=10%; allowance does not accumulate\n";
+        }
+
         /// <summary>
         /// What the world is currently pressing on, and what each pressure could turn into.
         ///
