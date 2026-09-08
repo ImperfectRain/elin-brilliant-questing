@@ -37,7 +37,8 @@ namespace BrilliantQuesting.Actions.Library
         /// believing the old one is simply out of date, which is the correct state for them to be
         /// in and one that overwriting would erase.
         /// </summary>
-        public static Fact Record(NarrativeWorldState world, EntityId subject, EntityId zone, string zoneName)
+        public static Fact Record(NarrativeWorldState world, EntityId subject, EntityId zone, string zoneName,
+            EntityId originEvent = default)
         {
             Fact existing = Current(world, subject);
             if (existing != null && existing.Object == zone)
@@ -50,7 +51,8 @@ namespace BrilliantQuesting.Actions.Library
                 existing.Truth = TruthState.Superseded;
             }
 
-            Fact placed = new Fact(world.NewId("fact"), subject, FactPredicates.LocatedAt, zone, zoneName);
+            Fact placed = new Fact(world.NewId("fact"), subject, FactPredicates.LocatedAt, zone, zoneName,
+                originEvent: originEvent);
             world.Knowledge.AddFact(placed);
             return placed;
         }

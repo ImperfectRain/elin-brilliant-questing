@@ -764,6 +764,35 @@ BQ-139 exists, it should be expressible as a procedural scenario dungeon/investi
 layout follows the caravan's true history rather than a generic camp.
 - **Depends** BQ-087, BQ-097.
 - **Done when** a caravan that actually failed off-screen produces a findable site with real cargo.
+- **Current implementation** `FailedCaravanSituation.Establish` consumes a failed BQ-097 caravan
+  and its existing thread. It requires ledger-backed departure and failure, a cause from that
+  matter naming the caravan, a member or its cargo, and an explicit matching failure/cause site.
+  Lateness, an interruption alone, an absent cause and an unrelated incident cannot generate a
+  wreck. This closes the S5 archetype after its S8 travel/site dependencies landed, before BQ-099.
+  The caller supplies the observed kind of place through an existing grammar and piece family;
+  there is no default camp, guessed biome, new journey, duplicate thread or invented contents.
+  BQ-139's `ScenarioPlanner` derives and validates the scenario; BQ-091 verifies the original
+  cargo in inventories, BQ-140 realizes the authored pieces, and BQ-087 establishes the site.
+  Every derived occupant must already be observed in the failure zone. A required-zone constraint
+  on the genesis plan refuses an adapter binding elsewhere before registering a misleading site.
+  The existing whereabouts primitive records a cargo keeper's location with the failure event as
+  provenance. Only that keeper initially knows the lead; ordinary rumour/inquiry and journal
+  projection make it discoverable without granting the player off-screen knowledge or proof.
+  Return visits use the established site, including after save/load and cargo recovery: no terrain
+  regeneration, replacement loot, history redispatch, duplicate fact or repeated teaching.
+  **Headless proof:** `dotnet run --project tools/BrilliantQuesting.Lab -- run failed-caravan`
+  shows departure, theft of the original wine cargo, failure, a causal occupied-mine scenario,
+  a location rumour reaching the journal, a visit with real cargo and an unchanged reload/return.
+  `FailedCaravanTests` cover this chain and the refusal and persistence boundaries.
+  Validation: 33 focused/neighboring tests, all 1604 Core tests and 140 Lab tests pass;
+  the Plugin builds with zero warnings/errors. No authored content changed.
+- **Unverified, and not claimed** no live Elin session has exercised this archetype. The existing
+  adapter refuses structured site creation (`ELIN-Q-0032`); arbitrary-zone inventory/presence
+  remains the `ELIN-Q-0008` gap. Native creation, exact cargo/actor persistence after unload and
+  reload, and live discovery still need verification. The entry point requires an existing failed
+  journey and observed site context; automatic live caravan intake or choosing an unobserved place
+  is not supplied. Unknown whereabouts and unsupported materialization fail closed. No new
+  native API or direct `GlobalGoal` write was added.
 - **Sources** MD §24.2; PM §34, §73; LW §9.3; PP §4.
 
 #### BQ-044 — Archetype: false accusation

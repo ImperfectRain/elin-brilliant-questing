@@ -150,6 +150,12 @@ namespace BrilliantQuesting.World
         public EntityId ThreadId { get; }
 
         /// <summary>
+        /// Where recorded history requires this place to be embodied. None for unconstrained
+        /// genesis. A mismatched adapter binding must not relocate that history by implication.
+        /// </summary>
+        public EntityId RequiredZoneId { get; set; }
+
+        /// <summary>
         /// The curated kind of place this was planned from, where one was (BQ-089). Empty on a
         /// plan somebody wrote by hand, which is the truth about it rather than a gap.
         /// </summary>
@@ -339,6 +345,12 @@ namespace BrilliantQuesting.World
                     SiteGenesisOutcome.NotEmbodied,
                     null,
                     new[] { "the adapter could not give " + plan.Name + " a place on this build" });
+            }
+
+            if (!plan.RequiredZoneId.IsNone && EntityId.Parse(zoneRef) != plan.RequiredZoneId)
+            {
+                return new SiteGenesisResult(SiteGenesisOutcome.NotEmbodied, null,
+                    new[] { "the adapter bound the place outside its required historical zone" });
             }
 
             NarrativeSite site = new NarrativeSite(plan.SiteId, plan.Name, plan.SiteType)
