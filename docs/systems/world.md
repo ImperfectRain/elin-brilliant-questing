@@ -146,3 +146,19 @@ Proof: [SiteGenesisTests](../../tests/BrilliantQuesting.Core.Tests/SiteGenesisTe
 [SiteMutationTests](../../tests/BrilliantQuesting.Core.Tests/SiteMutationTests.cs).
 Lab: [dungeon](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/DungeonScenario.cs),
 [site-addition](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/SiteAdditionScenario.cs).
+
+Spatial diagnostics: [SpatialRangeHarness](../../tools/BrilliantQuesting.Lab/SpatialRangeHarness.cs)
+reads selected `ScenarioPlan` artifacts across shipped grammars and consecutive seeds, using the
+existing theft fixture with an explicitly staged three-person crew and an evidence-cache objective.
+It reuses the anti-template histogram/repetition metric; refused plans are reported separately.
+Exact directed graph canonicalization ignores nouns, IDs and declaration order while preserving
+objective/outside roles and, for experiential topology, requirements, affordances, verbs, admission
+and support. Search-budget exhaustion is missing coverage, never a guessed equivalence.
+Other axes report directed cycle count, shortest promised objective depth, route mechanics and
+alternatives, evidence/occupancy depth distributions (including unplaced people), and causal evidence
+linkage/reachability as a limited history-readability proxy. These are selected-plan measurements,
+not native geometry, played encounters or human comprehension; no world state is written by measurement.
+[SpatialRangeHarnessTests](../../tests/BrilliantQuesting.Lab.Tests/SpatialRangeHarnessTests.cs)
+proves renamed/reordered plans repeat, structural/mechanical differences remain distinguishable,
+read-only planning/measurement and deterministic batch replay.
+Lab: [spatial-range](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/SpatialRangeScenario.cs); CI retains its JSON profile.

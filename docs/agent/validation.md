@@ -72,6 +72,7 @@ repetition itself is diagnostic, not a content-quality pass/fail threshold.
 | Travel/absence | `TravelingGroupTests` or `AbsenceTests` | `FailedCaravanTests`, `ConsequenceArrivalTests`; `traveling-groups`, `consequence-arrivals` |
 | Organizations/demand/business | `OrganizationActivityTests`, `BusinessContinuityTests` or `ProductionActionTests` | Relevant archetype, persistence; `integration` |
 | Sites/planning/content | `SiteGenesisTests`, `ScenarioPlanTests`, `ScenarioDungeonTests` or `SiteMutationTests` | `SiteRoutesTests`, `SiteContentsTests`, `SiteCandidatesTests`, persistence; `dungeon`, `site-addition` |
+| Spatial expressive-range diagnostics | `SpatialRangeHarnessTests` (Lab project) | `ScenarioPlanTests`, `AntiTemplateHarnessTests`, `LabCommandLineTests`; `spatial-range --seed 15 --runs 20` |
 
 Sites using grammars/pieces require the content gate. World mechanics using native writes/activity
 require native evidence. Every changed schedule/once-only marker requires reload/idempotence coverage.

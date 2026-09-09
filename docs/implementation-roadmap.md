@@ -3343,6 +3343,12 @@ cycle count, objective separation, route/mechanic diversity, evidence distributi
 and history readability over many generated site plans.
 - **Depends** BQ-104, BQ-139.
 - **Done when** the harness runs headless, reports spatial repetition metrics, and demonstrates that two sites with different nouns but the same experiential topology are counted as repetition.
+- **Implementation/evidence** Lab `spatial-range` reports eight axes over selected shipped-grammar
+  plans, with deterministic replay, explicit refusals and noun-independent directed graph comparison.
+  `SpatialRangeHarnessTests` proves renamed/reordered plans repeat while cycles and mechanics differ.
+  See the [sites contract](systems/world.md#sites) for metric definitions and evidence limits;
+  CI retains the JSON profile. History readability is causal linkage/reachability only, not human
+  comprehension; no native map or live save is changed.
 - **Sources** PP §8; CD §35; LW §12.
 
 #### BQ-105 — Save integrity and quarantine

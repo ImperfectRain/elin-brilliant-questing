@@ -39,3 +39,14 @@ jobs:
           name: anti-template-profile
           path: anti-template-profile.json
           if-no-files-found: error
+
+      - name: Report spatial expressive range
+        run: dotnet run --no-build --project tools/BrilliantQuesting.Lab -- run spatial-range --seed 15 --runs 20 > spatial-range-profile.json
+
+      - name: Retain spatial profile
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spatial-range-profile
+          path: spatial-range-profile.json
+          if-no-files-found: error
