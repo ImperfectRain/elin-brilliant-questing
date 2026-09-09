@@ -2,6 +2,62 @@
 
 Static Phase 2 reduced the probe list. Remaining probes validate live UI behavior, actor populations, and nonzero save-affecting mutations. Do not upgrade any item to `VERIFIED-RUNTIME` unless the installed game log shows the probe ran successfully.
 
+## Performance and Home capture
+
+This opt-in instrumentation gathers evidence for BQ-107/BQ-108; it does not complete either live
+acceptance criterion by itself. It adds diagnostic reads and timings, with no new simulation,
+native mutations or persisted fields. Ordinary gameplay and existing BQ features still run.
+
+1. Close Elin. Build/install the diagnostic plugin using the [build procedure](../../plugin-build.md).
+   The build output is `src/BrilliantQuesting.Plugin/bin/Debug/netstandard2.0/`; copy
+   `BrilliantQuesting.Plugin.dll`, `package.xml` and `content.bqc` into the existing BQ Package folder.
+   Keep the mod enabled in Elin's Mods menu. Use a backup/copy of the large save for this exercise.
+2. Launch once and exit if the config entry has not been generated. In
+   `BepInEx/config/elin.brilliant.questing.cfg`, under `[Debug]`, set
+   `CaptureRuntimeEvidence = true`. Restart Elin. Leave other settings unchanged; this capture
+   does not require enabling any Testing flag.
+3. Load your largest representative save. Keep the game focused, with unchanged resolution,
+   FPS cap/VSync and other mods throughout the capture. Wait 30 seconds after loading, then
+   spend about two minutes each standing idle, walking/performing ordinary actions in a busy
+   area, and opening/closing ordinary NPC conversations (including BQ options when available).
+   Note the approximate wall-clock start of each phase and any visible stutters.
+4. Visit Home and take screenshots of its resident/resource displays. Leave, play or wait until
+   at least seven in-game days have elapsed, and return. Take one ordinary step so the existing
+   action-driven reconciliation can observe the zone change. Capture the same displays and note
+   the in-game dates. Save, exit, reload that copy, take a step and capture those displays again.
+   If seven days is impractical, report the actual elapsed time; do not claim that a shorter run
+   exercised the seven-day scheduling window.
+5. Exit Elin and copy `BepInEx/LogOutput.log` before launching again (it may be overwritten).
+   Return the complete log, the phase/time notes and Home screenshots. Include the displayed
+   Elin version, CPU/GPU/RAM, resolution, FPS cap/VSync, other enabled mods, approximate save age,
+   and whether this save already had substantial BQ history. The log reports BQ population counts;
+   a large vanilla save with few BQ records does not demonstrate large-history BQ performance.
+6. Set `CaptureRuntimeEvidence = false` and restart to turn off capture.
+
+`BQ-PERF` reports windows every 30 seconds or 8,192 intervals, plus partial windows at save,
+detach and quit. Frame mean/p95/p99/max and the number above 50 ms use focused Unity `Update`
+intervals measured with a monotonic stopwatch. Unfocused gaps are excluded; focused menus,
+loading, pauses, VSync and diagnostic/logging overhead can be included. These are main-thread
+frame cadence measurements, not GPU timings or the incremental cost of the entire mod.
+The build module ID identifies the diagnostic binary. Callback count/total/mean/max cover BQ's
+ActPerformed handler, attach, save, dialogue choice projection and scheme zone reconciliation.
+They are inclusive, can nest, and must not be added together; other BQ hooks are outside this
+attribution. A controlled baseline would still be needed to establish whole-mod frame impact.
+
+`BQ-HOME` brackets the existing reconciliation call on attach/observed zone change and samples
+before save. It reports fresh Home readback, game minute, zone IDs, event count and up to 64
+resident IDs/presence/BQ clocks with an explicit sample count. Missing reads remain unknown.
+Both sides are **after native zone entry**, not before/after `Zone.Simulate`; the existing daily
+advance can already have run before the zone-change observation. The logger never calls
+`Zone.Simulate` or replays production. `Food` is the Home **capacity skill**, not food stock;
+unchanged values alone do not prove absence of duplicate production. Screenshots and the actual
+revisit/reload sequence supply context; ambiguous deltas need a controlled follow-up observation.
+
+Implementation: [RuntimeEvidence](../../../src/BrilliantQuesting.Plugin/RuntimeEvidence.cs).
+Headless proof: [RuntimeEvidenceTests](../../../tests/BrilliantQuesting.Core.Tests/RuntimeEvidenceTests.cs)
+covers window statistics/bounds, excluded focus gaps, exception-safe timing/logging and read-only
+Home sampling. Native callbacks, rendered frame behavior and actual Home catch-up remain unverified.
+
 ## Session A: Safe Read-Only Shape And UI Probe
 
 Questions answered: `ELIN-Q-0013`, `ELIN-Q-0014`, `ELIN-Q-0015`, `ELIN-Q-0017`, `ELIN-Q-0018`, `ELIN-Q-0020`, `ELIN-Q-0021`, `ELIN-Q-0023`, `ELIN-Q-0024`.

@@ -127,6 +127,20 @@ namespace BrilliantQuesting.Plugin
                 + "world state, so it is off by default; leave it off when ordinary Elin play "
                 + "should be indistinguishable from an unmodded save.");
 
+            var captureEvidence = Config.Bind("Debug", "CaptureRuntimeEvidence", false,
+                "Log bounded frame/callback timing windows and Home reconciliation readbacks. "
+                + "Restart Elin after changing. Diagnostic reads only; no saved diagnostic state.");
+            if (captureEvidence.Value)
+            {
+                RuntimeEvidence.Current = new RuntimeEvidence(message => _log.LogInfo(message));
+                _log.LogInfo("BQ-PERF enabled; build=" + typeof(BrilliantQuestingPlugin).Assembly.ManifestModule.ModuleVersionId
+                    + " game=" + typeof(EClass).Assembly.GetName().Version
+                    + " unity=" + UnityEngine.Application.unityVersion
+                    + " os=" + Environment.OSVersion + " processors=" + Environment.ProcessorCount
+                    + "; frame intervals are focused Update cadence, not GPU time or mod-only cost. "
+                    + "Callback times are inclusive/nested; do not sum them. Home Food is capacity, not food stock.");
+            }
+
             // Elin publishes its own lifecycle. Subscribing to it beats both polling in Update and
             // Harmony-patching the load path: it is the same route the game's bundled Scripting
             // Kit uses for exactly this job, so it is as stable as anything in Early Access gets.
@@ -138,6 +152,25 @@ namespace BrilliantQuesting.Plugin
             NativeJournalSurface.Install(_log);
 
             _log.LogInfo(ModInfo.Name + " " + ModInfo.Version + " loaded. Waiting for a game.");
+        }
+
+        private void Update()
+        {
+            RuntimeEvidence.Current?.Frame(RuntimeEvidence.Milliseconds,
+                _live && EClass.pc != null && UnityEngine.Application.isFocused, _world);
+        }
+
+        private void OnApplicationQuit()
+        {
+            RuntimeEvidence.Current?.Flush("quit", _world);
+        }
+
+        private void ReconcileNarrativeZone(string reason)
+        {
+            RuntimeEvidence.Current?.Home(reason + "-before-bq", _world, _vanilla);
+            using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.Reconcile))
+                _schemes?.ReconcileZone(_world, _vanilla, _vanilla.Now);
+            RuntimeEvidence.Current?.Home(reason + "-after-bq", _world, _vanilla);
         }
 
         private void OnNewGame()
@@ -156,6 +189,12 @@ namespace BrilliantQuesting.Plugin
         }
 
         private void OnActPerformed(object payload)
+        {
+            using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.Act))
+                OnActPerformedMeasured(payload);
+        }
+
+        private void OnActPerformedMeasured(object payload)
         {
             if (!_live || _actionObserver == null)
             {
@@ -251,7 +290,7 @@ namespace BrilliantQuesting.Plugin
             }
 
             _lastReconciledZone = here;
-            _schemes?.ReconcileZone(_world, _vanilla, _vanilla.Now);
+            ReconcileNarrativeZone("zone-change");
             ReconcileAbsences();
             AdvanceTravelingGroups();
         }
@@ -361,6 +400,12 @@ namespace BrilliantQuesting.Plugin
 
         private void Begin(GameIOContext context)
         {
+            using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.Attach))
+                BeginMeasured(context);
+        }
+
+        private void BeginMeasured(GameIOContext context)
+        {
             ElementAliases.Resolve(_log);
             ProceduralCheckRows.Install(_log);
 
@@ -436,7 +481,7 @@ namespace BrilliantQuesting.Plugin
             ReconcileAbsences();
             _lastReconciledZone = _vanilla.GetZoneOf(_vanilla.PlayerId);
             RegisterLocalVanillaActors(_lastReconciledZone);
-            _schemes.ReconcileZone(_world, _vanilla, _vanilla.Now);
+            ReconcileNarrativeZone("attach");
             ReportCharacterIdentity();
             ReportActorActivity();
             EstablishEarlyContacts(_lastReconciledZone);
@@ -1615,6 +1660,8 @@ namespace BrilliantQuesting.Plugin
 
         private void End()
         {
+            RuntimeEvidence.Current?.Flush("detach", _world);
+            RuntimeEvidence.Current?.ResetFrames();
             _threads = null;
             _autonomy = null;
             _schemes = null;
@@ -1678,6 +1725,14 @@ namespace BrilliantQuesting.Plugin
         }
 
         private void Persist(GameIOContext context)
+        {
+            RuntimeEvidence.Current?.Home("pre-save", _world, _vanilla);
+            using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.Save))
+                PersistMeasured(context);
+            RuntimeEvidence.Current?.Flush("save", _world);
+        }
+
+        private void PersistMeasured(GameIOContext context)
         {
             if (_world == null || context == null)
             {

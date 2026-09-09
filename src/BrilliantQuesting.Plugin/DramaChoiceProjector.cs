@@ -149,6 +149,12 @@ namespace BrilliantQuesting.Plugin
 
         internal void ProjectChoices(DramaManager manager, DramaEventTalk talk)
         {
+            using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.Dialogue))
+                ProjectChoicesMeasured(manager, talk);
+        }
+
+        private void ProjectChoicesMeasured(DramaManager manager, DramaEventTalk talk)
+        {
             if (_world == null || manager?.tg?.chara == null || talk == null || !IsDefaultTalk(manager))
             {
                 return;

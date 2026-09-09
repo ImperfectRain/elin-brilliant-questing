@@ -18,6 +18,7 @@
     <!-- Exercise the actual native mount/rollback policy against a headless Window double.
          Native widget rendering still requires Elin; these tests do not emulate Unity layout. -->
     <Compile Include="../../src/BrilliantQuesting.Plugin/NativeJournalSurface.cs" Link="NativeJournalSurface.cs" />
+    <Compile Include="../../src/BrilliantQuesting.Plugin/RuntimeEvidence.cs" Link="RuntimeEvidence.cs" />
     <EmbeddedResource Include="../../src/BrilliantQuesting.Plugin/NativeJournalRenderer.cs" LogicalName="JournalRendererSource" />
     <EmbeddedResource Include="../../src/BrilliantQuesting.Core/Presentation/JournalPages.cs" LogicalName="JournalPagesSource" />
   </ItemGroup>
