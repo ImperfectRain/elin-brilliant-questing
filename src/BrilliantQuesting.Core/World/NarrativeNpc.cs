@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using BrilliantQuesting.Foundation;
 
 namespace BrilliantQuesting.World
@@ -37,7 +39,7 @@ namespace BrilliantQuesting.World
             Values = new ValueProfile();
             Needs = new NarrativeNeedProfile();
             Emotions = new EmotionalStateProfile();
-            Goals = new List<NpcGoal>();
+            Goals = new NpcGoalCollection(() => SimulationChanged?.Invoke(this));
             OrganizationIds = new List<EntityId>();
             Alive = true;
         }
@@ -104,14 +106,16 @@ namespace BrilliantQuesting.World
         /// participation: <see cref="EntityRegistry.Npcs"/> no longer lists it, so it cannot be
         /// cast, simulated or counted as a second person.
         /// </summary>
-        public EntityId AliasOf { get; set; }
+        private EntityId _aliasOf;
+        public EntityId AliasOf { get => _aliasOf; set { _aliasOf = value; SimulationChanged?.Invoke(this); } }
 
         /// <summary>Whether this record participates as an actor in its own right.</summary>
         public bool IsCanonical => AliasOf.IsNone;
 
         public EntityId HomeSiteId { get; set; }
 
-        public NarrativeImportance Importance { get; set; } = NarrativeImportance.Background;
+        private NarrativeImportance _importance;
+        public NarrativeImportance Importance { get => _importance; set { _importance = value; SimulationChanged?.Invoke(this); } }
 
         public PersonalityWeights Personality { get; }
 
@@ -138,11 +142,27 @@ namespace BrilliantQuesting.World
 
         public EmotionalStateProfile Emotions { get; }
 
-        public List<NpcGoal> Goals { get; }
+        public NpcGoalCollection Goals { get; }
 
         public List<EntityId> OrganizationIds { get; }
 
-        public bool Alive { get; set; }
+        private bool _alive;
+        public bool Alive { get => _alive; set { _alive = value; SimulationChanged?.Invoke(this); } }
+
+        internal event Action<NarrativeNpc> SimulationChanged;
+
+        /// <summary>Derived budget, never a claim about vanilla simulation or physical presence.</summary>
+        public SimulationTier BackgroundTier
+        {
+            get
+            {
+                if (!Alive || !IsCanonical) return SimulationTier.Archived;
+                if (Importance >= NarrativeImportance.Known) return SimulationTier.Warm;
+                foreach (NpcGoal goal in Goals)
+                    if (goal != null && !goal.Satisfied && goal.Weight > 0) return SimulationTier.Warm;
+                return SimulationTier.Cold;
+            }
+        }
 
         public GameTime LastSimulatedAt { get; set; }
 
@@ -184,12 +204,15 @@ namespace BrilliantQuesting.World
         public EntityId Subject { get; }
 
         /// <summary>0..100. Higher wins when goals collide.</summary>
-        public int Weight { get; set; }
+        private int _weight;
+        public int Weight { get => _weight; set { _weight = value; Changed?.Invoke(); } }
 
         /// <summary>Inspector-facing trace for why this goal exists or last changed.</summary>
         public string Reason { get; set; }
 
-        public bool Satisfied { get; set; }
+        private bool _satisfied;
+        public bool Satisfied { get => _satisfied; set { _satisfied = value; Changed?.Invoke(); } }
+        internal event Action Changed;
 
         public override string ToString()
         {
@@ -200,6 +223,38 @@ namespace BrilliantQuesting.World
             }
 
             return text + (Satisfied ? " [done]" : string.Empty);
+        }
+    }
+
+    /// <summary>Notifies the derived scheduling index when the existing goal authority changes.</summary>
+    public sealed class NpcGoalCollection : Collection<NpcGoal>
+    {
+        private readonly Action _changed;
+        internal NpcGoalCollection(Action changed) { _changed = changed; }
+        protected override void InsertItem(int index, NpcGoal item)
+        {
+            base.InsertItem(index, item);
+            if (item != null) item.Changed += _changed;
+            _changed();
+        }
+        protected override void RemoveItem(int index)
+        {
+            if (this[index] != null) this[index].Changed -= _changed;
+            base.RemoveItem(index);
+            _changed();
+        }
+        protected override void SetItem(int index, NpcGoal item)
+        {
+            if (this[index] != null) this[index].Changed -= _changed;
+            base.SetItem(index, item);
+            if (item != null) item.Changed += _changed;
+            _changed();
+        }
+        protected override void ClearItems()
+        {
+            foreach (NpcGoal item in this) if (item != null) item.Changed -= _changed;
+            base.ClearItems();
+            _changed();
         }
     }
 }

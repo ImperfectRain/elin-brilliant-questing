@@ -71,6 +71,30 @@ Native: identity/settlement eligibility and inventory limits in [extension seams
 
 ## Autonomy
 
+**Simulation fidelity (BQ-107):** `NarrativeNpc.BackgroundTier` derives Warm from known importance
+or an open positive-weight goal, Cold from other living actors, and Archived from death or alias
+retirement. `OffScreenSchemes.TierOf` overlays Active only from observed active-zone presence.
+Active actors remain available to local narrative systems but do not run off-screen schemes.
+Vanilla retains work, hobby, needs and movement ownership in every tier.
+
+`EntityRegistry` maintains derived rotating Warm/Cold work queues when NPC state or goals change.
+Each scheme pass takes at most 12 Warm and 2 Cold candidates by default, independently of historical
+actor count. Warm openings use seven days; Cold inspections use thirty. Only the bounded selected
+set consumes its elapsed window, including selected openings skipped by the attempt cap; unselected
+actors retain their clocks. Queue position is transient and rebuilt on load; existing saved
+`LastSimulatedAt` prevents replay of consumed openings. This bounds scheme scheduling, not every
+other subsystem's work. It does not invent goals for Cold actors or grant player knowledge.
+
+On Plugin attach and zone change, `OffScreenSchemes.ReconcileZone` reads fresh `HomeState` and
+advances the clock of observed active residents monotonically. It never invokes `Zone.Simulate`
+or extrapolates Home production. Unknown Home/presence cannot prove a resident was caught up.
+Live timing and resource readback after an actual Home revisit remain unverified.
+
+Source: [tier index](../../src/BrilliantQuesting.Core/World/SimulationTier.cs).
+Proof: [SimulationTierTests](../../tests/BrilliantQuesting.Core.Tests/SimulationTierTests.cs):
+20,012 records, 1,000 scheduler ticks within 2 seconds excluding setup, at most 14 inspections per
+tick; tier mutations, rotating Cold selection, reload and unchanged Home readback.
+
 **Owns:** bounded off-screen selection and passes: `AutonomousInterventions` handles ignored matters;
 `OffScreenSchemes` pursues staged schemes; `AdventurerEcology` handles rival involvement. Inputs:
 known matters, stakes/goals, personal limits, activity and shared action offers. Outputs: `ActionIntent`

@@ -69,6 +69,7 @@ repetition itself is diagnostic, not a content-quality pass/fail threshold.
 | Activity/embodiment | `ActorActivityTests` | `PlayerNpcActionSymmetryTests`, `MutationPolicyTests`; `actor-action`, native facet diagnostic |
 | Generation/archetypes | `SettlementSituationGeneratorTests` or affected archetype tests | `RecoveryRouteTests`, `NarrativeAttentionBudgetTests`; `integration`, `failed-caravan` for that archetype |
 | Autonomy/schemes/ecology | `AutonomousInterventionTests`, `OffScreenSchemeTests` or `AdventurerEcologyTests` | `PlayerNpcActionSymmetryTests`, discovery, persistence; `autonomy`, `off-screen-schemes`, `adventurer-ecology` |
+| Simulation tiers | `SimulationTierTests`, `OffScreenSchemeTests` | Persistence gates, `ActorIdentityIntakeTests`, `PlayerNpcActionSymmetryTests`; `off-screen-schemes`, `integration`; Plugin build and live Home revisit/readback |
 | Travel/absence | `TravelingGroupTests` or `AbsenceTests` | `FailedCaravanTests`, `ConsequenceArrivalTests`; `traveling-groups`, `consequence-arrivals` |
 | Organizations/demand/business | `OrganizationActivityTests`, `BusinessContinuityTests` or `ProductionActionTests` | Relevant archetype, persistence; `integration` |
 | Sites/planning/content | `SiteGenesisTests`, `ScenarioPlanTests`, `ScenarioDungeonTests` or `SiteMutationTests` | `SiteRoutesTests`, `SiteContentsTests`, `SiteCandidatesTests`, persistence; `dungeon`, `site-addition` |

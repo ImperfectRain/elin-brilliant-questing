@@ -45,6 +45,8 @@ namespace BrilliantQuesting.Lab
                 bench.Vanilla.Now);
 
             output.WriteLine("  Coarse scheduler attempts: " + acted);
+            output.WriteLine("  BQ tier work inspected: " + bench.Schemes.LastActorsInspected
+                + " (budget " + (bench.Schemes.MostActorsPerPass + bench.Schemes.MostColdActorsPerPass) + ")");
             output.WriteLine();
             for (int i = 0; i < bench.Schemes.LastPass.Count; i++)
             {

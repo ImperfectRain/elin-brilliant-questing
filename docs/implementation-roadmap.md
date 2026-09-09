@@ -3375,6 +3375,10 @@ history only.
 - **Done when** a synthetic world with thousands of historical actors ticks within a stated budget, **and** a Home the player has been away from is not advanced twice — what `Zone.Simulate()` catches up on revisit is reconciled against, not re-run.
 - **Sources** MD §18.1, §26; PM §53; LW §5.4, §10; VS §2.3, §2.5; D021.
 - **Note** Elin runs four fidelity mechanisms of its own (`VS §2.5`), and vanilla `GlobalGoal` advancement may continue for eligible actors regardless of what tier BQ has put them in. Tiering is a budget for BQ's own work, never a claim that nothing else is simulating.
+- **Implementation/evidence** [Tier scheduling contract](systems/world.md#autonomy) and
+  `SimulationTierTests` cover bounded historical-world scheduling and headless Home readback/reload.
+  Actual Home revisit timing/resource acceptance remains a live runtime check; no native evidence
+  grade is upgraded by those tests.
 
 #### BQ-108 — Performance guardrails
 Event-driven updates, bounded rumour propagation, provenance only for notable objects, lazy dialogue

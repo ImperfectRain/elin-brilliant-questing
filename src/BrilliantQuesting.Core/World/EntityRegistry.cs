@@ -23,6 +23,10 @@ namespace BrilliantQuesting.World
     {
         private readonly Dictionary<EntityId, NarrativeNpc> _npcs = new Dictionary<EntityId, NarrativeNpc>();
         private readonly Dictionary<EntityId, NarrativeNpc> _actors = new Dictionary<EntityId, NarrativeNpc>();
+        private readonly SimulationIndex _simulation = new SimulationIndex();
+
+        /// <summary>Bounded rotating work set; excludes archived records without scanning history.</summary>
+        public List<NarrativeNpc> TakeSimulationActors(int warmBudget, int coldBudget) => _simulation.Take(warmBudget, coldBudget);
         private readonly Dictionary<EntityId, Organization> _organizations = new Dictionary<EntityId, Organization>();
         private readonly Dictionary<EntityId, NarrativeSite> _sites = new Dictionary<EntityId, NarrativeSite>();
 
@@ -41,7 +45,10 @@ namespace BrilliantQuesting.World
 
         public NarrativeNpc Add(NarrativeNpc npc)
         {
+            if (_npcs.TryGetValue(npc.Id, out var previous)) previous.SimulationChanged -= _simulation.Update;
             _npcs[npc.Id] = npc;
+            npc.SimulationChanged += _simulation.Update;
+            _simulation.Update(npc);
             if (npc.IsCanonical)
             {
                 _actors[npc.Id] = npc;

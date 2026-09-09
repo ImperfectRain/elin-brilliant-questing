@@ -38,6 +38,7 @@ incomplete joins without speculative step numbers.
 | Repetition/voice/idiolect/weirdness | [Expression controls](systems/expression.md#expression-controls) |
 | Director/attention | [Attention](systems/expression.md#attention) |
 | Autonomy | [Autonomy](systems/world.md#autonomy) |
+| Simulation tiers/bounded scheme scheduling | [Autonomy](systems/world.md#autonomy) |
 | Traveling groups | [Travel](systems/world.md#travel) |
 | Organizations | [Organizations](systems/world.md#organizations) |
 | Sites/planning/realization | [Sites](systems/world.md#sites) |

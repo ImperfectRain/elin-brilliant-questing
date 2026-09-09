@@ -83,7 +83,7 @@ creation costs in that selection seam. Neither adds a director-to-spawner join o
 | Stable voice → save | `VoiceProfile` is caller-supplied; `NarrativeNpc`/serializer do not store an assigned voice. Reuse existing tone/idiolect vocabulary if persistent assignment is introduced |
 | Generated organization activity → live tick | Called by Lab `ProductionSystemRegistry`, not instantiated in Plugin. No claim of live organization simulation |
 | Site plan → native structure → future spatial pressure | Core plan/realization/addition exists; live structure/addition capabilities refuse. Do not promote plan geometry to native fact |
-| Native catch-up → BQ tiers | Source-observed vanilla behavior; no completed general reconciliation/tiering join. D021 applies before introducing scheduling |
+| Native catch-up → BQ tiers | Plugin attach/zone change reads Home state through `OffScreenSchemes.ReconcileZone`; observed Active residents consume elapsed scheme windows without replaying physical work. [Tier contract](world.md#autonomy); actual Home revisit timing/readback still needs live evidence |
 
 The [extension register](extension-seams.md) links these limits to proofs and committed planning.
 No provisional future roadmap is an implementation requirement.

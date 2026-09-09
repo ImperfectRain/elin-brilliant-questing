@@ -251,6 +251,7 @@ namespace BrilliantQuesting.Plugin
             }
 
             _lastReconciledZone = here;
+            _schemes?.ReconcileZone(_world, _vanilla, _vanilla.Now);
             ReconcileAbsences();
             AdvanceTravelingGroups();
         }
@@ -435,6 +436,7 @@ namespace BrilliantQuesting.Plugin
             ReconcileAbsences();
             _lastReconciledZone = _vanilla.GetZoneOf(_vanilla.PlayerId);
             RegisterLocalVanillaActors(_lastReconciledZone);
+            _schemes.ReconcileZone(_world, _vanilla, _vanilla.Now);
             ReportCharacterIdentity();
             ReportActorActivity();
             EstablishEarlyContacts(_lastReconciledZone);

@@ -33,6 +33,35 @@ namespace BrilliantQuesting.Autonomy
 
         public int MostAttemptsPerPass { get; set; } = 4;
 
+        public int MostColdActorsPerPass { get; set; } = 2;
+        public long ColdIntervalDays { get; set; } = 30;
+        public int LastActorsInspected { get; private set; }
+
+        /// <summary>Fresh vanilla readback, never a saved or extrapolated Home economy.</summary>
+        public HomeState LastHomeObservation { get; private set; }
+
+        public static SimulationTier TierOf(NarrativeNpc npc, ActorActivity activity)
+        {
+            if (npc.BackgroundTier == SimulationTier.Archived) return SimulationTier.Archived;
+            return activity?.Presence == PhysicalPresence.InActiveZone ? SimulationTier.Active : npc.BackgroundTier;
+        }
+
+        /// <summary>
+        /// Called after native zone entry. Read what vanilla caught up; never call Simulate or replay
+        /// production, hobbies, needs or travel. Unread Home state stays absent.
+        /// </summary>
+        public void ReconcileZone(NarrativeWorldState world, IVanillaState vanilla, GameTime now)
+        {
+            LastHomeObservation = vanilla.GetHomeState();
+            if (LastHomeObservation == null || LastHomeObservation.ZoneId != vanilla.GetZoneOf(vanilla.PlayerId)) return;
+            foreach (HomeResident resident in LastHomeObservation.Residents)
+            {
+                NarrativeNpc npc = world.Registry.GetNpc(resident.Id);
+                if (npc != null && vanilla.GetActorActivity(npc.Id)?.Presence == PhysicalPresence.InActiveZone
+                    && now.TotalMinutes > npc.LastSimulatedAt.TotalMinutes) npc.LastSimulatedAt = now;
+            }
+        }
+
         public List<OffScreenSchemeTrace> LastPass { get; } = new List<OffScreenSchemeTrace>();
 
         public int Advance(
@@ -43,6 +72,7 @@ namespace BrilliantQuesting.Autonomy
             GameTime now)
         {
             LastPass.Clear();
+            LastActorsInspected = 0;
             if (world == null || vanilla == null || checks == null || registry == null || IntervalDays <= 0)
             {
                 return 0;
@@ -50,7 +80,7 @@ namespace BrilliantQuesting.Autonomy
 
             int considered = 0;
             int acted = 0;
-            List<NarrativeNpc> actors = DueActors(world, vanilla, now, IntervalDays);
+            List<NarrativeNpc> actors = DueActors(world, vanilla, now);
             for (int i = 0; i < actors.Count; i++)
             {
                 actors[i].LastSimulatedAt = now;
@@ -198,16 +228,15 @@ namespace BrilliantQuesting.Autonomy
             return trace;
         }
 
-        private static List<NarrativeNpc> DueActors(
+        private List<NarrativeNpc> DueActors(
             NarrativeWorldState world,
             IVanillaState vanilla,
-            GameTime now,
-            long intervalDays)
+            GameTime now)
         {
             List<NarrativeNpc> actors = new List<NarrativeNpc>();
-            foreach (KeyValuePair<EntityId, NarrativeNpc> pair in world.Registry.Npcs)
+            foreach (NarrativeNpc npc in world.Registry.TakeSimulationActors(MostActorsPerPass, MostColdActorsPerPass))
             {
-                NarrativeNpc npc = pair.Value;
+                LastActorsInspected++;
                 if (npc == null
                     || !npc.IsCanonical
                     || npc.Id == vanilla.PlayerId
@@ -217,7 +246,14 @@ namespace BrilliantQuesting.Autonomy
                     continue;
                 }
 
-                if (now.DaysSince(npc.LastSimulatedAt) >= intervalDays)
+                SimulationTier tier = TierOf(npc, vanilla.GetActorActivity(npc.Id));
+                if (tier == SimulationTier.Active)
+                {
+                    if (now.TotalMinutes > npc.LastSimulatedAt.TotalMinutes) npc.LastSimulatedAt = now;
+                    continue;
+                }
+                long intervalDays = tier == SimulationTier.Cold ? ColdIntervalDays : IntervalDays;
+                if (intervalDays > 0 && now.DaysSince(npc.LastSimulatedAt) >= intervalDays)
                 {
                     actors.Add(npc);
                 }
