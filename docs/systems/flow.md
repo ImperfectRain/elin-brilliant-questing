@@ -16,7 +16,7 @@ Search the method named in the table before changing order or adding another tic
 | `EVENT.ActPerformed` | `OnActPerformed` → `ElinActionObserver.Observe` → `VanillaActionRecorder` → `NarrativeWorldState.Record` | Recognized acts become history; unknown payloads ignored, native outcomes not rolled again |
 | New event | `EventLedger.Append` → attached `ConsequenceEngine.Handle` | Knowledge/tension then profile-based social/memory/standing reactions; no blanket claim that every fact comes from this listener |
 | Day changes after acts | `AdvanceThreadsIfTheDayTurned` → `AdvanceThreads` → `ThreadLifecycle.Review`, `ThreadEngine.Advance`, autonomy, schemes, adventurers, travel; then rumor circulation | Host order is explicit; each owner retains its own one-time state/gates |
-| Attach/zone changes | `MaybeGenerateLocalSituation` → `SettlementSituationGenerator.Evaluate/TryGenerate`; separate Home generation | Admission before native theft mutation; established facts/threads remain unknown to player unless learned |
+| Attach/zone changes | `MaybeGenerateLocalSituation` → `SettlementSituationGenerator.Evaluate` → `SituationProposalSelection.Rank` → `TryGenerateSelected` through `TryGenerate`; separate Home generation | Admission before native theft mutation; established facts/threads remain unknown to player unless learned |
 | Ignored known matter | `AutonomousInterventions.Advance` → actor context/registry offers → `ActionIntent` → `ActionAttempt.Run` | Same verb/check path as player; deed/ending/claim, no free player learning |
 | Generic `_chara/main` conversation | `DramaChoiceProjector` → `ActionRegistry.Discover` → `ContextualActionProjection` → click revalidation → verb | Native choices and action outcomes; does not host the routed storylet engine |
 | Shared verb attempt | `GetAvailability` → `Perform` → optional `ICheckResolver.Resolve`, native/owned writes, `Record` | Systemic native actions need no second roll; semantic binding survives into event meaning |
@@ -68,6 +68,12 @@ Proof: [DevelopmentLayerTests](../../tests/BrilliantQuesting.Core.Tests/Developm
 [SemanticConversationIntegrationTests](../../tests/BrilliantQuesting.Core.Tests/SemanticConversationIntegrationTests.cs).
 
 ## Partial joins and extension points
+
+The [generation proposal seam](world.md#generation) also accepts hypothetical actor requirements
+for headless comparison. Selection only returns a candidate to its owner; it does not satisfy those
+requirements. The live settlement owner proposes existing actors only and refuses hypothetical
+creation at handoff. BQ-152 supplies the pre-creation comparison needed by BQ-103, not conservation
+scoring or a director-to-spawner join.
 
 | Join | Current limit / reusable seam |
 |---|---|

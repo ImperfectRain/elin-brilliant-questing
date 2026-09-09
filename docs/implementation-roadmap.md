@@ -3290,10 +3290,28 @@ Prefer good candidates that occupy underrepresented niches over the highest raw 
   deterministic reload. Live pacing and rendering remain runtime acceptance, not headless proof.
 - **Sources** CD §36.
 
+#### BQ-152 — Side-effect-free situation proposals *(stage S9, immediately before BQ-103)*
+Represent existing actor reuse and hypothetical new actors in one comparable, transient proposal
+vocabulary before any authoritative creation. Selection returns a proposal to its generation owner;
+it cannot allocate actors, facts, locations or events.
+- **Depends** BQ-102.
+- **Done when** reuse and hypothetical creation enter the same deterministic selection seam,
+  construction/ranking/inspection leave world state and ID allocation unchanged, replay preserves
+  order, and only the existing generation owner can commit an admitted proposal.
+- **Correction rationale** BQ-102 ranks already-existing news and settlement generation binds
+  existing local actors. Neither offered a pre-creation comparison for BQ-103. Explicit scenario
+  staging creates actors outside director ranking; treating unfamiliar existing actors as new
+  creation would charge the wrong thing.
+- **Scope** actor requirements only; no conservation costs, automatic spawning, general resource
+  factories or new persisted authority. Hypothetical requirements do not imply native feasibility.
+- **Implementation/evidence** see the [generation contract](systems/world.md#generation),
+  `SituationProposalTests` and the selected-proposal tests in `SettlementSituationGeneratorTests`.
+- **Sources** CD §33.6, §33.7; existing BQ-103 blocker reproduced in current generation/scoring.
+
 #### BQ-103 — Narrative conservation
 Apply creation costs — reuse a fact or actor free, a new significant NPC expensive, a new weird
 premise most expensive — so the world deepens before it grows.
-- **Depends** BQ-102.
+- **Depends** BQ-102, BQ-152.
 - **Done when** the director measurably prefers reusing an existing actor over generating a new one.
 - **Sources** CD §33.6, §33.7; PM §19; LW §10.6.
 

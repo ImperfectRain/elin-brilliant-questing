@@ -111,7 +111,8 @@ namespace BrilliantQuesting.Situations
             Dictionary<string, EntityId> sites,
             Dictionary<string, int> pressures,
             List<string> causes,
-            List<SettingReference> settingReferences)
+            List<SettingReference> settingReferences,
+            IReadOnlyList<SituationActorRequirement> newActors = null)
         {
             ArchetypeId = archetypeId;
             _actors = new Dictionary<string, List<EntityId>>();
@@ -126,6 +127,23 @@ namespace BrilliantQuesting.Situations
             _causes = new List<string>(causes);
             _settingReferences = new List<SettingReference>(settingReferences);
 
+            var requirements = new List<SituationActorRequirement>();
+            foreach (KeyValuePair<string, List<EntityId>> role in _actors)
+                foreach (EntityId actor in role.Value)
+                    requirements.Add(new SituationActorRequirement(role.Key, actor, null));
+            if (newActors != null)
+                foreach (SituationActorRequirement actor in newActors)
+                    if (actor.RequiresCreation) requirements.Add(actor);
+            requirements.Sort((a, b) =>
+            {
+                int role = string.CompareOrdinal(a.Role, b.Role);
+                if (role != 0) return role;
+                int kind = a.RequiresCreation.CompareTo(b.RequiresCreation);
+                return kind != 0 ? kind : string.CompareOrdinal(
+                    a.CreationKey ?? a.ExistingActor.Value, b.CreationKey ?? b.ExistingActor.Value);
+            });
+            ActorRequirements = requirements.AsReadOnly();
+
             foreach (KeyValuePair<string, int> pressure in pressures)
             {
                 Score += pressure.Value;
@@ -133,6 +151,19 @@ namespace BrilliantQuesting.Situations
         }
 
         public string ArchetypeId { get; }
+
+        /// <summary>Reuse bindings and hypothetical actors in one immutable casting vocabulary.</summary>
+        public IReadOnlyList<SituationActorRequirement> ActorRequirements { get; }
+
+        public bool RequiresActorCreation
+        {
+            get
+            {
+                foreach (SituationActorRequirement actor in ActorRequirements)
+                    if (actor.RequiresCreation) return true;
+                return false;
+            }
+        }
 
         /// <summary>The sum of the named pressures. There is no score that is not accounted for.</summary>
         public int Score { get; }
@@ -151,7 +182,7 @@ namespace BrilliantQuesting.Situations
 
         /// <summary>Everybody bound to a role, in binding order.</summary>
         public IReadOnlyList<EntityId> ActorsIn(string role) =>
-            _actors.TryGetValue(role, out List<EntityId> bound) ? bound : EmptyActors;
+            _actors.TryGetValue(role, out List<EntityId> bound) ? bound.AsReadOnly() : (IReadOnlyList<EntityId>)EmptyActors;
 
         /// <summary>The first actor in a role, or <see cref="EntityId.None"/> when nothing is bound.</summary>
         public EntityId ActorIn(string role)
@@ -186,7 +217,7 @@ namespace BrilliantQuesting.Situations
                 causes.Add(because);
             }
 
-            return new SituationCandidate(ArchetypeId, _actors, _items, _sites, pressures, causes, _settingReferences);
+            return new SituationCandidate(ArchetypeId, _actors, _items, _sites, pressures, causes, _settingReferences, ActorRequirements);
         }
 
         public EntityId SiteIn(string role) => _sites.TryGetValue(role, out EntityId site) ? site : EntityId.None;
@@ -207,6 +238,22 @@ namespace BrilliantQuesting.Situations
         private readonly List<string> _causes = new List<string>();
         private readonly List<SettingReference> _settingReferences = new List<SettingReference>();
         private readonly string _archetypeId;
+        private readonly List<SituationActorRequirement> _newActors = new List<SituationActorRequirement>();
+
+        /// <summary>
+        /// Describes an unmet actor requirement. A shared key means the same hypothetical actor
+        /// across roles. This allocates no world ID, actor, blueprint or native object.
+        /// </summary>
+        public SituationCandidateBuilder RequireNewActor(string role, string creationKey)
+        {
+            if (string.IsNullOrWhiteSpace(creationKey))
+                throw new System.ArgumentException("A proposal-local creation key is required.", nameof(creationKey));
+            var requirement = new SituationActorRequirement(role, EntityId.None, creationKey);
+            foreach (SituationActorRequirement existing in _newActors)
+                if (existing.Role == role && existing.CreationKey == creationKey) return this;
+            _newActors.Add(requirement);
+            return this;
+        }
 
         public SituationCandidateBuilder(string archetypeId)
         {
@@ -298,7 +345,7 @@ namespace BrilliantQuesting.Situations
         }
 
         public SituationCandidate Build() =>
-            new SituationCandidate(_archetypeId, _actors, _items, _sites, _pressures, _causes, _settingReferences);
+            new SituationCandidate(_archetypeId, _actors, _items, _sites, _pressures, _causes, _settingReferences, _newActors);
     }
 
     /// <summary>

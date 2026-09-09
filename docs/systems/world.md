@@ -31,10 +31,29 @@ Plans are transient; established state is saved. **Does not own:** spawning trou
 is needed, inventing native evidence, or filling every archetype from a universal planner.
 Consumers: threads, action bindings, discovery, autonomy, sites.
 
+`SituationCandidate.ActorRequirements` describes both existing actor bindings and hypothetical
+new actors. New actors use proposal-local keys (shared across roles when appropriate), never
+reserved world IDs; these are requirements, not existence or feasibility claims. Actor requirements
+are immutable and detached from the builder. `SituationProposal` names a candidate;
+`SituationProposalSelection.Rank` orders by existing quality then unique ordinal proposal key,
+rejecting duplicate keys. Construction, ranking and inspector-only `Explain` have no world access,
+commit callbacks, RNG or saved state. BQ-103 conservation costs are not implemented here.
+
+Settlement plans expose proposals over their admitted candidates. Their evaluation-local keys
+preserve the owner's existing deterministic tie order; they are not persistent identities.
+Selection hands back the original proposal to `TryGenerateSelected`, which accepts only a proposal
+from that plan, refuses hypothetical actor creation, rechecks attention and performs the existing
+native transfer before establishing facts/history. Ranking a hypothetical alternative is supported;
+fulfilling its actor requirement is not added to the settlement generator. Explicit scenario staging
+remains a separate owner. There is no automatic new-actor fallback or universal creation factory.
+
 Source: [SettlementSituationGenerator](../../src/BrilliantQuesting.Core/Situations/SettlementSituationGenerator.cs),
+[SituationProposal](../../src/BrilliantQuesting.Core/Situations/SituationProposal.cs),
+[SituationCandidate](../../src/BrilliantQuesting.Core/Situations/SituationCandidate.cs),
 [LocalAffordanceProfile](../../src/BrilliantQuesting.Core/Situations/LocalAffordanceProfile.cs),
 [FailedCaravanSituation](../../src/BrilliantQuesting.Core/Situations/FailedCaravanSituation.cs).
 Proof: [SettlementSituationGeneratorTests](../../tests/BrilliantQuesting.Core.Tests/SettlementSituationGeneratorTests.cs),
+[SituationProposalTests](../../tests/BrilliantQuesting.Core.Tests/SituationProposalTests.cs),
 [FailedCaravanTests](../../tests/BrilliantQuesting.Core.Tests/FailedCaravanTests.cs).
 Lab: [integration](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/IntegrationScenario.cs),
 [failed-caravan](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/FailedCaravanScenario.cs).

@@ -44,9 +44,17 @@ namespace BrilliantQuesting.Situations
             Profile = profile;
             _candidates = candidates;
             _suppressed = suppressed;
+            var proposals = new List<SituationProposal>();
+            // Candidates already have the owner's deterministic tie order. Keys name slots in
+            // this transient evaluation, not durable world identities or a creation reservation.
+            for (int i = 0; i < Candidates.Count; i++)
+                proposals.Add(new SituationProposal("settlement/" + i.ToString("D10", System.Globalization.CultureInfo.InvariantCulture), Candidates[i]));
+            Proposals = proposals.AsReadOnly();
         }
 
         public LocalAffordanceProfile Profile { get; }
+
+        public IReadOnlyList<SituationProposal> Proposals { get; }
 
         /// <summary>Eligible proposals, best first.</summary>
         public IReadOnlyList<SituationCandidate> Candidates =>
@@ -166,26 +174,41 @@ namespace BrilliantQuesting.Situations
                 return null;
             }
 
-            for (int i = 0; i < plan.Candidates.Count; i++)
+            foreach (SituationProposal proposal in SituationProposalSelection.Rank(plan.Proposals))
             {
-                PettyTheftCandidate theft = new PettyTheftCandidate(plan.Candidates[i]);
-                if (!vanilla.TryTransferItem(theft.Item.Id, theft.VictimId, theft.ThiefId))
-                {
-                    continue;
-                }
-
-                try
-                {
-                    return PettyTheftSituation.FromLocalAffordance(world, plan.Candidates[i], zoneId, now);
-                }
-                catch
-                {
-                    vanilla.TryTransferItem(theft.Item.Id, theft.ThiefId, theft.VictimId);
-                    throw;
-                }
+                PettyTheftSituation committed = TryGenerateSelected(world, vanilla, plan, proposal, zoneId, now);
+                if (committed != null) return committed;
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Explicit handoff from selection to the generation owner. Only this plan's admitted
+        /// proposals are accepted; hypothetical casting is never permission to spawn. Native
+        /// transfer and attention are still checked at commit, not guaranteed by ranking.
+        /// </summary>
+        public PettyTheftSituation TryGenerateSelected(NarrativeWorldState world, IVanillaState vanilla,
+            SettlementSituationPlan plan, SituationProposal selected, EntityId zoneId, GameTime now)
+        {
+            if (plan == null || selected == null || selected.Candidate.RequiresActorCreation
+                || world.AttentionBudget.GenerationRefusal(world) != null) return null;
+            bool admitted = false;
+            foreach (SituationProposal proposal in plan.Proposals)
+                if (ReferenceEquals(proposal, selected)) { admitted = true; break; }
+            if (!admitted) return null;
+
+            var theft = new PettyTheftCandidate(selected.Candidate);
+            if (!vanilla.TryTransferItem(theft.Item.Id, theft.VictimId, theft.ThiefId)) return null;
+            try
+            {
+                return PettyTheftSituation.FromLocalAffordance(world, selected.Candidate, zoneId, now);
+            }
+            catch
+            {
+                vanilla.TryTransferItem(theft.Item.Id, theft.ThiefId, theft.VictimId);
+                throw;
+            }
         }
 
         /// <summary>

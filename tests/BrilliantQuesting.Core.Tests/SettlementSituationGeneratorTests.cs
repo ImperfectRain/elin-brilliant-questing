@@ -27,6 +27,61 @@ namespace BrilliantQuesting.Tests
         // -- A. a quiet world stays quiet -------------------------------------------------------
 
         [Fact]
+        public void SelectedProposalHandsOffToGenerationOwnerWithoutCommittingDuringSelection()
+        {
+            Lab lab = PressuredMarket();
+            var generator = new SettlementSituationGenerator();
+            string before = WorldStateSerializer.Save(lab.World);
+            var plan = generator.Evaluate(lab.World, lab.Vanilla, Market);
+            var selected = SituationProposalSelection.Rank(plan.Proposals)[0];
+            Assert.Same(plan.BestCandidate, selected.Candidate);
+            Assert.Contains("reuses actor", selected.Explain());
+            Assert.Equal(before, WorldStateSerializer.Save(lab.World));
+            Assert.Contains(lab.Item, lab.Vanilla.GetInventory(lab.Victim).Select(i => i.Id));
+            Assert.Equal(plan.Proposals.Select(p => p.Explain()),
+                generator.Evaluate(WorldStateSerializer.Load(before), lab.Vanilla, Market).Proposals.Select(p => p.Explain()));
+
+            var committed = generator.TryGenerateSelected(lab.World, lab.Vanilla, plan, selected, Market, lab.Vanilla.Now);
+            Assert.NotNull(committed);
+            Assert.Single(lab.World.Threads);
+            Assert.NotEmpty(lab.World.Knowledge.Facts);
+            Assert.Contains(lab.World.Ledger.Events, e => e.Type == WorldEventType.Theft);
+            Assert.Contains(lab.Item, lab.Vanilla.GetInventory(committed.ThiefId).Select(i => i.Id));
+        }
+
+        [Fact]
+        public void HypotheticalAndForeignProposalsDoNotAuthorizeGeneration()
+        {
+            Lab lab = PressuredMarket();
+            var generator = new SettlementSituationGenerator();
+            var plan = generator.Evaluate(lab.World, lab.Vanilla, Market);
+            var hypothetical = new SituationProposal("hypothetical",
+                new SituationCandidateBuilder(PettyTheftSituation.ArchetypeId)
+                    .RequireNewActor(SituationRoles.Actor, "new-thief")
+                    .Pressure("pressure", int.MaxValue, "test pressure").Build());
+            var selected = SituationProposalSelection.Rank(plan.Proposals.Concat(new[] { hypothetical }))[0];
+            Assert.Same(hypothetical, selected);
+            string before = WorldStateSerializer.Save(lab.World);
+            Assert.Null(generator.TryGenerateSelected(lab.World, lab.Vanilla, plan, selected, Market, lab.Vanilla.Now));
+            var foreign = new SituationProposal(plan.Proposals[0].Key, plan.BestCandidate);
+            Assert.Null(generator.TryGenerateSelected(lab.World, lab.Vanilla, plan, foreign, Market, lab.Vanilla.Now));
+            Assert.Equal(before, WorldStateSerializer.Save(lab.World));
+            Assert.Contains(lab.Item, lab.Vanilla.GetInventory(lab.Victim).Select(i => i.Id));
+        }
+
+        [Fact]
+        public void SelectedProposalStillRequiresSuccessfulNativeTransfer()
+        {
+            Lab lab = PressuredMarket();
+            var generator = new SettlementSituationGenerator();
+            var plan = generator.Evaluate(lab.World, lab.Vanilla, Market);
+            Assert.True(lab.Vanilla.TryDestroyItem(lab.Item, lab.Victim));
+            string before = WorldStateSerializer.Save(lab.World);
+            Assert.Null(generator.TryGenerateSelected(lab.World, lab.Vanilla, plan, plan.Proposals[0], Market, lab.Vanilla.Now));
+            Assert.Equal(before, WorldStateSerializer.Save(lab.World));
+        }
+
+        [Fact]
         public void QuietSettlementDoesNotGenerateBecauseAQuestIsNeeded()
         {
             Lab lab = new Lab(Market);
