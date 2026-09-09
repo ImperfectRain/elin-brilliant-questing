@@ -25,3 +25,17 @@ jobs:
 
       - name: Run Core tests
         run: dotnet test tests/BrilliantQuesting.Core.Tests/BrilliantQuesting.Core.Tests.csproj --no-build
+
+      - name: Test Lab harnesses
+        run: dotnet test tests/BrilliantQuesting.Lab.Tests/BrilliantQuesting.Lab.Tests.csproj
+
+      - name: Report anti-template repetition
+        run: dotnet run --no-build --project tools/BrilliantQuesting.Lab -- run anti-template --seed 15 --runs 20 > anti-template-profile.json
+
+      - name: Retain repetition profile
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: anti-template-profile
+          path: anti-template-profile.json
+          if-no-files-found: error

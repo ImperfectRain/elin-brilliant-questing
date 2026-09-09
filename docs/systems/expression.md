@@ -136,6 +136,23 @@ Proof: [NarrativeAttentionBudgetTests](../../tests/BrilliantQuesting.Core.Tests/
 Lab: [ambient](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/AmbientScenario.cs).
 Native dependency: current location/bark delivery in [capabilities](../elin/capabilities.md).
 
+The Lab-only [anti-template harness](../../tools/BrilliantQuesting.Lab/AntiTemplateHarness.cs)
+builds every registered production scene fixture afresh across consecutive seeds and plays eligible
+routed storylets in ordinal order through the existing scene host. Its JSON repetition profile counts
+recorded origin event type and proposed predicate with BQ-101 semantic shape as a bounded
+causal-skeleton signature, cast role sets, acknowledged storylet IDs,
+rendered opener groups (fragment ID fallback), declared recovery-action sets, post-scene reward-audit
+kind sets and declared site-type sets. It adds no selection or saved authority. This balanced fixture
+corpus is not an estimate of natural director frequencies; reward kinds include existing fixture
+state, routes are not actual solutions, and site types do not measure spatial topology (BQ-141).
+Each axis reports its histogram, observations, missing samples, distinct signatures and repeat rate
+`(observations - distinct) / observations`. Missing evidence is excluded from repetition; no samples
+give a null rate. Runs without an acknowledged presentation are listed as coverage gaps. Content
+errors and forbidden item payouts fail; repetition has no arbitrary quality threshold.
+Proof: [AntiTemplateHarnessTests](../../tests/BrilliantQuesting.Lab.Tests/AntiTemplateHarnessTests.cs).
+Lab: [anti-template](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/AntiTemplateScenario.cs);
+CI runs the headless batch and retains its JSON report. No native behavior is exercised or implied.
+
 ## Content
 
 **Owns:** build-time YAML compilation and runtime bundle validation; authored storylet, fragment,

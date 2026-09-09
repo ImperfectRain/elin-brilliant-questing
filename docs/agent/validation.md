@@ -51,10 +51,16 @@ Native mechanics/choices require Plugin build and live [Native](#native) verific
 | Wording/voice/vocabulary | `FragmentRealizationTests`, `VoiceIdiolectTests`, affected vocabulary tests | `FragmentSemanticHonestyTests`, `MundaneWordingTests`; `playground-sweep` |
 | Repetition/weirdness/sincerity | `RepetitionControlTests`, `WeirdnessBudgetTests` or `SincerityBudgetTests` | `StoryletRoutingTests`, `TonePresentationTests` (Lab project); `playground-sweep`, `scene` |
 | Attention/director/fingerprints | `NarrativeAttentionBudgetTests`, `DevelopmentScoringTests` or `SituationFingerprintTests` | `AmbientTalkTests`, `TownNewsTests`, `SettlementSituationGeneratorTests`; `ambient`, `integration` |
+| Anti-template measurements | `AntiTemplateHarnessTests` (Lab project) | `SceneFixtureTests`, `LabCommandLineTests`, `SituationFingerprintTests`; `anti-template` |
 
 All content/vocabulary changes run the compiler and bundle checks below. Core-only expression work
 does not require a Plugin build unless a Plugin-consumed public contract changes. Live hosting is
 not implied by a passing Lab scene.
+
+Run `dotnet run --no-build --project tools/BrilliantQuesting.Lab -- run anti-template --seed 15 --runs 20`
+after building the Lab. This emits JSON for 20 consecutive seeds over each registered scene fixture.
+CI retains the profile as an artifact. Inspect missing samples and unpresented runs alongside rates;
+repetition itself is diagnostic, not a content-quality pass/fail threshold.
 
 ## World
 

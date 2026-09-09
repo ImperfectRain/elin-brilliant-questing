@@ -55,6 +55,7 @@ namespace BrilliantQuesting.Lab.Cli
                 new PlaygroundSweepScenario(),
                 new PlaygroundSystemsScenario(),
                 new IntegrationScenario(),
+                new AntiTemplateScenario(),
                 new SeedProbeScenario(),
                 new DungeonScenario(),
                 new SiteAdditionScenario()

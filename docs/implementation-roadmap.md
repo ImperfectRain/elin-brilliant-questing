@@ -3328,6 +3328,13 @@ Generate many synthetic runs; measure repetition of causal skeleton, roles, stor
 solution families, rewards and sites.
 - **Depends** BQ-101.
 - **Done when** the harness runs headless in CI and reports a repetition profile.
+- **Implementation/evidence** the Lab `anti-template` command batches existing production scene
+  fixtures and reports all seven dimensions with deterministic histograms, repetition rates and
+  explicit missing coverage. See the [attention contract](systems/expression.md#attention) and
+  `AntiTemplateHarnessTests`. Core CI runs the batch and retains its JSON artifact. Measurements
+  are bounded by current evidence: origin/predicate and BQ-101 shape describe the causal seed,
+  not full played topology; routes are declared,
+  reward kinds come from the existing audit and site types do not establish spatial topology.
 - **Sources** CD §35; MD §23.3.
 
 #### BQ-141 — Spatial expressive-range harness
