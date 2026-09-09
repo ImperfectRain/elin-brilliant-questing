@@ -1,0 +1,906 @@
+{
+  "schemaVersion": 10,
+  "worldSeed": "31337",
+  "rngState": "11400714819323229822",
+  "idCounters": {
+    "npc": 4,
+    "zone": 1,
+    "item": 1,
+    "evt": 5,
+    "mem": 6,
+    "fact": 3,
+    "thread": 1
+  },
+  "externalRefs": {},
+  "lastRumorDay": -1,
+  "lastAmbientRemarkMinute": -1,
+  "npcs": [
+    {
+      "id": "npc_00000001",
+      "name": "You",
+      "charaRef": null,
+      "occupation": null,
+      "roles": [],
+      "homeSite": "",
+      "importance": 4,
+      "alive": true,
+      "lastSimulated": 0,
+      "personality": {
+        "boldness": 0.5,
+        "patience": 0.5,
+        "warmth": 0.5,
+        "earnestness": 0.5,
+        "optimism": 0.5,
+        "orderliness": 0.5,
+        "mercy": 0.5,
+        "honesty": 0.5,
+        "generosity": 0.5,
+        "loyalty": 0.5,
+        "trust": 0.5,
+        "humility": 0.5,
+        "curiosity": 0.5,
+        "conventionality": 0.5,
+        "statusBlindness": 0.5
+      },
+      "problemSolving": {
+        "confront": 0.5,
+        "avoid": 0.5,
+        "askAuthority": 0.5,
+        "askFriends": 0.5,
+        "paySomeone": 0.5,
+        "doItSelf": 0.5,
+        "manipulate": 0.5,
+        "useViolence": 0.5,
+        "seekGuild": 0.5,
+        "seekReligiousHelp": 0.5,
+        "wait": 0.5,
+        "flee": 0.5,
+        "publicize": 0.5,
+        "conceal": 0.5
+      },
+      "sensitivities": {
+        "publicEmbarrassment": 0.5,
+        "unpaidDebt": 0.5,
+        "familyThreat": 0.5,
+        "animals": 0.5,
+        "status": 0.5,
+        "theft": 0.5,
+        "violence": 0.5,
+        "dishonesty": 0.5
+      },
+      "contradiction": {
+        "kind": "None",
+        "strength": 1
+      },
+      "quirk": {
+        "assigned": false,
+        "weirdness": "MostlyOrdinary",
+        "kind": "None"
+      },
+      "negativeSpace": [],
+      "values": {
+        "family": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "wealth": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "law": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "faith": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "status": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "animals": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "knowledge": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "freedom": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        }
+      },
+      "needs": {
+        "safety": 0,
+        "belonging": 0,
+        "debtRelief": 0,
+        "status": 0,
+        "loyalty": 0,
+        "justice": 0,
+        "secrecy": 0,
+        "revenge": 0,
+        "protection": 0,
+        "materialShortage": 0,
+        "obligation": 0
+      },
+      "emotions": {
+        "anger": 0,
+        "fear": 0,
+        "shame": 0,
+        "grief": 0,
+        "relief": 0,
+        "suspicion": 0,
+        "affection": 0,
+        "stress": 0,
+        "lastUpdated": 0
+      },
+      "goals": [],
+      "organizations": []
+    },
+    {
+      "id": "npc_00000002",
+      "name": "Mara",
+      "charaRef": null,
+      "occupation": "shopkeeper",
+      "roles": [],
+      "homeSite": "",
+      "importance": 2,
+      "alive": true,
+      "lastSimulated": 0,
+      "personality": {
+        "boldness": 0.5,
+        "patience": 0.5,
+        "warmth": 0.5,
+        "earnestness": 0.5,
+        "optimism": 0.5,
+        "orderliness": 0.5,
+        "mercy": 0.4,
+        "honesty": 0.8,
+        "generosity": 0.5,
+        "loyalty": 0.5,
+        "trust": 0.5,
+        "humility": 0.5,
+        "curiosity": 0.5,
+        "conventionality": 0.5,
+        "statusBlindness": 0.5
+      },
+      "problemSolving": {
+        "confront": 0.5,
+        "avoid": 0.5,
+        "askAuthority": 0.5,
+        "askFriends": 0.5,
+        "paySomeone": 0.5,
+        "doItSelf": 0.5,
+        "manipulate": 0.5,
+        "useViolence": 0.5,
+        "seekGuild": 0.5,
+        "seekReligiousHelp": 0.5,
+        "wait": 0.5,
+        "flee": 0.5,
+        "publicize": 0.5,
+        "conceal": 0.5
+      },
+      "sensitivities": {
+        "publicEmbarrassment": 0.5,
+        "unpaidDebt": 0.5,
+        "familyThreat": 0.5,
+        "animals": 0.5,
+        "status": 0.5,
+        "theft": 0.5,
+        "violence": 0.5,
+        "dishonesty": 0.5
+      },
+      "contradiction": {
+        "kind": "None",
+        "strength": 1
+      },
+      "quirk": {
+        "assigned": false,
+        "weirdness": "MostlyOrdinary",
+        "kind": "None"
+      },
+      "negativeSpace": [],
+      "values": {
+        "family": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "wealth": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "law": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "faith": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "status": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "animals": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "knowledge": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "freedom": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        }
+      },
+      "needs": {
+        "safety": 0,
+        "belonging": 0,
+        "debtRelief": 0,
+        "status": 0,
+        "loyalty": 0,
+        "justice": 0,
+        "secrecy": 0,
+        "revenge": 0,
+        "protection": 0,
+        "materialShortage": 0,
+        "obligation": 0
+      },
+      "emotions": {
+        "anger": 0,
+        "fear": 0,
+        "shame": 0,
+        "grief": 0,
+        "relief": 0,
+        "suspicion": 0,
+        "affection": 0,
+        "stress": 0,
+        "lastUpdated": 0
+      },
+      "goals": [
+        {
+          "kind": "recover_property",
+          "subject": "item_00000001",
+          "weight": 90,
+          "reason": "",
+          "satisfied": false
+        }
+      ],
+      "organizations": []
+    },
+    {
+      "id": "npc_00000003",
+      "name": "Vess",
+      "charaRef": null,
+      "occupation": "labourer",
+      "roles": [],
+      "homeSite": "",
+      "importance": 1,
+      "alive": true,
+      "lastSimulated": 0,
+      "personality": {
+        "boldness": 0.5,
+        "patience": 0.5,
+        "warmth": 0.5,
+        "earnestness": 0.5,
+        "optimism": 0.5,
+        "orderliness": 0.5,
+        "mercy": 0.5,
+        "honesty": 0.2,
+        "generosity": 0.19999999999999996,
+        "loyalty": 0.5,
+        "trust": 0.5,
+        "humility": 0.5,
+        "curiosity": 0.5,
+        "conventionality": 0.5,
+        "statusBlindness": 0.5
+      },
+      "problemSolving": {
+        "confront": 0.5,
+        "avoid": 0.5,
+        "askAuthority": 0.5,
+        "askFriends": 0.5,
+        "paySomeone": 0.5,
+        "doItSelf": 0.5,
+        "manipulate": 0.5,
+        "useViolence": 0.5,
+        "seekGuild": 0.5,
+        "seekReligiousHelp": 0.5,
+        "wait": 0.5,
+        "flee": 0.5,
+        "publicize": 0.5,
+        "conceal": 0.5
+      },
+      "sensitivities": {
+        "publicEmbarrassment": 0.5,
+        "unpaidDebt": 0.5,
+        "familyThreat": 0.5,
+        "animals": 0.5,
+        "status": 0.5,
+        "theft": 0.5,
+        "violence": 0.5,
+        "dishonesty": 0.5
+      },
+      "contradiction": {
+        "kind": "None",
+        "strength": 1
+      },
+      "quirk": {
+        "assigned": false,
+        "weirdness": "MostlyOrdinary",
+        "kind": "None"
+      },
+      "negativeSpace": [],
+      "values": {
+        "family": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "wealth": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "law": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "faith": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "status": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "animals": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "knowledge": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "freedom": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        }
+      },
+      "needs": {
+        "safety": 0,
+        "belonging": 0,
+        "debtRelief": 0,
+        "status": 0,
+        "loyalty": 0,
+        "justice": 0,
+        "secrecy": 0,
+        "revenge": 0,
+        "protection": 0,
+        "materialShortage": 0,
+        "obligation": 0
+      },
+      "emotions": {
+        "anger": 0,
+        "fear": 0,
+        "shame": 0,
+        "grief": 0,
+        "relief": 0,
+        "suspicion": 0,
+        "affection": 0,
+        "stress": 0,
+        "lastUpdated": 0
+      },
+      "goals": [
+        {
+          "kind": "avoid_exposure",
+          "subject": "fact_00000001",
+          "weight": 85,
+          "reason": "",
+          "satisfied": false
+        },
+        {
+          "kind": "raise_money",
+          "subject": "npc_00000003",
+          "weight": 70,
+          "reason": "",
+          "satisfied": false
+        }
+      ],
+      "organizations": []
+    },
+    {
+      "id": "npc_00000004",
+      "name": "Bram",
+      "charaRef": null,
+      "occupation": "neighbour",
+      "roles": [],
+      "homeSite": "",
+      "importance": 1,
+      "alive": true,
+      "lastSimulated": 0,
+      "personality": {
+        "boldness": 0.2,
+        "patience": 0.5,
+        "warmth": 0.7,
+        "earnestness": 0.5,
+        "optimism": 0.5,
+        "orderliness": 0.5,
+        "mercy": 0.5,
+        "honesty": 0.5,
+        "generosity": 0.6,
+        "loyalty": 0.5,
+        "trust": 0.5,
+        "humility": 0.5,
+        "curiosity": 0.5,
+        "conventionality": 0.5,
+        "statusBlindness": 0.5
+      },
+      "problemSolving": {
+        "confront": 0.5,
+        "avoid": 0.5,
+        "askAuthority": 0.5,
+        "askFriends": 0.5,
+        "paySomeone": 0.5,
+        "doItSelf": 0.5,
+        "manipulate": 0.5,
+        "useViolence": 0.5,
+        "seekGuild": 0.5,
+        "seekReligiousHelp": 0.5,
+        "wait": 0.5,
+        "flee": 0.5,
+        "publicize": 0.5,
+        "conceal": 0.5
+      },
+      "sensitivities": {
+        "publicEmbarrassment": 0.5,
+        "unpaidDebt": 0.5,
+        "familyThreat": 0.5,
+        "animals": 0.5,
+        "status": 0.5,
+        "theft": 0.5,
+        "violence": 0.5,
+        "dishonesty": 0.5
+      },
+      "contradiction": {
+        "kind": "None",
+        "strength": 1
+      },
+      "quirk": {
+        "assigned": false,
+        "weirdness": "MostlyOrdinary",
+        "kind": "None"
+      },
+      "negativeSpace": [],
+      "values": {
+        "family": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "wealth": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "law": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "faith": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "status": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "animals": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "knowledge": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        },
+        "freedom": {
+          "importance": 0.5,
+          "flexibility": 0.5
+        }
+      },
+      "needs": {
+        "safety": 0,
+        "belonging": 0,
+        "debtRelief": 0,
+        "status": 0,
+        "loyalty": 0,
+        "justice": 0,
+        "secrecy": 0,
+        "revenge": 0,
+        "protection": 0,
+        "materialShortage": 0,
+        "obligation": 0
+      },
+      "emotions": {
+        "anger": 0,
+        "fear": 0,
+        "shame": 0,
+        "grief": 0,
+        "relief": 0,
+        "suspicion": 0,
+        "affection": 0,
+        "stress": 0,
+        "lastUpdated": 0
+      },
+      "goals": [
+        {
+          "kind": "stay_out_of_trouble",
+          "subject": "npc_00000004",
+          "weight": 75,
+          "reason": "",
+          "satisfied": false
+        }
+      ],
+      "organizations": []
+    }
+  ],
+  "organizations": [],
+  "sites": [],
+  "events": [
+    {
+      "id": "evt_00000001",
+      "type": "Theft",
+      "actor": "npc_00000003",
+      "target": "npc_00000002",
+      "time": 0,
+      "magnitude": 0.6,
+      "zone": "zone_00000001",
+      "related": [
+        "item_00000001"
+      ],
+      "witnesses": [
+        "npc_00000004"
+      ],
+      "evidence": [
+        "item_00000001"
+      ],
+      "tags": [],
+      "thread": ""
+    },
+    {
+      "id": "evt_00000002",
+      "type": "Conversed",
+      "actor": "npc_00000001",
+      "target": "npc_00000004",
+      "time": 0,
+      "magnitude": 0.3,
+      "zone": "zone_00000001",
+      "related": [],
+      "witnesses": [],
+      "evidence": [],
+      "tags": [],
+      "thread": ""
+    },
+    {
+      "id": "evt_00000003",
+      "type": "Theft",
+      "actor": "npc_00000001",
+      "target": "npc_00000003",
+      "time": 0,
+      "magnitude": 0.5,
+      "zone": "zone_00000001",
+      "related": [
+        "fact_00000003"
+      ],
+      "witnesses": [],
+      "evidence": [
+        "item_00000001"
+      ],
+      "tags": [
+        "unnoticed"
+      ],
+      "thread": ""
+    },
+    {
+      "id": "evt_00000004",
+      "type": "ItemReturned",
+      "actor": "npc_00000001",
+      "target": "npc_00000002",
+      "time": 0,
+      "magnitude": 0.8,
+      "zone": "zone_00000001",
+      "related": [],
+      "witnesses": [
+        "npc_00000003",
+        "npc_00000004"
+      ],
+      "evidence": [
+        "item_00000001"
+      ],
+      "tags": [],
+      "thread": "thread_00000001"
+    },
+    {
+      "id": "evt_00000005",
+      "type": "ThreadResolved",
+      "actor": "npc_00000001",
+      "target": "",
+      "time": 0,
+      "magnitude": 0.8,
+      "zone": "zone_00000001",
+      "related": [],
+      "witnesses": [],
+      "evidence": [],
+      "tags": [
+        "resolution:property_returned"
+      ],
+      "thread": "thread_00000001"
+    }
+  ],
+  "facts": [
+    {
+      "id": "fact_00000001",
+      "subject": "npc_00000003",
+      "predicate": "stole",
+      "object": "item_00000001",
+      "value": "ivory comb",
+      "truth": "True",
+      "secrecy": 60,
+      "originEvent": "evt_00000001",
+      "distortionOf": "",
+      "evidence": [
+        "item_00000001"
+      ]
+    },
+    {
+      "id": "fact_00000002",
+      "subject": "npc_00000002",
+      "predicate": "possesses",
+      "object": "item_00000001",
+      "value": "ivory comb",
+      "truth": "True",
+      "secrecy": 0,
+      "originEvent": "",
+      "distortionOf": "",
+      "evidence": []
+    },
+    {
+      "id": "fact_00000003",
+      "subject": "npc_00000001",
+      "predicate": "stole",
+      "object": "item_00000001",
+      "value": "ivory comb",
+      "truth": "True",
+      "secrecy": 0,
+      "originEvent": "",
+      "distortionOf": "",
+      "evidence": [
+        "item_00000001"
+      ]
+    }
+  ],
+  "beliefs": [
+    {
+      "knower": "npc_00000003",
+      "fact": "fact_00000001",
+      "source": "Participant",
+      "confidence": 1,
+      "learnedAt": 0,
+      "canProve": true,
+      "proofs": [
+        {
+          "kind": "WitnessTestimony",
+          "entity": "npc_00000003"
+        }
+      ],
+      "toldBy": ""
+    },
+    {
+      "knower": "npc_00000004",
+      "fact": "fact_00000001",
+      "source": "Witnessed",
+      "confidence": 1,
+      "learnedAt": 0,
+      "canProve": false,
+      "proofs": [],
+      "toldBy": ""
+    },
+    {
+      "knower": "npc_00000001",
+      "fact": "fact_00000001",
+      "source": "Hearsay",
+      "confidence": 0.6,
+      "learnedAt": 0,
+      "canProve": false,
+      "proofs": [],
+      "toldBy": "npc_00000004"
+    },
+    {
+      "knower": "npc_00000003",
+      "fact": "fact_00000002",
+      "source": "Participant",
+      "confidence": 1,
+      "learnedAt": 0,
+      "canProve": false,
+      "proofs": [],
+      "toldBy": ""
+    },
+    {
+      "knower": "npc_00000002",
+      "fact": "fact_00000002",
+      "source": "Participant",
+      "confidence": 1,
+      "learnedAt": 0,
+      "canProve": false,
+      "proofs": [],
+      "toldBy": ""
+    }
+  ],
+  "memories": [
+    {
+      "id": "mem_00000001",
+      "owner": "npc_00000002",
+      "about": "npc_00000003",
+      "eventType": "Theft",
+      "weight": 3,
+      "when": 0,
+      "affinity": 0,
+      "tag": "was_robbed",
+      "occurrences": 1
+    },
+    {
+      "id": "mem_00000004",
+      "owner": "npc_00000002",
+      "about": "npc_00000001",
+      "eventType": "ItemReturned",
+      "weight": 3,
+      "when": 0,
+      "affinity": 16,
+      "tag": "got_property_back",
+      "occurrences": 1
+    },
+    {
+      "id": "mem_00000002",
+      "owner": "npc_00000004",
+      "about": "npc_00000003",
+      "eventType": "Theft",
+      "weight": 3,
+      "when": 0,
+      "affinity": 0,
+      "tag": "saw_was_robbed",
+      "occurrences": 1
+    },
+    {
+      "id": "mem_00000003",
+      "owner": "npc_00000004",
+      "about": "npc_00000001",
+      "eventType": "Conversed",
+      "weight": 1,
+      "when": 0,
+      "affinity": 1,
+      "tag": "spoke_with",
+      "occurrences": 1
+    },
+    {
+      "id": "mem_00000006",
+      "owner": "npc_00000004",
+      "about": "npc_00000001",
+      "eventType": "ItemReturned",
+      "weight": 3,
+      "when": 0,
+      "affinity": 2,
+      "tag": "saw_got_property_back",
+      "occurrences": 1
+    },
+    {
+      "id": "mem_00000005",
+      "owner": "npc_00000003",
+      "about": "npc_00000001",
+      "eventType": "ItemReturned",
+      "weight": 3,
+      "when": 0,
+      "affinity": 2,
+      "tag": "saw_got_property_back",
+      "occurrences": 1
+    }
+  ],
+  "relationships": [
+    {
+      "from": "npc_00000002",
+      "to": "npc_00000004",
+      "kind": "Acquaintance",
+      "sentiment": 30
+    },
+    {
+      "from": "npc_00000004",
+      "to": "npc_00000002",
+      "kind": "Acquaintance",
+      "sentiment": 30
+    },
+    {
+      "from": "npc_00000004",
+      "to": "npc_00000003",
+      "kind": "Acquaintance",
+      "sentiment": -10
+    }
+  ],
+  "obligations": [],
+  "threads": [
+    {
+      "id": "thread_00000001",
+      "archetype": "petty_theft",
+      "originEvent": "evt_00000001",
+      "parentThread": "",
+      "successorThread": "",
+      "createdAt": 0,
+      "lastAdvancedAt": 0,
+      "tension": 28,
+      "importance": 30,
+      "state": "Resolved",
+      "resolution": "property_returned",
+      "lifecycleReason": null,
+      "participants": [
+        "npc_00000002",
+        "npc_00000003",
+        "npc_00000004"
+      ],
+      "sites": [
+        "zone_00000001"
+      ],
+      "facts": [
+        "fact_00000001",
+        "fact_00000002"
+      ],
+      "openQuestions": [
+        "Where is Mara's ivory comb?",
+        "Did anyone see what happened?"
+      ],
+      "generationCauses": [],
+      "recoveryRoutes": [
+        {
+          "worstOutcome": "feud after an unresolved or false accusation",
+          "action": "return_item / report",
+          "price": "recover or prove the real item/fact; may require theft, search, or authority standing",
+          "uncertainty": "the object or proof can be missing, hidden, or disbelieved",
+          "restores": "the true ownership/theft record can be acted on again without erasing the feud"
+        }
+      ],
+      "escalation": [
+        {
+          "id": "victim_asks_around",
+          "dayOffset": 2,
+          "description": "The victim starts asking neighbours."
+        },
+        {
+          "id": "thief_hides_it",
+          "dayOffset": 4,
+          "description": "The thief stops carrying it."
+        },
+        {
+          "id": "witness_talks",
+          "dayOffset": 7,
+          "description": "The witness lets something slip."
+        },
+        {
+          "id": "thief_deflects",
+          "dayOffset": 8,
+          "description": "The thief points at somebody else."
+        },
+        {
+          "id": "accusation",
+          "dayOffset": 10,
+          "description": "The victim acts on what they believe."
+        },
+        {
+          "id": "feud",
+          "dayOffset": 14,
+          "description": "The two households stop speaking."
+        }
+      ],
+      "completedSteps": [],
+      "storyletFirings": []
+    }
+  ],
+  "absences": [],
+  "demands": [],
+  "businesses": []
+}

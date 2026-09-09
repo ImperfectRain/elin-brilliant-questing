@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Fixtures/Saves/schema-*.json" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="../../src/BrilliantQuesting.Core/BrilliantQuesting.Core.csproj" />
     <!-- Exercise the actual native mount/rollback policy against a headless Window double.
          Native widget rendering still requires Elin; these tests do not emulate Unity layout. -->

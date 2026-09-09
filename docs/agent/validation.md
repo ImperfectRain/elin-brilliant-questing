@@ -96,11 +96,14 @@ a live save just to validate documentation.
 
 ## Persistence
 
-Run `PersistenceTests` and `FoundationTests` plus the affected subsystem's save tests. Exercise old
+Run `MigrationFixtureTests`, `PersistenceTests` and `FoundationTests` plus the affected subsystem's save tests. Exercise old
 input/defaults or migration, round trip, stable IDs/RNG, no event redispatch, no duplicate consequences,
 and relevant native reattachment. See [save contract](../systems/integration.md#persistence).
-The current suite includes migrations, but that is not a claim that BQ-106's historical-fixture
-collection is complete. A schema-version regex would not prove migration behavior; no such gate is added.
+The [historical fixtures](../../tests/BrilliantQuesting.Core.Tests/Fixtures/Saves/README.md) are frozen
+outputs from each schema's serializer. The ordinary Core CI test job loads every version through
+the production migration chain and checks preserved state, defaults, repeated reload and IDs/RNG.
+Adding a schema requires a new fixture; missing versions fail the test rather than disappearing
+from file-based discovery. Retain older fixtures unchanged.
 
 ## Content and full gate
 

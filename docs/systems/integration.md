@@ -70,6 +70,8 @@ Source: [WorldStateSerializer](../../src/BrilliantQuesting.Core/Persistence/Worl
 [SaveMigrations](../../src/BrilliantQuesting.Core/Persistence/SaveMigrations.cs),
 [NarrativeWorldState](../../src/BrilliantQuesting.Core/World/NarrativeWorldState.cs).
 Proof: [PersistenceTests](../../tests/BrilliantQuesting.Core.Tests/PersistenceTests.cs),
+[MigrationFixtureTests](../../tests/BrilliantQuesting.Core.Tests/MigrationFixtureTests.cs) with
+[historical serializer fixtures](../../tests/BrilliantQuesting.Core.Tests/Fixtures/Saves/README.md),
 [FoundationTests](../../tests/BrilliantQuesting.Core.Tests/FoundationTests.cs), affected subsystem round trips.
 Lab: [integration](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/IntegrationScenario.cs) includes reload.
 Native: [save API](../elin/api/save-data.md). Validation: [Persistence](../agent/validation.md#persistence).

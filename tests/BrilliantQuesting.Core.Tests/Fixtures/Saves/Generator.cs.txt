@@ -1,0 +1,23 @@
+using System.IO;
+using BrilliantQuesting.Checks;
+using BrilliantQuesting.Persistence;
+using BrilliantQuesting.Situations;
+class Program {
+    static void Main(string[] args) {
+        var lab = TheftLaboratory.Create(31337);
+        lab.Checks = new FixedCheckResolver(CheckOutcome.Pass);
+        lab.Perform("question", lab.Situation.WitnessId);
+        lab.Perform("pickpocket", lab.Situation.ThiefId);
+        lab.Perform("return_item", lab.Situation.VictimId);
+        lab.AdvanceDays(6);
+        lab.World.Rng.NextUInt64();
+        File.WriteAllText(args[0], WorldStateSerializer.Save(lab.World));
+    }
+}
+class FixedCheckResolver : ICheckResolver {
+    public FixedCheckResolver(CheckOutcome outcome) { }
+    public CheckResult Resolve(CheckRequest request, BrilliantQuesting.Foundation.DeterministicRng rng) {
+        return new CheckResult(request.Profile.Id, request.Profile.BaseDifficulty,
+            new System.Collections.Generic.List<CheckTerm>(), 10, 15, CheckOutcome.Pass);
+    }
+}
