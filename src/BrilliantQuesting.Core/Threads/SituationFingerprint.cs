@@ -125,6 +125,11 @@ namespace BrilliantQuesting.Threads
         /// </summary>
         public static double Read(NarrativeWorldState world, EntityId player,
             IReadOnlyList<NarrativeThread> matters, EntityId proposedFact, GameTime now, out string explanation)
+            => Read(world, player, matters, proposedFact, now, out explanation, out _, out _);
+
+        public static double Read(NarrativeWorldState world, EntityId player,
+            IReadOnlyList<NarrativeThread> matters, EntityId proposedFact, GameTime now,
+            out string explanation, out double diversity, out string nicheEvidence)
         {
             var encountered = new Dictionary<EntityId, long>();
             foreach (NarrativeThread thread in world.Threads)
@@ -156,15 +161,33 @@ namespace BrilliantQuesting.Threads
             }
             double penalty = 0;
             var readings = new List<string>();
+            // BQ-102 uses the same bounded, deduplicated encounter window as BQ-101.
+            // Niches are known semantic domain sets, not nouns or guessed tone/travel axes.
+            var previousShapes = recent.Select(prior => SituationFingerprint.Read(world, player,
+                prior, new GameTime(encountered[prior.Id]))).ToList();
+            int classified = previousShapes.Count(shape => shape.Domains != null);
+            diversity = matters.Count == 0 ? 0 : 0.75;
+            var niches = new List<string>();
             foreach (NarrativeThread matter in matters.OrderBy(t => t.Id))
             {
                 var shape = SituationFingerprint.Read(world, player, matter,
                     encountered.TryGetValue(matter.Id, out long time) ? new GameTime(time) : now, proposedFact);
                 readings.Add(matter.Id + " [" + shape.Explain() + "]");
+                int occupied = previousShapes.Count(previous => previous.Domains != null
+                    && previous.Domains == shape.Domains);
+                // Bounded preference, never a quality bypass. Unknown evidence earns nothing.
+                // Multiple carriers cannot multiply the bonus or hide a represented carrier.
+                double bonus = shape.Domains == null || classified == 0 ? 0
+                    : 0.75 * (1.0 - (double)occupied / classified);
+                diversity = Math.Min(diversity, bonus);
+                niches.Add(matter.Id + " niche=" + (shape.Domains ?? "unknown")
+                    + ", recent occupancy=" + occupied + "/" + classified
+                    + (shape.Domains == null || classified == 0 ? " (insufficient evidence; no bonus)"
+                        : ", bonus=0.75 * (1 - occupancy share)"));
                 for (int i = 0; i < recent.Count; i++)
                 {
                     NarrativeThread prior = recent[i];
-                    var previous = SituationFingerprint.Read(world, player, prior, new GameTime(encountered[prior.Id]));
+                    var previous = previousShapes[i];
                     double similarity = shape.Similarity(previous);
                     // Strongest recent match, not multiplication by the number of carrier threads.
                     double weight = (1.0 / (i + 1))
@@ -175,6 +198,7 @@ namespace BrilliantQuesting.Threads
                 }
             }
             explanation = readings.Count == 0 ? "unknown (no carrier matter)" : string.Join("; ", readings);
+            nicheEvidence = niches.Count == 0 ? "unknown (no carrier matter)" : string.Join("; ", niches);
             return penalty;
         }
     }

@@ -25,10 +25,12 @@ namespace BrilliantQuesting.Threads
         public double RecentExposure { get; internal set; }
         public double ShapeRepetition { get; internal set; }
         public string FingerprintEvidence { get; internal set; }
+        public double NicheDiversity { get; internal set; }
+        public string NicheEvidence { get; internal set; }
         public string Refusal { get; internal set; }
         public double Total => Salience + Tension + (Proximity ?? 0) + Recurrence
             + UnresolvedHistory + (UnderusedMechanics ?? 0) + ConsequenceVisibility
-            - Repetition - RecentExposure - ShapeRepetition;
+            - Repetition - RecentExposure - ShapeRepetition + NicheDiversity;
 
         public string Explain()
         {
@@ -42,6 +44,8 @@ namespace BrilliantQuesting.Threads
                 + ", recent exposure penalty=" + Number(RecentExposure)
                 + ", shape repetition penalty=" + Number(ShapeRepetition)
                 + " (" + FingerprintEvidence + ")"
+                + ", niche diversity bonus=" + Number(NicheDiversity)
+                + " (" + NicheEvidence + ")"
                 + ", total=" + Number(Total);
         }
 
@@ -100,8 +104,11 @@ namespace BrilliantQuesting.Threads
                     if (participants.Contains(actor)) score.Recurrence = 0.5;
             }
             score.Repetition = Math.Min(1, repeats * 0.25);
-            score.ShapeRepetition = SituationRepetition.Read(world, player, matters, factId, now, out string fingerprint);
+            score.ShapeRepetition = SituationRepetition.Read(world, player, matters, factId, now,
+                out string fingerprint, out double diversity, out string nicheEvidence);
             score.FingerprintEvidence = fingerprint;
+            score.NicheDiversity = diversity;
+            score.NicheEvidence = nicheEvidence;
             if (verbs.Count > 0) score.UnderusedMechanics = 0.5 / (1 + mechanicExposures);
 
             foreach (KnowledgeRecord belief in world.Knowledge.BeliefsOf(player))

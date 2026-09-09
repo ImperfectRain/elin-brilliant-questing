@@ -3283,6 +3283,11 @@ penalize repeated topology even when the nouns differ.
 Prefer good candidates that occupy underrepresented niches over the highest raw drama score.
 - **Depends** BQ-101.
 - **Done when** a mundane festival rivalry is chosen over a third consecutive violent situation, and the log says why.
+- **Implementation/evidence** the existing ambient director adds a bounded semantic niche occupancy
+  bonus; see [attention contract](systems/expression.md#attention). `SituationFingerprintTests`
+  exercises two delivered violent matters followed by a festival selection that the prior scoring
+  would not choose, inspector explanations, occupancy adaptation, evidence exclusions and read-only
+  deterministic reload. Live pacing and rendering remain runtime acceptance, not headless proof.
 - **Sources** CD §36.
 
 #### BQ-103 — Narrative conservation

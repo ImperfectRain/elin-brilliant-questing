@@ -18,6 +18,109 @@ namespace BrilliantQuesting.Tests
         private static readonly EntityId Zone = EntityId.Parse("zone_market");
 
         [Fact]
+        public void QualityDiversitySelectsFestivalOverThirdViolentMatterAndExplainsWhy()
+        {
+            var (world, vanilla) = Town();
+            var talk = new AmbientTalk(new RumorSystem(world.Knowledge, world.Ledger, world.Ids));
+            for (int i = 0; i < 2; i++)
+            {
+                var prior = Matter(world, vanilla, "violence_" + i, FactPredicates.Killed);
+                prior.Tension = 100;
+                Assert.True(talk.Deliver(world, vanilla, talk.Next(world, vanilla, vanilla.Now), vanilla.Now));
+                prior.State = ThreadState.Resolved;
+                vanilla.Now = vanilla.Now.PlusMinutes(100);
+            }
+            var violent = Matter(world, vanilla, "third_violence", FactPredicates.Killed);
+            violent.Tension = 100;
+            var festival = Matter(world, vanilla, "festival_rivalry", FactPredicates.WonCompetition);
+            string saved = WorldStateSerializer.Save(world);
+            var selected = talk.Next(world, vanilla, vanilla.Now, out _, out var scores);
+            var violenceScore = scores.Single(s => s.FactId == violent.FactIds[0]);
+            var festivalScore = scores.Single(s => s.FactId == festival.FactIds[0]);
+            // The BQ-101 ranking alone still favors violence. The new niche term changes delivery.
+            Assert.True(violenceScore.Total - violenceScore.NicheDiversity
+                > festivalScore.Total - festivalScore.NicheDiversity);
+            Assert.Equal(festival.FactIds[0], selected.FactId);
+            string report = NarrativeInspector.DescribeAmbientTalk(world, vanilla);
+            Assert.Contains("niche=social, recent occupancy=0/2", report);
+            Assert.Contains("niche=violent, recent occupancy=2/2", report);
+            Assert.Contains("niche diversity bonus=0.750", report);
+            Assert.Contains("director " + festival.FactIds[0] + " via " + Speaker + ": selected for delivery", report);
+            Assert.Equal(saved, WorldStateSerializer.Save(world));
+            world = WorldStateSerializer.Load(saved);
+            world.Threads.Reverse();
+            Assert.Equal(report, NarrativeInspector.DescribeAmbientTalk(world, vanilla));
+            talk = new AmbientTalk(new RumorSystem(world.Knowledge, world.Ledger, world.Ids));
+            Assert.True(talk.Deliver(world, vanilla, talk.Next(world, vanilla, vanilla.Now), vanilla.Now));
+            var nextFestival = Matter(world, vanilla, "another_festival", FactPredicates.WonCompetition);
+            Assert.True(Score(world, vanilla, nextFestival).NicheDiversity < festivalScore.NicheDiversity);
+        }
+
+        [Fact]
+        public void NicheOccupancyRewardsUnderrepresentationWithoutOverridingQuality()
+        {
+            var (world, vanilla) = Town();
+            foreach (string predicate in new[] { FactPredicates.Killed, FactPredicates.Killed, FactPredicates.WonCompetition })
+            {
+                var prior = Matter(world, vanilla, world.Threads.Count.ToString(), predicate);
+                Learn(world, prior);
+                prior.State = ThreadState.Resolved;
+            }
+            var social = Matter(world, vanilla, "social", FactPredicates.WonCompetition);
+            var violent = Matter(world, vanilla, "violent", FactPredicates.Killed);
+            Assert.Equal(0.5, Score(world, vanilla, social).NicheDiversity, 8);
+            Assert.Equal(0.25, Score(world, vanilla, violent).NicheDiversity, 8);
+            var highQuality = DevelopmentScoring.Read(world, vanilla, Speaker, violent.FactIds[0], 5, vanilla.Now);
+            Assert.True(highQuality.Total > Score(world, vanilla, social).Total);
+        }
+
+        [Fact]
+        public void NicheBonusRequiresKnownCandidateAndRecentClassifiedHistory()
+        {
+            var (world, vanilla) = Town();
+            var prior = Matter(world, vanilla, "prior", FactPredicates.Killed);
+            var social = Matter(world, vanilla, "social", FactPredicates.WonCompetition);
+            var unknown = Matter(world, vanilla, "unknown", FactPredicates.IsDead);
+            Assert.Equal(0, Score(world, vanilla, social).NicheDiversity);
+            Learn(world, unknown);
+            Assert.Equal(0, Score(world, vanilla, social).NicheDiversity);
+            Learn(world, prior);
+            Assert.Equal(0, Score(world, vanilla, unknown).NicheDiversity);
+            Assert.Equal(0.75, Score(world, vanilla, social).NicheDiversity);
+            prior.State = ThreadState.Quarantined;
+            Assert.Equal(0, Score(world, vanilla, social).NicheDiversity);
+            prior.State = ThreadState.Resolved;
+            vanilla.Now = new GameTime(-1);
+            Assert.Equal(0.75, Score(world, vanilla, social).NicheDiversity);
+            vanilla.Now = GameTime.FromDays(7);
+            Assert.Equal(0, Score(world, vanilla, social).NicheDiversity);
+        }
+
+        [Fact]
+        public void DuplicateCarriersAndHiddenClaimsDoNotAlterNicheOccupancy()
+        {
+            var (world, vanilla) = Town();
+            var prior = Matter(world, vanilla, "prior", FactPredicates.Killed);
+            Learn(world, prior);
+            var social = Matter(world, vanilla, "social", FactPredicates.WonCompetition);
+            Learn(world, social);
+            var next = Matter(world, vanilla, "next", FactPredicates.WonCompetition);
+            double before = Score(world, vanilla, next).NicheDiversity;
+            for (int i = 0; i < 4; i++)
+            {
+                var copy = new NarrativeThread(world.NewId("thread"), "copy", GameTime.Zero);
+                copy.FactIds.Add(prior.FactIds[0]);
+                world.Threads.Add(copy);
+            }
+            var hidden = new Fact(world.NewId("fact"), Speaker, FactPredicates.Killed, Player, secrecy: 100);
+            world.Knowledge.AddFact(hidden);
+            next.FactIds.Add(hidden.Id);
+            social.FactIds.Add(hidden.Id);
+            Assert.Equal(before, Score(world, vanilla, next).NicheDiversity);
+            Assert.Equal(0.75, Score(world, vanilla, prior).NicheDiversity); // Own carriers excluded.
+        }
+
+        [Fact]
         public void DifferentNounsAndArchetypesStillRepeatTheSameExperience()
         {
             var (world, vanilla) = Town();

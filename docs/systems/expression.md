@@ -107,13 +107,25 @@ Lab: [playground-sweep](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/Playgrou
 ## Attention
 
 **Owns:** admission of new generated matters and unsolicited exposure (`NarrativeAttentionBudget`),
-ranking eligible news (`DevelopmentScoring`) and repeated shape penalties (`SituationFingerprint`).
+ranking eligible news (`DevelopmentScoring`), repeated shape penalties and recent semantic niche
+occupancy (`SituationFingerprint` / `SituationRepetition`).
 Inputs: threads, known claims, actual delivery history, location and declared recovery routes.
 Outputs: admission/refusal and scored candidates for generator/ambient news. Policy/scores are
 transient; delivery events and cooldown stamps belong to saved world state. **Does not own:** truth,
 resolution, player knowledge or suppressing requested actions/news. Scoring reads every eligible
 candidate before selection; unknown evidence contributes no invented score. Sincerity admission
 is acknowledged by a successful host presentation, not by finding a storylet.
+
+Quality-diversity selection adds at most 0.75 to the existing quality score: `0.75 * (1 -
+occupancy share)`, using known semantic domain sets as niches. It reuses the fingerprint policy's
+three most recent distinct encountered matters within seven game days, including resolved matters,
+excluding quarantined/unseen matters and deduplicating shared encountered claims. The denominator
+contains only classified encounters; unknown candidates or no classified history earn nothing.
+Multiple candidate carriers take the smallest bonus. Eligibility and attention refusal still apply
+before ranking. Inspector scores explain the niche, occupancy and bonus beside quality and penalties.
+This ranks ambient proposals only; it neither generates situations nor stores a novelty archive.
+History is reconstructed from current player-held claims, not a snapshot of past experience; actual
+delivery changes subsequent occupancy. Native pacing quality still requires live observation.
 
 Source: [NarrativeAttentionBudget](../../src/BrilliantQuesting.Core/Threads/NarrativeAttentionBudget.cs),
 [DevelopmentScore](../../src/BrilliantQuesting.Core/Threads/DevelopmentScore.cs),
