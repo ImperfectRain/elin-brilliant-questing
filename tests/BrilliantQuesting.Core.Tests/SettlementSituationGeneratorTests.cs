@@ -33,7 +33,11 @@ namespace BrilliantQuesting.Tests
             var generator = new SettlementSituationGenerator();
             string before = WorldStateSerializer.Save(lab.World);
             var plan = generator.Evaluate(lab.World, lab.Vanilla, Market);
-            var selected = SituationProposalSelection.Rank(plan.Proposals)[0];
+            var newActor = new SituationProposal("hypothetical", new SituationCandidateBuilder(PettyTheftSituation.ArchetypeId)
+                .RequireNewActor(SituationRoles.Actor, "new-thief")
+                .Pressure("pressure", plan.BestCandidate.Score + 3, "test pressure").Build());
+            var selected = SituationProposalSelection.Rank(plan.Proposals.Concat(new[] { newActor }))[0];
+            Assert.True(newActor.Candidate.Score > selected.Candidate.Score);
             Assert.Same(plan.BestCandidate, selected.Candidate);
             Assert.Contains("reuses actor", selected.Explain());
             Assert.Equal(before, WorldStateSerializer.Save(lab.World));

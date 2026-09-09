@@ -72,8 +72,8 @@ Proof: [DevelopmentLayerTests](../../tests/BrilliantQuesting.Core.Tests/Developm
 The [generation proposal seam](world.md#generation) also accepts hypothetical actor requirements
 for headless comparison. Selection only returns a candidate to its owner; it does not satisfy those
 requirements. The live settlement owner proposes existing actors only and refuses hypothetical
-creation at handoff. BQ-152 supplies the pre-creation comparison needed by BQ-103, not conservation
-scoring or a director-to-spawner join.
+creation at handoff. BQ-152 supplies pre-creation comparison; BQ-103 subtracts explicit actor/premise
+creation costs in that selection seam. Neither adds a director-to-spawner join or charges existing news.
 
 | Join | Current limit / reusable seam |
 |---|---|

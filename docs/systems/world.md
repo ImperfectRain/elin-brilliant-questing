@@ -35,14 +35,24 @@ Consumers: threads, action bindings, discovery, autonomy, sites.
 new actors. New actors use proposal-local keys (shared across roles when appropriate), never
 reserved world IDs; these are requirements, not existence or feasibility claims. Actor requirements
 are immutable and detached from the builder. `SituationProposal` names a candidate;
-`SituationProposalSelection.Rank` orders by existing quality then unique ordinal proposal key,
+`SituationProposalSelection.Rank` orders by quality minus explicit creation costs, then unique ordinal proposal key,
 rejecting duplicate keys. Construction, ranking and inspector-only `Explain` have no world access,
-commit callbacks, RNG or saved state. BQ-103 conservation costs are not implemented here.
+commit callbacks, RNG or saved state.
+
+BQ-103 charges 4 per distinct new actor key and 6 per distinct `NewWeirdPremises` key, adopting
+CD §33.6's initial weights. These are significant additions explicitly requested by a proposal;
+reusing actors/facts/locations has no creation charge, regardless of player familiarity. Actor keys
+shared across roles count once. Premises are declared by `RequireNewWeirdPremise`, never inferred
+from English, archetype ids, setting references or existing truth. Premise keys are sorted, deduplicated
+and detached from the builder. The score uses wide arithmetic and is explained alongside raw quality,
+counts, costs and requirements by `SituationProposal.Explain`. Sufficient quality can outweigh cost;
+cost does not change eligibility or fabricate a causal reason. Other hypothetical resource types
+remain outside this bounded policy; it adds no factories, saved budget or exposure penalty.
 
 Settlement plans expose proposals over their admitted candidates. Their evaluation-local keys
 preserve the owner's existing deterministic tie order; they are not persistent identities.
 Selection hands back the original proposal to `TryGenerateSelected`, which accepts only a proposal
-from that plan, refuses hypothetical actor creation, rechecks attention and performs the existing
+from that plan, refuses hypothetical actor/premise creation, rechecks attention and performs the existing
 native transfer before establishing facts/history. Ranking a hypothetical alternative is supported;
 fulfilling its actor requirement is not added to the settlement generator. Explicit scenario staging
 remains a separate owner. There is no automatic new-actor fallback or universal creation factory.

@@ -112,7 +112,8 @@ namespace BrilliantQuesting.Situations
             Dictionary<string, int> pressures,
             List<string> causes,
             List<SettingReference> settingReferences,
-            IReadOnlyList<SituationActorRequirement> newActors = null)
+            IReadOnlyList<SituationActorRequirement> newActors = null,
+            IEnumerable<string> newWeirdPremises = null)
         {
             ArchetypeId = archetypeId;
             _actors = new Dictionary<string, List<EntityId>>();
@@ -143,6 +144,8 @@ namespace BrilliantQuesting.Situations
                     a.CreationKey ?? a.ExistingActor.Value, b.CreationKey ?? b.ExistingActor.Value);
             });
             ActorRequirements = requirements.AsReadOnly();
+            var premises = new SortedSet<string>(newWeirdPremises ?? new string[0], System.StringComparer.Ordinal);
+            NewWeirdPremises = new List<string>(premises).AsReadOnly();
 
             foreach (KeyValuePair<string, int> pressure in pressures)
             {
@@ -154,6 +157,9 @@ namespace BrilliantQuesting.Situations
 
         /// <summary>Reuse bindings and hypothetical actors in one immutable casting vocabulary.</summary>
         public IReadOnlyList<SituationActorRequirement> ActorRequirements { get; }
+
+        /// <summary>Explicit proposal-local requirements, not inferred from wording or setting references.</summary>
+        public IReadOnlyList<string> NewWeirdPremises { get; }
 
         public bool RequiresActorCreation
         {
@@ -217,7 +223,7 @@ namespace BrilliantQuesting.Situations
                 causes.Add(because);
             }
 
-            return new SituationCandidate(ArchetypeId, _actors, _items, _sites, pressures, causes, _settingReferences, ActorRequirements);
+            return new SituationCandidate(ArchetypeId, _actors, _items, _sites, pressures, causes, _settingReferences, ActorRequirements, NewWeirdPremises);
         }
 
         public EntityId SiteIn(string role) => _sites.TryGetValue(role, out EntityId site) ? site : EntityId.None;
@@ -239,6 +245,16 @@ namespace BrilliantQuesting.Situations
         private readonly List<SettingReference> _settingReferences = new List<SettingReference>();
         private readonly string _archetypeId;
         private readonly List<SituationActorRequirement> _newActors = new List<SituationActorRequirement>();
+        private readonly HashSet<string> _newWeirdPremises = new HashSet<string>(System.StringComparer.Ordinal);
+
+        /// <summary>Declare a new premise without establishing it. Reusing a premise needs no creation requirement.</summary>
+        public SituationCandidateBuilder RequireNewWeirdPremise(string creationKey)
+        {
+            if (string.IsNullOrWhiteSpace(creationKey))
+                throw new System.ArgumentException("A proposal-local creation key is required.", nameof(creationKey));
+            _newWeirdPremises.Add(creationKey);
+            return this;
+        }
 
         /// <summary>
         /// Describes an unmet actor requirement. A shared key means the same hypothetical actor
@@ -345,7 +361,7 @@ namespace BrilliantQuesting.Situations
         }
 
         public SituationCandidate Build() =>
-            new SituationCandidate(_archetypeId, _actors, _items, _sites, _pressures, _causes, _settingReferences, _newActors);
+            new SituationCandidate(_archetypeId, _actors, _items, _sites, _pressures, _causes, _settingReferences, _newActors, _newWeirdPremises);
     }
 
     /// <summary>

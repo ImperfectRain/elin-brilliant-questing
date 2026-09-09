@@ -192,6 +192,7 @@ namespace BrilliantQuesting.Situations
             SettlementSituationPlan plan, SituationProposal selected, EntityId zoneId, GameTime now)
         {
             if (plan == null || selected == null || selected.Candidate.RequiresActorCreation
+                || selected.Candidate.NewWeirdPremises.Count != 0
                 || world.AttentionBudget.GenerationRefusal(world) != null) return null;
             bool admitted = false;
             foreach (SituationProposal proposal in plan.Proposals)

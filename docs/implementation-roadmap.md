@@ -3313,6 +3313,14 @@ Apply creation costs — reuse a fact or actor free, a new significant NPC expen
 premise most expensive — so the world deepens before it grows.
 - **Depends** BQ-102, BQ-152.
 - **Done when** the director measurably prefers reusing an existing actor over generating a new one.
+- **Implementation/evidence** proposal ranking subtracts explicit actor/premise creation costs;
+  see the [generation contract](systems/world.md#generation). `SituationProposalTests` proves reuse
+  wins despite a modest raw-quality deficit, exceptional quality can outweigh cost, distinct-key
+  accounting, read-only replay and explanations. `SettlementSituationGeneratorTests` proves the
+  selected reuse proposal hands off to the existing generation owner for actual establishment.
+- **Evidence limit** current settlement producers reuse local actors only. Headless mixed proposals
+  prove the comparison, not live actor spawning or pacing quality. Hypothetical fulfillment remains
+  refused there; no live save was modified or native capability added.
 - **Sources** CD §33.6, §33.7; PM §19; LW §10.6.
 
 #### BQ-104 — Anti-template test harness
