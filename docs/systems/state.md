@@ -13,6 +13,13 @@ queues are transient. **Does not own:** native current state, truth of every spo
 event-sourced reconstruction. Never rewrite events to reconcile identity or replay reactions on load.
 Consumers: consequences, threads, continuity, diagnostics.
 
+For live native violence, `VanillaActionRecorder.ShouldObserveViolence` admits player actions or
+combat between actors at `NarrativeImportance.Known` or above (the player is known).
+Passive registration alone is not significance. The Plugin checks before witness scans/intake;
+explicit recorder callers retain their observation authority. Only admission of new events changes,
+never existing history. `VanillaActionRecorderTests` covers passive intake/reload and player/known
+actors; [native hook evidence](../elin/bq-integration/event-hooks.md) records the live defect.
+
 Source: [EventLedger](../../src/BrilliantQuesting.Core/Events/EventLedger.cs),
 [NarrativeWorldState](../../src/BrilliantQuesting.Core/World/NarrativeWorldState.cs).
 Proof: [FoundationTests](../../tests/BrilliantQuesting.Core.Tests/FoundationTests.cs),

@@ -21,6 +21,65 @@ namespace BrilliantQuesting.Tests
         private static readonly EntityId Zone = EntityId.Parse("zone_7");
 
         [Fact]
+        public void PassiveRegistrationDoesNotAdmitBackgroundCombatEvenAfterReload()
+        {
+            var world = new NarrativeWorldState(108);
+            var vanilla = new SandboxVanillaState(Player);
+            world.Registry.Add(new NarrativeNpc(Thief, "Tentacle"));
+            world.Registry.Add(new NarrativeNpc(Victim, "Crab"));
+            var recorder = new VanillaActionRecorder(world, vanilla);
+            Assert.False(recorder.ShouldObserveViolence(Thief, Victim));
+            var restored = BrilliantQuesting.Persistence.WorldStateSerializer.Load(
+                BrilliantQuesting.Persistence.WorldStateSerializer.Save(world));
+            Assert.False(new VanillaActionRecorder(restored, vanilla).ShouldObserveViolence(Thief, Victim));
+            Assert.Equal(0, restored.Ledger.Count);
+            Assert.Equal(2, restored.Registry.Npcs.Count);
+        }
+
+        [Fact]
+        public void LiveCombatAdmissionPreservesPlayerAndBothKnownActorsWithoutRegisteringUnknowns()
+        {
+            var world = new NarrativeWorldState(108);
+            var vanilla = new SandboxVanillaState(Player);
+            var recorder = new VanillaActionRecorder(world, vanilla);
+            Assert.True(recorder.ShouldObserveViolence(Player, Victim));
+            Assert.False(recorder.ShouldObserveViolence(Thief, Victim));
+            Assert.False(recorder.ShouldObserveViolence(EntityId.None, Victim));
+            Assert.False(recorder.ShouldObserveViolence(Player, EntityId.None));
+            Assert.Empty(world.Registry.Npcs);
+            var actor = world.Registry.Add(new NarrativeNpc(Thief, "Actor"));
+            var target = world.Registry.Add(new NarrativeNpc(Victim, "Target"));
+            actor.Promote(NarrativeImportance.Known);
+            Assert.False(recorder.ShouldObserveViolence(Thief, Victim));
+            target.Promote(NarrativeImportance.Known);
+            Assert.True(recorder.ShouldObserveViolence(Thief, Victim));
+            Assert.True(recorder.ShouldObserveViolence(Thief, Player));
+            Assert.Equal(0, world.Ledger.Count);
+        }
+
+        [Fact]
+        public void PreviouslyRecordedCombatAndEarnedImportanceSurviveTheNewGate()
+        {
+            var world = new NarrativeWorldState(108);
+            var vanilla = new SandboxVanillaState(Player);
+            world.Registry.Add(new NarrativeNpc(Thief, "Actor"));
+            world.Registry.Add(new NarrativeNpc(Victim, "Target"));
+            new ConsequenceEngine(world, vanilla).Attach();
+            var recorder = new VanillaActionRecorder(world, vanilla);
+            recorder.Record(new ObservedVanillaAction(ObservedVanillaActionKind.Attacked,
+                Thief, Victim, EntityId.None, "", Zone, "ActMelee"));
+            recorder.Record(new ObservedVanillaAction(ObservedVanillaActionKind.Attacked,
+                Victim, Thief, EntityId.None, "", Zone, "ActMelee"));
+            var saved = BrilliantQuesting.Persistence.WorldStateSerializer.Save(world);
+            var restored = BrilliantQuesting.Persistence.WorldStateSerializer.Load(saved);
+            var beforeAdmission = BrilliantQuesting.Persistence.WorldStateSerializer.Save(restored);
+            Assert.True(new VanillaActionRecorder(restored, vanilla).ShouldObserveViolence(Thief, Victim));
+            Assert.Equal(2, restored.Ledger.Count);
+            Assert.Equal(NarrativeImportance.Recurring, restored.Registry.GetNpc(Thief).Importance);
+            Assert.Equal(beforeAdmission, BrilliantQuesting.Persistence.WorldStateSerializer.Save(restored));
+        }
+
+        [Fact]
         public void ObservedTheftAppendsTheftEventWithTheRealItem()
         {
             NarrativeWorldState world = new NarrativeWorldState(123);

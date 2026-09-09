@@ -50,13 +50,17 @@ namespace BrilliantQuesting.Plugin
                     return;
                 }
 
-                ObservedVanillaAction action = ToObservedAction(act);
+                ObservedVanillaAction action;
+                using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.DescribeAct))
+                    action = ToObservedAction(act);
                 if (action == null)
                 {
                     return;
                 }
 
-                WorldEvent recorded = _recorder.Record(action);
+                WorldEvent recorded;
+                using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.Record))
+                    recorded = _recorder.Record(action);
                 if (recorded != null)
                 {
                     _log.LogInfo("Observed vanilla " + recorded.Type + ": "
@@ -269,6 +273,12 @@ namespace BrilliantQuesting.Plugin
 
         private IReadOnlyList<EntityId> WitnessesOf(Chara actor)
         {
+            using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.Witnesses))
+                return WitnessesMeasured(actor);
+        }
+
+        private IReadOnlyList<EntityId> WitnessesMeasured(Chara actor)
+        {
             List<EntityId> witnesses = new List<EntityId>();
             Map map = EClass._map;
             if (actor == null || map?.charas == null)
@@ -345,28 +355,13 @@ namespace BrilliantQuesting.Plugin
         ///
         /// The rule is who the world already cared about before it saw this. Anything the player
         /// does is theirs and is recorded. Otherwise both parties must already be known to the
-        /// simulation - staged, or drawn into a situation - which a wandering monster never is.
+        /// simulation at Known importance or above, rather than merely registered during local intake.
         /// Whether a wider net is wanted is a director's decision and belongs to BQ-099.
         /// </summary>
         private bool IsWorthRecording(Chara actor, Chara target)
         {
-            if (actor.IsPC)
-            {
-                return true;
-            }
-
-            return IsAlreadyKnown(actor) && IsAlreadyKnown(target);
-        }
-
-        /// <summary>
-        /// Known *before* this observation - deliberately not `EntityIdFor`, which would register
-        /// the character it was asked about and make everybody known the first time they swing.
-        /// </summary>
-        private bool IsAlreadyKnown(Chara chara)
-        {
-            return chara.IsPC
-                   || (_bindings.TryGetEntity(chara.uid, out EntityId id)
-                       && _world.Registry.GetNpc(id) != null);
+            return _recorder.ShouldObserveViolence(
+                _bindings.IdOf(actor, _vanilla.PlayerId), _bindings.IdOf(target, _vanilla.PlayerId));
         }
 
         private EntityId EntityIdFor(Chara chara)

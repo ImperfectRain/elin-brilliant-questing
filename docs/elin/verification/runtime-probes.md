@@ -41,14 +41,15 @@ loading, pauses, VSync and diagnostic/logging overhead can be included. These ar
 frame cadence measurements, not GPU timings or the incremental cost of the entire mod.
 The build module ID identifies the diagnostic binary. Callback count/total/mean/max cover BQ's
 ActPerformed handler, attach, save, dialogue choice projection and scheme zone reconciliation.
+Additional scopes split Observe, DescribeAct, Witnesses, Record, Heartbeat, Ambient and ZoneIntake.
 They are inclusive, can nest, and must not be added together; other BQ hooks are outside this
 attribution. A controlled baseline would still be needed to establish whole-mod frame impact.
 
 `BQ-HOME` brackets the existing reconciliation call on attach/observed zone change and samples
 before save. It reports fresh Home readback, game minute, zone IDs, event count and up to 64
 resident IDs/presence/BQ clocks with an explicit sample count. Missing reads remain unknown.
-Both sides are **after native zone entry**, not before/after `Zone.Simulate`; the existing daily
-advance can already have run before the zone-change observation. The logger never calls
+Both sides are **after native zone entry**, not before/after `Zone.Simulate`; the corrected host runs intake/reconciliation before daily advance; the first capture preceded
+that ordering correction. The logger never calls
 `Zone.Simulate` or replays production. `Food` is the Home **capacity skill**, not food stock;
 unchanged values alone do not prove absence of duplicate production. Screenshots and the actual
 revisit/reload sequence supply context; ambiguous deltas need a controlled follow-up observation.
@@ -188,3 +189,28 @@ Expected interpretations:
 Disposable save required: yes.
 
 Estimated human interaction time: 20-30 minutes.
+
+## September 9 performance sample
+
+The first log (hash/module in [Home evidence](../api/home-and-settlements.md#september-2026-identity-and-membership-correction))
+contains 41,604 frame intervals, approximate weighted mean 6.542 ms, 28 intervals above 50 ms,
+and max 1,681.614 ms. The maximum occurred in a report with no instrumented BQ callbacks and cannot
+be attributed to BQ. Percentiles remain per-window, not averaged into global percentiles.
+BQ Act: 666 calls, 882.660 ms inclusive total, max 22.769 ms. Two post-reload combat-heavy reports
+average 6.605/7.224 ms per Act call. Attach max 261.620 ms, save max 34.584 ms, dialogue projection
+max 1.027 ms. These include diagnostic overhead and are not incremental whole-mod frame cost.
+
+BQ counts were 205 to 294 actors, 2 to 99 events, 2 facts, 1 thread. Large BQ history and a controlled
+baseline remain untested. Phase notes and CPU/GPU/RAM models were not supplied. Graphics show
+VSync/fullscreen/Unlimited and no post-effect profile, but 1280x768 fields versus 2560x1440 Steam
+screenshots do not establish render resolution. Elin assembly version 0.0.0.0 is not its displayed
+release version. BQ-108 remains open.
+
+After correction, a focused follow-up should show `home_zone=zone_7` matching the player zone,
+a Home name and registered active-member clocks advanced to the sampled minute on return,
+then preserved on reload. Keep the full 22-member roll if membership is unchanged. Repeat a
+combat-heavy segment; new nested timing scopes identify remaining costs. New observed combat
+records alone are not evidence of save replay.
+
+Use a pre-capture save copy, if available, to test background combat admission: old combat can
+already have promoted participants, and the correction deliberately preserves those saved promotions.

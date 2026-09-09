@@ -17,14 +17,13 @@ namespace BrilliantQuesting.Plugin
     /// there: what that resident then does, and what it does to the six Home Skill elements, is
     /// Elin's own arithmetic and is read back rather than set (decision D018).
     ///
-    /// The entry point is `EClass.Branch`, the player's own settlement branch. Its members are the
-    /// residents, the Home Skill elements (`fSafety`, `fMoral`, `fFood`, `fSoil`, `fPromo`,
+    /// The entry point is `EClass.Branch`, the active zone's settlement branch. Its members are
+    /// the full roll, including livestock. Home Skill elements (`fSafety`, `fMoral`, `fFood`, `fSoil`, `fPromo`,
     /// `fAdmin`) live in its element container, and their element ids come from the same verified
     /// alias table every attribute and skill is resolved through.
     ///
     /// Everything below the branch object is read by name against a candidate list rather than
-    /// compiled against a member, because unlike `Chara.elements` or `Player.karma` none of these
-    /// members has been read off a running game. That has one deliberate consequence: a name this
+    /// compiled against a member, so missing members can degrade independently across updates. That has one deliberate consequence: a name this
     /// build does not have makes the datum *absent* - "?" in the log, `TryGetMetric` false, and no
     /// capacity - instead of a zero that would read as a measurement. A Home that reported
     /// capacity zero would look permanently full and quietly close every shelter route; one that
@@ -53,7 +52,8 @@ namespace BrilliantQuesting.Plugin
         /// is not that zone, and the collision would be invisible; no id at all is the better
         /// answer.
         /// </summary>
-        private static readonly string[] ZoneUidNames = { "uidZone" };
+        private static readonly string[] OwnerNames = { "owner" };
+        private static readonly string[] ZoneUidNames = { "uid" };
 
         private static readonly string[] ElementContainerNames = { "elements", "Elements" };
 
@@ -89,13 +89,14 @@ namespace BrilliantQuesting.Plugin
                 return null;
             }
 
-            EntityId zoneId = TryReadInt(branch, ZoneUidNames, out int zoneUid) && zoneUid != 0
+            TryRead(branch, OwnerNames, out object owner);
+            EntityId zoneId = TryReadInt(owner, ZoneUidNames, out int zoneUid) && zoneUid != 0
                 ? EntityId.Parse("zone_" + zoneUid)
                 : EntityId.None;
 
             HomeStateBuilder builder = new HomeStateBuilder(
                 zoneId,
-                TryRead(branch, BranchNameNames, out object name) ? AsText(name) : string.Empty);
+                TryRead(owner, BranchNameNames, out object name) ? AsText(name) : string.Empty);
 
             if (TryReadInt(branch, CapacityNames, out int capacity))
             {
@@ -308,11 +309,12 @@ namespace BrilliantQuesting.Plugin
             _reportedShape = true;
             Type type = branch.GetType();
             log.LogInfo("Home branch is " + type.Name
-                        + "; residents from " + (NameOf(type, MemberListNames) ?? "-")
+                        + "; zone/name from owner.uid/owner.Name; full membership from " + (NameOf(type, MemberListNames) ?? "-")
                         + ", capacity from " + (NameOf(type, CapacityNames) ?? "-")
                         + ", elements from " + (NameOf(type, ElementContainerNames) ?? "-") + ".");
 
             List<string> unread = new List<string>();
+            if (home.ZoneId.IsNone) unread.Add("owner.uid (Home reconciliation unavailable)");
             if (!home.CapacityKnown)
             {
                 unread.Add("capacity (tried " + CapacityNames[0] + ")");

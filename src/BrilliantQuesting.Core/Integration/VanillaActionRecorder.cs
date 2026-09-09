@@ -17,6 +17,21 @@ namespace BrilliantQuesting.Integration
             _vanilla = vanilla;
         }
 
+        /// <summary>
+        /// Admission before native witness work or registration. Passive identity intake alone
+        /// does not make background NPC combat narratively significant. Explicit Record callers
+        /// already own their observation; this gate is for the live completion-event observer.
+        /// </summary>
+        public bool ShouldObserveViolence(EntityId actor, EntityId target)
+        {
+            if (actor.IsNone || target.IsNone) return false;
+            if (actor == _vanilla.PlayerId) return true;
+            return IsKnown(actor) && IsKnown(target);
+        }
+
+        private bool IsKnown(EntityId id) => id == _vanilla.PlayerId
+            || (_world.Registry.GetNpc(id)?.Importance >= NarrativeImportance.Known);
+
         public WorldEvent Record(ObservedVanillaAction action)
         {
             if (action == null || action.Actor.IsNone)

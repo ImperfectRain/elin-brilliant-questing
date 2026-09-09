@@ -58,6 +58,7 @@ namespace BrilliantQuesting.Plugin
         private long _lastAdvancedDay = long.MinValue;
         private long _lastAmbientCheck = long.MinValue;
         private EntityId _lastReconciledZone;
+        private bool _reportedZoneIntakeFailure;
         private readonly System.Collections.Generic.HashSet<EntityId> _reportedVerifiedEvidence =
             new System.Collections.Generic.HashSet<EntityId>();
         private readonly System.Collections.Generic.HashSet<EntityId> _reportedMissingEvidence =
@@ -196,15 +197,18 @@ namespace BrilliantQuesting.Plugin
 
         private void OnActPerformedMeasured(object payload)
         {
-            if (!_live || _actionObserver == null)
+            if (!_live || _actionObserver == null || EClass._zone?.isSimulating == true)
             {
                 return;
             }
 
-            _actionObserver.Observe(payload);
-            AdvanceThreadsIfTheDayTurned();
-            ReconcileIfTheZoneChanged();
-            LetSomebodyMentionSomething();
+            if (!ReconcileIfTheZoneChanged()) return;
+            using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.Observe))
+                _actionObserver.Observe(payload);
+            using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.Heartbeat))
+                AdvanceThreadsIfTheDayTurned();
+            using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.Ambient))
+                LetSomebodyMentionSomething();
         }
 
         /// <summary>
@@ -276,23 +280,33 @@ namespace BrilliantQuesting.Plugin
         /// absences and that Elin does not publish: a zone is repopulated when it is entered, and
         /// anybody the mod sent away can be standing in it again.
         /// </summary>
-        private void ReconcileIfTheZoneChanged()
+        private bool ReconcileIfTheZoneChanged()
         {
-            if (_world == null)
+            if (_world == null) return false;
+            try
             {
-                return;
-            }
+                EntityId here = _vanilla.GetZoneOf(_vanilla.PlayerId);
+                if (here.IsNone) return false;
+                if (here == _lastReconciledZone) return true;
 
-            EntityId here = _vanilla.GetZoneOf(_vanilla.PlayerId);
-            if (here == _lastReconciledZone)
+                // The same canonical intake as attach, before any off-screen work can consume
+                // elapsed time. Merely registering actors never promotes their importance.
+                using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.ZoneIntake))
+                    RegisterLocalVanillaActors(here);
+                ReconcileNarrativeZone("zone-change");
+                _lastReconciledZone = here;
+                _reportedZoneIntakeFailure = false;
+                ReconcileAbsences();
+                AdvanceTravelingGroups();
+                return true;
+            }
+            catch (Exception ex)
             {
-                return;
+                if (!_reportedZoneIntakeFailure)
+                    _log.LogWarning("Zone intake/reconciliation deferred after an exception: " + ex.Message);
+                _reportedZoneIntakeFailure = true;
+                return false;
             }
-
-            _lastReconciledZone = here;
-            ReconcileNarrativeZone("zone-change");
-            ReconcileAbsences();
-            AdvanceTravelingGroups();
         }
 
         /// <summary>
@@ -469,6 +483,10 @@ namespace BrilliantQuesting.Plugin
             _log.LogInfo("Simulation attached: " + _world.Registry.Npcs.Count + " people, "
                          + _world.Ledger.Count + " events, " + _world.Threads.Count + " threads.");
 
+            _lastReconciledZone = _vanilla.GetZoneOf(_vanilla.PlayerId);
+            RegisterLocalVanillaActors(_lastReconciledZone);
+            ReconcileNarrativeZone("attach");
+
             ReconcilePettyTheftEvidence();
             _lastAdvancedDay = _vanilla.Now.TotalDays;
             AdvanceThreads();
@@ -479,9 +497,6 @@ namespace BrilliantQuesting.Plugin
             // player is standing in as the baseline, so the very next act is not a second pass over
             // the same answer.
             ReconcileAbsences();
-            _lastReconciledZone = _vanilla.GetZoneOf(_vanilla.PlayerId);
-            RegisterLocalVanillaActors(_lastReconciledZone);
-            ReconcileNarrativeZone("attach");
             ReportCharacterIdentity();
             ReportActorActivity();
             EstablishEarlyContacts(_lastReconciledZone);
@@ -1669,6 +1684,7 @@ namespace BrilliantQuesting.Plugin
             _travelingGroups = null;
             _actionObserver = null;
             _lastAdvancedDay = long.MinValue;
+            _reportedZoneIntakeFailure = false;
             _bindings?.Clear();
             if (DramaChoiceProjector.Current == _drama)
             {
