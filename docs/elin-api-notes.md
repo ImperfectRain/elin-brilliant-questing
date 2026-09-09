@@ -23,7 +23,8 @@ The version-matched knowledge base under `docs/elin/` supersedes this early spik
 - Guild rank/progression exists on `FactionRelation.rank`, `exp`, and `ExpToNext`. `GetGuildRank` reads `relation.rank` and `GetGuildContribution` reads `relation.exp` since `BQ-038`; neither has been read on a running member save (`SOURCE-OBSERVED`). The player-wide `contribution` currency is a different number and is not per guild.
 - `Thing.rarity` is not production quality; use `Card.GetTotalQuality(true)`/`Card.Quality` semantics for made-quality (`SOURCE-OBSERVED`).
 
-Use `docs/elin/verification/api-status.json`, `docs/elin/verification/matrix.md`, and `docs/elin/verification/recommended-fixes.md` before relying on older notes below.
+Use [capability routing](elin/capabilities.md) and its operation-specific evidence before relying on
+older notes below. `api-status.json` is a historical Phase 2 snapshot, not current status.
 
 ## Checks — the design's central assumption holds
 
@@ -172,6 +173,12 @@ Two limits worth knowing:
   because the record produced claims the third.
 
 ## Why procedural checks resolve portably
+
+**[superseded scope]** The row count and “every profile is composite” wording below describe the
+early spike. Current profiles declare their own dice/critical windows. Current `ElinCheckResolver`
+defaults all authoritative procedural checks to deterministic portable resolution, independently of
+row shape; native execution is diagnostic opt-in. See [current check ownership](systems/actions.md#checks)
+and [version-matched check evidence](elin/api/checks-elements-skills.md).
 
 `Check.Get` reads all nine `proc_*` rows the mod installs, and yet every check in a live log is
 resolved by the portable resolver. That is the design, not a fault, and it confused two rounds of

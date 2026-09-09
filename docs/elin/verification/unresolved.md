@@ -2,6 +2,30 @@
 
 The full historical ledger is below. Classification uses the current BQ dependency state after checking history, current code, installed metadata, installed method bodies, vanilla call sites, SourceData, and available runtime logs. `SOURCE-OBSERVED` never means runtime behavior was exercised in a live game.
 
+## Supersession corrections
+
+The original evidence cells below remain historical observations. These specific implementation
+claims are **[superseded]**, without upgrading their runtime evidence:
+
+- **ELIN-Q-0014:** “plugin has not been compiled” is historical, not a current build claim.
+  The activity reader and attach diagnostic exist; population/runtime eligibility remains unresolved.
+- **ELIN-Q-0020/0023:** “logs journal” / “No code yet” no longer describe implementation.
+  `NativeJournalSurface` and `NativeJournalRenderer` mount an owned BQ tree. The corrective build's
+  visual acceptance remains open; [journal UI evidence](../api/journal-ui.md) owns the checklist
+  and supersedes the earlier lifecycle-log interpretation.
+- **ELIN-Q-0024:** “no runtime adapter yet” is too broad. `LocalAffordanceProfile` and
+  `SettlementSituationGenerator` consume current adapter reads for theft generation. This does not
+  implement the wider SourceData infrastructure map or loose-place inventory reads.
+- **ELIN-Q-0027:** “generation still admits any classified live actor” is superseded for theft
+  roles. `PettyTheftPressure` requires `SocialAgency.Full`; tests explicitly refuse ordinary animals
+  and unknown social agency. Actor kind, social agency and mutation class are now separate. A verified
+  general citizenship/home-zone read is still absent; a socially capable passer-by is not thereby
+  a resident. Do not reimplement the already-present animal exclusion to close that different gap.
+  See [PettyTheftPressure](../../../src/BrilliantQuesting.Core/Situations/PettyTheftPressure.cs) and
+  [SettlementSituationGeneratorTests](../../../tests/BrilliantQuesting.Core.Tests/SettlementSituationGeneratorTests.cs).
+
+## Historical rows
+
 | ID | Question | Introduced by | Depends on | Historical evidence | Current state | Status | Evidence | Confidence | Last checked |
 |---|---|---|---|---|---|---|---|---|---|
 | ELIN-Q-0001 | Can procedural checks use vanilla `Check.Perform` safely outside vanilla contexts? | `648d612` / BQ-004 | Checks | `docs/elin-api-notes.md` marked open | `Check.Perform` is side-effect-light but rolls Elin RNG; keep BQ portable resolver for deterministic/replay-authoritative checks | RESOLVED | `VERIFIED-METADATA`, `SOURCE-OBSERVED` | High | EA 23.338 Patch 2 |

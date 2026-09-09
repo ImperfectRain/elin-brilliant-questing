@@ -11,7 +11,8 @@ git status --short
 git log --oneline -10
 ```
 
-Read fuller commit messages only for the recent BQ work relevant to the task.
+Recent subjects are optional context. Read fuller commits only when current source/tests and contract
+docs cannot answer a historical question; do not reconstruct settled architecture from commit archaeology.
 
 Do not maintain a prose snapshot of the entire current implementation. It becomes stale faster than Git.
 
@@ -27,6 +28,10 @@ rg -n "BQ-XXX" docs/implementation-roadmap.md
 
 Read the surrounding section only. Expand outward only when the section explicitly depends on another rule/track.
 
+Use the affected row in [the authority router](../architecture.md) to identify ownership and primary
+source/test entry points. Read one card, not every linked system document. A defect needs a concrete
+acceptance condition; it does not need an invented roadmap number.
+
 ## 3. Retrieve code progressively
 
 Use this escalation order:
@@ -35,10 +40,11 @@ Use this escalation order:
 2. relevant file;
 3. neighboring tests/callers;
 4. subsystem;
-5. architecture/API notes;
+5. specialized subsystem/API evidence;
 6. design corpus.
 
-Do not reverse this order by reading architecture/design material first unless the task itself is architectural.
+The compact router locates code; it is not a prerequisite architecture essay. Do not reverse this
+order by loading the design corpus before code unless the task itself is architectural.
 
 ## 4. Keep tool output bounded
 
@@ -142,10 +148,16 @@ A strong model can decide the architecture; implementation can often proceed wit
 
 Before declaring completion:
 - check the relevant done-when criterion;
-- run appropriate tests/build;
+- run targeted checks and appropriate full/native gates from [validation routing](validation.md);
 - identify runtime-only proof still outstanding;
 - inspect the focused diff;
 - keep the final report concise.
+
+Ask: **Did this change alter an authority, subsystem contract, public seam, persisted state, native
+capability evidence, validation route, or documentation navigation path?** If yes, update the exact
+owners in [documentation maintenance](documentation.md) in the same feature commit. If no, leave
+architecture docs alone. Internal implementation changes require no prose churn; broken entry-point
+links do require repair. Run the doc checker for navigation edits.
 
 Do not write a new permanent state summary after every commit.
 

@@ -664,6 +664,10 @@ BQ-034 Core projections as authoritative.
   one native Brilliant Questing tab before `Window.BuildTabs(int)`. The tab derives from existing
   BQ-033 journal and BQ-034 Chronicle state, hides dialogue Journal/Chronicle fallbacks while the
   native patch is available, and fails closed back to log/Msg diagnostics if native setup breaks.
+- **Evidence correction** **[superseded]** Successful lifecycle/mounting logs do not establish
+  correct visible content. The former ContentQuest clone was replaced by owned Overview/Chronicle
+  pages; visual acceptance of that corrective build remains open. See the canonical
+  [journal evidence/checklist](elin/api/journal-ui.md) and [presentation owner](systems/integration.md#presentation).
 - **Sources** BQ-033, BQ-034; `docs/elin/api/journal-ui.md`;
   `docs/elin/bq-integration/ui-surfaces.md`; `docs/elin/verification/api-status.json`; live S4
   playtest.
@@ -4366,6 +4370,13 @@ budgeted. The format moves into S7 ahead of BQ-065; see `design/content-pipeline
 ---
 
 ## 12. Maintaining this document
+
+- This document owns order, dependency, done-when and short implementation/evidence references.
+  Settled contracts live behind [the architecture router](architecture.md); durable why lives in
+  decisions. Follow [documentation maintenance](agent/documentation.md) for changed boundaries.
+- Retain existing Current implementation history unless correcting a specific stale claim. For
+  new work prefer a short reference to the owning card/test/evidence over another architecture essay.
+  Do not reconstruct settled architecture from old commits or copy provisional roadmap numbers here.
 
 - A new idea goes into a stage, or into §8 with a reason. It does not go into a chat log.
 - A step that grows past one commit gets split, and the split is recorded here.

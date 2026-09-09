@@ -1,6 +1,10 @@
 # Verification Matrix
 
-Every current Elin-facing BQ dependency is listed here. `Last checked` is `EA 23.338 Patch 2` unless stated otherwise. `SOURCE-OBSERVED` means installed method bodies or vanilla call sites were inspected; it is not runtime verification.
+This is the detailed dependency evidence from the Phase 2 audit with later row corrections.
+Newer seams and operation-specific corrections are routed through [capabilities](../capabilities.md);
+this table is not an exhaustive inventory of today's interfaces. `Last checked` is
+`EA 23.338 Patch 2` unless stated otherwise. `SOURCE-OBSERVED` means installed method bodies or
+vanilla call sites were inspected; it is not runtime verification.
 
 | ID | BQ member / call site | Elin type/member | Read or mutation | Evidence | Failure / fallback | Consumers | Risk |
 |---|---|---|---|---|---|---|---|

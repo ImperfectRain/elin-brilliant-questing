@@ -37,7 +37,7 @@ how to populate `lib/` from your own install and build it. No game assemblies ar
 ## Try it
 
 ```bash
-dotnet test                                          # 46 tests, ~150ms
+dotnet test                                          # headless solution tests; Plugin built separately
 dotnet run --project tools/BrilliantQuesting.Lab     # the laboratory, with its reasoning shown
 dotnet run --project tools/BrilliantQuesting.Lab -- list                  # the registered scenarios
 dotnet run --project tools/BrilliantQuesting.Lab -- describe questline    # its options and defaults

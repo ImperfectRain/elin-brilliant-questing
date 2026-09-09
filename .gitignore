@@ -20,3 +20,6 @@ reference/
 # Lab output
 *.saves/
 lab-output/
+
+# Documentation checker bytecode
+__pycache__/

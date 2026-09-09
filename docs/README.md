@@ -1,9 +1,19 @@
 # Documentation
 
-This is the reading order **when you are reading**, not a queue to load before starting work. Later
-documents assume the earlier ones and correct them where the game turned out to disagree, so read
-them in this order — but for a scoped implementation task, retrieve only the sections your step
-cites. [`../AGENTS.md`](../AGENTS.md) says how.
+This is a directory, not a reading queue. Agents start with [AGENTS](../AGENTS.md), identify the
+scoped task, then retrieve one affected row/card from [architecture](architecture.md). Current
+code/tests and reproducible runtime evidence outrank design and historical notes.
+
+| Fast route | Purpose |
+|---|---|
+| [Authority/subsystem map](architecture.md) | Who owns it, source/tests and Lab entry points |
+| [Flow](systems/flow.md) | Actual joins, host boundaries and missing integration |
+| [Native capability evidence](elin/capabilities.md) | Support versus evidence grade, links to canonical facts |
+| [Validation](agent/validation.md) | What to run for the affected contract |
+| [Documentation maintenance](agent/documentation.md) | What must change with a public contract |
+| [Extension seams](systems/extension-seams.md) | Preserved foundations, demonstrated gaps, committed planning links |
+
+## Specialized references
 
 | | |
 |---|---|
@@ -20,8 +30,8 @@ cites. [`../AGENTS.md`](../AGENTS.md) says how.
 | [`design/dialogue-writing-inspiration-research.md`](design/dialogue-writing-inspiration-research.md) | The writing reference for authored dialogue: influence blend, cadence and prose tiers, voice construction, register, occupational vocabulary, callbacks as recognition, provenance families, and the loaded words that assert world state. **Prose only** — the architecture and the semantic model stay `character-dialogue-system.md`'s. Pull it for a fragment, voice, storylet-prose, callback or dialogue-audit task; leave it closed for anything else. |
 | [`design/content-pipeline.md`](design/content-pipeline.md) | How dialogue and storylets are authored: YAML source, a build-time compiler, a shipped bundle with no runtime parser, and the separation that keeps content out of the save. Decides the serialization question `character-dialogue-system.md` §41 left open. |
 | [`design/vanilla-simulation-integration.md`](design/vanilla-simulation-integration.md) | Where Elin's own simulation ends and the mod's begins. What vanilla already runs — timetables, work/hobby/needs AI, revisit catch-up, hourly off-screen global-goal advancement — and what the mod therefore reads or delegates to instead of rebuilding. Source-observed and runtime-unverified; corrects `living-world-priorities.md` §5. |
-| [`architecture.md`](architecture.md) | How the code is arranged and why the seams are where they are. |
-| [`elin-api-notes.md`](elin-api-notes.md) | What the shipped assemblies actually expose, read with `tools/ApiDump`. **Authoritative on runtime facts** - where a design document disagrees with this, this wins. |
+| [`architecture.md`](architecture.md) | Compact implemented-authority router. Durable why stays in decisions. |
+| [`elin-api-notes.md`](elin-api-notes.md) · [`elin/`](elin/) | Early API spike and later canonical evidence. Operation-specific corrections supersede historical claims; assembly metadata is not runtime proof. |
 | [`elin-element-aliases.md`](elin-element-aliases.md) | The verified element alias table, read from a running game. Attributes, skills, Home Skills, policies. Data, not code - it cannot be recovered from the assembly. |
 | [`plugin-build.md`](plugin-build.md) | Populating `lib/` from your own install, building the plugin, installing it, and the two-step activation that is easy to miss. |
 | [`handoff-drama-projection.md`](handoff-drama-projection.md) | Cold-start brief written for the Drama projection work, which has since landed. Kept for its traps-and-constraints section, which still applies to any new contributor. |
@@ -29,9 +39,9 @@ cites. [`../AGENTS.md`](../AGENTS.md) says how.
 
 ## Conventions
 
-**Design documents describe intent; API notes describe fact.** The master design and the
-post-master findings were written from research and reasoning. `elin-api-notes.md` was read off
-`Elin.dll`. When they conflict, the assemblies are right.
+**Design documents describe intent; evidence docs record bounded observations.** Use AGENTS'
+authority order. Reproducible runtime behavior outranks source, and source outranks metadata-only
+assumptions. The early API spike and Phase 2 JSON snapshot are not current implementation status.
 
 **"Found" is not "works".** The roadmap distinguishes a located API from a verified one. Metadata
 proves a member exists. Only running it inside Elin proves it behaves.

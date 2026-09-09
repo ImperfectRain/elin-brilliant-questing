@@ -1,6 +1,11 @@
 # BQ-039 World Affordance Map
 
-This is an evidence-backed input map for later settlement/world generation. It is not a BQ-039 design and does not hardcode town ids.
+This is an evidence-backed input map, not a claim that every listed native affordance has a BQ
+adapter. **[superseded scope]** “Available Now” below means located native data/API, not supported
+`IVanillaState` behavior. `LocalAffordanceProfile`/`SettlementSituationGenerator` now consume a subset
+for theft generation; `ReadPlaceContents` still refuses. `SourceChara.job` is not reliable evidence
+of lived occupation. Use [capability routing](../capabilities.md) and [identity evidence](../../elin-api-notes.md#character-identity--what-the-six-facets-are-worth-in-play)
+before promoting these static inputs to runtime claims.
 
 ## Available Now
 

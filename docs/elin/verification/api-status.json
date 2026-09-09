@@ -1,4 +1,5 @@
 {
+  "snapshot_notice": "Historical Phase 2 research snapshot, not current implementation status. Counts and commit tips describe that audit. Use docs/elin/capabilities.md and operation-specific API evidence for later corrections; do not refresh snapshot metrics per feature.",
   "checked_at": "2026-08-30",
   "phase": "Implementation correction pass after Phase 2 static resolution",
   "installed_elin": "EA 23.338 Patch 2",
