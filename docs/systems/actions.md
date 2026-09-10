@@ -37,7 +37,9 @@ Source: [Availability](../../src/BrilliantQuesting.Core/Actions/Availability.cs)
 [ContextualActionProjection](../../src/BrilliantQuesting.Core/Actions/ContextualActionProjection.cs).
 Proof: [ActionAvailabilityTests](../../tests/BrilliantQuesting.Core.Tests/ActionAvailabilityTests.cs),
 [ActionBindingTests](../../tests/BrilliantQuesting.Core.Tests/ActionBindingTests.cs).
-Lab: [theft](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/TheftLaboratoryScenario.cs).
+Lab: [theft](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/TheftLaboratoryScenario.cs),
+[performance](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/PerformanceScenario.cs) for restored-history
+CPU/allocation inspection (not native frame time).
 
 ## Checks
 
@@ -64,13 +66,17 @@ policies. Inputs: events, witnesses, practices, ties, observed/judged status. Ou
 the owning stores and gated native standing writes. Engine/trace are transient; outputs are saved by
 their owners. **Does not own:** all state mutation, item transfer, truth creation in every action,
 or universal institutional judgment. Unnoticed deeds must not leak through affinity; observed
-violence is not automatically murder. Consumers: social state, journal, developments, future acts.
+violence is not automatically murder. Witness reactions use `SocialPractices.NormFor` to read only
+practices bearing on the current event, using the same table as a full reading; nothing is cached
+across events. Consumers: social state, journal, developments, future acts.
 
 Source: [ConsequenceEngine](../../src/BrilliantQuesting.Core/Consequences/ConsequenceEngine.cs),
 [SocialPractices](../../src/BrilliantQuesting.Core/World/SocialPractices.cs).
 Proof: [ConsequenceTests](../../tests/BrilliantQuesting.Core.Tests/ConsequenceTests.cs),
 [RecognizedViolenceTests](../../tests/BrilliantQuesting.Core.Tests/RecognizedViolenceTests.cs).
-Lab: [theft](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/TheftLaboratoryScenario.cs).
+Lab: [theft](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/TheftLaboratoryScenario.cs),
+[performance](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/PerformanceScenario.cs) for restored-history
+CPU/allocation inspection (not native frame time).
 Native: [standing evidence](../elin/capabilities.md#capability-routing).
 
 ## Threads

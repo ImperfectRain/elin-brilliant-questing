@@ -85,13 +85,15 @@ actors retain their clocks. Queue position is transient and rebuilt on load; exi
 `LastSimulatedAt` prevents replay of consumed openings. This bounds scheme scheduling, not every
 other subsystem's work. It does not invent goals for Cold actors or grant player knowledge.
 
-On Plugin attach and zone change, canonical local-actor intake runs before
+On Plugin attach and completed `Zone.OnVisit` (with action-driven zone change as fallback),
+canonical local-actor intake runs before
 `OffScreenSchemes.ReconcileZone`, and reconciliation precedes daily scheduling. It reads fresh `HomeState` and
 advances the clock of observed active residents monotonically. It never invokes `Zone.Simulate`
 or extrapolates Home production. Unknown Home/presence cannot prove a resident was caught up.
 The September capture exposed a missing Home zone identity; the correction follows
 `FactionBranch.owner` and preserves the full membership roll. See [Home evidence](../elin/api/home-and-settlements.md#september-2026-identity-and-membership-correction).
-Successful corrected reconciliation and controlled resource deltas still need live verification.
+Corrected attach clocks are live-observed. Completed-visit hook execution and controlled resource
+deltas still need live verification; see the [post-visit correction](../elin/api/home-and-settlements.md#post-visit-reconciliation-correction).
 
 Source: [tier index](../../src/BrilliantQuesting.Core/World/SimulationTier.cs).
 Proof: [SimulationTierTests](../../tests/BrilliantQuesting.Core.Tests/SimulationTierTests.cs):

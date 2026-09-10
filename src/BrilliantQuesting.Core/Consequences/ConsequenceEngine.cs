@@ -189,16 +189,16 @@ namespace BrilliantQuesting.Consequences
         /// Read once per event and only where it can matter - the norms are about what the room
         /// makes of an act, so an event nobody reacts to, an event with nobody watching and an
         /// event with nowhere to have happened all answer
-        /// <see cref="SocialPracticeReading.Ordinary"/> without a read.
+        /// <see cref="SocialNormReading.Silent"/> without a read.
         /// </summary>
-        private SocialPracticeReading PracticesAt(WorldEvent worldEvent)
+        private SocialNormReading PracticesAt(WorldEvent worldEvent)
         {
             if (worldEvent.Zone.IsNone || worldEvent.Witnesses.Count == 0)
             {
-                return SocialPracticeReading.Ordinary;
+                return SocialNormReading.Silent;
             }
 
-            return SocialPractices.Read(_world, _vanilla, worldEvent.Zone, worldEvent.Time);
+            return SocialPractices.NormFor(_world, _vanilla, worldEvent.Zone, worldEvent.Time, worldEvent.Type);
         }
 
         private void ApplyToTarget(WorldEvent worldEvent, ConsequenceProfile profile, double magnitude, bool actorIsPlayer)
@@ -251,7 +251,7 @@ namespace BrilliantQuesting.Consequences
                 return;
             }
 
-            SocialNormReading norm = PracticesAt(worldEvent).ReadingOf(worldEvent.Type);
+            SocialNormReading norm = PracticesAt(worldEvent);
             if (!norm.IsSilent)
             {
                 Trace.Add("practice here: " + norm.Describe());

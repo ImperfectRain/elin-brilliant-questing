@@ -53,3 +53,17 @@ clocks still equal 254027229. No Home zone-change bracket appears before reload.
 are zero in the return period, so the action-driven trigger did not provide the required observation.
 A reliable post-visit trigger needs investigation. The entire run spans about 4.87 game days,
 not a seven-day Warm interval. Preserve full membership; this is not a resident-count failure.
+
+## Post-visit reconciliation correction
+
+Installed `Zone.OnVisit()` source ends after native `Simulate()`, zone and branch `OnAfterSimulate()`
+and `lastActive` assignment. BQ now observes that completion with a failure-tolerant Harmony
+postfix and reuses canonical intake/reconciliation, including same-zone round trips without
+`ActPerformed`. Loading is excluded; attach remains the load owner. This repairs the trigger gap
+identified above without changing the 22-member snapshot or rerunning native production.
+
+Evidence: SOURCE-OBSERVED ordering, successful Plugin compilation, HEADLESS-ONLY notification,
+retry and detachment checks. Actual post-change visit execution remains UNRESOLVED. The next
+capture must show `zone-visit` before/after readback at Home before a save/reload or ordinary action,
+then unchanged history/resource consequences on reload. An attached or compiled hook is not proof
+that this happened in game.

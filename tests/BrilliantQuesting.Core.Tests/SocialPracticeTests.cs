@@ -25,6 +25,57 @@ namespace BrilliantQuesting.Tests
         private static readonly EntityId Hall = EntityId.Parse("zone_hall");
         private static readonly EntityId Warehouse = EntityId.Parse("zone_warehouse");
 
+        [Fact]
+        public void EventScopedNormMatchesFullReadingForEveryEventAndPractice()
+        {
+            Room stacked = Room.Mourning();
+            stacked.RecordContestHere();
+            Room[] rooms = { Room.Plain(), stacked, Room.Contest(),
+                Room.Shop(ServiceAvailability.Offered), Room.Meeting(true),
+                Room.Household(true), Room.Household(false) };
+            foreach (Room room in rooms)
+            foreach (WorldEventType type in System.Enum.GetValues(typeof(WorldEventType)))
+            {
+                SocialPracticeReading all = room.Practices();
+                SocialNormReading expected = all.ReadingOf(type);
+                SocialNormReading actual = SocialPractices.NormFor(room.World, room.Vanilla,
+                    all.ZoneId, room.Vanilla.Now, type);
+                Assert.Equal(expected.Aggravation, actual.Aggravation);
+                Assert.Equal(expected.Terms, actual.Terms);
+            }
+        }
+
+        [Fact]
+        public void CombatDoesNotReadCommerceOrHomeAndUnrelatedEventsDoNotReadNativeState()
+        {
+            Room room = Room.Mourning();
+            IVanillaState proxy = System.Reflection.DispatchProxy.Create<IVanillaState, CountingVanilla>();
+            var calls = (CountingVanilla)proxy;
+            calls.Inner = room.Vanilla;
+            SocialPractices.Read(room.World, proxy, Hall, room.Vanilla.Now);
+            Assert.Contains("GetCharacterIdentity", calls.Methods);
+            Assert.Contains("GetHomeState", calls.Methods);
+            calls.Methods.Clear();
+            SocialPractices.NormFor(room.World, proxy, Hall, room.Vanilla.Now, WorldEventType.Attacked);
+            Assert.NotEmpty(calls.Methods);
+            Assert.DoesNotContain("GetCharacterIdentity", calls.Methods);
+            Assert.DoesNotContain("GetHomeState", calls.Methods);
+            calls.Methods.Clear();
+            SocialPractices.NormFor(room.World, proxy, Hall, room.Vanilla.Now, WorldEventType.Helped);
+            Assert.Empty(calls.Methods);
+        }
+
+        public class CountingVanilla : System.Reflection.DispatchProxy
+        {
+            public IVanillaState Inner;
+            public readonly List<string> Methods = new List<string>();
+            protected override object Invoke(System.Reflection.MethodInfo method, object[] args)
+            {
+                Methods.Add(method.Name);
+                return method.Invoke(Inner, args);
+            }
+        }
+
         // -- A. the done-when ----------------------------------------------------------------
 
         /// <summary>

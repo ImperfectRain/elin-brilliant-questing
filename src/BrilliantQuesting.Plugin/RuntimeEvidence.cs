@@ -10,7 +10,7 @@ namespace BrilliantQuesting.Plugin
     // Opt-in, transient instrumentation. No native hooks, saved state or simulation decisions.
     internal sealed class RuntimeEvidence
     {
-        internal enum Callback { Act, Attach, Save, Dialogue, Reconcile, Observe, DescribeAct, Witnesses, Record, Heartbeat, Ambient, ZoneIntake }
+        internal enum Callback { Act, Attach, Save, Dialogue, Reconcile, Observe, DescribeAct, Witnesses, Record, Heartbeat, Ambient, ZoneIntake, ZoneVisit }
         internal static RuntimeEvidence Current { get; set; }
         private readonly Action<string> _log;
         private readonly double[] _frames = new double[8192];

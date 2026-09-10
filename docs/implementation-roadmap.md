@@ -3386,6 +3386,8 @@ realization, director budgets.
 - **Depends** BQ-107.
 - **Done when** frame time impact is measured and documented against a large save.
 - **Sources** PM §79; CD §45; LW §10.
+- **Evidence** [Scoped measurements and remaining live acceptance](elin/verification/runtime-probes.md#bq-108-scoped-correction-and-synthetic-measurement).
+  Headless large-history timings do not complete the live frame-impact gate.
 
 #### BQ-109 — Capability degradation drill
 Disable each capability in turn and confirm the mod loses exactly one feature, with a diagnostic,

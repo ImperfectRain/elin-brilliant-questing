@@ -25,3 +25,15 @@ scheduling, matching attach order. Failed intake defers the callback with a diag
 later. Installed `Zone.OnVisit` brackets `Simulate` with `isSimulating`; the observer skips callbacks
 inside that native catch-up span. This guard is source/build-verified, not live-verified.
 No `Zone.Simulate` call or native write was added.
+
+## Completed zone visits
+
+`NativeZoneVisit` installs a narrow `Zone.OnVisit()` postfix. Installed source places completion
+of this method after `Simulate`, zone `OnAfterSimulate` and branch `OnAfterSimulate`. The Plugin
+reads back only a live, non-loading, non-simulating active zone. Every completed visit forces the
+existing intake/reconciliation path, including returning to the same recorded zone without any
+intervening action callback. Action-driven detection remains a fallback. Failed installation or
+readback logs a diagnostic; exceptions do not escape into vanilla. No native catch-up is invoked.
+
+Source/build and headless notification tests support this route; post-change live execution and
+Home resource/idempotency acceptance remain pending. See [Home evidence](../api/home-and-settlements.md#post-visit-reconciliation-correction).

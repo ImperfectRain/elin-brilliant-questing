@@ -140,3 +140,15 @@ The checker validates local inline Markdown links/anchors in agent entry points 
 documents, including source/test/Lab paths. It does not validate C# symbols, code examples, remote
 URLs, reference-style links or semantic correctness. Lab IDs/classes in this table are human routes;
 their primary source links live in cards and [LabCatalog](../../tools/BrilliantQuesting.Lab/Cli/LabCatalog.cs).
+
+## Performance guardrails
+
+For event-scoped reaction work run `SocialPracticeTests`, `ConsequenceTests` and
+`RecognizedViolenceTests`. Native visit notification adds `NativeZoneVisitTests`,
+`ElinHomeStateTests`, `SimulationTierTests`, `RuntimeEvidenceTests` and the Plugin build.
+The signature doubles cannot prove Harmony execution or vanilla catch-up ordering in game.
+
+`dotnet run --project tools/BrilliantQuesting.Lab -c Release -- run performance` restores a
+synthetic large history and reports CPU/allocation samples for norm reads and witnessed dispatch.
+It has no machine-dependent timing assertion. Use the [live capture procedure](../elin/verification/runtime-probes.md#performance-and-home-capture)
+for frame-time acceptance; a fast headless result does not replace it.

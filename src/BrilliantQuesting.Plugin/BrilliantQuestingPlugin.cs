@@ -151,6 +151,7 @@ namespace BrilliantQuesting.Plugin
             BaseModManager.SubscribeEvent<object>(EVENT.ActPerformed, OnActPerformed);
             DramaChoiceProjector.Install(_log);
             NativeJournalSurface.Install(_log);
+            NativeZoneVisit.Install(_log, OnZoneVisited);
 
             _log.LogInfo(ModInfo.Name + " " + ModInfo.Version + " loaded. Waiting for a game.");
         }
@@ -280,20 +281,30 @@ namespace BrilliantQuesting.Plugin
         /// absences and that Elin does not publish: a zone is repopulated when it is entered, and
         /// anybody the mod sent away can be standing in it again.
         /// </summary>
-        private bool ReconcileIfTheZoneChanged()
+        private void OnZoneVisited(Zone zone)
+        {
+            if (!_live || zone == null || zone != EClass._zone || zone.isSimulating
+                || EClass.game == null || EClass.game.isLoading) return;
+            // A round trip may contain no ActPerformed callback at all. Completion of a visit,
+            // even to the last recorded zone, requires fresh native readback.
+            using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.ZoneVisit))
+                ReconcileIfTheZoneChanged(completedVisit: true);
+        }
+
+        private bool ReconcileIfTheZoneChanged(bool completedVisit = false)
         {
             if (_world == null) return false;
             try
             {
                 EntityId here = _vanilla.GetZoneOf(_vanilla.PlayerId);
                 if (here.IsNone) return false;
-                if (here == _lastReconciledZone) return true;
+                if (!completedVisit && here == _lastReconciledZone) return true;
 
                 // The same canonical intake as attach, before any off-screen work can consume
                 // elapsed time. Merely registering actors never promotes their importance.
                 using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.ZoneIntake))
                     RegisterLocalVanillaActors(here);
-                ReconcileNarrativeZone("zone-change");
+                ReconcileNarrativeZone(completedVisit ? "zone-visit" : "zone-change");
                 _lastReconciledZone = here;
                 _reportedZoneIntakeFailure = false;
                 ReconcileAbsences();
@@ -1769,6 +1780,7 @@ namespace BrilliantQuesting.Plugin
 
         private void OnDestroy()
         {
+            NativeZoneVisit.Uninstall();
             if (_live)
             {
                 End();

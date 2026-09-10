@@ -20,6 +20,7 @@
     <Compile Include="../../src/BrilliantQuesting.Plugin/NativeJournalSurface.cs" Link="NativeJournalSurface.cs" />
     <Compile Include="../../src/BrilliantQuesting.Plugin/RuntimeEvidence.cs" Link="RuntimeEvidence.cs" />
     <Compile Include="../../src/BrilliantQuesting.Plugin/ElinHomeState.cs" Link="ElinHomeState.cs" />
+    <Compile Include="../../src/BrilliantQuesting.Plugin/NativeZoneVisit.cs" Link="NativeZoneVisit.cs" />
     <EmbeddedResource Include="../../src/BrilliantQuesting.Plugin/NativeJournalRenderer.cs" LogicalName="JournalRendererSource" />
     <EmbeddedResource Include="../../src/BrilliantQuesting.Core/Presentation/JournalPages.cs" LogicalName="JournalPagesSource" />
   </ItemGroup>

@@ -372,6 +372,25 @@ namespace BrilliantQuesting.World
             IVanillaState vanilla,
             EntityId zoneId,
             GameTime now)
+            => Read(world, vanilla, zoneId, now, null);
+
+        /// <summary>
+        /// Reads only the practices that can speak to this event. The bearing table remains the
+        /// authority; unused native identity/Home queries and history scans are never performed.
+        /// Nothing is cached across events, so changing presence and norms remain observable.
+        /// </summary>
+        public static SocialNormReading NormFor(NarrativeWorldState world, IVanillaState vanilla,
+            EntityId zoneId, GameTime now, WorldEventType type)
+        {
+            bool relevant = false;
+            foreach (var table in Bearings.Values)
+                if (table.ContainsKey(type)) { relevant = true; break; }
+            return relevant ? Read(world, vanilla, zoneId, now, type).ReadingOf(type)
+                : SocialNormReading.Silent;
+        }
+
+        private static SocialPracticeReading Read(NarrativeWorldState world, IVanillaState vanilla,
+            EntityId zoneId, GameTime now, WorldEventType? type)
         {
             if (world == null || vanilla == null || zoneId.IsNone)
             {
@@ -387,11 +406,11 @@ namespace BrilliantQuesting.World
             }
 
             List<SocialPracticeHolding> held = new List<SocialPracticeHolding>();
-            Add(held, ReadCommerce(world, vanilla, present));
-            Add(held, ReadMourning(world, vanilla, zoneId, present, now));
-            Add(held, ReadContest(world, zoneId, present, now));
-            Add(held, ReadAssembly(world, present));
-            Add(held, ReadHousehold(world, vanilla, zoneId, present));
+            if (Relevant(SocialPracticeKind.Commerce, type)) Add(held, ReadCommerce(world, vanilla, present));
+            if (Relevant(SocialPracticeKind.Mourning, type)) Add(held, ReadMourning(world, vanilla, zoneId, present, now));
+            if (Relevant(SocialPracticeKind.Contest, type)) Add(held, ReadContest(world, zoneId, present, now));
+            if (Relevant(SocialPracticeKind.Assembly, type)) Add(held, ReadAssembly(world, present));
+            if (Relevant(SocialPracticeKind.Household, type)) Add(held, ReadHousehold(world, vanilla, zoneId, present));
 
             held.Sort(delegate (SocialPracticeHolding a, SocialPracticeHolding b)
             {
@@ -401,6 +420,9 @@ namespace BrilliantQuesting.World
 
             return new SocialPracticeReading(zoneId, held);
         }
+
+        private static bool Relevant(SocialPracticeKind kind, WorldEventType? type)
+            => !type.HasValue || Bearing(kind, type.Value, out _);
 
         private static void Add(List<SocialPracticeHolding> held, SocialPracticeHolding holding)
         {

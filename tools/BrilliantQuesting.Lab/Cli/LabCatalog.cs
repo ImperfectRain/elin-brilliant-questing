@@ -46,6 +46,7 @@ namespace BrilliantQuesting.Lab.Cli
                 new ActorActionScenario(),
                 new AutonomyScenario(),
                 new OffScreenSchemesScenario(),
+                new PerformanceScenario(),
                 new AdventurerEcologyScenario(),
                 new TravelingGroupsScenario(),
                 new FailedCaravanScenario(),

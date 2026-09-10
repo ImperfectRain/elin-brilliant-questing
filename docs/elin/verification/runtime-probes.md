@@ -22,8 +22,7 @@ native mutations or persisted fields. Ordinary gameplay and existing BQ features
    area, and opening/closing ordinary NPC conversations (including BQ options when available).
    Note the approximate wall-clock start of each phase and any visible stutters.
 4. Visit Home and take screenshots of its resident/resource displays. Leave, play or wait until
-   at least seven in-game days have elapsed, and return. Take one ordinary step so the existing
-   action-driven reconciliation can observe the zone change. Capture the same displays and note
+   at least seven in-game days have elapsed, and return. Capture the same displays immediately, before an ordinary action or reload, and note
    the in-game dates. Save, exit, reload that copy, take a step and capture those displays again.
    If seven days is impractical, report the actual elapsed time; do not claim that a shorter run
    exercised the seven-day scheduling window.
@@ -41,7 +40,8 @@ loading, pauses, VSync and diagnostic/logging overhead can be included. These ar
 frame cadence measurements, not GPU timings or the incremental cost of the entire mod.
 The build module ID identifies the diagnostic binary. Callback count/total/mean/max cover BQ's
 ActPerformed handler, attach, save, dialogue choice projection and scheme zone reconciliation.
-Additional scopes split Observe, DescribeAct, Witnesses, Record, Heartbeat, Ambient and ZoneIntake.
+Additional scopes split Observe, DescribeAct, Witnesses, Record, Heartbeat, Ambient, ZoneIntake
+and completed ZoneVisit. The latter should appear even on an action-free return.
 They are inclusive, can nest, and must not be added together; other BQ hooks are outside this
 attribution. A controlled baseline would still be needed to establish whole-mod frame impact.
 
@@ -229,3 +229,36 @@ synchronous event dispatch/consequences; the individual subscriber/algorithm is 
 The run starts with the prior 99 events and reaches 157, so previous combat promotions remain a
 confound for admission comparisons. Actor count reaches 310; large-history and baseline gates remain
 open. Investigate the missing Home return trigger and Record cost before repeating the same capture.
+
+## BQ-108 scoped correction and synthetic measurement
+
+The reaction path now skips social-practice detectors whose existing bearing table cannot affect
+the event. An attack still reads mourning, but no longer performs commerce identity or household
+reads. Tests compare all event types across ordinary, mourning, contest, shop, assembly, household
+and stacked contexts; norm values and explanatory terms are identical. Native-call tests confirm
+unused reads are absent. This is a demonstrated waste reduction, not proof that it accounts for
+all of the live Record cost above. The completed-visit correction is documented in
+[Home evidence](../api/home-and-settlements.md#post-visit-reconciliation-correction).
+
+On September 10, the Release `performance` Lab run restored 20,022 actors and 100,000 recent
+unrelated events with 22 local people. Each measurement excludes setup/restore and ten warm-ups,
+then samples 100 calls using Stopwatch and current-thread allocation counts on .NET 8/Windows.
+Witnessed dispatch appends new attacks through the production consequence engine; it does not
+redispatch restored history. This fixture stresses recent-history scans, not every save topology.
+
+| Measured operation | Mean ms | p95 ms | Max ms | Bytes/call |
+|---|---:|---:|---:|---:|
+| Full practices plus attack norm | 0.842 | 1.158 | 1.520 | 19,152 |
+| Event-scoped attack norm | 0.414 | 0.574 | 0.699 | 1,312 |
+| Witnessed attack dispatch | 0.454 | 0.646 | 0.902 | 19,177 |
+
+These are one-machine observations, not portable thresholds or game frame measurements. Sandbox
+identity queries omit native reflection costs. Existing recent-history scans remain linear inside
+the time window; the change does not claim constant-time history access. No new provenance store,
+rumour authority, director or dialogue realization policy was introduced.
+
+**Acceptance still pending:** a post-change large-save live capture with phase notes and a comparable
+baseline, plus Home revisit after at least seven in-game days and reload. For comparing this change,
+use copies of the same pre-run save, identical settings and workload with both diagnostic builds;
+whole-mod impact additionally needs externally measured BQ-disabled frame cadence. Do not resave
+the original with BQ disabled. Existing frame intervals alone cannot establish incremental impact.
