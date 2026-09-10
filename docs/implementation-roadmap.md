@@ -3395,6 +3395,8 @@ and never breaks.
 - **Depends** BQ-003.
 - **Done when** every capability has been switched off in a live game and the result documented.
 - **Sources** LW §2.4, §16; PM §56.
+- **Evidence** [User-reported stability observation](elin/verification/runtime-probes.md#bq-109-capability-degradation-observation).
+  The individual capability drill and diagnostic/feature isolation checks remain unverified.
 
 #### BQ-110 — Update smoke test
 A documented checklist to run after every Elin update: aliases resolve, patches apply, chunk loads,

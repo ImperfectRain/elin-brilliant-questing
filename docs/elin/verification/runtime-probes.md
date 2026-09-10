@@ -2,6 +2,19 @@
 
 Static Phase 2 reduced the probe list. Remaining probes validate live UI behavior, actor populations, and nonzero save-affecting mutations. Do not upgrade any item to `VERIFIED-RUNTIME` unless the installed game log shows the probe ran successfully.
 
+## BQ-109 capability degradation observation
+
+User report received September 10, 2026: losing capabilities does not seem to cause instability.
+This records the user's qualitative observation; no capability list, disabling procedure, game/plugin
+build, observation duration or supporting log was supplied with the report. It does not establish
+that every capability was disabled individually, that each loss affected only its intended feature,
+or that the expected diagnostic appeared. No capability evidence grade is upgraded by this report.
+
+BQ-109's live acceptance remains open. For each capability, record the baseline support state,
+game/plugin build, how it was disabled, diagnostic, affected feature, behavior of unrelated features,
+and any errors during the exercise. Capabilities already unavailable at baseline must be identified
+as such rather than presented as demonstrated losses of working features.
+
 ## Performance and Home capture
 
 This opt-in instrumentation gathers evidence for BQ-107/BQ-108; it does not complete either live
