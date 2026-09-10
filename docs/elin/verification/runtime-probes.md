@@ -214,3 +214,18 @@ records alone are not evidence of save replay.
 
 Use a pre-capture save copy, if available, to test background combat admission: old combat can
 already have promoted participants, and the correction deliberately preserves those saved promotions.
+
+## September 10 follow-up performance sample
+
+The [follow-up Home evidence](../api/home-and-settlements.md#september-10-follow-up-attach-verified-return-hook-incomplete)
+identifies the log/module. 23,096 frame intervals have approximate weighted mean 6.871 ms,
+38 intervals above 50 ms and max 1,928.052 ms. Workload/phase differences and lack of baseline
+prevent a performance-improvement claim against September 9.
+
+Act: 145 callbacks, 564.440 ms inclusive total, max 28.291 ms. Record: 58 scopes, 538.863 ms total,
+mean 9.291 ms, max 26.247 ms (about 95.5% of Act total). Witnesses: 58 scopes, 3.663 ms total,
+mean 0.063 ms, max 0.479 ms. Do not sum nested timings. The expensive region is recording plus
+synchronous event dispatch/consequences; the individual subscriber/algorithm is not yet identified.
+The run starts with the prior 99 events and reaches 157, so previous combat promotions remain a
+confound for admission comparisons. Actor count reaches 310; large-history and baseline gates remain
+open. Investigate the missing Home return trigger and Record cost before repeating the same capture.

@@ -38,3 +38,18 @@ Screenshots across 11/27/489 to 12/7/489 show fertility 82 to 245 and pasture 8 
 UI count unchanged. These screen values do not prove how often catch-up ran. Home Skill Food is
 capacity, not production stock. Admission/mutation evidence is unchanged. Use the
 [capture procedure](../verification/runtime-probes.md#performance-and-home-capture) for the next gate.
+
+## September 10 follow-up: attach verified, return hook incomplete
+
+The follow-up log SHA-256 is `8239684172bc337cdc728c85070e79115ba327994d9fd99704a673cba4ffb790`,
+module `4d797bc8-eee8-4aa5-b50d-1d7da83e10b4`. This supersedes the corrected-identity runtime
+uncertainty above **for this save**: lines 378-379 report Meadow/zone_7 and all 22 active members'
+clocks advancing to 254027229, with events staying at 99. Lines 1001-1002 show another successful
+attach at 254034236 with events staying at 157. Identity/readback and attach-clock reconciliation
+are VERIFIED-RUNTIME for these operations; no native production-delta claim follows.
+
+Return remains incomplete: the pre-save at line 898 is back in zone_7 at minute 254034104, but all
+clocks still equal 254027229. No Home zone-change bracket appears before reload. Act callback counts
+are zero in the return period, so the action-driven trigger did not provide the required observation.
+A reliable post-visit trigger needs investigation. The entire run spans about 4.87 game days,
+not a seven-day Warm interval. Preserve full membership; this is not a resident-count failure.
