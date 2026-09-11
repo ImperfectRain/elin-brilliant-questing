@@ -18,15 +18,17 @@ These are future implementation owners; the current source/test cards below reta
 | Join | Adopted BQa owner |
 |---|---|
 | Durable causal identity and decision provenance | BQa-001 |
-| Classified uncertainty and feasibility | BQa-002–BQa-004 |
-| Pressure → local interpretation → desired conditions → registered actions → feedback | BQa-005–BQa-012 |
-| Evidence-graded opportunity → competition → recurring production host | BQa-013–BQa-015 |
-| Institutional information → goals → supported execution → live enrollment | BQa-016–BQa-018 |
-| Existing causes → proposals → safe establishment → cross-matter recurrence | BQa-019–BQa-023 |
-| Payload/voice → incremental interaction → player controls → live continuation | BQa-024–BQa-030 |
-| Verified physical consequences and honest unsupported exits | BQa-031–BQa-033 |
-| Player-known journal/discovery/commissions and exposure feedback | BQa-034–BQa-037 |
-| Production range, stress, causal audit and real-save beta acceptance | BQa-038–BQa-043 |
+| Simulation/expression RNG and decision-key isolation | BQa-002 |
+| Classified uncertainty and feasibility | BQa-003–BQa-005 |
+| Pressure → local interpretation → desired conditions → registered actions → feedback | BQa-006–BQa-013 |
+| Evidence-graded opportunity → competition | BQa-014–BQa-015 |
+| Shared Core cycle → Plugin recurring-cycle integration | BQa-016–BQa-017 |
+| Institutional information → goals → supported execution → live enrollment | BQa-018–BQa-020 |
+| Existing causes → proposals → safe establishment → cross-matter recurrence | BQa-021–BQa-025 |
+| Payload/voice → incremental interaction → player controls → live continuation | BQa-026–BQa-032 |
+| Verified physical consequences and honest unsupported exits | BQa-033–BQa-035 |
+| Player-known journal/discovery/commissions and exposure feedback | BQa-036–BQa-039 |
+| Production range, stress, causal audit and real-save beta acceptance | BQa-040–BQa-045 |
 
 ## Foundations and extension routing
 
@@ -41,8 +43,8 @@ These are future implementation owners; the current source/test cards below reta
 | Threads/developments | BQ-052/069; durable matters distinct from derived pressures | BQ-102/103 selection/conservation and BQ-105 integrity; extend detector rules only over owned state. [Developments](actions.md#developments) |
 | Generation/archetypes | BQ-039–051/103/114/115/124/152; pressure-led establishment, recoverable outcomes, read-only proposals with actor/premise creation costs | Hypothetical fulfillment remains owner responsibility; ranking does not establish state. BQ-125/126 family weighting, setting seeds; reuse registry/facts/sites. [Generation](world.md#generation) |
 | Storylets/casting/chemistry | BQ-065–068/146; qualification before chemistry, actor-selected beat meaning | BQ-102/104 diversity/harness; reuse casting and routed beats rather than another scene database. [Expression](expression.md) |
-| Intent/disclosure/speech/conversation | BQ-070–073/083/146; meaning before words, no free disclosure | Further host integration must reuse `SpeechAct`, `ActionBinding`, `Disclosure` and commitment events. BQa-027–BQa-030 own subsequent integration. [Flow](flow.md#partial-joins-and-extension-points) |
-| Realization/voice/repetition/weirdness | BQ-074–079/127/128/142/147–151; eligible wording preserves meaning | BQ-104/133 coverage; BQ-149–151 address contextual trait gates, diversity metrics and ordinary high-frequency wording. BQa-026 owns durable voice assignment and its save decision. [Controls](expression.md#expression-controls) |
+| Intent/disclosure/speech/conversation | BQ-070–073/083/146; meaning before words, no free disclosure | Further host integration must reuse `SpeechAct`, `ActionBinding`, `Disclosure` and commitment events. BQa-029–BQa-032 own subsequent integration. [Flow](flow.md#partial-joins-and-extension-points) |
+| Realization/voice/repetition/weirdness | BQ-074–079/127/128/142/147–151; eligible wording preserves meaning | BQ-104/133 coverage; BQ-149–151 address contextual trait gates, diversity metrics and ordinary high-frequency wording. BQa-028 owns durable voice assignment and its save decision. [Controls](expression.md#expression-controls) |
 | Director/attention | BQ-098–101; selection doesn't deliver or alter truth | BQ-102/103/104/119/120 selection, conservation, telemetry/intensity; reuse delivery history. [Attention](expression.md#attention) |
 | Autonomy/travel | BQ-093–098; shared attempts, semantic milestones, no duplicate embodiment | BQ-107/108 scale/catch-up; respect absence/global movement ownership. [World](world.md) |
 | Organizations | BQ-053/054; generated organization state distinct from vanilla guilds | BQ-116 supply coupling and BQ-107 scheduling; do not invent a second native economy. [Organizations](world.md#organizations) |

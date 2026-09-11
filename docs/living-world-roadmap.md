@@ -64,13 +64,13 @@ NPC outcomes. Disabling the entire mod is a separate native safety test, not exp
 
 | Phase | Steps | Outcome |
 |---|---|---|
-| BQa-L1 | BQa-001–BQa-012 | Causal references, checks, pressure, local goals and shared action feedback |
-| BQa-L2 | BQa-013–BQa-018 | Opportunity, competition, tested live cycle and legitimate organization agency |
-| BQa-L3 | BQa-019–BQa-023 | Read-only recognition, safe establishment, cross-matter recurrence and state-led escalation |
-| BQa-L4 | BQa-024–BQa-030 | Semantic wording, stable voice, incremental interactions and live continuation |
-| BQa-L5 | BQa-031–BQa-033 | Operation-level native decisions and honestly embodied consequences |
-| BQa-L6 | BQa-034–BQa-037 | Knowledge-gated journal, discovery, commissions and exposure weighting |
-| BQa-L7 | BQa-038–BQa-043 | Diversity, ecology, long-horizon, causal/counterfactual and live acceptance |
+| BQa-L1 | BQa-001–BQa-013 | Causal references, RNG isolation, checks, pressure, local goals and shared action feedback |
+| BQa-L2 | BQa-014–BQa-020 | Opportunity, competition, tested live cycle and legitimate organization agency |
+| BQa-L3 | BQa-021–BQa-025 | Read-only recognition, safe establishment, cross-matter recurrence and state-led escalation |
+| BQa-L4 | BQa-026–BQa-032 | Semantic wording, stable voice, incremental interactions and live continuation |
+| BQa-L5 | BQa-033–BQa-035 | Operation-level native decisions and honestly embodied consequences |
+| BQa-L6 | BQa-036–BQa-039 | Knowledge-gated journal, discovery, commissions and exposure weighting |
+| BQa-L7 | BQa-040–BQa-045 | Diversity, ecology, long-horizon, causal/counterfactual and live acceptance |
 
 ## Evidence and persistence rules for every step
 
@@ -95,19 +95,20 @@ continuity. New unsupported goal/condition vocabulary degrades explicitly, never
 
 | Durable contract | Owning step |
 |---|---|
-| Typed causal links, minimal committed-decision evidence, RNG continuation changes | BQa-001 |
-| Individual goal conditions, provenance, lifecycle and actor assessment | BQa-007 |
-| New source-state fields needed by feedback, if any | BQa-011, in the existing source owner |
-| Consumed cycle/opening markers and deterministic resume | BQa-015 |
-| Institutional information receipts and organization goals | BQa-016 |
-| Organization operation/resource outcomes and enrollment identity, if extended | BQa-017, BQa-018 respectively |
-| Committed establishment identity and created owned records | BQa-020 |
-| Recurrence/episode identity or scheduling markers if not derivable | BQa-022 |
-| New escalation/lifecycle markers if required | BQa-023 |
-| Stable voice assignment/version | BQa-026 |
-| Semantic acknowledgment/idempotence records needed across interruption | BQa-027; BQa-030 extends only missing continuation semantics |
-| Verified site/arrival manifests if extended | BQa-031–BQa-033, existing site/travel owners |
-| New commission terms or earned engagement evidence if needed | BQa-036, BQa-037 respectively |
+| Typed causal links and minimal committed-decision evidence | BQa-001 |
+| RNG continuation or stable decision-key changes, only if needed | BQa-002 |
+| Individual goal conditions, provenance, lifecycle and actor assessment | BQa-008 |
+| New source-state fields needed by feedback, if any | BQa-012, in the existing source owner |
+| Consumed cycle/opening markers and deterministic resume | BQa-016; BQa-017 consumes this contract at native hooks |
+| Institutional information receipts and organization goals | BQa-018 |
+| Organization operation/resource outcomes and enrollment identity, if extended | BQa-019, BQa-020 respectively |
+| Committed establishment identity and created owned records | BQa-022 |
+| Recurrence/episode identity or scheduling markers if not derivable | BQa-024 |
+| New escalation/lifecycle markers if required | BQa-025 |
+| Stable voice assignment/version | BQa-028 |
+| Semantic acknowledgment/idempotence records needed across interruption | BQa-029; BQa-032 extends only missing continuation semantics |
+| Verified site/arrival manifests if extended | BQa-033–BQa-035, existing site/travel owners |
+| New commission terms or earned engagement evidence if needed | BQa-038, BQa-039 respectively |
 
 Pressures, actor-local pressure views, effect metadata, opportunity scores, proposals, temporary
 claims, native objects, session cursors, rendered lines and journal pages are derived/transient.
@@ -126,11 +127,11 @@ Harden causal references before goals, feedback and recurring execution consume 
 
 Give newly recorded transitions explicit typed causal references sufficient to distinguish triggering events, actor belief/goal motivation, affected entities and the actual result. Allocate or reserve an event identity through its owner before constructing facts that reference it; never predict the next ID or recover cause from list position, timestamp, neighboring events or prose tags. Carry multiple causes where necessary; unknown historical provenance stays unknown. Do not rewrite historical events to manufacture links.
 
-This step owns serializer/default/migration coverage for this new provenance seam, including old saves and references to missing/quarantined records. A bounded diagnostic decision record may retain the inputs/reason codes needed to explain a committed decision after the world changes; it must not copy entire snapshots, pressure lists or every rejected candidate into history. Define separate deterministic random streams for simulation decisions and optional expression, preserving existing saved RNG continuation deliberately.
+This step owns serializer/default/migration coverage for this new provenance seam, including old saves and references to missing/quarantined records. A bounded diagnostic decision record may retain the inputs/reason codes needed to explain a committed decision after the world changes; it must not copy entire snapshots, pressure lists or every rejected candidate into history. Keep this commit about causal identity and provenance. BQa-002 separately audits and enforces simulation/expression RNG and decision-key isolation.
 
 **Depends:** BQ-001, BQ-002, BQ-105, BQ-106; the BQ phase start gate above.
 
-**Done when:** a nested reaction records unambiguous causes without relying on event adjacency; new fact origins resolve to the intended event after nested recording and reload; old fixtures retain unknown provenance without replay; rejected read-only decisions consume no IDs or simulation randomness; rendering extra optional lines or recording their delivery cannot change subsequent action/check randomness or simulation tie-break keys; and an inspector can distinguish motive evidence from objective cause and outcome.
+**Done when:** a nested reaction records unambiguous causes without relying on event adjacency; new fact origins resolve to the intended event after nested recording and reload; old fixtures retain unknown provenance without replay; rejected read-only provenance inspection consumes no IDs; and an inspector can distinguish motive evidence from objective cause and outcome. A repeated-transfer/repeated-accusation test over one physical item must distinguish the original theft, a later theft attempt, recovery, transfer back and an accusation about the original theft across reload. Existing facts/beliefs, action bindings and history must retain the intended occurrence reference; future goal/dialogue consumers extend that reference rather than substituting item identity for event identity.
 
 **Do not:** rewind an ID minter, redispatch restored events, treat the ledger as the sole owner of every store, or persist derived state simply for convenient querying.
 
@@ -142,7 +143,51 @@ This step owns serializer/default/migration coverage for this new provenance sea
 ---
 
 
-## BQa-002 — Check-family classification and native-reference audit
+## BQa-002 — Simulation/expression RNG isolation
+
+Audit and enforce the boundary between authoritative simulation randomness and optional expression
+before new checks, goals and recurring execution consume it. Reuse `DeterministicRng.Fork`: it
+already derives independent streams without advancing its parent, and `StoryletRouter` already
+uses separate check and line labels. This is a call-site/stream-ownership contract and regression
+proof, not an assumption that RNG separation is absent or that a second RNG system is needed.
+
+Trace simulation choices/checks, wording, voice assignment, scene search and delivery-related
+decision keys. Define stable stream labels and occurrence keys so optional rendering, changed
+expression draw counts and delivery-event ID allocation cannot perturb simulation draws or
+tie-break keys. Repeated genuine attempts must have the intended distinct occurrence identity;
+reopening a surface must not grant another simulation roll. Preserve BQa-001's event identity
+authority rather than creating a parallel causal-ID store.
+
+Only introduce persistent stream state or versioned key data if existing saved seed/state and
+stable references cannot provide the required continuation. This step owns any resulting explicit
+defaults/migration and old-save replay contract; separate persistence is not mandatory merely
+because streams are separate. Do not reset an advancing stream by repeatedly forking the same
+label and inadvertently repeating outcomes.
+
+**Depends:** BQa-001; BQ-001, BQ-004, BQ-105, BQ-106.
+
+**Done when:** production call-site tests with identical external observations and semantic player
+actions produce the same subsequent simulation choices, checks and tie-break results with optional
+expression on/off, extra wording draws and delivery records present/absent. Rejected read-only
+inspection/selection consumes no simulation draws or authoritative IDs. Repeated genuine
+attempts use the declared occurrence policy; UI reopening gains no roll; save/reload and old saves
+preserve the documented continuation. Existing independent forks remain reused, and any newly
+persisted data has its own migration/default proof. Actual communication or different player actions
+may change state and are not falsely treated as expression-only differences.
+
+**Do not:** replace the RNG algorithm, rebalance checks, create another simulation scheduler, force
+new saved streams, or weaken causal provenance to make an independence comparison pass.
+
+**Authority / proof route:** [existing RNG](../src/BrilliantQuesting.Core/Foundation/DeterministicRng.cs),
+[foundation tests](../tests/BrilliantQuesting.Core.Tests/FoundationTests.cs),
+[routed check/line consumers](../src/BrilliantQuesting.Core/Storylets/StoryletRouter.cs),
+[persistence](systems/integration.md#persistence), [validation](agent/validation.md#persistence).
+
+**Sequence:** BQa-001 → BQa-002 → BQa-003.
+
+---
+
+## BQa-003 — Check-family classification and native-reference audit
 
 Classify every BQ ability check by the kind of uncertainty it represents before changing its mathematics.
 
@@ -161,7 +206,7 @@ Audit current `CheckProfile`, `VanillaStyleCheckResolver`, `ElinCheckResolver`, 
 
 The current production contract must be stated explicitly: composite BQ checks remain deterministic and authoritative on the portable BQ path. Native `Check` rows may provide presentation text, reference behavior and future evidence, but `Check.Perform` is **not** automatically the target authority for composite BQ checks because native RNG and single-element rows do not currently match the replay contract.
 
-**Depends:** BQ-004, BQ-023–BQ-029; BQa-001.
+**Depends:** BQ-004, BQ-023–BQ-029; BQa-001, BQa-002.
 
 **Done when:** every production check family used by BQ is explicitly classified; representative current portable DC calculations are covered by tests; native final-DC behavior, compression and row limitations are documented where observed; and no production contract implies that composite BQ checks must migrate to native RNG to be "correct."
 
@@ -172,12 +217,12 @@ The current production contract must be stated explicitly: composite BQ checks r
 
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#checks), [neighbor contract](systems/actions.md#availability), [validation](agent/validation.md#actions).
 
-**Sequence:** BQa-001 → BQa-002 → BQa-003.
+**Sequence:** BQa-002 → BQa-003 → BQa-004.
 
 ---
 
 
-## BQa-003 — Progression-safe opposed power-band scaling
+## BQa-004 — Progression-safe opposed power-band scaling
 
 Replace raw linear opposed-stat pressure with continuous relative power scaling that remains useful across Elin's effectively open-ended progression.
 
@@ -191,13 +236,13 @@ raw DC adjustment = powerBands × 3
 Final DC = BaseDC - wholeNumber(raw DC adjustment) + situational modifiers
 ```
 
-`BaseDC` and situational modifiers are not part of either power composite. Target level contributes to `targetPower` only where BQa-002 explicitly classified that profile's level term as part of the opposition; there is no hidden universal level scaling. Zero and near-zero values must use one documented deterministic stabilizer so the logarithm never invents infinities or asymmetry.
+`BaseDC` and situational modifiers are not part of either power composite. Target level contributes to `targetPower` only where BQa-003 explicitly classified that profile's level term as part of the opposition; there is no hidden universal level scaling. Zero and near-zero values must use one documented deterministic stabilizer so the logarithm never invents infinities or asymmetry.
 
 Each doubling of relative power is one internal power band worth about 3 DC. Do not cap mastery by default: extreme advantage should be able to trivialize weak opposition, while fixed world challenges do not rise automatically with the player.
 
 Before production behavior changes, choose and name the whole-number policy for the negative direction as well as the positive direction. It must be intentional and symmetric in design, not an accidental consequence of C# truncation versus mathematical floor. Tests pin that decision.
 
-**Depends:** BQa-002.
+**Depends:** BQa-003.
 
 **Done when:** opposed checks scale predictably at parity and across ratios such as 2:1, 4:1, 1:2 and 1:4; mixed weighted stats, zero/near-zero inputs and explicit target-level inclusion/exclusion are covered; extreme mastery remains possible; and tests pin the chosen whole-number rule in both directions.
 
@@ -208,12 +253,12 @@ Before production behavior changes, choose and name the whole-number policy for 
 
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#checks), [neighbor contract](systems/actions.md#availability), [validation](agent/validation.md#actions).
 
-**Sequence:** BQa-002 → BQa-003 → BQa-004.
+**Sequence:** BQa-003 → BQa-004 → BQa-005.
 
 ---
 
 
-## BQa-004 — Feasibility before difficulty
+## BQa-005 — Feasibility before difficulty
 
 Determine whether an action is possible before asking whether any genuine uncertainty remains, and only then ask a check resolver to model that uncertainty.
 
@@ -231,7 +276,7 @@ Existing `NarrativeAction.GetAvailability`, actor scope, semantic bindings and c
 
 High statistics must never invent missing facts, resources, physical access or authority. Conversely, a very favorable DC is **not by itself** proof that uncertainty disappeared; an uncertain action may remain rollable even when mastery makes failure rare. No-roll certainty should come from the action's semantics and authoritative state, as with a transfer that simply succeeds once the required owned item and valid recipient are present.
 
-**Depends:** BQa-002, BQa-003; BQ-093, BQ-137.
+**Depends:** BQa-003, BQa-004; BQ-093, BQ-137.
 
 **Done when:** representative actions demonstrate impossible, semantically certain and genuinely uncertain paths; impossible cases never reach RNG; certainty bypasses meaningless checks only where the action contract justifies it; and uncertain checks still route to the correct family even at extreme advantage/disadvantage.
 
@@ -239,12 +284,12 @@ High statistics must never invent missing facts, resources, physical access or a
 
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#availability), [neighbor contract](systems/actions.md#checks), [validation](agent/validation.md#actions).
 
-**Sequence:** BQa-003 → BQa-004 → BQa-005.
+**Sequence:** BQa-004 → BQa-005 → BQa-006.
 
 ---
 
 
-## BQa-005 — General pressure synthesis
+## BQa-006 — General pressure synthesis
 
 Extend the existing derived `Development`/pressure seam over authoritative state.
 
@@ -283,17 +328,17 @@ Broader coverage also needs a **stable aggregation contract**. Equivalent readin
 
 **Do not:** create one detector class per quest plot, persist derived pressures merely to make them easier to query, teach actors facts by detecting them, or bypass existing simulation budgets.
 
-**Required coverage:** the first rules must cover property/crime, economic/service continuity, social obligation/belief conflict and existing organization stakes, with source/default/refusal defined for each. Unsupported native facts remain unknown; the beta can use honest BQ-owned obligations/business continuity, but not fabricated native stock. Include positive opportunities and recovery/quiet states so the cycle does not only generate crises. Source changes without a thread remain detectable. Initial rules use bounded supplied work sets; BQa-011 and BQa-015 connect invalidation and recurring execution.
+**Required coverage:** the first rules must cover property/crime, economic/service continuity, social obligation/belief conflict and existing organization stakes, with source/default/refusal defined for each. Unsupported native facts remain unknown; the beta can use honest BQ-owned obligations/business continuity, but not fabricated native stock. Include positive opportunities and recovery/quiet states so the cycle does not only generate crises. Source changes without a thread remain detectable. Initial rules use bounded supplied work sets; BQa-012 and BQa-016 connect invalidation and recurring execution, then BQa-017 supplies live hooks.
 
 
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#developments), [neighbor contract](systems/world.md#organizations), [validation](agent/validation.md#actions).
 
-**Sequence:** BQa-004 → BQa-005 → BQa-006.
+**Sequence:** BQa-005 → BQa-006 → BQa-007.
 
 ---
 
 
-## BQa-006 — Actor-local pressure interpretation and stake projection
+## BQa-007 — Actor-local pressure interpretation and stake projection
 
 Project objective/derived pressure into the **specific pressure an actor can legitimately experience** before any goal is formed.
 
@@ -323,7 +368,7 @@ how urgent is it from their point of view?
 
 It is a derived view, not another saved pressure store, and it must never teach the actor a fact merely because the objective detector found it.
 
-**Depends:** BQa-005; BQ-017–BQ-022, BQ-064, BQ-145.
+**Depends:** BQa-006; BQ-017–BQ-022, BQ-064, BQ-145.
 
 **Done when:** one objective pressure produces different actor-local readings for different people; a hidden true fact creates no pressure for an actor who has no legitimate route to it; a false but sincerely held belief can create a real actor-local pressure; and repeated interpretation is deterministic and mutates nothing.
 
@@ -334,12 +379,12 @@ It is a derived view, not another saved pressure store, and it must never teach 
 
 **Authority / proof route:** [owning source and representative tests](systems/state.md#belief-and-proof), [neighbor contract](systems/state.md#character-state), [validation](agent/validation.md#state).
 
-**Sequence:** BQa-005 → BQa-006 → BQa-007.
+**Sequence:** BQa-006 → BQa-007 → BQa-008.
 
 ---
 
 
-## BQa-007 — Goal condition, provenance and lifecycle contract
+## BQa-008 — Goal condition, provenance and lifecycle contract
 
 Strengthen `NpcGoal` before automatic goal generation so later systems can reason about goals without parsing prose or guessing why they exist.
 
@@ -365,27 +410,27 @@ retirement without deleting history
 
 `Reason` remains an explanation for people, not an input language the simulation parses. Lifecycle/provenance must survive save/reload and use the repository's normal migration discipline if the persisted schema changes.
 
-**Depends:** BQa-001, BQa-005, BQa-006; BQ-062, BQ-105, BQ-106.
+**Depends:** BQa-001, BQa-006, BQa-007; BQ-062, BQ-105, BQ-106.
 
 **Done when:** equivalent actor-local pressure cannot accumulate duplicate goals across repeated passes; a goal can be distinguished as active, satisfied, abandoned or superseded (or an equivalent explicit lifecycle); its desired-state condition and causal source survive save/reload; and no production decision depends on parsing the human-readable `Reason` string.
 
 **Do not:** turn goals into quest objectives, store a copy of the pressure itself, or rewrite old history when a goal is retired.
 
-**Persistence and extension refinement:** condition evaluators use a validated typed/registered vocabulary and concrete bindings, not arbitrary expressions or a central goal-name switch. Unknown legacy goals remain inspectable unsupported desires, never guessed actions. Store only needed lifecycle/provenance/actor-assessment fields with explicit old-save defaults and no event replay; bound active goals and preserve meaningful retired-goal history without one durable record per unchanged evaluation. Objective satisfaction and the actor's justified assessment remain distinct, as required by BQa-010.
+**Persistence and extension refinement:** condition evaluators use a validated typed/registered vocabulary and concrete bindings, not arbitrary expressions or a central goal-name switch. Unknown legacy goals remain inspectable unsupported desires, never guessed actions. Store only needed lifecycle/provenance/actor-assessment fields with explicit old-save defaults and no event replay; bound active goals and preserve meaningful retired-goal history without one durable record per unchanged evaluation. Objective satisfaction and the actor's justified assessment remain distinct, as required by BQa-011.
 
 
 **Authority / proof route:** [owning source and representative tests](systems/state.md#character-state), [neighbor contract](systems/integration.md#persistence), [validation](agent/validation.md#persistence).
 
-**Sequence:** BQa-006 → BQa-007 → BQa-008.
+**Sequence:** BQa-007 → BQa-008 → BQa-009.
 
 ---
 
 
-## BQa-008 — Pressure-to-goal evolution
+## BQa-009 — Pressure-to-goal evolution
 
 Generalize actor-local goal formation so goals increasingly arise from **actor-interpreted current pressure** and character state rather than being assigned only when a situation fixture is established.
 
-Use BQa-006's actor-local pressure view and BQa-007's machine-readable goal contract. Existing personality, values, needs, prohibitions, relationships and problem-solving tendencies remain the authorities that make two actors react differently to the same perceived condition. The pressure detector itself never chooses a goal.
+Use BQa-007's actor-local pressure view and BQa-008's machine-readable goal contract. Existing personality, values, needs, prohibitions, relationships and problem-solving tendencies remain the authorities that make two actors react differently to the same perceived condition. The pressure detector itself never chooses a goal.
 
 Support:
 
@@ -417,23 +462,23 @@ failed revenge
 
 Different actors facing the same objective pressure may form different goals because their **knowledge/beliefs/stakes differ first**, and because values, relationships, personality, resources and prohibitions differ after that.
 
-**Depends:** BQa-005, BQa-006, BQa-007; BQ-056–BQ-064.
+**Depends:** BQa-006, BQa-007, BQa-008; BQ-056–BQ-064.
 
 **Done when:** repeated production goal-evolution calls over a month of supplied time/state changes create, revise, abandon/supersede and satisfy goals from authoritative state transitions without fixture-authored follow-up goals being required for the tested chains; hidden truth alone never creates an actor goal; and a false but sincerely held belief can create a goal when the actor-local pressure view supports it.
 
 **Do not:** let the pressure detector choose the goal, make goals global story directives, or create goals from omniscient access to authoritative truth.
 
-**Boundary:** this step proves the goal owner, not a scheduler or an autonomous month; the integrated autonomous proof belongs to BQa-015. Pin different decisions from differing values/prohibitions with knowledge held constant, and different knowledge with character held constant. Cap/reweight competing desires and preserve a legitimate wait/abandon result rather than escalating every unfulfilled goal.
+**Boundary:** this step proves the goal owner, not a scheduler or an autonomous month; the integrated headless autonomous proof belongs to BQa-016, followed by BQa-017 live integration. Pin different decisions from differing values/prohibitions with knowledge held constant, and different knowledge with character held constant. Cap/reweight competing desires and preserve a legitimate wait/abandon result rather than escalating every unfulfilled goal.
 
 
 **Authority / proof route:** [owning source and representative tests](systems/state.md#character-state), [neighbor contract](systems/actions.md#developments), [validation](agent/validation.md#state).
 
-**Sequence:** BQa-007 → BQa-008 → BQa-009.
+**Sequence:** BQa-008 → BQa-009 → BQa-010.
 
 ---
 
 
-## BQa-009 — Registered action semantic-effect contract
+## BQa-010 — Registered action semantic-effect contract
 
 Give each reusable `NarrativeAction` a side-effect-free machine-readable description of the **kinds of state change it can potentially advance** and the semantic bindings/context it requires.
 
@@ -455,7 +500,7 @@ The exact vocabulary should be small and derived from real registered verbs, not
 
 This is **potential capability metadata**, not outcome prediction. `GetAvailability` still decides whether the verb makes sense now. `Perform` plus checks/native writes still decide what actually happens. Failure may produce a different effect than success. `ActionBinding` continues to carry the concrete proposition/item/destination/purpose.
 
-**Depends:** BQa-004, BQa-007; BQ-093, BQ-137.
+**Depends:** BQa-005, BQa-008; BQ-093, BQ-137.
 
 **Done when:** representative action families expose effect descriptors through the registry without a parallel hand-maintained action table; those descriptors are sufficient for generic goal matching; adding a new verb with an existing effect vocabulary requires no central goal-name switch; and effect inspection mutates nothing.
 
@@ -466,18 +511,18 @@ This is **potential capability metadata**, not outcome prediction. `GetAvailabil
 
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#actions), [neighbor contract](systems/actions.md#availability), [validation](agent/validation.md#actions).
 
-**Sequence:** BQa-008 → BQa-009 → BQa-010.
+**Sequence:** BQa-009 → BQa-010 → BQa-011.
 
 ---
 
 
-## BQa-010 — Goal satisfaction and action-semantic bridge
+## BQa-011 — Goal satisfaction and action-semantic bridge
 
 Bridge machine-readable desired conditions to effects declared by registered actions. Construct concrete candidate bindings from actor-accessible targets, resources and information; rank using the existing goal/personality choice authority. Reuse `ActionRegistry`, `ActionBinding`, `ActorContexts` and `ActionAttempt`, including a legitimate null/wait result when nothing matches.
 
 Replace `OffScreenSchemes` goal-kind substring matching and its current success-plus-any-event satisfaction shortcut for the covered goals. A successful conversation is not recovery of property. A goal may become objectively satisfied through another actor's action, yet its owner cannot change plans on hidden truth alone: distinguish objective condition evaluation from the actor's belief that the condition is met. Unknown native state is not failure or satisfaction. Keep stale intent until legitimate learning/review justifies revision, with execution still revalidating real preconditions.
 
-**Depends:** BQa-007, BQa-008, BQa-009.
+**Depends:** BQa-008, BQa-009, BQa-010.
 
 **Done when:** recovery, information and obligation/resource conditions discover multiple semantically appropriate registered routes where available; a successful irrelevant action does not satisfy a goal; another actor's deed can satisfy its objective condition without teaching the owner; false-belief goals remain actionable without requiring their premise to be objectively true; missing effects/bindings yield explicit unsupported/wait rather than an unrelated fallback; and save/reload preserves these distinctions. Adding a verb using an existing effect needs no central goal-kind switch.
 
@@ -490,12 +535,12 @@ Replace `OffScreenSchemes` goal-kind substring matching and its current success-
 
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#actions), [neighbor contract](systems/world.md#autonomy), [validation](agent/validation.md#actions).
 
-**Sequence:** BQa-009 → BQa-010 → BQa-011.
+**Sequence:** BQa-010 → BQa-011 → BQa-012.
 
 ---
 
 
-## BQa-011 — Consequence-to-pressure feedback and observation intake
+## BQa-012 — Consequence-to-pressure feedback and observation intake
 
 Connect real state changes back to the derived work set. Actions/native observations record what occurred; `ConsequenceEngine` retains reaction ownership; facts, beliefs, businesses, demand, obligations, travel and relationships retain their own mutations. The detector reads these owners and never chooses goals.
 
@@ -503,7 +548,7 @@ Cover property/crime, business/service and social-belief changes, including stat
 
 Pressure invalidation must cover non-event-owned changes as well as event listeners, and wake affected actors/organizations even if they have no goal yet. A bounded rotating inspection covers elapsed-time conditions and missed invalidations without scanning historical actors every frame.
 
-**Depends:** BQa-001, BQa-005–BQa-010; BQ-014, BQ-015, BQ-050, BQ-051.
+**Depends:** BQa-001, BQa-006–BQa-011; BQ-014, BQ-015, BQ-050, BQ-051.
 
 **Done when:** production transitions in all three families alter the next derived pressure and local readings; supplier loss changes an existing business/demand record and can affect a customer, worker or rival beyond that business; undetected property change does not fabricate a culprit or witness; legitimate later notice/report can wake a response; unrelated actors remain unaware; quiet/sleeping-service controls create no distress; and replay/reconciliation does not duplicate native effects. Tests arrange initial state and observations only, never inject follow-up goals or incidents.
 
@@ -512,18 +557,18 @@ Pressure invalidation must cover non-event-owned changes as well as event listen
 
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#reactions), [neighbor contract](systems/flow.md#live-host-joins), [validation](agent/validation.md#world).
 
-**Sequence:** BQa-010 → BQa-011 → BQa-012.
+**Sequence:** BQa-011 → BQa-012 → BQa-013.
 
 ---
 
 
-## BQa-012 — Failure outcomes that preserve causal meaning
+## BQa-013 — Failure outcomes that preserve causal meaning
 
 Audit the high-leverage registered action families used by the beta chains against actual postconditions. Classify failed attempts as no material change, information revealed, resource/time cost, harm, or a justified transformation of later options. Preserve the successful outcome contract as well: an event label cannot substitute for the state change it claims.
 
 Failed sabotage may expose interference; a caught lie may affect trust; a failed transfer can simply leave ownership unchanged. Which happens depends on the attempted act, observers and its check outcome, never a rule that every failure must add drama. Audit native refusal separately from a performed-but-unsuccessful act.
 
-**Depends:** BQa-004, BQa-009–BQa-011.
+**Depends:** BQa-005, BQa-010–BQa-012.
 
 **Done when:** every action family selected for the property, economic and false-belief chains has classified success/failure/refusal postconditions; production tests prove at least one failure changes a later pressure/option and one legitimately changes nothing; unsupported native writes cannot be narrated as successful actions; and hidden failures cannot create witnesses or trust loss without a knowledge route.
 
@@ -532,7 +577,7 @@ Failed sabotage may expose interference; a caught lie may affect trust; a failed
 
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#reactions), [neighbor contract](systems/actions.md#actions), [validation](agent/validation.md#actions).
 
-**Sequence:** BQa-011 → BQa-012 → BQa-013.
+**Sequence:** BQa-012 → BQa-013 → BQa-014.
 
 ---
 
@@ -540,7 +585,7 @@ Failed sabotage may expose interference; a caught lie may affect trust; a failed
 # Phase BQa-L2 — A running world with legitimate agency
 
 
-## BQa-013 — Spatial and temporal opportunity model
+## BQa-014 — Spatial and temporal opportunity model
 
 Upgrade current activity observation from a loose weighting input into a richer action-opportunity reading without simulating a parallel schedule system.
 
@@ -571,7 +616,7 @@ elapsed time
 
 Unknown remains unknown. A coarse opportunity score can make an attempt more or less plausible without turning plausibility into a claim that two actors physically met or that somebody witnessed an act.
 
-**Depends:** BQa-010, BQa-011; BQ-135.
+**Depends:** BQa-011, BQa-012; BQ-135.
 
 **Done when:** the same actor and same goal produce different legal/plausible opportunities because observed Elin state changed; every refusal/bonus names the observation behind it; and an equivalent off-screen run never upgrades unknown co-location/witness information into authoritative physical evidence.
 
@@ -582,12 +627,12 @@ Unknown remains unknown. A coarse opportunity score can make an attempt more or 
 
 **Authority / proof route:** [owning source and representative tests](systems/world.md#activity), [neighbor contract](systems/actions.md#availability), [validation](agent/validation.md#native).
 
-**Sequence:** BQa-012 → BQa-013 → BQa-014.
+**Sequence:** BQa-013 → BQa-014 → BQa-015.
 
 ---
 
 
-## BQa-014 — Action competition and transient claims
+## BQa-015 — Action competition and transient claims
 
 Allow multiple actors to respond to the same pressure or compete over the same indivisible opportunity.
 
@@ -611,63 +656,114 @@ Claims do not become authoritative history until an action actually occurs.
 
 The player participates under the same matter state rather than a privileged parallel resolver.
 
-**Depends:** BQa-008, BQa-010, BQa-013.
+**Depends:** BQa-009, BQa-011, BQa-014.
 
 **Done when:** one pressure attracts several plausible actors and final outcomes vary according to motive, timing, opportunity and successful action rather than stable iteration order.
 
-**Required arbitration contract:** gather intentions from one immutable batch input, group by contested object/resource/opportunity, then choose with deterministic stable keyed tie-breaking independent of collection enumeration; ties may vary by seed/time, not by dictionary order. Revalidate each winner against current state immediately before execution. Claims expire on refusal, exception, cancellation and batch end; save only committed outcomes, never reservations. Test one object/two actors, player-versus-NPC conflict, loser retry, reordered candidate input and reload at a boundary. Core arbitration is callable before BQa-015 supplies its live host.
+**Required arbitration contract:** gather intentions from one immutable batch input, group by contested object/resource/opportunity, then choose with deterministic stable keyed tie-breaking independent of collection enumeration; ties may vary by seed/time, not by dictionary order. Revalidate each winner against current state immediately before execution. Claims expire on refusal, exception, cancellation and batch end; save only committed outcomes, never reservations. Test one object/two actors, player-versus-NPC conflict, loser retry, reordered candidate input and reload at a boundary. Core arbitration is consumed by BQa-016 before BQa-017 supplies its live host.
 
 
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#actions), [neighbor contract](systems/world.md#autonomy), [validation](agent/validation.md#world).
-
-**Sequence:** BQa-013 → BQa-014 → BQa-015.
-
----
-
-
-## BQa-015 — Recurring world-development orchestration host
-
-Create the bounded orchestration pass that repeatedly closes the already-separated authorities **without becoming a universal scheduler or new simulation authority**.
-
-Target conceptual order:
-
-```text
-observe/reconcile authoritative state
-→ select bounded affected work set
-→ detect current pressures
-→ interpret actor-local pressures
-→ evolve actor goals
-→ discover feasible intentions
-→ schedule allowed autonomous attempts
-→ record consequences
-→ leave changed state for the next defined causal pass
-```
-
-The repository already has explicit host ordering, individual subsystem passes and the BQ-107 simulation index. Reuse those boundaries. This step coordinates when existing owners are asked; it does not absorb their decisions into one "world brain."
-
-Each causal pass must have an inspectable batch/snapshot boundary. Events recorded during a pass may run their normal immediate consequence listeners, but they must not recursively trigger unlimited pressure→goal→action selection inside the same call stack. Newly changed state normally becomes input to the next defined causal evaluation, preventing same-tick causal avalanches and iteration-order dependence.
-
-The host may run on proven time/state-change hooks and under BQ-107/BQ-108 simulation/performance budgets. It must not poll every actor every frame, replay Elin simulation, or replace the existing bounded `SimulationIndex` with global scans.
-
-The Plugin and headless harness should execute the same conceptual production cycle, with explicit differences only where live Elin evidence is required.
-
-**Depends:** BQa-001–BQa-014; BQ-093–BQ-098, BQ-107, BQ-108.
-
-**Done when:** after one seed incident, advancing time repeatedly without player input produces further pressure/goal/action cycles through production code; work per pass is bounded and inspectable; deterministic replay is stable; and a consequence produced late in one batch cannot recursively cause an unbounded chain before the next causal boundary.
-
-**Do not:** generate a situation on every pass, make scene presentation part of the cycle, introduce a second scheduler for systems that already have an owner, or treat a Lab-only scheduler as live integration proof.
-
-**Early production harness and live acceptance:** this commit owns a minimal deterministic runner of the same Core cycle used by the Plugin, extending Lab `ProductionSystemRegistry` instead of copying a scheduler into fixtures. From ordinary registered actors and authoritative initial conditions, run 30+ days with zero follow-up injection, including zero running storylets and periods with no live threads. Exercise all three core pressure families, save/reload midway, ignored/previously-engaged matters and unloaded areas. Remove permanent protection merely because the player once acted; only an active bounded interaction can temporarily defer a conflicting attempt. Existing autonomy, scheme, adventurer and travel passes must share ownership/deduplication so one actor does not spend the same opening twice. New actors with no staged goal must become eligible through observation/invalidation. Verify actual Plugin time advancement while resting/traveling and across zone transitions, not just a Lab call. Save consumed batch/opening markers; rebuild bounded queues fairly and deterministically on reload without replay or starvation. Expression RNG, UI callbacks and telemetry never drive this clock. BQa-038 later expands measurement, not the first proof of the loop.
-
-
-**Authority / proof route:** [owning source and representative tests](systems/flow.md#live-host-joins), [neighbor contract](systems/world.md#autonomy), [validation](agent/validation.md#world).
 
 **Sequence:** BQa-014 → BQa-015 → BQa-016.
 
 ---
 
 
-## BQa-016 — Organization pressure interpretation and goal evolution
+## BQa-016 — Core production-cycle runner
+
+Establish one bounded Core cycle that coordinates the existing owners. The Lab runner must call
+this production implementation through `ProductionSystemRegistry`, not reproduce its scheduling
+logic in a fixture. Plugin integration follows in BQa-017; this step leaves existing live hooks
+unchanged while proving the Core contract they will consume.
+
+```text
+supplied authoritative observations/reconciliation inputs
+→ bounded affected work set
+→ derived pressures and actor-local interpretation
+→ goal evolution and feasible intentions
+→ opportunity/arbitration through existing owners
+→ shared attempts and consequences
+→ changed state for the next defined causal pass
+```
+
+Define the batch boundary, work budgets, fairness and execution ownership before wiring native
+callbacks. Immediate event listeners retain their queued reaction behavior; they cannot recursively
+start another pressure/goal/action pass. Reuse the simulation index and existing autonomy, scheme,
+adventurer and travel owners. Define and test deduplication here so one actor cannot spend the same
+exclusive opening through multiple passes. Native outcomes supplied as already observed must not
+be simulated again. Threadless conditions and newly eligible actors with no staged goals must enter
+bounded evaluation. No presentation or Director becomes the world scheduler.
+
+This step owns consumed opening/batch markers, deterministic queue reconstruction and old-save
+defaults/migrations where needed. Unselected work must remain eligible without starvation; replaying
+an already-consumed interval must be harmless. Remove permanent autonomy protection merely because
+the player once acted in a matter; only an active, bounded interaction may temporarily defer a
+conflicting attempt. Transient claims expire through BQa-015's existing arbitration contract.
+
+**Depends:** BQa-001–BQa-015; BQ-093–BQ-098, BQ-107, BQ-108.
+
+**Done when:** the shared production runner evolves all three core pressure families for 30+ days
+from authoritative initial conditions with no injected follow-up goals or incidents. It covers
+ignored and previously engaged matters, no running storylet, periods with no live thread, supplied
+off-screen observations and save/reload midway. Tests prove bounded per-pass work, fair resume,
+stable replay, no same-stack causal avalanche, no duplicate exclusive openings across existing
+subsystem passes and no replay of supplied native outcomes. Lab invokes this exact Core cycle;
+headless success is explicitly not evidence that Elin hooks advance it. BQa-040 later expands range
+measurement rather than providing the first integrated causal proof.
+
+**Do not:** add a Lab-only scheduler, poll every actor, make generation mandatory on every pass,
+persist transient reservations, or claim unloaded native observations from headless doubles.
+
+**Authority / proof route:** [autonomy and tier owners](systems/world.md#autonomy),
+[current host boundaries](systems/flow.md#live-host-joins),
+[Lab production registry](../tools/BrilliantQuesting.Lab/ProductionSystemRegistry.cs),
+[persistence](systems/integration.md#persistence), [validation](agent/validation.md#world).
+
+**Sequence:** BQa-015 → BQa-016 → BQa-017.
+
+---
+
+## BQa-017 — Plugin recurring-cycle integration
+
+Connect BQa-016's exact Core runner to real Elin observation, time, zone and save/load boundaries.
+The Plugin supplies current native inputs and invokes the cycle; it must not recreate Core batching,
+fairness, deduplication, goal selection or action resolution. Preserve the established Core semantics
+and their headless proofs while replacing overlapping live calls.
+
+Audit `AdvanceThreads`, autonomy/scheme/adventurer/travel calls, attach/day advancement and zone
+reconciliation as one call-site handoff. Remove or route overlapping calls through the shared owner
+so hook repetition cannot spend an opening twice. Reconciliation must occur before consuming
+elapsed work and must respect vanilla catch-up, active-zone embodiment and movement ownership.
+Read unavailable native state as unknown; do not infer that Elin stopped simulating an unloaded area.
+
+Restore the runner using BQa-016's persisted markers and transient service/queue reconstruction;
+do not introduce a competing Plugin clock or saved cursor. Guard callback failures so one refused
+operation cannot break the game or replay completed work. Expression, UI callbacks and debug
+telemetry cannot be required to advance the world.
+
+**Depends:** BQa-016; BQ-093–BQ-098, BQ-107, BQ-108, BQ-110.
+
+**Done when:** the Plugin builds and a real save demonstrates recurring advancement during ordinary
+play, resting and travel, through zone leave/return and save/reload. Record the actual hook/time and
+reconciliation evidence, including advancement while the player ignores BQ and no storylet runs.
+Repeated/overlapping callbacks and a previously consumed interval do not duplicate actions or
+vanilla catch-up. The same Core cycle and persisted markers are used by Plugin and Lab; the Core
+30-day/reload proofs remain green. Missing capabilities and callback failures degrade safely,
+without a new goal engine or a second scheduler. Headless tests alone do not complete this step.
+
+**Do not:** copy the runner into the Plugin, leave old scheduling calls active beside it, promote
+headless timing to runtime evidence, or rerun physical work already performed by Elin.
+
+**Authority / proof route:** [live host joins](systems/flow.md#live-host-joins),
+[Plugin](../src/BrilliantQuesting.Plugin/BrilliantQuestingPlugin.cs),
+[native evidence](elin/capabilities.md), [validation](agent/validation.md#native).
+
+**Sequence:** BQa-016 → BQa-017 → BQa-018.
+
+---
+
+## BQa-018 — Organization pressure interpretation and goal evolution
 
 Give organizations a legitimate way to notice pressures and revise organization goals before the live Plugin schedules organization activity.
 
@@ -686,7 +782,7 @@ Use the existing organization state and `OrganizationGoal` authority where possi
 
 An organization may act on policy and shared institutional state without pretending that every member knows every fact. Where knowledge must propagate through a member/report route, preserve that distinction.
 
-**Depends:** BQa-001, BQa-005–BQa-008, BQa-015; BQ-053, BQ-054.
+**Depends:** BQa-001, BQa-006–BQa-009, BQa-017; BQ-053, BQ-054.
 
 **Done when:** at least three organization types derive different legitimate responses to current pressures; an organization cannot react to a hidden fact merely because Core knows it; organization goals form/revise/retire from inspectable institutional evidence; and repeated interpretation is deterministic and side-effect-free until the normal goal owner records a change.
 
@@ -697,44 +793,44 @@ An organization may act on policy and shared institutional state without pretend
 
 **Authority / proof route:** [owning source and representative tests](systems/world.md#organizations), [neighbor contract](systems/state.md#belief-and-proof), [validation](agent/validation.md#persistence).
 
-**Sequence:** BQa-015 → BQa-016 → BQa-017.
+**Sequence:** BQa-017 → BQa-018 → BQa-019.
 
 ---
 
 
-## BQa-017 — Organization intention execution through shared semantics
+## BQa-019 — Organization intention execution through shared semantics
 
-Adapt existing `OrganizationActivity` before it becomes live. Reuse BQa-009/BQa-010 condition/effect discovery and BQa-014 resource competition. Institutional operations retain their organization state owner; represent their effects, prerequisites and costs explicitly. Embodied deeds go through an eligible real member's shared `ActionAttempt`; bookkeeping has no synthetic NPC body and no invented physical presence.
+Adapt existing `OrganizationActivity` before it becomes live. Reuse BQa-010/BQa-011 condition/effect discovery and BQa-015 resource competition. Institutional operations retain their organization state owner; represent their effects, prerequisites and costs explicitly. Embodied deeds go through an eligible real member's shared `ActionAttempt`; bookkeeping has no synthetic NPC body and no invented physical presence.
 
 Replace current unknown-goal and failed-recruit/protection fallbacks to `BuildWealth`. Unsupported intent waits/refuses. Reserves require a named BQ-owned inflow/cost rather than free resource creation per tick; recruitment needs eligible, legitimately reachable participants, consent/authority as applicable and sufficient resources. Bound work and test leader loss, depleted resources, shared member contention and goal satisfaction against actual state.
 
-**Depends:** BQa-009, BQa-010, BQa-014, BQa-016.
+**Depends:** BQa-010, BQa-011, BQa-015, BQa-018.
 
 **Done when:** three organization kinds with existing legitimate state execute different supported responses through production Core; unknown/blocked goals do not earn wealth; members and resources cannot be spent twice; a false institutional report can motivate an action without becoming truth; actual consequences affect individual or rival pressures; and save/reload cannot repeat an operation.
 
-**Do not:** create a parallel organization action ontology, economy, hidden member or native guild authority. This step adapts execution; live enrollment/host wiring follows in BQa-018.
+**Do not:** create a parallel organization action ontology, economy, hidden member or native guild authority. This step adapts execution; live enrollment/host wiring follows in BQa-020.
 
 
 **Authority / proof route:** [owning source and representative tests](systems/world.md#organizations), [neighbor contract](systems/actions.md#actions), [validation](agent/validation.md#world).
 
-**Sequence:** BQa-016 → BQa-017 → BQa-018.
+**Sequence:** BQa-018 → BQa-019 → BQa-020.
 
 ---
 
 
-## BQa-018 — Live organization agency
+## BQa-020 — Live organization agency
 
 Bring existing organization simulation into the same bounded production cycle rather than leaving it stronger in Core/Lab than in the Plugin.
 
-BQa-016 decides what an organization can legitimately notice and what machine-readable organization goal follows. BQa-017 already owns execution semantics. This step enrolls legitimate production groups and schedules their eligible intentions through that tested owner, routing resulting changes through the same authoritative consequence/world-state owners used elsewhere.
+BQa-018 decides what an organization can legitimately notice and what machine-readable organization goal follows. BQa-019 already owns execution semantics. This step enrolls legitimate production groups and schedules their eligible intentions through that tested owner, routing resulting changes through the same authoritative consequence/world-state owners used elsewhere.
 
 Examples include guards investigating, guilds supporting supply, families protecting members, adventurers taking rescue work, authorities sanctioning, and caravans rerouting around danger.
 
 Organizations do not need personality profiles or synthetic spokesperson NPCs to act as organizations. Where a physical/member action is required, use a legitimate member/actor seam rather than inventing an invisible body.
 
-**Depends:** BQa-015, BQa-016, BQa-017.
+**Depends:** BQa-017, BQa-018, BQa-019.
 
-**Done when:** at least three organization types independently notice and act on pressures through the live Plugin production cycle; equivalent headless runs use the same Core authority; organization actions can create ordinary authoritative consequences/pressures; and no organization acts on information BQa-016 says it could not know.
+**Done when:** at least three organization types independently notice and act on pressures through the live Plugin production cycle; equivalent headless runs use the same Core authority; organization actions can create ordinary authoritative consequences/pressures; and no organization acts on information BQa-018 says it could not know.
 
 **Do not:** create synthetic "guild NPCs," a second economy, organization-only consequence rules, or an omniscient organization scheduler.
 
@@ -743,7 +839,7 @@ Organizations do not need personality profiles or synthetic spokesperson NPCs to
 
 **Authority / proof route:** [owning source and representative tests](systems/world.md#organizations), [neighbor contract](systems/flow.md#live-host-joins), [validation](agent/validation.md#native).
 
-**Sequence:** BQa-017 → BQa-018 → BQa-019.
+**Sequence:** BQa-019 → BQa-020 → BQa-021.
 
 ---
 
@@ -751,7 +847,7 @@ Organizations do not need personality profiles or synthetic spokesperson NPCs to
 # Phase BQa-L3 — Recurring situations from existing causes
 
 
-## BQa-019 — General situation proposal ecology
+## BQa-021 — General situation proposal ecology
 
 Broaden the producer side of the existing side-effect-free proposal/conservation seam.
 
@@ -775,13 +871,13 @@ known opportunities
 
 and explicitly state what new actors, premises or sites would be required before anything is created.
 
-Proposal production is read-only. It may describe requirements and expected bindings, but it does not satisfy them; BQa-020 owns fulfillment after a proposal has actually won selection/admission.
+Proposal production is read-only. It may describe requirements and expected bindings, but it does not satisfy them; BQa-022 owns fulfillment after a proposal has actually won selection/admission.
 
 At minimum, generic live proposal production must no longer be effectively limited to one settlement pressure family.
 
-**Depends:** BQa-005–BQa-018; BQ-103, BQ-152.
+**Depends:** BQa-006–BQa-020; BQ-103, BQ-152.
 
-**Done when:** several distinct situation families can be proposed from the same settlement/world pass, ranked through the existing proposal/director authorities, and inspected without mutating state; proposals with hypothetical requirements remain pure descriptions until BQa-020.
+**Done when:** several distinct situation families can be proposed from the same settlement/world pass, ranked through the existing proposal/director authorities, and inspected without mutating state; proposals with hypothetical requirements remain pure descriptions until BQa-022.
 
 **Do not:** create a universal quest generator, let proposal ranking establish authoritative state, or satisfy hypothetical requirements during scoring.
 
@@ -790,12 +886,12 @@ At minimum, generic live proposal production must no longer be effectively limit
 
 **Authority / proof route:** [owning source and representative tests](systems/world.md#generation), [neighbor contract](systems/actions.md#developments), [validation](agent/validation.md#world).
 
-**Sequence:** BQa-018 → BQa-019 → BQa-020.
+**Sequence:** BQa-020 → BQa-021 → BQa-022.
 
 ---
 
 
-## BQa-020 — Selected-proposal fulfillment and atomic establishment
+## BQa-022 — Selected-proposal fulfillment and atomic establishment
 
 Close the seam between a side-effect-free winning proposal and the authoritative state that proposal explicitly says it still requires.
 
@@ -816,7 +912,7 @@ Only an admitted/selected proposal may be fulfilled. The Director never becomes 
 
 If any required creation or native capability cannot be satisfied, the establishment fails closed. Do not leave behind half-created actors, facts, sites, thread slots or inventory changes. Preflight alone does not make native multi-write operations atomic. For beta establishment, use a Core atomic commit or an operation with verified compensation/reconciliation; refuse unsupported multi-write creation before the first write. Never rewind published IDs: failed execution may burn an ID without creating a world entity, while rejected read-only ranking must allocate none. If a native operation can leave ambiguous physical results, it is not admitted to the atomic establishment path until recovery is proved.
 
-**Depends:** BQa-019; BQ-103, BQ-152.
+**Depends:** BQa-021; BQ-103, BQ-152.
 
 **Done when:** a proposal requiring at least one new declared requirement can be selected and fulfilled through its existing owner; a mixed reuse/create proposal preserves stable bindings; rejected proposals allocate nothing; a deliberately failed fulfillment leaves gameplay state unchanged, with only explicit diagnostic evidence and monotonically consumed allocation IDs permitted; and successful establishment is replay/save stable.
 
@@ -827,12 +923,12 @@ If any required creation or native capability cannot be satisfied, the establish
 
 **Authority / proof route:** [owning source and representative tests](systems/world.md#generation), [neighbor contract](systems/integration.md#native-boundary), [validation](agent/validation.md#persistence).
 
-**Sequence:** BQa-019 → BQa-020 → BQa-021.
+**Sequence:** BQa-021 → BQa-022 → BQa-023.
 
 ---
 
 
-## BQa-021 — Cross-matter situation composition
+## BQa-023 — Cross-matter situation composition
 
 Allow distinct matters to share actors, facts, obligations, goals, organizations, sites or resources without merging into one giant quest graph.
 
@@ -856,7 +952,7 @@ guild membership + accusation
 
 Threads remain distinct matters sharing authoritative state.
 
-**Depends:** BQa-011, BQa-014, BQa-019, BQa-020.
+**Depends:** BQa-012, BQa-015, BQa-021, BQa-022.
 
 **Done when:** one causal history crosses at least two independently established matters and each matter remains separately inspectable while sharing state.
 
@@ -865,12 +961,12 @@ Threads remain distinct matters sharing authoritative state.
 
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#threads), [neighbor contract](systems/actions.md#reactions), [validation](agent/validation.md#world).
 
-**Sequence:** BQa-020 → BQa-021 → BQa-022.
+**Sequence:** BQa-022 → BQa-023 → BQa-024.
 
 ---
 
 
-## BQa-022 — Recurring situation discovery and director admission
+## BQa-024 — Recurring situation discovery and director admission
 
 Replace bootstrap-only live situation creation with bounded recurring discovery.
 
@@ -890,13 +986,13 @@ changed state
 → changed state
 ```
 
-The Director/admission layer curates **which proposal is worth establishing or surfacing**. It does not schedule NPC motives/actions, create actors, satisfy requirements, or become a universal world scheduler. BQa-020 and the selected proposal's owning generator own only fulfillment and establishment; autonomous motives/actions remain with BQa-007–BQa-018's owners.
+The Director/admission layer curates **which proposal is worth establishing or surfacing**. It does not schedule NPC motives/actions, create actors, satisfy requirements, or become a universal world scheduler. BQa-022 and the selected proposal's owning generator own only fulfillment and establishment; autonomous motives/actions remain with BQa-008–BQa-020's owners.
 
 Remove "the world already has any thread" as a global reason no future situation can ever emerge. Existing live matters, attention budgets, repetition rules, locality and simulation tier should instead govern admission.
 
 Generation must not become a function of repeatedly entering/leaving a zone to reroll.
 
-**Depends:** BQa-015, BQa-019–BQa-021; BQ-099–BQ-103.
+**Depends:** BQa-017, BQa-021–BQa-023; BQ-099–BQ-103.
 
 **Done when:** both the shared production runner and a live run can establish an initial matter, resolve or evolve it, then later admit a causally justified different matter from the resulting state without reload tricks or manually invoking an archetype constructor; rejected proposals create nothing; and the Director never directly spawns/edits authoritative world state.
 
@@ -909,12 +1005,12 @@ Generation must not become a function of repeatedly entering/leaving a zone to r
 
 **Authority / proof route:** [owning source and representative tests](systems/world.md#generation), [neighbor contract](systems/expression.md#attention), [validation](agent/validation.md#world).
 
-**Sequence:** BQa-021 → BQa-022 → BQa-023.
+**Sequence:** BQa-023 → BQa-024 → BQa-025.
 
 ---
 
 
-## BQa-023 — Dynamic escalation and de-escalation
+## BQa-025 — Dynamic escalation and de-escalation
 
 Reduce reliance on authored `day +N` escalation while preserving useful existing thread scheduling infrastructure.
 
@@ -935,7 +1031,7 @@ Elapsed time can itself become a legitimate pressure or eligibility condition. E
 
 Authored escalation templates/storylets may interpret the current state. The world owns why it changed and whether the matter actually escalates, stabilizes, resolves or fades.
 
-**Depends:** BQa-011, BQa-015–BQa-022; BQ-052.
+**Depends:** BQa-012, BQa-016–BQa-024; BQ-052.
 
 **Done when:** the same matter can escalate, stabilize, resolve or fade under different world-state trajectories without changing its authored storylet definition; a timed checkpoint can legitimately do nothing or de-escalate when state no longer supports escalation; and existing thread lifecycle/scheduling remains one authority rather than being replaced by a second timer system.
 
@@ -946,7 +1042,7 @@ Authored escalation templates/storylets may interpret the current state. The wor
 
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#threads), [neighbor contract](systems/actions.md#reactions), [validation](agent/validation.md#world).
 
-**Sequence:** BQa-022 → BQa-023 → BQa-024.
+**Sequence:** BQa-024 → BQa-025 → BQa-026.
 
 ---
 
@@ -954,7 +1050,7 @@ Authored escalation templates/storylets may interpret the current state. The wor
 # Phase BQa-L4 — Expression and live interaction
 
 
-## BQa-024 — Semantic payload contract
+## BQa-026 — Semantic payload contract
 
 A realized speech act must actually communicate the meaning its semantic representation says was communicated.
 
@@ -984,12 +1080,12 @@ Tone, hesitation, relationship coloring and style may decorate the payload. They
 
 **Authority / proof route:** [owning source and representative tests](systems/expression.md#realization), [neighbor contract](systems/expression.md#semantic-communication), [validation](agent/validation.md#expression).
 
-**Sequence:** BQa-023 → BQa-024 → BQa-025.
+**Sequence:** BQa-025 → BQa-026 → BQa-027.
 
 ---
 
 
-## BQa-025 — Discourse realization grammar
+## BQa-027 — Discourse realization grammar
 
 Split dialogue realization into explicit discourse functions rather than selecting from one broad compatible pool.
 
@@ -1009,7 +1105,7 @@ Contexts include first-hand claims, hearsay, inference, reluctant disclosure, da
 
 The grammar must continue to accept speaker voice as a **wording constraint only**. For a given assigned `VoiceProfile`, repeated realizations should preserve that speaker's stable linguistic habits while discourse function, mood and relationship coloring can still vary. This step does not create an identity-derived voice table: race, occupation, species, role or archetype must not silently choose how somebody talks.
 
-**Depends:** BQa-024; BQ-074–BQ-079, BQ-142.
+**Depends:** BQa-026; BQ-074–BQ-079, BQ-142.
 
 **Done when:** discourse role, act semantics, optional style and an assigned stable voice can vary independently without producing semantically incomplete or contradictory lines, and identical semantic input can be worded differently by different assigned voices without changing meaning.
 
@@ -1020,16 +1116,16 @@ The grammar must continue to accept speaker voice as a **wording constraint only
 
 **Authority / proof route:** [owning source and representative tests](systems/expression.md#expression-controls), [neighbor contract](systems/expression.md#content), [validation](agent/validation.md#expression).
 
-**Sequence:** BQa-024 → BQa-025 → BQa-026.
+**Sequence:** BQa-026 → BQa-027 → BQa-028.
 
 ---
 
 
-## BQa-026 — Stable actor voice assignment
+## BQa-028 — Stable actor voice assignment
 
 Give recurring actors one stable `VoiceProfile` assignment through existing actor identity and expression vocabulary before any live routed host consumes it. Assignment is independent of race, job, species and scene role. Reuse a versioned deterministic assignment keyed by canonical `EntityId` (not identity facets) only if stability across vocabulary updates is guaranteed; otherwise persist the minimal assigned profile on its existing owner. Do not maintain a parallel character database.
 
-**Depends:** BQa-001, BQa-024, BQa-025; BQ-075, BQ-105, BQ-106, BQ-142.
+**Depends:** BQa-001, BQa-002, BQa-026, BQa-027; BQ-075, BQ-105, BQ-106, BQ-142.
 
 **Done when:** repeated scenes, actor alias reconciliation, save/reload and an old save give a recurring actor the same valid voice; assignment never consumes simulation RNG; unknown/retired vocabulary degrades without re-rolling the actor; different voices can express the same semantic payload; and any new stored assignment has migration/default coverage.
 
@@ -1038,12 +1134,12 @@ Give recurring actors one stable `VoiceProfile` assignment through existing acto
 
 **Authority / proof route:** [owning source and representative tests](systems/expression.md#expression-controls), [neighbor contract](systems/state.md#identity), [validation](agent/validation.md#persistence).
 
-**Sequence:** BQa-025 → BQa-026 → BQa-027.
+**Sequence:** BQa-027 → BQa-028 → BQa-029.
 
 ---
 
 
-## BQa-027 — Incremental storylet execution and delivery acknowledgment
+## BQa-029 — Incremental storylet execution and delivery acknowledgment
 
 Refactor the current whole-scene `StoryletRouter.Play` behavior behind a resumable execution seam suitable for a live Elin conversation host.
 
@@ -1064,9 +1160,9 @@ No later beat may apply its consequences merely because an earlier UI node was o
 
 This step should **not** create a second router. Keep the existing headless `Play` API as a convenience loop over the same incremental mechanism so seeded headless routing and live routing cannot drift semantically.
 
-The resumable execution object is transient session state, not long-term narrative authority. BQa-030 handles leaving/reloading by rediscovering from semantic world state rather than serializing a beat cursor.
+The resumable execution object is transient session state, not long-term narrative authority. BQa-032 handles leaving/reloading by rediscovering from semantic world state rather than serializing a beat cursor.
 
-**Depends:** BQa-001, BQa-024–BQa-026; BQ-083, BQ-146.
+**Depends:** BQa-001, BQa-026–BQa-028; BQ-083, BQ-146.
 
 **Done when:** the same seeded storylet produces equivalent routes/consequences under the refactored headless whole-play and repeated incremental advancement, with identical acknowledgment/input schedules; a live-like harness can pause between every beat/input boundary; cancelling before acknowledgment does not teach the player or pre-apply later consequences; and route requirements are revalidated before each resumed advance.
 
@@ -1077,12 +1173,12 @@ The resumable execution object is transient session state, not long-term narrati
 
 **Authority / proof route:** [owning source and representative tests](systems/expression.md#storylets), [neighbor contract](systems/integration.md#discovery), [validation](agent/validation.md#expression).
 
-**Sequence:** BQa-026 → BQa-027 → BQa-028.
+**Sequence:** BQa-028 → BQa-029 → BQa-030.
 
 ---
 
 
-## BQa-028 — Executable player intersections
+## BQa-030 — Executable player intersections
 
 Convert declarative player intersections into real gameplay interruption points.
 
@@ -1105,25 +1201,25 @@ The player can enter an ongoing matter without becoming its mandatory protagonis
 
 Every presented intersection is a projection, not a reserved outcome. On click/selection, rebuild/revalidate the current `ActionContext`, semantic binding, actor scope, availability and required capability exactly as contextual actions already do. If the world changed while the UI was open, fail closed or refresh rather than executing stale state.
 
-**Depends:** BQa-004, BQa-010, BQa-014, BQa-027; BQ-134, BQ-137.
+**Depends:** BQa-005, BQa-011, BQa-015, BQa-029; BQ-134, BQ-137.
 
 **Done when:** the same authoritative starting state can proceed through NPC-only, player-intervened and player-ignored branches with all three returning consequences to the same world loop; stale intersections cannot execute after their preconditions disappear; and declining/closing the interaction does not grant hidden knowledge or freeze NPC continuation.
 
 **Do not:** reserve an outcome merely because an option was rendered, create player-only duplicate verbs, or make player involvement mandatory for matter progression.
 
-**Commit boundary:** establish the Core executable intersection/response contract and test it through the incremental runner before BQa-029 wires native controls. Reuse `ContextualActionProjection`; no live player-button acceptance is implied by this Core proof. Physical intervention stays subject to normal capability/evidence and native ownership.
+**Commit boundary:** establish the Core executable intersection/response contract and test it through the incremental runner before BQa-031 wires native controls. Reuse `ContextualActionProjection`; no live player-button acceptance is implied by this Core proof. Physical intervention stays subject to normal capability/evidence and native ownership.
 
 
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#actions), [neighbor contract](systems/expression.md#storylets), [validation](agent/validation.md#actions).
 
-**Sequence:** BQa-027 → BQa-028 → BQa-029.
+**Sequence:** BQa-029 → BQa-030 → BQa-031.
 
 ---
 
 
-## BQa-029 — Live routed-storylet host
+## BQa-031 — Live routed-storylet host
 
-Connect the existing routed storylet engine to actual Elin conversation/presentation surfaces **through BQa-027's incremental execution seam**.
+Connect the existing routed storylet engine to actual Elin conversation/presentation surfaces **through BQa-029's incremental execution seam**.
 
 Target:
 
@@ -1141,9 +1237,9 @@ current development
 
 There must be no second simulation layer for live presentation. The live host may interpret and expose the current world, but it must not create hidden causes merely because a scene needs material.
 
-Consume BQa-026's already stable voice assignment; this host owns neither its allocation nor its persistence.
+Consume BQa-028's already stable voice assignment; this host owns neither its allocation nor its persistence.
 
-**Depends:** BQa-015, BQa-022, BQa-024–BQa-028; BQ-005, BQ-146.
+**Depends:** BQa-017, BQa-024, BQa-026–BQa-030; BQ-005, BQ-146.
 
 **Done when:** a routed multi-beat storylet is encountered, paused/resumed through real native delivery, and resolved in a live Elin save with no Lab involvement; no later beat is pre-applied before its delivery/input boundary; resulting consequences enter the same authoritative causal loop as NPC-only actions; and the same live actor keeps the same assigned voice across separate encounters in that session.
 
@@ -1154,12 +1250,12 @@ Consume BQa-026's already stable voice assignment; this host owns neither its al
 
 **Authority / proof route:** [owning source and representative tests](systems/flow.md#core-and-lab-expression-joins), [neighbor contract](systems/integration.md#presentation), [validation](agent/validation.md#native).
 
-**Sequence:** BQa-028 → BQa-029 → BQa-030.
+**Sequence:** BQa-030 → BQa-031 → BQa-032.
 
 ---
 
 
-## BQa-030 — Persistent cross-scene continuation
+## BQa-032 — Persistent cross-scene continuation
 
 A storylet play is not a quest-script cursor.
 
@@ -1179,9 +1275,9 @@ latest development
 
 Leaving town ends the immediate scene, not the narrative process. On return the system may produce continuation, consequence scene, callback, changed-circumstances scene, re-cast scene, or nothing.
 
-Stable voice is already owned by BQa-026. This step consumes that assignment and owns only any missing durable semantic continuation/acknowledgment data, with old-save defaults.
+Stable voice is already owned by BQa-028. This step consumes that assignment and owns only any missing durable semantic continuation/acknowledgment data, with old-save defaults.
 
-**Depends:** BQa-023, BQa-026–BQa-029; BQ-081–BQ-083, BQ-105, BQ-106.
+**Depends:** BQa-025, BQa-028–BQa-031; BQ-081–BQ-083, BQ-105, BQ-106.
 
 **Done when:** the player can leave mid-matter, advance days, reload, return, and encounter an interaction appropriate to current state rather than a frozen scripted scene; no beat cursor is authoritative; and recurring actors retain deterministic stable voice across scene and reload boundaries without identity-derived assignment.
 
@@ -1192,7 +1288,7 @@ Stable voice is already owned by BQa-026. This step consumes that assignment and
 
 **Authority / proof route:** [owning source and representative tests](systems/expression.md#storylets), [neighbor contract](systems/state.md#memory-and-continuity), [validation](agent/validation.md#persistence).
 
-**Sequence:** BQa-029 → BQa-030 → BQa-031.
+**Sequence:** BQa-031 → BQa-032 → BQa-033.
 
 ---
 
@@ -1200,7 +1296,7 @@ Stable voice is already owned by BQa-026. This step consumes that assignment and
 # Phase BQa-L5 — Verified physical consequences
 
 
-## BQa-031 — Native site capability decision and realization
+## BQa-033 — Native site capability decision and realization
 
 Resolve the remaining live `BuildPlaceStructure`-class capability questions needed for BQ-created sites **without making unsafe native mutation a prerequisite for unrelated causal work**.
 
@@ -1221,7 +1317,7 @@ All must behave acceptably before the capability can be promoted.
 
 If the current Elin build cannot safely support the required operation, that is a valid evidence result: mark the operation unsupported/unresolved at the correct grade, make dependent callers fail closed or remain semantic/coarse, and continue unrelated BQa work. Do not force a native write simply to make this step "pass."
 
-**Depends:** BQa-020, BQa-022; BQ-087–BQ-092, BQ-139–BQ-143.
+**Depends:** BQa-022, BQa-024; BQ-087–BQ-092, BQ-139–BQ-143.
 
 **Done when:** either (A) at least one causally generated BQ site is physically created and revisited in a real save, persists correctly, and fails safely if the capability disappears, **or** (B) a bounded operation audit records refusal/unsupported status on the current adapter/build without asserting that Elin can never support the operation and all production consumers demonstrably degrade/refuse without claiming the site physically exists.
 
@@ -1232,12 +1328,12 @@ If the current Elin build cannot safely support the required operation, that is 
 
 **Authority / proof route:** [owning source and representative tests](systems/world.md#sites), [neighbor contract](systems/integration.md#native-boundary), [validation](agent/validation.md#native).
 
-**Sequence:** BQa-030 → BQa-031 → BQa-032.
+**Sequence:** BQa-032 → BQa-033 → BQa-034.
 
 ---
 
 
-## BQa-032 — Native site contents and additive mutation
+## BQa-034 — Native site contents and additive mutation
 
 Verify and safely expose, where the current build supports them:
 
@@ -1250,7 +1346,7 @@ Verify and safely expose, where the current build supports them:
 
 BQ-143's conservative mutation rules remain authoritative. Treat each operation independently: support for one native mutation does not imply support for all of them.
 
-**Depends:** BQa-031; BQ-143.
+**Depends:** BQa-033; BQ-143.
 
 **Done when:** on a supported path, a previously created BQ site receives one verified-safe additive change without regeneration, overwriting player changes, duplicating actors/items or corrupting persistence; operations that remain unsupported are individually gated and fail closed with evidence rather than being guessed.
 
@@ -1261,12 +1357,12 @@ BQ-143's conservative mutation rules remain authoritative. Treat each operation 
 
 **Authority / proof route:** [owning source and representative tests](systems/world.md#sites), [neighbor contract](systems/integration.md#native-boundary), [validation](agent/validation.md#native).
 
-**Sequence:** BQa-031 → BQa-032 → BQa-033.
+**Sequence:** BQa-033 → BQa-034 → BQa-035.
 
 ---
 
 
-## BQa-033 — Consequence embodiment
+## BQa-035 — Consequence embodiment
 
 Close representative physical consequence joins:
 
@@ -1284,7 +1380,7 @@ BQ must never present a physical claim stronger than its evidence.
 
 If only semantic/coarse state is available, presentation remains at that grade.
 
-**Depends:** BQa-013, BQa-018, BQa-031, BQa-032; BQ-097, BQ-098.
+**Depends:** BQa-014, BQa-020, BQa-033, BQa-034; BQ-097, BQ-098.
 
 **Done when:** representative physical consequences occur in real Elin and the inspector distinguishes verified live embodiment from semantic fallback.
 
@@ -1293,7 +1389,7 @@ If only semantic/coarse state is available, presentation remains at that grade.
 
 **Authority / proof route:** [owning source and representative tests](systems/world.md#travel), [neighbor contract](systems/world.md#sites), [validation](agent/validation.md#native).
 
-**Sequence:** BQa-032 → BQa-033 → BQa-034.
+**Sequence:** BQa-034 → BQa-035 → BQa-036.
 
 ---
 
@@ -1301,7 +1397,7 @@ If only semantic/coarse state is available, presentation remains at that grade.
 # Phase BQa-L6 — Native discovery and tracking
 
 
-## BQa-034 — Journal information architecture
+## BQa-036 — Journal information architecture
 
 Extend the existing native BQ journal as a narrative-memory interface using the **already-established single top-level Elin journal mount and BQ-owned page registry/rendering shell**. Do not rebuild or clone another journal shell.
 
@@ -1320,7 +1416,7 @@ Never expose normal-player-facing internals such as storylet IDs, actor-intent/d
 
 BQ-138 owns acceptance of its corrective BQ-138h build before the BQa phase starts. This step rechecks that foundation under the new projections: no inherited vanilla quest placeholders, correct internal navigation, reopening, scrolling, save/reload behavior and no damage to the vanilla quest journal.
 
-**Depends:** BQa-022, BQa-030; BQ-033, BQ-034, BQ-138.
+**Depends:** BQa-024, BQa-032; BQ-033, BQ-034, BQ-138.
 
 **Done when:** a live save shows current learned matters, known people and Chronicle/history through the existing native-feeling BQ journal surface; Overview/Matters/People/Chronicle are projections rather than state stores; the corrected shell passes its visual/lifecycle checklist; and no duplicate top-level BQ mount or inherited quest-placeholder UI exists.
 
@@ -1328,12 +1424,12 @@ BQ-138 owns acceptance of its corrective BQ-138h build before the BQa phase star
 
 **Authority / proof route:** [owning source and representative tests](systems/integration.md#presentation), [neighbor contract](systems/integration.md#discovery), [validation](agent/validation.md#native).
 
-**Sequence:** BQa-033 → BQa-034 → BQa-035.
+**Sequence:** BQa-035 → BQa-036 → BQa-037.
 
 ---
 
 
-## BQa-035 — Diegetic discovery router
+## BQa-037 — Diegetic discovery router
 
 One development may be discoverable through several plausible surfaces:
 
@@ -1355,7 +1451,7 @@ The router chooses a plausible **delivery route**, not whether the fact happened
 
 BQ-099/BQ-100 remain attention/pacing authorities for unsolicited exposure.
 
-**Depends:** BQa-027, BQa-029, BQa-034; BQ-035, BQ-036, BQ-099, BQ-100.
+**Depends:** BQa-029, BQa-031, BQa-036; BQ-035, BQ-036, BQ-099, BQ-100.
 
 **Done when:** the same underlying development can be learned through different legitimate surfaces depending on current state, without teaching the player information they did not actually receive.
 
@@ -1364,12 +1460,12 @@ BQ-099/BQ-100 remain attention/pacing authorities for unsolicited exposure.
 
 **Authority / proof route:** [owning source and representative tests](systems/integration.md#discovery), [neighbor contract](systems/expression.md#attention), [validation](agent/validation.md#native).
 
-**Sequence:** BQa-034 → BQa-035 → BQa-036.
+**Sequence:** BQa-036 → BQa-037 → BQa-038.
 
 ---
 
 
-## BQa-036 — Formal quest projection
+## BQa-038 — Formal quest projection
 
 Formal quests become a presentation mode over existing matters when somebody actually commissions the player.
 
@@ -1390,7 +1486,7 @@ quest generator
 → make world pretend it existed
 ```
 
-**Depends:** BQa-028, BQa-035; BQ-083, BQ-137.
+**Depends:** BQa-030, BQa-037; BQ-083, BQ-137.
 
 **Done when:** the same underlying matter can remain informal, become a formal commission, or resolve without the player depending on social/world state rather than archetype-specific quest scripting.
 
@@ -1399,12 +1495,12 @@ quest generator
 
 **Authority / proof route:** [owning source and representative tests](systems/expression.md#semantic-communication), [neighbor contract](systems/state.md#social-state), [validation](agent/validation.md#native).
 
-**Sequence:** BQa-035 → BQa-036 → BQa-037.
+**Sequence:** BQa-037 → BQa-038 → BQa-039.
 
 ---
 
 
-## BQa-037 — Player attention feedback
+## BQa-039 — Player attention feedback
 
 Extend director **presentation weighting** with actual engagement history while preserving simulation independence.
 
@@ -1424,7 +1520,7 @@ BQ-119 is debug telemetry and may measure/validate these distinctions, but it mu
 
 Use engagement only for presentation and pacing, never world outcomes.
 
-**Depends:** BQa-035; BQ-100, BQ-119 (debug validation only).
+**Depends:** BQa-037; BQ-100, BQ-119 (debug validation only).
 
 **Done when:** two otherwise similar developments are presented differently because of legitimately derived engagement history while a headless simulation with presentation disabled evolves identically; disabling BQ-119/debug telemetry does not alter production selection behavior.
 
@@ -1435,7 +1531,7 @@ Use engagement only for presentation and pacing, never world outcomes.
 
 **Authority / proof route:** [owning source and representative tests](systems/expression.md#attention), [neighbor contract](systems/integration.md#discovery), [validation](agent/validation.md#expression).
 
-**Sequence:** BQa-036 → BQa-037 → BQa-038.
+**Sequence:** BQa-038 → BQa-039 → BQa-040.
 
 ---
 
@@ -1443,7 +1539,7 @@ Use engagement only for presentation and pacing, never world outcomes.
 # Phase BQa-L7 — Prove causal gameplay
 
 
-## BQa-038 — Production world-sweep harness
+## BQa-040 — Production world-sweep harness
 
 Build the successor to isolated proof fixtures.
 
@@ -1479,23 +1575,23 @@ The key metric is:
 
 > **How many meaningfully different causal histories occurred?**
 
-**Depends:** BQa-001–BQa-030, BQa-035; BQ-104, BQ-141.
+**Depends:** BQa-001–BQa-032, BQa-037; BQ-104, BQ-141.
 
 **Done when:** CI can produce a deterministic expressive-range report and identify when a change collapses many seeds into the same causal history, including collapses caused by check scaling, omniscient pressure interpretation, goal/action matching or proposal fulfillment.
 
 **Do not:** count mere text variation as causal diversity, use fixture-only substitute schedulers, or interpret missing coverage as automatically requiring more authored content.
 
-**Measurement refinement:** extend the minimal production runner from BQa-015; do not defer regression coverage until this step. Use real registered checks and operators after initial-state setup; doubles supply native observations/refusals only. Include baseline seed sets with structural assertions (not just reports) for property, business, false belief, institutions and cross-matter continuation, plus a negative control with no supported cause. Reports distinguish live evidence, observed input, headless adapter capability and missing coverage.
+**Measurement refinement:** extend the minimal production runner from BQa-016; do not defer regression coverage until this step. Use real registered checks and operators after initial-state setup; doubles supply native observations/refusals only. Include baseline seed sets with structural assertions (not just reports) for property, business, false belief, institutions and cross-matter continuation, plus a negative control with no supported cause. Reports distinguish live evidence, observed input, headless adapter capability and missing coverage.
 
 
 **Authority / proof route:** [owning source and representative tests](systems/expression.md#attention), [neighbor contract](systems/flow.md#live-host-joins), [validation](agent/validation.md#world).
 
-**Sequence:** BQa-037 → BQa-038 → BQa-039.
+**Sequence:** BQa-039 → BQa-040 → BQa-041.
 
 ---
 
 
-## BQa-039 — Ecology coverage report
+## BQa-041 — Ecology coverage report
 
 Extend BQ-133's coverage philosophy beyond dialogue content.
 
@@ -1518,7 +1614,7 @@ site kind × objective
 
 Zero coverage is information, not automatically a build error.
 
-**Depends:** BQa-038; BQ-133.
+**Depends:** BQa-040; BQ-133.
 
 **Done when:** the report exposes overrepresented and underrepresented world interactions without prescribing content as a hard quota.
 
@@ -1527,12 +1623,12 @@ Zero coverage is information, not automatically a build error.
 
 **Authority / proof route:** [owning source and representative tests](systems/expression.md#content), [neighbor contract](systems/actions.md#actions), [validation](agent/validation.md#world).
 
-**Sequence:** BQa-038 → BQa-039 → BQa-040.
+**Sequence:** BQa-040 → BQa-041 → BQa-042.
 
 ---
 
 
-## BQa-040 — Long-horizon stress simulation
+## BQa-042 — Long-horizon stress simulation
 
 Simulate months and years of activity.
 
@@ -1558,7 +1654,7 @@ proposal/admission/fulfillment backlog
 
 Actively search for pathological worlds rather than merely measuring speed.
 
-**Depends:** BQa-015, BQa-038; BQ-107, BQ-108.
+**Depends:** BQa-016, BQa-017, BQa-040; BQ-107, BQ-108.
 
 **Done when:** a large synthetic world can run for a stated horizon under a stated performance budget without runaway narrative-state growth, starvation or systemic deadlock.
 
@@ -1567,12 +1663,12 @@ Actively search for pathological worlds rather than merely measuring speed.
 
 **Authority / proof route:** [owning source and representative tests](systems/world.md#autonomy), [neighbor contract](systems/integration.md#persistence), [validation](agent/validation.md#world).
 
-**Sequence:** BQa-039 → BQa-040 → BQa-041.
+**Sequence:** BQa-041 → BQa-042 → BQa-043.
 
 ---
 
 
-## BQa-041 — Causal-chain audit
+## BQa-043 — Causal-chain audit
 
 Sample random developments and reconstruct:
 
@@ -1595,7 +1691,7 @@ what happened next?
 
 Every answer must point to an authoritative source, a named derived reading/decision, or explicitly say unknown. The trace must distinguish objective state from actor-local belief/stake and distinguish proposal ranking from proposal fulfillment.
 
-**Depends:** BQa-001, BQa-022, BQa-035, BQa-038, BQa-040.
+**Depends:** BQa-001, BQa-024, BQa-037, BQa-040, BQa-042.
 
 **Done when:** sampled long chains can be reconstructed entirely from authoritative state, observations, actor/organization-local interpretation, machine-readable goals, registered action effects, recorded consequences, proposal fulfillment, explicit director decisions and explicit delivery decisions, with unknowns preserved rather than silently inferred.
 
@@ -1604,12 +1700,12 @@ Every answer must point to an authoritative source, a named derived reading/deci
 
 **Authority / proof route:** [owning source and representative tests](systems/state.md#history), [neighbor contract](systems/flow.md#live-host-joins), [validation](agent/validation.md#state).
 
-**Sequence:** BQa-040 → BQa-041 → BQa-042.
+**Sequence:** BQa-042 → BQa-043 → BQa-044.
 
 ---
 
 
-## BQa-042 — Counterfactual divergence and expression-independence proof
+## BQa-044 — Counterfactual divergence and expression-independence proof
 
 Prove two properties the ordinary sweep cannot establish by itself.
 
@@ -1635,7 +1731,7 @@ Run equivalent simulations with storylet/dialogue/presentation delivery disabled
 
 The underlying world-development cycle must continue evolving. Re-enabling expression should reveal/interpret the world, not retroactively create the causes.
 
-**Depends:** BQa-001, BQa-015, BQa-038, BQa-041.
+**Depends:** BQa-001, BQa-002, BQa-016, BQa-017, BQa-040, BQa-043.
 
 **Done when:** automated fixtures demonstrate meaningful downstream divergence from one changed early outcome and demonstrate that disabling narrative expression does not halt authoritative world evolution.
 
@@ -1644,12 +1740,12 @@ The underlying world-development cycle must continue evolving. Re-enabling expre
 
 **Authority / proof route:** [owning source and representative tests](systems/flow.md#live-host-joins), [neighbor contract](systems/expression.md#storylets), [validation](agent/validation.md#world).
 
-**Sequence:** BQa-041 → BQa-042 → BQa-043.
+**Sequence:** BQa-043 → BQa-044 → BQa-045.
 
 ---
 
 
-## BQa-043 — Live public-beta acceptance suite
+## BQa-045 — Live public-beta acceptance suite
 
 Run long human playtests across different player priorities:
 
@@ -1686,7 +1782,7 @@ Additional acceptance requirements:
 - rejected proposals and failed fulfillment do not leak partial authoritative state;
 - counterfactual and expression-independence proofs remain green.
 
-**Depends:** BQa-001–BQa-042.
+**Depends:** BQa-001–BQa-044.
 
 **Done when:** the acceptance suite passes on real saves and the resulting stories are inspectably emergent rather than scripted vertical slices.
 
@@ -1695,7 +1791,7 @@ Additional acceptance requirements:
 
 **Authority / proof route:** [owning source and representative tests](systems/integration.md#native-boundary), [neighbor contract](systems/integration.md#discovery), [validation](agent/validation.md#native).
 
-**Sequence:** BQa-042 → BQa-043 → public-beta release decision.
+**Sequence:** BQa-044 → BQa-045 → public-beta release decision.
 
 ---
 
@@ -1705,22 +1801,22 @@ Additional acceptance requirements:
 These are reusable behavioral proofs, not seven authored plots. Each begins from authoritative
 initial state or actual observed input, then uses production selection/owners without injected
 follow-up goals, constructors or guaranteed outcomes. A new fact in the setup is explicitly a
-fixture input, never proof the live intake exists. BQa-015 starts the core traces; later owners
-extend them; BQa-038–BQa-043 retain regression and live evidence.
+fixture input, never proof the live intake exists. BQa-016 starts the core traces; BQa-017 proves live integration; later owners
+extend them; BQa-040–BQa-045 retain regression and live evidence.
 
 | Chain | Required trace and accountable joins | Failure that must be excluded |
 |---|---|---|
-| Property / crime | BQa-011 observes changed possession; BQa-006 permits notice/suspicion without inventing culprit; BQa-007–BQa-014 form recovery/concealment/investigation/retaliation alternatives and arbitrate one object; BQa-015 executes consequences; BQa-019–BQa-023 recognize a later distinct matter | Situation owner commits the theft in order to recognize it; success of unrelated rapport closes recovery; invented witnesses |
-| Economic / service | BQa-011 records a justified supplier/service disruption in existing business/demand owners; BQa-006–BQa-010 derive responsible actors' supply/help/closure options; BQa-015 changes real supported or honest BQ-owned resource/obligation state; BQa-016–BQa-022 propagate effects to workers/customers/rivals/groups | Sleeping implies failure; fixtures manually close/reopen a shop; organization creates unearned reserves; simulated stock substitutes for Elin stock |
-| Social false belief | BQa-006 enumerates sincere false beliefs without true objective pressure; BQa-007–BQa-010 preserve motive and subjective assessment; BQa-011/BQa-015 record what actually occurs and enable legitimate counterevidence, correction or reinforcement; BQa-021 links later matters | True-fact detector filters the case out; objective goal satisfaction secretly tells the actor the truth; another actor's reaction is scripted |
-| Organization | BQa-016 requires institutional receipt/accounting evidence, then revises a goal; BQa-017 selects supported operations using members/resources and claims; BQa-018 enrolls and ticks real production groups; consequences feed individuals and other institutions via legitimate reports | Union of members' private beliefs; unknown goal falls through to wealth; Lab crews are mistaken for live population |
-| Player ignored | BQa-015 runs 30+ days away, including no live storylet/thread and a formerly engaged matter; BQa-022/BQa-023 permit resolution, escalation and a later distinct episode; BQa-030/BQa-035 expose the changed state on return through actual learning | One catch-up action called a living month; permanent player-engaged immunity; zone entry rerolls; vanilla Home catch-up duplicated |
-| Player intervention | BQa-035 discovers an existing matter; BQa-028/BQa-029 expose a revalidated shared verb and deliver its real meaning; its consequence changes NPC options on BQa-015's next pass; BQa-036 may project an actual commission | Choice label grants a result; scene blocks autonomous continuation; duplicate input spends an item twice; decline becomes punishment |
-| Expression independence | BQa-001 separates optional RNG; BQa-015/BQa-022 continue causes without expression; BQa-027 distinguishes actual communication from wording; BQa-042 compares runs and restores knowledge-gated expression of existing history | Scene route invents needed harm; silent rendering counts as player learning; attention preference becomes simulation admission; restored UI retroactively creates causes |
+| Property / crime | BQa-012 observes changed possession; BQa-007 permits notice/suspicion without inventing culprit; BQa-008–BQa-015 form recovery/concealment/investigation/retaliation alternatives and arbitrate one object; BQa-016 executes consequences through existing owners, hosted live by BQa-017; BQa-021–BQa-025 recognize a later distinct matter | Situation owner commits the theft in order to recognize it; success of unrelated rapport closes recovery; invented witnesses |
+| Economic / service | BQa-012 records a justified supplier/service disruption in existing business/demand owners; BQa-007–BQa-011 derive responsible actors' supply/help/closure options; BQa-016 changes supported resource/obligation state through existing owners, with BQa-017 supplying native inputs; BQa-018–BQa-024 propagate effects to workers/customers/rivals/groups | Sleeping implies failure; fixtures manually close/reopen a shop; organization creates unearned reserves; simulated stock substitutes for Elin stock |
+| Social false belief | BQa-007 enumerates sincere false beliefs without true objective pressure; BQa-008–BQa-011 preserve motive and subjective assessment; BQa-012/BQa-016 record what actually occurs, with live inputs from BQa-017, and enable legitimate counterevidence, correction or reinforcement; BQa-023 links later matters | True-fact detector filters the case out; objective goal satisfaction secretly tells the actor the truth; another actor's reaction is scripted |
+| Organization | BQa-018 requires institutional receipt/accounting evidence, then revises a goal; BQa-019 selects supported operations using members/resources and claims; BQa-020 enrolls and ticks real production groups; consequences feed individuals and other institutions via legitimate reports | Union of members' private beliefs; unknown goal falls through to wealth; Lab crews are mistaken for live population |
+| Player ignored | BQa-016 proves 30+ days through the Core cycle and BQa-017 connects live advancement away, including no live storylet/thread and a formerly engaged matter; BQa-024/BQa-025 permit resolution, escalation and a later distinct episode; BQa-032/BQa-037 expose the changed state on return through actual learning | One catch-up action called a living month; permanent player-engaged immunity; zone entry rerolls; vanilla Home catch-up duplicated |
+| Player intervention | BQa-037 discovers an existing matter; BQa-030/BQa-031 expose a revalidated shared verb and deliver its real meaning; its consequence changes NPC options on BQa-016's next pass through BQa-017's live host; BQa-038 may project an actual commission | Choice label grants a result; scene blocks autonomous continuation; duplicate input spends an item twice; decline becomes punishment |
+| Expression independence | BQa-002 separates optional RNG; BQa-016/BQa-017/BQa-024 continue causes without expression; BQa-029 distinguishes actual communication from wording; BQa-044 compares runs and restores knowledge-gated expression of existing history | Scene route invents needed harm; silent rendering counts as player learning; attention preference becomes simulation admission; restored UI retroactively creates causes |
 
 # Scope and release judgment
 
-The required scope is BQa-001 through BQa-043. There is no optional omission of a core loop, group
+The required scope is BQa-001 through BQa-045. There is no optional omission of a core loop, group
 agency, discovery, intervention or continuity gate. Operation-specific unsupported exits for new
 physical sites/additions are deliberate: the beta must still demonstrate visible mechanical
 consequences through supported existing Elin mechanics and honest coarse BQ state. An all-log world
