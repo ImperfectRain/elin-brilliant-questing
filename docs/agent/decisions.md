@@ -2512,3 +2512,41 @@ Reason: the two failures are quiet in opposite ways. Duplicate pressure identiti
 a dump and only surface much later, as goals that cannot be satisfied and consequences that cannot
 be attributed; an unbounded scan reads correctly forever and only surfaces as frame time in a save
 large enough that nobody wants to re-architect it.
+
+## D083 — An actor reaches a pressure by route, and a stake only changes what it costs them
+
+`DevelopmentDetector` reads authoritative state, so it reads omnisciently; that is what makes it
+correct. Goal formation cannot consume it directly. An actor who forms a goal from the detector's
+output knows every secret in the save, and a world whose people act on what the save knows is not a
+living world however good its pressures are.
+
+`ActorPressureView` therefore projects a development onto one person, and the order of its two
+questions is the whole guarantee. **Route first.** An actor reaches a pressure only through evidence
+legitimately theirs: they hold the claim, they are party to the record the pressure is read from
+(their shop's continuity, their own debt, their own body's stated goal), or the condition is one of
+the openly visible families at a place they live or work and the claim behind it is not secret.
+Nothing else is a route. **Stake second, and only after the route gate has already admitted the
+reading.** Kinship, values, sensitivities, office and organization membership change how hard a
+matter presses and never whether it is heard of. The same discipline runs one level down: who the
+actor can place in the matter is gated on proof, so the detector's list of names is not handed over
+to somebody who merely suspects, and a relationship is read only against people they could already
+place. No route means no reading at all rather than a faint one, because "you are not in this" and
+"you are in this and do not care" are different answers.
+
+The false-belief path has to enumerate rather than filter. The detector's knowledge rules test
+`Truth != TruthState.True` and return, so a sincerely mistaken actor is invisible to it by
+construction and no narrowing of its output can recover them. Their belief records are read
+directly, and a claim naming a trouble is a real local pressure whether or not the world agrees;
+`SincerelyMistaken` records the disagreement for a test or an inspector and never reaches the actor.
+For the same reason settlement is read off what this actor believes rather than off the matter that
+ended: somebody who never heard that restitution was made goes on being under pressure about it,
+and consulting the thread would be the world correcting an actor with a fact nobody gave them.
+Correction stays with the knowledge and inference owners.
+
+The view is derived and unsaved, like the development it may or may not correspond to, and it is a
+projection rather than an interpretation: `ActorLocalInterpreter` teaches a derived fact and this
+teaches nothing, which is why they are two components and not one.
+
+Reason: omniscience leaks are silent. A projection that let a stake double as a route would read
+perfectly in every dump and surface only as actors who act on matters nobody ever told them, which
+is indistinguishable from a scripted world and impossible to attribute after the fact.

@@ -22,6 +22,7 @@ class filters with `|` inside quotes. Lab tests live in the separate
 | Simulation/expression stream ownership | `RngIsolationTests` | `FoundationTests`, `StoryletRoutingTests`, `PersistenceTests`; `scene` |
 | Causal provenance/event identity | `CausalProvenanceTests` | `MigrationFixtureTests`, `PersistenceTests`, `AuthorityActionTests`, `CrimeActionTests`, `ItemProvenanceTests`; `theft` |
 | Truth/belief/proof | `KnowledgeTests` or `EvidenceTraceTests` | `RumorCirculationTests`, `AuthorityActionTests`, `NarrativeJournalTests`; `guilds`, `authority` |
+| Actor-local pressure projection | `ActorPressureViewTests` | `PressureSynthesisTests`, `ActorLocalInterpretationTests`, `KnowledgeTests`; `playground` |
 | Memory/callback/provenance | `MemoryTests`, affected `Callback*Tests`, `ItemProvenanceTests` or `LocationHistoryTests` | `CallbackDisclosureTests`, `ChronicleNarrativeTests`; `scene`, `questline` |
 | Ties/obligations/standing | `RelationshipHarmTests` or `SocialObligationTests` | `DisclosureDecisionTests`, `StandingSheetTests`, `DevelopmentLayerTests`; `authority` |
 | Character/goals/emotion | `ProblemSolvingStyleTests`, `EmotionalStateTests`, affected profile tests | `ActorLocalInterpretationTests`, `DisclosureDecisionTests`, `ActorActionScenarioTests` (Lab project); `actor-action`, `playground` |

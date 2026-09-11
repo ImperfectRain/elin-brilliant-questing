@@ -90,10 +90,22 @@ disclosure/legal eligibility, journal claims. **Does not own:** truth or institu
 A proof flag/handle is not a live object; reconcile stale physical backing. NPC circulation does
 not teach the player off-screen.
 
+`ActorPressureView.Of` is this card's projection of a `Development` onto one person: route before
+stake, and no route means no reading. A route is holding the claim, being party to the record the
+pressure is read from, or an openly visible condition where the actor lives or works; kinship,
+values, sensitivities, office and membership only change how hard it presses, and who the actor can
+place in the matter is gated on proof. Actor-held claims are enumerated as well as projected, so a
+sincerely false belief is a real local pressure with no development behind it, and settlement is
+read off what the actor believes rather than off the matter that ended. Derived, unsaved and side
+effect free — it teaches nothing, which is what separates it from `ActorLocalInterpreter` above.
+The durable rule is [`D083`](../agent/decisions.md#d083--an-actor-reaches-a-pressure-by-route-and-a-stake-only-changes-what-it-costs-them).
+
 Source: [KnowledgeGraph](../../src/BrilliantQuesting.Core/Knowledge/KnowledgeGraph.cs),
 [ProofLink](../../src/BrilliantQuesting.Core/Knowledge/ProofLink.cs),
+[ActorPressureView](../../src/BrilliantQuesting.Core/Developments/ActorPressureView.cs),
 [EvidenceTraceAuditor](../../src/BrilliantQuesting.Core/Integration/EvidenceTraceAuditor.cs).
 Proof: [KnowledgeTests](../../tests/BrilliantQuesting.Core.Tests/KnowledgeTests.cs),
+[ActorPressureViewTests](../../tests/BrilliantQuesting.Core.Tests/ActorPressureViewTests.cs),
 [EvidenceTraceTests](../../tests/BrilliantQuesting.Core.Tests/EvidenceTraceTests.cs).
 Lab: [guilds](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/GuildsScenario.cs),
 [authority](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/AuthorityScenario.cs).

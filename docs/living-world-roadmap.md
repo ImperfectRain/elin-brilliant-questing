@@ -442,6 +442,32 @@ It is a derived view, not another saved pressure store, and it must never teach 
 **Required false-belief path:** candidate enumeration must include actor-held claims/needs even when the objective detector emits no matching pressure. The current detector filters unproven claims to `TruthState.True`; merely filtering that output cannot implement sincere error. A test with no objectively true matching condition must still produce local concern from an existing false belief. Correcting evidence reaches belief revision through existing knowledge/inference owners; objective truth never silently corrects the actor.
 
 
+**Current implementation (BQa-007).** `ActorPressureView.Of(world, actorId, objective)` projects the
+detector's readings onto one person and returns `ActorLocalPressure`s in stable id order. Route
+before stake is the guarantee: an actor reaches a pressure by holding the claim, by being party to
+the record it is read from (their business continuity record, their open debt, their own
+organization's goal), or by an openly visible family — shortage, service interruption, recovering,
+damaged property — at a place they live or work whose claim is not secret. Nothing else is a route,
+and no route returns nothing rather than a faint reading. Stakes (`Personal`, `Property`,
+`Obligation`, `Relationship`, `Organization`, `Office`, `Local`) are computed strictly afterwards
+and only change urgency; `Office` eligibility is `IdentityAffordances`' answer rather than a second
+reading of roles. Who the actor can place in the matter is gated on proof, with the rest reported as
+the generic label `implicated party`. The required false-belief path enumerates the actor's own
+belief records instead of filtering the detector, so a sincerely held falsehood with no true
+condition under it is a real local pressure with an empty `DevelopmentId`; `SincerelyMistaken` and
+`Disputed` are recorded for a test or inspector and never reach the actor, and settlement is read
+off what the actor believes rather than off the matter that ended. Derived, side-effect free and
+unsaved; no durable field was added. The durable rule is [`D083`](agent/decisions.md). The
+`Empty<T>` helper, `Concern` table and `Standing` gather are internal to the projection.
+`ActorPressureViewTests` covers the four Done-when clauses, the party-to-the-record and
+visible-locally routes, secrecy refusal, proof-gated placement, belief-side settlement, an empty
+objective reading and an unknown actor.
+
+**Live verification still required** headless Core only. No live Elin session exercised these
+readings, no live consumer supplies an actor-local view yet — BQa-008 consumes it for goal
+conditions — and the Plugin was not compiled here because the Elin assemblies are not
+redistributable. Evidence grade unchanged: headless/source.
+
 **Authority / proof route:** [owning source and representative tests](systems/state.md#belief-and-proof), [neighbor contract](systems/state.md#character-state), [validation](agent/validation.md#state).
 
 **Sequence:** BQa-006 → BQa-007 → BQa-008.

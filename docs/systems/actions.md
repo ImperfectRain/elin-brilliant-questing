@@ -180,7 +180,8 @@ Each rule declares source, default and refusal. Refusals are the contract: no li
 operator availability or native crime state is read, and unsupported native facts stay unknown.
 Positive (`opportunity`) and easing (`recovering`) readings exist so the cycle is not only crises.
 
-**Does not own:** a lifecycle, new facts/threads, actor-local interpretation of who cares, or a
+**Does not own:** a lifecycle, new facts/threads, actor-local interpretation of who cares — that is
+`ActorPressureView`'s, under [belief and proof](state.md#belief-and-proof) — or a
 promise of a scene. Resolution belongs to source state: pressure disappears when no longer derivable.
 `DevelopmentScoring` is a separate attention reader over eligible news, not a second `Development`
 store or general goal planner.
