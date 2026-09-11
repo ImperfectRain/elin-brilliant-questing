@@ -51,8 +51,14 @@ namespace BrilliantQuesting.Diagnostics
                 // the one surface that has to explain a procedural decision harder to read.
                 sb.Append(offer.Action.Id.PadRight(20));
                 sb.Append(offer.Action.Family.ToString().PadRight(14));
+                // The declared classification, not "a null profile must mean no check": BQa-003
+                // made "there is no uncertainty here" an answer a verb gives, and the one surface
+                // that has to explain a procedural decision should print the answer it was given.
                 CheckProfile profile = ProceduralCheckProfiles.ForAction(offer.Action.Id);
-                sb.Append((profile == null ? "no check" : profile.Id + " dc" + profile.BaseDifficulty).PadRight(26));
+                CheckFamily family = ProceduralCheckProfiles.FamilyForAction(offer.Action.Id);
+                sb.Append((profile == null
+                    ? "certain, no check"
+                    : profile.Id + " dc" + profile.BaseDifficulty + " " + family.ToString().ToLowerInvariant()).PadRight(34));
                 if (!string.IsNullOrEmpty(offer.Availability.Reason))
                 {
                     sb.Append("- ").Append(offer.Availability.Reason);

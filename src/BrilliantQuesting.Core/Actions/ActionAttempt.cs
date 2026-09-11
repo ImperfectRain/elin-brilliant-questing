@@ -80,11 +80,11 @@ namespace BrilliantQuesting.Actions
     /// </summary>
     public sealed class ActionAttempt
     {
-        private ActionAttempt(ActionIntent intent, NarrativeAction action, Availability availability, ActionOutcome outcome, string refusal)
+        private ActionAttempt(ActionIntent intent, NarrativeAction action, AttemptFeasibility feasibility, ActionOutcome outcome, string refusal)
         {
             Intent = intent;
             Action = action;
-            Availability = availability;
+            Feasibility = feasibility;
             Outcome = outcome;
             Refusal = refusal ?? string.Empty;
         }
@@ -94,7 +94,12 @@ namespace BrilliantQuesting.Actions
         /// <summary>The registered verb, or null when the registry has no such id.</summary>
         public NarrativeAction Action { get; }
 
-        public Availability Availability { get; }
+        /// <summary>
+        /// Whether this was possible and, if it was, what kind of uncertainty it held (BQa-005).
+        /// </summary>
+        public AttemptFeasibility Feasibility { get; }
+
+        public Availability Availability => Feasibility.Availability;
 
         /// <summary>Null when the attempt never got as far as resolving.</summary>
         public ActionOutcome Outcome { get; }
@@ -105,34 +110,42 @@ namespace BrilliantQuesting.Actions
         public bool Resolved => Outcome != null;
 
         /// <summary>
-        /// Looks the intent's verb up, asks it whether it applies, and performs it if it does.
+        /// Looks the intent's verb up, asks whether it is possible and what kind of uncertainty it
+        /// holds, and performs it if it is possible.
         ///
         /// Exactly what <c>TheftLaboratory.Perform</c> and the live drama surface do for the
-        /// player, and by construction the only path either actor kind has: the availability
-        /// question is the verb's, the roll is the shared resolver's, and the consequences go into
-        /// the same ledger through the verb's own <see cref="NarrativeAction.Perform"/>.
+        /// player, and by construction the only path either actor kind has: the feasibility
+        /// question is <see cref="AttemptFeasibility"/>'s, the roll is the shared resolver's, and
+        /// the consequences go into the same ledger through the verb's own
+        /// <see cref="NarrativeAction.Perform"/>.
+        ///
+        /// A refused attempt returns here (BQa-005). Nothing downstream of this gate runs for it,
+        /// so an impossible intention cannot consume the actor's RNG stream on its way to being
+        /// told no, and the classification it never reached stays absent rather than being filled
+        /// in with a plausible one.
         /// </summary>
         public static ActionAttempt Run(ActionRegistry registry, ActionIntent intent, ActionContext context)
         {
             if (registry == null || intent == null || context == null)
             {
-                return new ActionAttempt(intent, null, Availability.NotRelevant("nothing to attempt"), null, "nothing to attempt");
+                return new ActionAttempt(
+                    intent, null, AttemptFeasibility.Blocked(Availability.NotRelevant("nothing to attempt")), null, "nothing to attempt");
             }
 
             NarrativeAction action = registry.Get(intent.ActionId);
             if (action == null)
             {
                 string missing = "no registered verb with id '" + intent.ActionId + "'";
-                return new ActionAttempt(intent, null, Availability.Impossible(missing), null, missing);
+                return new ActionAttempt(intent, null, AttemptFeasibility.Blocked(Availability.Impossible(missing)), null, missing);
             }
 
-            Availability availability = action.GetAvailability(context);
-            if (!availability.IsAvailable)
+            AttemptFeasibility feasibility = AttemptFeasibility.Classify(action, context);
+            if (!feasibility.IsPossible)
             {
-                return new ActionAttempt(intent, action, availability, null, availability.Reason);
+                return new ActionAttempt(intent, action, feasibility, null, feasibility.Reason);
             }
 
-            return new ActionAttempt(intent, action, availability, action.Perform(context), null);
+            return new ActionAttempt(intent, action, feasibility, action.Perform(context), null);
         }
 
         /// <summary>The whole chain as text: intention, verb, verdict, roll, and what was recorded.</summary>
@@ -145,7 +158,7 @@ namespace BrilliantQuesting.Actions
                 sb.Append(" because ").Append(Intent.Because);
             }
 
-            sb.Append("\n  availability: ").Append(Availability);
+            sb.Append("\n  feasibility: ").Append(Feasibility);
             if (Action != null)
             {
                 sb.Append("\n  actor scope: ").Append(Action.ActorScope);

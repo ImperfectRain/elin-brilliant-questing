@@ -157,11 +157,13 @@ namespace BrilliantQuesting.Situations
             ActionContext context = Context(target);
             configure?.Invoke(context);
 
-            Availability availability = action.GetAvailability(context);
-            if (!availability.IsAvailable)
+            // The same ordered gate `ActionAttempt.Run` uses, asked through the one authority
+            // rather than remembered here (BQa-005).
+            AttemptFeasibility feasibility = AttemptFeasibility.Classify(action, context);
+            if (!feasibility.IsPossible)
             {
-                ActionOutcome refused = new ActionOutcome(actionId, null, "You cannot: " + availability.Reason);
-                refused.Notes.Add("blocked before any roll: " + availability.Reason);
+                ActionOutcome refused = new ActionOutcome(actionId, null, "You cannot: " + feasibility.Reason);
+                refused.Notes.Add("blocked before any roll: " + feasibility.Reason);
                 return refused;
             }
 

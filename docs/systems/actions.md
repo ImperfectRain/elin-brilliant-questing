@@ -32,7 +32,24 @@ menu. Native capability refusal and hard impossibility differ from a contested a
 action with no roll. `ActionAttempt.Run` rechecks availability; the base `Perform` structurally gates
 actor scope, not every verb-specific precondition. Native mutation gates remain necessary underneath.
 
+**Feasibility before difficulty (BQa-005).** `AttemptFeasibility.Classify` is the one place the two
+questions are asked in order: availability first, and only for a possible attempt the certainty
+question. It is side-effect free like the availability call underneath it, and `ActionAttempt.Run`
+and `TheftLaboratory.Perform` both go through it rather than each remembering the order. A refused
+attempt returns at that gate, so no resolver is asked and the actor's RNG stream does not move;
+`Uncertainty` is null for it rather than `Certain`, because "no uncertainty here" reads as
+permission to resolve without a roll and a refused attempt must not resolve at all.
+
+Certainty comes from the verb's contract through `ProceduralCheckProfiles.FamilyForAction`, never
+from the arithmetic a resolver would produce: a very favourable DC is mastery, not the disappearance
+of uncertainty, and a profile's dice and critical windows are untouched by it (BQa-004). An uncertain
+attempt keeps its classified family and profile at either extreme of advantage. High statistics still
+invent no facts, resources, access or authority — those are availability's refusals, and a check
+success does not overturn them. See
+[D081](../agent/decisions.md#d081--feasibility-is-settled-before-uncertainty-and-certainty-is-read-off-the-verb-rather-than-off-the-difficulty).
+
 Source: [Availability](../../src/BrilliantQuesting.Core/Actions/Availability.cs),
+[AttemptFeasibility](../../src/BrilliantQuesting.Core/Actions/AttemptFeasibility.cs),
 [NarrativeAction](../../src/BrilliantQuesting.Core/Actions/NarrativeAction.cs),
 [ContextualActionProjection](../../src/BrilliantQuesting.Core/Actions/ContextualActionProjection.cs).
 Proof: [ActionAvailabilityTests](../../tests/BrilliantQuesting.Core.Tests/ActionAvailabilityTests.cs),

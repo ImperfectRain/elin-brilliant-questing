@@ -2435,3 +2435,36 @@ Reason: a difference-based opposed check silently stops modelling anything once 
 its failure mode is invisible - the numbers keep resolving, they just stop meaning a contest. The
 rounding rule is named here because an unnamed one is an artefact of the language, and an artefact
 would make the model asymmetric in exactly the direction nobody chose.
+
+## D081 — Feasibility is settled before uncertainty, and certainty is read off the verb rather than off the difficulty
+
+Two questions, asked in one order and never the other. Can this be attempted at all, and only then:
+does the attempt contain uncertainty worth rolling. `AttemptFeasibility.Classify` is the one place
+the order lives, and every performing surface goes through it instead of each remembering to ask
+availability first. Asked the other way round, a system rolls to see whether somebody managed to
+reveal a secret they never heard, and then calls a good roll a success - which is how statistics
+start inventing facts, resources, physical access and authority that no part of the world granted.
+
+A refused attempt is therefore classified as nothing at all, not as certain. `Certain` means "resolve
+this without a roll", which is permission to produce an outcome, and an impossible attempt must
+produce none. Null is the honest answer and the safe one in the same move, and it is why the refusal
+returns before any resolver is asked: an impossible intention must not consume the actor's RNG stream
+on its way to being told no, or a run's dice would depend on how many illegal things were tried.
+
+Certainty comes from the verb's own contract - the classification
+[D079](#d079--a-check-declares-which-kind-of-uncertainty-it-is-and-the-portable-resolver-is-the-authority-rather-than-a-stand-in)
+made a verb declare - and never from the arithmetic a resolver would produce. A DC low enough that
+failure is rare is what mastery buys, and
+[D080](#d080--an-opposed-check-scales-on-the-ratio-between-the-two-sides-and-a-partial-band-is-paid-to-neither)
+deliberately left the dice and critical windows alone so that it stays a roll: a retained fumble at
+overwhelming advantage is the point, not a rounding error to optimise away. Reading certainty off a
+difficulty would also make it a fact about whoever is attempting, when it is a fact about the verb -
+handing back a ring is not a skill test for anybody, and picking a lock is a skill test for everybody.
+So an uncertain attempt keeps its classified family and its profile at either extreme of advantage,
+and the only attempts that skip the dice are the ones whose contract says there was nothing to roll.
+
+Reason: ordering these two questions is the difference between a world where the possible is decided
+by state and a world where it is decided by statistics, and both failure modes are quiet. Rolling for
+the impossible looks like a generous system until an actor talks their way into a room that does not
+exist; treating a low DC as certainty looks like a tidy optimisation until the fumble that made a
+master interesting is gone and nothing records that it was removed.
