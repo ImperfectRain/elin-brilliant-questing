@@ -588,6 +588,31 @@ Different actors facing the same objective pressure may form different goals bec
 **Boundary:** this step proves the goal owner, not a scheduler or an autonomous month; the integrated headless autonomous proof belongs to BQa-016, followed by BQa-017 live integration. Pin different decisions from differing values/prohibitions with knowledge held constant, and different knowledge with character held constant. Cap/reweight competing desires and preserve a legitimate wait/abandon result rather than escalating every unfulfilled goal.
 
 
+**Current implementation (BQa-009).** `ActorGoalEvolution.Advance` is the pass: one actor, the
+readings a caller supplies, one supplied time. Formation reads the actor-local pressure view and
+nothing else, so hidden truth forms nothing and a sincerely held false claim forms a real want;
+authoritative state is read only to bind the records a reading already names and to evaluate a
+goal's condition, and that evaluation happens only once the goal's cause has already left the
+actor's own view, so a want under live pressure is never closed by a background pass. A reading
+admits the wants its position allows — named in a claim they have heard of, an open undertaking of
+theirs, a shortage where they are — and which one this person takes is decided by the existing
+values, sensitivities, personality, problem-solving and negative-space authorities, with "none of
+them" reported as `NoResponse` rather than as silence. Retirement is satisfied, superseded when one
+cause is reappraised into a different want, `lapsed` when the cause stops pressing with the
+condition unmet, and `gave_up` when the owner's resolve runs out under unchanged pressure; a want
+just given up is not taken straight back on. Goal kinds name ends rather than routes, so goal-level
+escalation between two ways of reaching one end is deliberately not minted here — that is BQa-010
+and BQa-011's question. Nothing durable is added: how long somebody holds a want, and how long
+before they would take a given-up one back on, are computed each pass from the goal's own saved
+provenance and retirement. `ActorGoalEvolutionTests` covers the three Done-when clauses over a month
+of passes, both omniscience directions, the value/prohibition and knowledge pins, the cap and the
+reload continuity; the durable rule is [`D085`](agent/decisions.md).
+
+**Live verification still required** headless Core only. No live Elin session exercised these
+passes, nothing schedules them yet — the integrated headless autonomous proof is BQa-016 and live
+integration is BQa-017 — and the Plugin was not compiled here because the Elin assemblies are not
+redistributable. Evidence grade unchanged: headless/source.
+
 **Authority / proof route:** [owning source and representative tests](systems/state.md#character-state), [neighbor contract](systems/actions.md#developments), [validation](agent/validation.md#state).
 
 **Sequence:** BQa-008 → BQa-009 → BQa-010.

@@ -62,7 +62,7 @@ incomplete joins with links to their adopted planning owners.
 | What does X believe? | `KnowledgeGraph` / `KnowledgeRecord`, including false and uncertain claims; [belief](systems/state.md#belief-and-proof) |
 | What can X prove? | `ProofLink` and `KnowledgeGraph.CanProve`; physical backing needs reconciliation; [proof](systems/state.md#belief-and-proof) |
 | What does X remember? | `MemoryLedger`; callbacks/provenance are derived history views; [memory](systems/state.md#memory-and-continuity) |
-| What does X want? | `NarrativeNpc.Goals`, values/needs and goal-formation traces; [character](systems/state.md#character-state) |
+| What does X want? | `NarrativeNpc.Goals`, `ActorGoalEvolution` passes, values/needs and goal-formation traces; [character](systems/state.md#character-state) |
 | What unresolved pressure exists? | `DevelopmentDetector.Detect`, not a new saved pressure list; [developments](systems/actions.md#developments) |
 | Which durable matter is continuing? | `NarrativeThread`, lifecycle and escalation; [threads](systems/actions.md#threads) |
 | What actions are available? | `ActionRegistry.Discover` asks each `NarrativeAction`; [actions](systems/actions.md#actions) |

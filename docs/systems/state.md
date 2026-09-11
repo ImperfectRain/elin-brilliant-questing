@@ -168,12 +168,28 @@ superseded; retirement keeps the record and both the active set and the retained
 `ActorAssessment` is what the owner believes and is never set by objective evaluation. `Reason` stays
 an explanation for people, and no production decision parses it.
 
+Goals also arise and end on their own (BQa-009, [`D085`](../agent/decisions.md)). `ActorGoalEvolution`
+is the goal owner's pass: it forms and revises wants from the actor-local pressure view BQa-007
+produces, and retires them as satisfied, abandoned or superseded. Formation reads that view and
+nothing else, so a condition the actor has no route to forms nothing and a sincerely held false
+belief forms a real want. Authoritative state is read only to bind the records a reading already
+names, and to evaluate a goal's condition once its cause has already left the actor's own view — a
+want whose cause is still pressing is never closed by a background pass, however true its condition
+has quietly become. A reading offers the wants its position admits; which one a person takes is
+decided by the existing values, sensitivities, personality, problem-solving and negative-space
+authorities, and taking none is a legitimate answer that the pass reports rather than omits. Nothing
+here schedules, acts or persists anything of its own: how long somebody holds a want and how long
+before they would take a given-up one back on are computed each pass from the goal's own saved
+provenance and retirement.
+
 Source: [NarrativeNpc](../../src/BrilliantQuesting.Core/World/NarrativeNpc.cs),
 [MissingGoatProblemSolver](../../src/BrilliantQuesting.Core/World/MissingGoatProblemSolver.cs),
 [ActionIntent.FromGoalChoice](../../src/BrilliantQuesting.Core/Actions/ActionAttempt.cs).
-Source: [GoalContract](../../src/BrilliantQuesting.Core/World/GoalContract.cs).
+Source: [GoalContract](../../src/BrilliantQuesting.Core/World/GoalContract.cs),
+[ActorGoalEvolution](../../src/BrilliantQuesting.Core/World/ActorGoalEvolution.cs).
 Proof: [ProblemSolvingStyleTests](../../tests/BrilliantQuesting.Core.Tests/ProblemSolvingStyleTests.cs),
 [NpcGoalContractTests](../../tests/BrilliantQuesting.Core.Tests/NpcGoalContractTests.cs),
+[ActorGoalEvolutionTests](../../tests/BrilliantQuesting.Core.Tests/ActorGoalEvolutionTests.cs),
 [EmotionalStateTests](../../tests/BrilliantQuesting.Core.Tests/EmotionalStateTests.cs).
 Lab: [actor-action](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/ActorActionScenario.cs),
 [playground](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/PlaygroundScenario.cs).

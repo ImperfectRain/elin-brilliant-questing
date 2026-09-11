@@ -2593,3 +2593,47 @@ with playtime.
 Reason: all four failures are quiet. Duplicate goals, a guessed condition, a frozen pressure copy
 and a lifecycle that closes itself all read plausibly in a dump, and each surfaces much later as an
 actor pursuing something nobody told them about or abandoning something nobody resolved.
+
+## D085 — One knowledge gate decides both what somebody wants and when they stop wanting it
+
+Goals had to start arising from pressure rather than from whoever established a scenario. The
+obvious way to build that is a pass over authoritative state, and it is wrong in a way that does not
+show up in any dump: the detector is omniscient by construction, so a pass that reads it forms wants
+from things nobody told the actor, and every such actor reads as scripted rather than informed.
+
+**Formation reads the actor-local pressure view and nothing else.** That view is already the gate
+(`D083`), so there is no second one to keep in step with it. A true condition this person has no
+route to produces no reading, therefore no admitted want, therefore no goal — and a claim that is
+false but sincerely held produces a reading, therefore a want, because what somebody is prepared to
+act on is what they believe. Authoritative state is still read, for two jobs that are not deciding
+what anybody wants: binding the concrete records a reading already names, because BQa-008 conditions
+take entity references and a reading carries ids; and evaluating a goal's condition.
+
+**The same gate closes a goal.** A condition is evaluated only once its goal's cause has already
+left the actor's own view — they have stopped being under pressure about it by their own lights, and
+only then is the world asked whether the thing they wanted is so. A want whose cause is still
+pressing is never closed by a background pass, however true its condition has quietly become. This
+is the mirror failure and the more tempting one, because closing a satisfied goal looks like
+housekeeping: it is the world telling somebody that another actor quietly returned their property,
+and it is `D084`'s pure-read rule stated as policy rather than as a method contract.
+
+**A reading offers wants; a person takes one.** What a reading admits is a question about position
+and is the same for everybody standing there; which admitted want somebody forms is answered by the
+values, sensitivities, personality, problem-solving and negative-space authorities that already
+exist. So the pressure detector never chooses a goal, two people reading one pressure can want
+different things, and somebody whose every admitted want is one they will not take forms none — a
+result the pass reports rather than omits, because a character who will not act and a matter the
+vocabulary does not cover are different things.
+
+**Goal kinds name ends, not routes.** "Clear my name" and "frighten the one witness who could show
+it" are the same want reached two ways; minting a second kind for the second route would put method
+into goal identity and leave an actor holding two wants where they have one. Which route gets taken
+is BQa-010 and BQa-011's question. Nothing here escalates an unfulfilled want on its owner's behalf
+for the same reason: what ends a want under unchanged pressure is the person's own resolve running
+out, which is read from character and from the goal's own saved provenance, and which then has to
+cost something — a pass that re-forms the want it just retired makes giving up mean nothing.
+
+Reason: both failures are silent and symmetrical. A goal formed from hidden truth and a goal closed
+by hidden truth each read perfectly in a dump and each surface much later as an actor who knows
+things nobody told them, which is indistinguishable from a scripted world and impossible to
+attribute after the fact.
