@@ -1471,6 +1471,13 @@ namespace BrilliantQuesting.Diagnostics
             sb.Append("\n-- what the player holds that is not money or an item --\n");
             sb.Append(StandingSheet.Describe(world, vanilla));
 
+            // BQ-119. The one question in this report that is about the mod rather than about the
+            // world in front of the player: of everything generated, how much ever reached them.
+            // Debug-only by construction - it counts matters the player has no route to, which is
+            // why it belongs here and not in any surface they can open.
+            sb.Append("\n-- how much of what was generated ever reached the player --\n");
+            sb.Append(EngagementTelemetry.Describe(world, vanilla));
+
             sb.Append("\n-- what somebody standing here would say out loud --\n");
             sb.Append(DescribeAmbientTalk(world, vanilla));
 

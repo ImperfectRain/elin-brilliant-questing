@@ -52,6 +52,7 @@ Native mechanics/choices require Plugin build and live [Native](#native) verific
 | Repetition/weirdness/sincerity | `RepetitionControlTests`, `WeirdnessBudgetTests` or `SincerityBudgetTests` | `StoryletRoutingTests`, `TonePresentationTests` (Lab project); `playground-sweep`, `scene` |
 | Attention/director/fingerprints | `NarrativeAttentionBudgetTests`, `DevelopmentScoringTests` or `SituationFingerprintTests` | `AmbientTalkTests`, `TownNewsTests`, `SettlementSituationGeneratorTests`; `ambient`, `integration` |
 | Anti-template measurements | `AntiTemplateHarnessTests` (Lab project) | `SceneFixtureTests`, `LabCommandLineTests`, `SituationFingerprintTests`; `anti-template` |
+| Engagement lifecycle telemetry | `EngagementTelemetryTests` | `NarrativeInspectorTests`, `ThreadLifecycleTests`, `ConsequenceArrivalTests`; the `why?` report |
 
 All content/vocabulary changes run the compiler and bundle checks below. Core-only expression work
 does not require a Plugin build unless a Plugin-consumed public contract changes. Live hosting is

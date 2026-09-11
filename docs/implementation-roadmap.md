@@ -3606,6 +3606,28 @@ Count situations generated, surfaced, engaged, ignored, and resolved by others. 
 never transmitted.
 - **Depends** BQ-100.
 - **Done when** a play session reports its engagement profile in the inspector.
+- **Implementation/evidence** `EngagementTelemetry` reads the save instead of counting as the world
+  runs, so every number has an existing owner: generated is the matters the threads carry, surfaced
+  is the player's own belief in one of a matter's claims - the encounter rule BQ-101 and BQ-102
+  already read - or a consequence arrival that reached a surface they were on, engaged is the acts
+  `NarrativeThread.IsNamedBy` attributes to them, and who ended a matter is the actor on its
+  `ThreadResolved` event (`D022`). It reaches a session through the `why?` report, which is off
+  unless a developer turns it on; nothing is written, opened or sent. It deliberately counts
+  matters the player has no route to, which is why it is a debug surface and must not be projected
+  as a player one (`D008`). `EngagementTelemetryTests` proves each count's definition and the
+  distinctions that make them usable: a matter still open is awaiting the player rather than
+  ignored, standing near a matter is not engaging with it, a visitor who called while the player
+  was elsewhere surfaced nothing, a quarantined matter was withdrawn rather than resolved by
+  anybody, an ending with no author on the record is not somebody else's doing (`D017`), reading
+  the profile changes nothing, and it reads back identically after a reload.
+- **Bounded policy** counts are cumulative over the save; nothing records a session boundary, and
+  minting a durable one is exactly the new saved datum the [BQa plan](living-world-roadmap.md)
+  says this step must not add. No save state, generation, selection, delivery or wording changed,
+  and no production path reads these numbers. Intensity presets (BQ-120) and earned exposure
+  weighting (BQa-039) remain their own steps.
+- **Live verification still required** the section has not been read out of a live Elin session.
+  The report's existing host is unchanged and the added reading is headless Core, but the Plugin
+  could not be compiled here because the Elin assemblies are not redistributable.
 - **Sources** engagement §6; CD §35.
 - **Why** the engagement test in engagement §6 cannot be answered by opinion.
 
