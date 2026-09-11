@@ -1,5 +1,9 @@
 # Runtime Probes
 
+After an Elin update, use the [BQ-110 smoke checklist](update-smoke-test.md) and record its dated
+run here. A capability-disable capture without update identity and gameplay observations is not
+an update smoke pass.
+
 Static Phase 2 reduced the probe list. Remaining probes validate live UI behavior, actor populations, and nonzero save-affecting mutations. Do not upgrade any item to `VERIFIED-RUNTIME` unless the installed game log shows the probe ran successfully.
 
 ## BQ-109 capability degradation observation

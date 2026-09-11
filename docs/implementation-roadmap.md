@@ -3411,6 +3411,10 @@ A documented checklist to run after every Elin update: aliases resolve, patches 
 one situation plays.
 - **Depends** BQ-109.
 - **Done when** the checklist exists and has been run once against a real game update.
+- **Implementation/evidence** [Update smoke checklist](elin/verification/update-smoke-test.md)
+  covers update identity, aliases, patch execution, existing-chunk restoration, one played situation
+  and save/reload. The documented procedure is implemented; the first identified real-update run
+  remains unverified. BQ-109's disable captures do not establish that acceptance.
 - **Sources** PM §56; LW §2.4.
 
 #### BQ-111 — Player configuration
