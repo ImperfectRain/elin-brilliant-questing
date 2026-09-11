@@ -38,7 +38,8 @@ sandbox. These are **HEADLESS-ONLY** checks, not observations of feature isolati
    reason and unchanged fallback; do not claim a demonstrated loss of a working feature.
 6. Clear `DisabledCapability`, restart and confirm normal detection/behavior on the baseline copy.
 
-All rows below remain **live-unverified**. Expected scope is a test prescription, not a result.
+Expected scope below is a test prescription, not a result. The three-pass capture below verifies
+selected disable diagnostics and attach/save behavior; full gameplay isolation remains unverified.
 
 | Disabled capability | Expected affected scope to exercise |
 |---|---|
@@ -77,6 +78,37 @@ BQ-109's live acceptance remains open. For each capability, record the baseline 
 game/plugin build, how it was disabled, diagnostic, affected feature, behavior of unrelated features,
 and any errors during the exercise. Capabilities already unavailable at baseline must be identified
 as such rather than presented as demonstrated losses of working features.
+
+### Three-pass live capture — September 10, 2026
+
+Source: user-supplied `E:/SteamLibrary/steamapps/common/Elin/BepInEx/LogOutput.log`,
+228,449 bytes, SHA-256 `3941d870d0212c15aee61277d515fa54abf265083ec0441fd68f0e3c38025ae5`.
+The captured interval is September 11, 02:43:34–02:44:54 UTC (September 10 local time).
+Plugin module ID `8a43a607-02c8-491a-9dd5-e2f838e7f9b6`, advertised BQ version 0.1.0,
+Unity 2021.3.45f2. The logged Elin assembly version is `0.0.0.0`; this does not identify the
+displayed game release. The log contains multiple enabled mods and three attach cycles within
+one log; separate process restarts and a pristine restored baseline are not established.
+
+| Selected disable | Log lines | Observed result |
+|---|---|---|
+| `ReadHomeState` | 356, 374, 383–385, 811–815 | Disable diagnostic; attach succeeds; Home is `unreadable` at attach and pre-save; two saves of 157 events |
+| `ReadCharacterIdentity` | 884, 902, 910–912, 1357 | Disable diagnostic; attach succeeds; Home reads return with 22 residents; save of 157 events |
+| `ObserveCrimeWitnesses` | 1428, 1449, 1453–1455, 1900 | Disable diagnostic; attach succeeds; Home and identity are available; save of 157 events, followed by quit/detach |
+
+Each report contains all 22 capabilities. Apart from the selected disable, reported support is
+consistent across passes: `ReadPlaceContents`, `MoveCharaBetweenZones`, `BuildPlaceStructure` and
+`AddPlaceFixture` remain unavailable for their existing reasons. The other capabilities report
+available. There is no all-enabled baseline capture. Each attach reports 313 people, 157 events
+and one thread; the subsequent saves retain 157 events. No Error/Fatal entries or exception text
+were found in this captured log. This is **VERIFIED-RUNTIME** evidence for the three disable
+diagnostics and bounded attach/save survival, including the Home read fallback/restoration.
+
+Every captured `Act`, `Dialogue`, `Witnesses` and `ZoneVisit` callback count is zero. Accordingly,
+the log does not verify crime witness suppression during an action, dialogue behavior, zone
+transition behavior, or full feature isolation. There is no post-final-save reload or final
+all-enabled restoration in this capture. Long frame intervals occur around attach windows;
+without a controlled baseline these do not establish either a regression or performance safety.
+The remaining 19 disables and the unexercised gameplay checks keep BQ-109's full acceptance open.
 
 ## Performance and Home capture
 

@@ -3398,7 +3398,8 @@ and never breaks.
 - **Evidence** [User-reported stability observation](elin/verification/runtime-probes.md#bq-109-capability-degradation-observation).
   The opt-in disable control and headless probe isolation checks are implemented; follow the
   [live drill procedure](elin/verification/runtime-probes.md#drill-implementation-and-procedure).
-  The individual capability drill and diagnostic/feature isolation checks remain unverified.
+  [Three live disable passes](elin/verification/runtime-probes.md#three-pass-live-capture--september-10-2026)
+  confirm diagnostics and attach/save survival; remaining disables and gameplay isolation are unverified.
 
 #### BQ-110 — Update smoke test
 A documented checklist to run after every Elin update: aliases resolve, patches apply, chunk loads,
