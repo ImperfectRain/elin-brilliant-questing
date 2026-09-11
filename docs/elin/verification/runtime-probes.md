@@ -4,6 +4,69 @@ Static Phase 2 reduced the probe list. Remaining probes validate live UI behavio
 
 ## BQ-109 capability degradation observation
 
+### Drill implementation and procedure
+
+`[Debug] DisabledCapability` in `BepInEx/config/elin.brilliant.questing.cfg` accepts one
+`VanillaCapability` name, case-insensitively. Empty (the default) uses ordinary detection.
+Restart Elin after each change. Numeric values, lists and unknown names are rejected with an
+`INVALID` diagnostic and leave normal detection active; such a run is not a degradation test.
+The selected native probe is skipped, support is reported unavailable, direct reads use their
+existing unavailable fallback, and writes retain their existing refusal gates. Witness collection
+also honors its capability. Home's normal fresh-read behavior is retained when the drill is off.
+No drill selection or probe result is written into BQ saves.
+
+The actual Plugin probe/report component is exercised by
+[CapabilityDegradationTests](../../../tests/BrilliantQuesting.Core.Tests/CapabilityDegradationTests.cs)
+for every enum member, repeated detection, skipped delegates, invalid settings, failed probes and
+already-unsupported capabilities. Core action discovery is exercised using the existing theft
+sandbox. These are **HEADLESS-ONLY** checks, not observations of feature isolation in Elin.
+
+1. Build/install using the [Plugin procedure](../../plugin-build.md). Use a disposable copy of a
+   save with relevant BQ situations. Keep other mod/settings unchanged throughout the drill.
+2. With `DisabledCapability =` empty, restart, load the copy and preserve the full capability
+   report from `BepInEx/LogOutput.log`. Record game version, Plugin build/commit and enabled mods.
+3. For each row below, restore the same baseline save copy, set `DisabledCapability` to that row's
+   name, restart and load. Confirm the `disabled by BQ-109 drill` report, and compare all other
+   capability lines against baseline. A log line alone does not prove the affected feature behaved.
+4. Exercise the affected route and an unrelated BQ route. Walk/perform ordinary actions, open
+   generic and authored dialogue and the journal, change zones, then save/reload the test copy.
+   Record actual behavior and errors, including unavailable choices or refused mutations.
+   Capability-dependent routes may share a capability; do not require exactly one UI option to vanish.
+5. Preserve each run's log before the next launch. Record baseline support, disabled name,
+   diagnostic, affected route, unrelated route, transition/reload result and exceptions.
+   Mark an unexercised route unresolved. For already-unavailable capabilities record the baseline
+   reason and unchanged fallback; do not claim a demonstrated loss of a working feature.
+6. Clear `DisabledCapability`, restart and confirm normal detection/behavior on the baseline copy.
+
+All rows below remain **live-unverified**. Expected scope is a test prescription, not a result.
+
+| Disabled capability | Expected affected scope to exercise |
+|---|---|
+| `ReadAttributes` | Attribute-backed checks use the adapter's unavailable read fallback |
+| `ReadSkills` | Skill-backed checks use the adapter's unavailable read fallback |
+| `ReadWriteAffinity` | Affinity reads fall back; BQ affinity writes are refused |
+| `ReadWriteKarma` | Karma reads fall back; BQ karma writes are refused |
+| `ReadWriteFame` | Fame reads fall back; BQ fame writes are refused |
+| `ReadWriteInfluence` | Influence reads fall back; BQ influence writes are refused |
+| `ReadGuildRank` | Guild membership/rank/contribution reads fall back |
+| `ReadFaith` | Deity/piety reads fall back |
+| `ReadInventory` | Inventory snapshots are unavailable to BQ; vanilla inventory remains usable |
+| `ReadPlaceContents` | Place-content-dependent routes remain unavailable on the current adapter |
+| `TransferItems` | BQ item transfer is refused without moving the item |
+| `DestroyItems` | BQ item destruction is refused without removing the item |
+| `SpendMoney` | BQ payment is refused without debiting/crediting either party |
+| `ReadHomeState` | Home snapshot is unavailable; no inferred empty Home or resident removal |
+| `ReadCharacterIdentity` | Identity facets are unknown; presence and conversation remain possible |
+| `ReadActorActivity` | Activity facets are unknown; no inferred idle/travel state |
+| `WriteHomeResidents` | BQ resident admission is refused; Home reads remain available |
+| `MoveCharaBetweenZones` | BQ relocation is refused; ordinary vanilla travel remains usable |
+| `ObserveCrimeWitnesses` | Observed actions collect no BQ witnesses; vanilla crime resolution remains owned by vanilla |
+| `ReadPlayerCompanions` | Companion enumeration is unavailable; Home enumeration remains separate |
+| `BuildPlaceStructure` | Structured-site creation remains unavailable on the current adapter |
+| `AddPlaceFixture` | Additive-site mutation remains unavailable on the current adapter |
+
+### Reported observation
+
 User report received September 10, 2026: losing capabilities does not seem to cause instability.
 This records the user's qualitative observation; no capability list, disabling procedure, game/plugin
 build, observation duration or supporting log was supplied with the report. It does not establish

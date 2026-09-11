@@ -69,6 +69,7 @@ namespace BrilliantQuesting.Plugin
         private ConfigEntry<bool> _gatherPrototypeNpcs;
         private ConfigEntry<bool> _explainInDialogue;
         private ConfigEntry<bool> _offscreenAbsence;
+        private ConfigEntry<string> _disabledCapability;
         private ConfigEntry<bool> _generateSituationsOnLoad;
 
         private void Awake()
@@ -127,6 +128,10 @@ namespace BrilliantQuesting.Plugin
                 + "loads and no thread exists yet. This can move vanilla items or create BQ-owned "
                 + "world state, so it is off by default; leave it off when ordinary Elin play "
                 + "should be indistinguishable from an unmodded save.");
+
+            _disabledCapability = Config.Bind("Debug", "DisabledCapability", "",
+                "BQ-109 drill: disable one VanillaCapability by name. Empty means normal detection. "
+                + "Restart Elin after changing; use a disposable save copy and record baseline/result logs.");
 
             var captureEvidence = Config.Bind("Debug", "CaptureRuntimeEvidence", false,
                 "Log bounded frame/callback timing windows and Home reconciliation readbacks. "
@@ -436,7 +441,7 @@ namespace BrilliantQuesting.Plugin
 
             _bindings = new ElinBindings();
             _vanilla = new ElinVanillaState(
-                _bindings, _log, _offscreenAbsence != null && _offscreenAbsence.Value);
+                _bindings, _log, _offscreenAbsence != null && _offscreenAbsence.Value, _disabledCapability?.Value);
 
             _world = Load(context);
             NativeJournalSurface.Bind(_world, _vanilla);

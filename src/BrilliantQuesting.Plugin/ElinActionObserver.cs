@@ -279,6 +279,7 @@ namespace BrilliantQuesting.Plugin
 
         private IReadOnlyList<EntityId> WitnessesMeasured(Chara actor)
         {
+            if (!_vanilla.Supports(VanillaCapability.ObserveCrimeWitnesses)) return Array.Empty<EntityId>();
             List<EntityId> witnesses = new List<EntityId>();
             Map map = EClass._map;
             if (actor == null || map?.charas == null)

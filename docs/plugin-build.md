@@ -110,6 +110,11 @@ all-or-nothing with a diagnostic, and every callback is guarded.
 
 ## What the plugin does today
 
+For the BQ-109 drill, `[Debug] DisabledCapability` accepts one capability name, or an empty value
+for ordinary detection. Restart after changing it. Follow the
+[capability degradation procedure](elin/verification/runtime-probes.md#drill-implementation-and-procedure)
+for baseline capture, per-capability checks and restoration.
+
 - Resolves element aliases and reports which vanilla capabilities are genuinely available.
 - Implements `IVanillaState` against live objects: attributes, skills, level, affinity, Karma,
   fame, Influence, guild membership, deity, money, inventory, item transfers, zone occupants.

@@ -88,6 +88,11 @@ must still verify success. Staging has its own refusal path, not a guarantee inh
 ordinary mutation gate. Core has no Elin/Unity/BepInEx references. Native hooks/projection stay narrow
 and fail closed with diagnostic/fallback.
 
+The Plugin's transient `VanillaCapabilityReport` owns probe results and the opt-in, single-capability
+disable drill. It can suppress support but cannot grant it. Direct read fallbacks and witness
+collection honor the selected disable; ordinary Home snapshots still refresh independently of the
+attach-time probe. [Drill procedure and evidence](../elin/verification/runtime-probes.md#drill-implementation-and-procedure).
+
 Source: [IVanillaState](../../src/BrilliantQuesting.Core/Integration/IVanillaState.cs),
 [VanillaStateBase](../../src/BrilliantQuesting.Core/Integration/VanillaStateBase.cs),
 [ISituationStager](../../src/BrilliantQuesting.Core/Integration/ISituationStager.cs),

@@ -25,16 +25,16 @@ namespace BrilliantQuesting.Plugin
     {
         private readonly ElinBindings _bindings;
         private readonly ManualLogSource _log;
-        private readonly HashSet<VanillaCapability> _capabilities = new HashSet<VanillaCapability>();
-        private readonly Dictionary<VanillaCapability, string> _capabilityEvidence = new Dictionary<VanillaCapability, string>();
+        private readonly VanillaCapabilityReport _capabilities;
 
         private readonly bool _offscreenAbsenceAllowed;
 
-        internal ElinVanillaState(ElinBindings bindings, ManualLogSource log, bool offscreenAbsenceAllowed = false)
+        internal ElinVanillaState(ElinBindings bindings, ManualLogSource log, bool offscreenAbsenceAllowed = false, string disabledCapability = null)
         {
             _bindings = bindings;
             _log = log;
             _offscreenAbsenceAllowed = offscreenAbsenceAllowed;
+            _capabilities = new VanillaCapabilityReport(disabledCapability, message => _log.LogWarning(message));
         }
 
         /// <summary>
@@ -44,7 +44,6 @@ namespace BrilliantQuesting.Plugin
         internal void DetectCapabilities()
         {
             _capabilities.Clear();
-            _capabilityEvidence.Clear();
 
             Probe(
                 VanillaCapability.ReadAttributes,
@@ -303,7 +302,7 @@ namespace BrilliantQuesting.Plugin
             ReportCapabilities();
         }
 
-        public bool Supports(VanillaCapability capability) => _capabilities.Contains(capability);
+        public bool Supports(VanillaCapability capability) => _capabilities.Supports(capability);
 
         /// <summary>
         /// The largest single step any one consequence may take. Nothing the simulation does moves
@@ -437,39 +436,12 @@ namespace BrilliantQuesting.Plugin
         /// player owns no land, and the log should not call that a failure.
         /// </param>
         private void Probe(VanillaCapability capability, Func<string> evidence, string absentReason = null)
-        {
-            try
-            {
-                string line = evidence();
-                if (string.IsNullOrEmpty(line))
-                {
-                    MarkUnsupported(capability, absentReason ?? "probe returned no runtime object");
-                    return;
-                }
-
-                _capabilities.Add(capability);
-                _capabilityEvidence[capability] = line;
-            }
-            catch (Exception ex)
-            {
-                MarkUnsupported(capability, ex.GetType().Name + ": " + ex.Message);
-            }
-        }
+            => _capabilities.Probe(capability, evidence, absentReason);
 
         private void MarkUnsupported(VanillaCapability capability, string reason)
-        {
-            _capabilityEvidence[capability] = "unsupported: " + reason;
-        }
+            => _capabilities.MarkUnsupported(capability, reason);
 
-        private void ReportCapabilities()
-        {
-            foreach (VanillaCapability capability in (VanillaCapability[])Enum.GetValues(typeof(VanillaCapability)))
-            {
-                _capabilityEvidence.TryGetValue(capability, out string evidence);
-                string state = Supports(capability) ? "available" : "unavailable";
-                _log.LogInfo("  capability " + capability + ": " + state + " - " + (evidence ?? "not probed"));
-            }
-        }
+        private void ReportCapabilities() => _capabilities.Report(message => _log.LogInfo(message));
 
         public GameTime Now
         {
@@ -522,6 +494,7 @@ namespace BrilliantQuesting.Plugin
 
         public int GetAttribute(EntityId chara, VanillaAttribute attribute)
         {
+            if (_capabilities.IsDisabled(VanillaCapability.ReadAttributes)) return 0;
             Chara c = _bindings.ResolveChara(chara);
             if (c == null || !ElementAliases.TryGet(attribute, out int elementId))
             {
@@ -533,6 +506,7 @@ namespace BrilliantQuesting.Plugin
 
         public int GetSkill(EntityId chara, VanillaSkill skill)
         {
+            if (_capabilities.IsDisabled(VanillaCapability.ReadSkills)) return 0;
             Chara c = _bindings.ResolveChara(chara);
             if (c == null || !ElementAliases.TryGet(skill, out int elementId))
             {
@@ -550,6 +524,7 @@ namespace BrilliantQuesting.Plugin
 
         public int GetAffinity(EntityId chara)
         {
+            if (_capabilities.IsDisabled(VanillaCapability.ReadWriteAffinity)) return 0;
             Chara c = _bindings.ResolveChara(chara);
             return c?._affinity ?? 0;
         }
@@ -580,7 +555,7 @@ namespace BrilliantQuesting.Plugin
 
         // -- player standing ----------------------------------------------------------------
 
-        public int Karma => EClass.player?.karma ?? 0;
+        public int Karma => _capabilities.IsDisabled(VanillaCapability.ReadWriteKarma) ? 0 : EClass.player?.karma ?? 0;
 
         protected override void ChangeKarmaCore(int delta)
         {
@@ -592,7 +567,7 @@ namespace BrilliantQuesting.Plugin
             EClass.player?.ModKarma(delta);
         }
 
-        public int Fame => EClass.player?.fame ?? 0;
+        public int Fame => _capabilities.IsDisabled(VanillaCapability.ReadWriteFame) ? 0 : EClass.player?.fame ?? 0;
 
         protected override void ChangeFameCore(int delta)
         {
@@ -617,6 +592,7 @@ namespace BrilliantQuesting.Plugin
         /// </summary>
         public int GetInfluence(EntityId townId)
         {
+            if (_capabilities.IsDisabled(VanillaCapability.ReadWriteInfluence)) return 0;
             return EClass.pc?.GetCurrency(InfluenceCurrency) ?? 0;
         }
 
@@ -646,6 +622,7 @@ namespace BrilliantQuesting.Plugin
 
         public bool IsGuildMember(GuildId guild)
         {
+            if (_capabilities.IsDisabled(VanillaCapability.ReadGuildRank)) return false;
             Guild g = FindGuild(guild);
             return g != null && g.IsMember;
         }
@@ -668,6 +645,7 @@ namespace BrilliantQuesting.Plugin
         /// </summary>
         public int GetGuildRank(GuildId guild)
         {
+            if (_capabilities.IsDisabled(VanillaCapability.ReadGuildRank)) return 0;
             Guild g = FindGuild(guild);
             if (g == null || !g.IsMember)
             {
@@ -694,6 +672,7 @@ namespace BrilliantQuesting.Plugin
         /// </summary>
         public int GetGuildContribution(GuildId guild)
         {
+            if (_capabilities.IsDisabled(VanillaCapability.ReadGuildRank)) return 0;
             Guild g = FindGuild(guild);
             if (g == null || !g.IsMember)
             {
@@ -712,6 +691,7 @@ namespace BrilliantQuesting.Plugin
 
         public string GetWorshippedDeity(EntityId chara)
         {
+            if (_capabilities.IsDisabled(VanillaCapability.ReadFaith)) return string.Empty;
             Chara c = _bindings.ResolveChara(chara);
             return c?.idFaith ?? string.Empty;
         }
@@ -719,6 +699,7 @@ namespace BrilliantQuesting.Plugin
         /// <summary>Piety is element 85, not a separate accessor - the alias dump settled it.</summary>
         public int GetPiety(EntityId chara)
         {
+            if (_capabilities.IsDisabled(VanillaCapability.ReadFaith)) return 0;
             Chara c = _bindings.ResolveChara(chara);
             return c == null ? 0 : c.elements.Value(PietyElementId);
         }
@@ -805,6 +786,7 @@ namespace BrilliantQuesting.Plugin
 
         public IReadOnlyList<ItemDescriptor> GetInventory(EntityId owner)
         {
+            if (_capabilities.IsDisabled(VanillaCapability.ReadInventory)) return Array.Empty<ItemDescriptor>();
             List<ItemDescriptor> items = new List<ItemDescriptor>();
             Chara c = _bindings.ResolveChara(owner);
             if (c?.things == null)
@@ -961,10 +943,11 @@ namespace BrilliantQuesting.Plugin
         /// see. Deliberately not gated on <see cref="VanillaCapability.ReadHomeState"/>, which is
         /// what the probe found at attach: a player who buys land in hour nine has a Home, and a
         /// capability line written before they did must not be what refuses to see it. Callers ask
-        /// the direct question by reading the snapshot.
+        /// the direct question by reading the snapshot. An explicit debug disable still suppresses this read.
         /// </summary>
         public HomeState GetHomeState()
         {
+            if (_capabilities.IsDisabled(VanillaCapability.ReadHomeState)) return null;
             return ElinHomeState.Read(_bindings, PlayerId, _log);
         }
 

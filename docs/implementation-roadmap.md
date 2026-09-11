@@ -3396,6 +3396,8 @@ and never breaks.
 - **Done when** every capability has been switched off in a live game and the result documented.
 - **Sources** LW §2.4, §16; PM §56.
 - **Evidence** [User-reported stability observation](elin/verification/runtime-probes.md#bq-109-capability-degradation-observation).
+  The opt-in disable control and headless probe isolation checks are implemented; follow the
+  [live drill procedure](elin/verification/runtime-probes.md#drill-implementation-and-procedure).
   The individual capability drill and diagnostic/feature isolation checks remain unverified.
 
 #### BQ-110 — Update smoke test
