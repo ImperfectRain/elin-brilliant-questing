@@ -125,7 +125,11 @@ namespace BrilliantQuesting.Storylets
             Refusal = refusal ?? string.Empty;
         }
 
-        /// <summary>The durable record on the thread, or null when the scene could not be played.</summary>
+        /// <summary>
+        /// What happened, or null when the scene could not be played. It is kept on the thread
+        /// when the scene applied its consequences; an inspection play returns the same record and
+        /// leaves no history behind it.
+        /// </summary>
         public StoryletFiring Firing { get; }
 
         public IReadOnlyList<PlayedBeat> Beats { get; }
@@ -163,6 +167,10 @@ namespace BrilliantQuesting.Storylets
         /// <summary>
         /// The stream every decision, check and wording is forked from. One stream, so a scene
         /// replays identically from a seed however many other scenes ran first.
+        ///
+        /// The scene keys it on which occurrence this is before anything draws from it, so a
+        /// second genuine firing of the same storylet over the same matter is its own attempt
+        /// rather than a replay of the first (<see cref="RngStreams.Occurrence"/>).
         /// </summary>
         public DeterministicRng Rng { get; set; }
 
@@ -242,7 +250,18 @@ namespace BrilliantQuesting.Storylets
             StoryletDefinition definition = opportunity.Definition;
             Fact focus = context.World.Knowledge.GetFact(opportunity.FocusFactId);
             GameTime now = context.Vanilla == null ? GameTime.Zero : context.Vanilla.Now;
-            DeterministicRng rng = context.Rng ?? context.World.Rng;
+
+            // Which time this is, and therefore which streams this scene draws from (BQa-002).
+            // A fork is derived from its parent's seed, so a second firing of the same storylet
+            // over the same matter would otherwise repeat the first one's rolls word for word.
+            // The count comes from the firings the thread already keeps: an inspection play
+            // records none, so reopening a surface asks the same question and gets the same answer
+            // rather than being handed a fresh roll.
+            DeterministicRng rng = RngStreams.Occurrence(
+                context.Rng ?? context.World.Rng,
+                definition.Id,
+                opportunity.FocusFactId,
+                Occurrences(context.Thread, definition.Id, opportunity.FocusFactId));
 
             StoryletFiring firing = new StoryletFiring(definition.Id, opportunity.FocusFactId, now);
             foreach (KeyValuePair<string, EntityId> binding in opportunity.RoleBindings)
@@ -311,8 +330,46 @@ namespace BrilliantQuesting.Storylets
                 }
             }
 
-            context.Thread.StoryletFirings.Add(firing);
+            // History only when the scene actually happened. An inspection play walks the same
+            // beats, takes the same decisions and says the same words, and then leaves - it must
+            // not leave a firing behind, because a firing is what the world counts as this
+            // storylet having been played over this matter.
+            if (context.ApplyConsequences)
+            {
+                context.Thread.StoryletFirings.Add(firing);
+            }
+
             return new StoryletPlay(firing, played, resolution, string.Empty);
+        }
+
+        /// <summary>
+        /// How many times this storylet has already fired over this focus on this thread - the
+        /// occurrence index for the play about to happen (BQa-002, <c>D078</c>).
+        ///
+        /// Derived rather than stored: the firings are already thread history and already in the
+        /// save, so an occurrence key needs no field of its own and survives a reload by surviving
+        /// with them. A thread restored from a save written before scenes were routed has no
+        /// firings and starts at its first occurrence, which is the truthful answer rather than an
+        /// invented one.
+        /// </summary>
+        private static int Occurrences(NarrativeThread thread, string storyletId, EntityId focus)
+        {
+            if (thread == null)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            for (int i = 0; i < thread.StoryletFirings.Count; i++)
+            {
+                StoryletFiring firing = thread.StoryletFirings[i];
+                if (string.Equals(firing.StoryletId, storyletId, StringComparison.Ordinal) && firing.FocusFactId == focus)
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         private PlayedBeat PlayBeat(
@@ -443,7 +500,7 @@ namespace BrilliantQuesting.Storylets
             }
 
             CheckRequest request = new CheckRequest(profile, actor, Role(opportunity, beat.Check.TargetRole));
-            return _checks.Resolve(request, rng.Fork("bq146|check|" + beat.Id + "|" + beat.Check.Question));
+            return _checks.Resolve(request, RngStreams.Check(rng, beat.Id, beat.Check.Question));
         }
 
         /// <summary>
@@ -490,7 +547,7 @@ namespace BrilliantQuesting.Storylets
                 Feeling = actor == null ? SpeakerFeeling.None : SpeakerFeeling.Of(actor.Emotions, now),
                 Tie = SpeakerTie.Of(context.World.Relationships, speaker, listener),
                 Callback = recalled,
-                Rng = rng.Fork("bq146|line|" + beat.Id)
+                Rng = RngStreams.Line(rng, beat.Id)
             };
 
             RealizedLine line = _realizer.Realize(request);

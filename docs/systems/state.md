@@ -39,6 +39,31 @@ Proof: [FoundationTests](../../tests/BrilliantQuesting.Core.Tests/FoundationTest
 [PersistenceTests](../../tests/BrilliantQuesting.Core.Tests/PersistenceTests.cs).
 Lab: [theft](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/TheftLaboratoryScenario.cs).
 
+## Determinism and streams
+
+**Owns:** which stream decided what, and what a repeat of the same attempt draws from (`D078`).
+`RngStreams` holds every routed label in one file, split into the family the world is held to -
+checks, actor intent, tie-breaks - and the family that only decides wording. Expression is always
+handed a `Fork`, never the stream a decision draws from, so rendering a scene, rendering it out of
+different content, rendering it not at all, or allocating delivery identities around it decides the
+same things. **Does not own:** the RNG algorithm, check arithmetic, or a second saved stream.
+
+A scene is keyed on its occurrence - how many times that storylet has already fired on that thread
+for that focus - because a fork derives from its parent's seed and would otherwise replay the first
+firing exactly. The count is thread history the save already carries; nothing is persisted for it,
+and a thread restored without firings plays its first occurrence. An action attempt needs no key: it
+draws from the world stream, whose state is saved, so each attempt continues and a reload continues
+with it. A play that applies no consequences records no firing, mints no identity and draws nothing,
+so reopening a surface gains no roll; discovery and availability are read-only on the same terms.
+
+Source: [RngStreams](../../src/BrilliantQuesting.Core/Foundation/RngStreams.cs),
+[DeterministicRng](../../src/BrilliantQuesting.Core/Foundation/DeterministicRng.cs),
+[StoryletRouter](../../src/BrilliantQuesting.Core/Storylets/StoryletRouter.cs).
+Proof: [RngIsolationTests](../../tests/BrilliantQuesting.Core.Tests/RngIsolationTests.cs),
+[FoundationTests](../../tests/BrilliantQuesting.Core.Tests/FoundationTests.cs),
+[PersistenceTests](../../tests/BrilliantQuesting.Core.Tests/PersistenceTests.cs).
+Lab: [scene](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/SceneScenario.cs).
+
 ## Truth
 
 **Owns:** BQ propositions in `KnowledgeGraph.Facts`; `Fact.Truth` distinguishes true, false and

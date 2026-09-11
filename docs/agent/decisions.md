@@ -2331,3 +2331,29 @@ to carry a snapshot, a pressure list or a candidate set.
 Reason: by the time anything asks why something happened, the state that decided it is gone, and
 every cheap substitute for having written it down - adjacency, recency, the one id that happened to
 be in `Related` - gets a different answer as soon as the same thing happens twice.
+
+## D078 — Simulation streams are forked and keyed on the occurrence; expression only ever gets a fork
+
+A stream whose draws the world is held to - a check, an actor's intent, a tie-break - and a stream
+that only decides wording are different streams. `RngStreams` owns both label families, so which is
+which can be read in one file. Expression is always handed a fork and never the stream a decision
+draws from: `DeterministicRng.Fork` derives from its parent's seed without advancing it, so a scene
+that is rendered, rendered out of different content, or rendered not at all decides the same things.
+Delivery identities allocated around it change nothing either; no simulation stream is keyed on an
+event id.
+
+Deriving from the seed is also what would make a second genuine firing of a storylet repeat the
+first one's rolls exactly, since a fork knows nothing about how much has happened since. A scene is
+therefore keyed on its occurrence: how many times that storylet has already fired on that thread for
+that focus. That count is thread history the save already carries, so the key needs no field of its
+own and survives a reload with it; a thread restored with no firings plays its first occurrence and
+infers nothing earlier. An attempt made through the action library needs no such key - it draws from
+the world stream itself, whose state is saved, so each attempt continues the sequence.
+
+Inspecting is not attempting. A play that applies no consequences records no firing, mints no
+identity and draws nothing from the world stream, so reopening a surface asks the same question and
+gets the same answer. Discovery and availability are read-only for the same reason.
+
+Reason: without the separation, adding a line of content or turning rendering on would silently
+move a check; without the occurrence key, the same scene played twice would be the same scene twice,
+and a player who did not like an outcome could reload to be handed the identical one.

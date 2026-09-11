@@ -188,7 +188,7 @@ namespace BrilliantQuesting.Dialogue
                         continue;
                     }
 
-                    DeterministicRng stream = rng.Fork("bq074|" + position + "|" + act.Signature);
+                    DeterministicRng stream = RngStreams.Fragment(rng, position.ToString(), act.Signature);
                     int pick = stream.NextInt(candidates.Count * (Reticence + 1));
                     if (pick >= candidates.Count)
                     {
@@ -316,7 +316,7 @@ namespace BrilliantQuesting.Dialogue
             WeirdnessBudget budget)
         {
             List<DialogueFragment> candidates = AvoidRepetition(cores, true, history);
-            DeterministicRng stream = rng.Fork("bq074|" + FragmentPosition.Core + "|" + act.Signature);
+            DeterministicRng stream = RngStreams.Fragment(rng, FragmentPosition.Core.ToString(), act.Signature);
             DialogueFragment core = candidates[stream.NextInt(candidates.Count)];
             budget?.Note(core);
             return core;

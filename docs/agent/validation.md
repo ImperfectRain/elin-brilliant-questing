@@ -19,6 +19,7 @@ class filters with `|` inside quotes. Lab tests live in the separate
 | Change | Smallest useful class(es) | Neighbors / Lab |
 |---|---|---|
 | Event/ID/RNG | `FoundationTests` | `ConsequenceTests`, `PersistenceTests`; `theft` |
+| Simulation/expression stream ownership | `RngIsolationTests` | `FoundationTests`, `StoryletRoutingTests`, `PersistenceTests`; `scene` |
 | Causal provenance/event identity | `CausalProvenanceTests` | `MigrationFixtureTests`, `PersistenceTests`, `AuthorityActionTests`, `CrimeActionTests`, `ItemProvenanceTests`; `theft` |
 | Truth/belief/proof | `KnowledgeTests` or `EvidenceTraceTests` | `RumorCirculationTests`, `AuthorityActionTests`, `NarrativeJournalTests`; `guilds`, `authority` |
 | Memory/callback/provenance | `MemoryTests`, affected `Callback*Tests`, `ItemProvenanceTests` or `LocationHistoryTests` | `CallbackDisclosureTests`, `ChronicleNarrativeTests`; `scene`, `questline` |

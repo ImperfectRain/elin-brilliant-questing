@@ -195,6 +195,29 @@ may change state and are not falsely treated as expression-only differences.
 **Do not:** replace the RNG algorithm, rebalance checks, create another simulation scheduler, force
 new saved streams, or weaken causal provenance to make an independence comparison pass.
 
+**Implementation/evidence** `RngStreams` owns the routed labels in one file, split into the family
+the world is held to - `Check`, `Intent` - and the family that only decides wording - `Line`,
+`Fragment`. The labels themselves are unchanged, so no saved world's next decision moved; what
+changed is that expression is now obtained through a call that always forks, and that a scene is
+keyed on its occurrence before anything draws from it. `RngStreams.Occurrence` derives that key from
+how many times the storylet has already fired on the thread for that focus - thread history the save
+already carries - so nothing new is persisted and a thread restored without firings plays its first
+occurrence. The durable rule is [`D078`](agent/decisions.md); the card is
+[determinism and streams](systems/state.md#determinism-and-streams). `RngIsolationTests` proves at
+the production call sites that rendering, a different content library, extra wording draws and
+allocated delivery identities change no beat, act, roll, route or recorded event and leave the world
+stream where it was, including the attempt made afterwards through the action library; that a
+reopened inspection play draws nothing, mints nothing, records no firing and gains no roll; that
+discovery and availability spend nothing; and that a second genuine firing rolls its own dice and
+keeps doing so across a save and back. Semantic defect fixed in scope: a play that applied no
+consequences still wrote its firing onto the thread, so inspecting a scene both left history behind
+and would have aged the occurrence it was inspecting.
+
+**Live verification still required** headless Core only. The Plugin's live route
+(`DramaChoiceProjector`) already drew from the persisted world stream and is unchanged here; no live
+Elin session has exercised the routed scene path, and the Plugin was not compiled here because the
+Elin assemblies are not redistributable.
+
 **Authority / proof route:** [existing RNG](../src/BrilliantQuesting.Core/Foundation/DeterministicRng.cs),
 [foundation tests](../tests/BrilliantQuesting.Core.Tests/FoundationTests.cs),
 [routed check/line consumers](../src/BrilliantQuesting.Core/Storylets/StoryletRouter.cs),

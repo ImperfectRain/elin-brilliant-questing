@@ -18,6 +18,7 @@ incomplete joins with links to their adopted planning owners.
 | Concept | Read this card |
 |---|---|
 | Event/history | [History](systems/state.md#history) |
+| Determinism/RNG streams | [Determinism and streams](systems/state.md#determinism-and-streams) |
 | Facts/truth | [Truth](systems/state.md#truth) |
 | Knowledge/belief/proof | [Belief and proof](systems/state.md#belief-and-proof) |
 | Memory/callbacks/provenance | [Memory and continuity](systems/state.md#memory-and-continuity) |
@@ -56,6 +57,7 @@ incomplete joins with links to their adopted planning owners.
 |---|---|
 | What happened? | `EventLedger`, through `NarrativeWorldState.Record`; [history](systems/state.md#history) |
 | Why did it happen? | `WorldEvent.Provenance` as recorded, read through `CausalHistory`; never inferred from adjacency, and unknown where nothing was written; [history](systems/state.md#history) |
+| Which stream decided it, and is this the same attempt? | `RngStreams`: simulation forks are keyed on the occurrence, expression only ever gets a fork; [determinism](systems/state.md#determinism-and-streams) |
 | What is objectively true? | BQ claims: `Fact.Truth`; native inventory/life/location: `IVanillaState`; [truth](systems/state.md#truth) |
 | What does X believe? | `KnowledgeGraph` / `KnowledgeRecord`, including false and uncertain claims; [belief](systems/state.md#belief-and-proof) |
 | What can X prove? | `ProofLink` and `KnowledgeGraph.CanProve`; physical backing needs reconciliation; [proof](systems/state.md#belief-and-proof) |

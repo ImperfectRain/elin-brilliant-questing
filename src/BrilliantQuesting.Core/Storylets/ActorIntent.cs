@@ -629,7 +629,7 @@ namespace BrilliantQuesting.Storylets
                 return 0.0;
             }
 
-            DeterministicRng stream = rng.Fork("bq146|intent|" + speaker.Value + "|" + beatId + "|" + act);
+            DeterministicRng stream = RngStreams.Intent(rng, speaker, beatId, act.ToString());
             return (stream.NextDouble() - 0.5) * 2.0 * Jitter;
         }
 
