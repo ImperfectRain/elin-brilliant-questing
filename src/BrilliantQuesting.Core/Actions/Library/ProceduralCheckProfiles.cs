@@ -7,7 +7,8 @@ using BrilliantQuesting.Integration;
 namespace BrilliantQuesting.Actions.Library
 {
     /// <summary>
-    /// The semantic checks the verb library uses, each composed out of vanilla Elin values.
+    /// The semantic checks the verb library uses, each composed out of vanilla Elin values and each
+    /// declaring the kind of uncertainty it is (BQa-003).
     ///
     /// Note what is absent: there is no Deception skill, no Investigation skill, no Intimidation
     /// stat. Elin already has Negotiation, Charisma, Perception, Spot Hidden, Literacy and Anatomy,
@@ -17,14 +18,14 @@ namespace BrilliantQuesting.Actions.Library
     public static class ProceduralCheckProfiles
     {
         /// <summary>Lying, bluffing, denying. Spotted by a perceptive or strong-willed target.</summary>
-        public static readonly CheckProfile Deception = new CheckProfile("proc_deception", 12)
+        public static readonly CheckProfile Deception = new CheckProfile("proc_deception", CheckFamily.Opposed, 12)
             .WithActorSkill(VanillaSkill.Negotiation, 0.4)
             .WithActorAttribute(VanillaAttribute.Charisma, 0.25)
             .WithTargetAttribute(VanillaAttribute.Perception, 0.25)
             .WithTargetAttribute(VanillaAttribute.Will, 0.1);
 
         /// <summary>Asking for cooperation on the level.</summary>
-        public static readonly CheckProfile Persuasion = new CheckProfile("proc_persuasion", 11)
+        public static readonly CheckProfile Persuasion = new CheckProfile("proc_persuasion", CheckFamily.Opposed, 11)
             .WithActorSkill(VanillaSkill.Negotiation, 0.4)
             .WithActorAttribute(VanillaAttribute.Charisma, 0.3)
             .WithTargetAttribute(VanillaAttribute.Will, 0.2);
@@ -33,7 +34,7 @@ namespace BrilliantQuesting.Actions.Library
         /// Leaning on someone. Strength counts as well as Charisma, so a mute bruiser has a social
         /// route that an eloquent weakling does not.
         /// </summary>
-        public static readonly CheckProfile Intimidation = new CheckProfile("proc_intimidation", 12)
+        public static readonly CheckProfile Intimidation = new CheckProfile("proc_intimidation", CheckFamily.Opposed, 12)
             .WithActorSkill(VanillaSkill.Negotiation, 0.2)
             .WithActorAttribute(VanillaAttribute.Charisma, 0.15)
             .WithActorAttribute(VanillaAttribute.Strength, 0.3)
@@ -41,26 +42,26 @@ namespace BrilliantQuesting.Actions.Library
             .WithTargetLevel(0.3);
 
         /// <summary>Pressing someone for what they know.</summary>
-        public static readonly CheckProfile Interrogation = new CheckProfile("proc_interrogation", 12)
+        public static readonly CheckProfile Interrogation = new CheckProfile("proc_interrogation", CheckFamily.Opposed, 12)
             .WithActorSkill(VanillaSkill.Negotiation, 0.35)
             .WithActorAttribute(VanillaAttribute.Charisma, 0.2)
             .WithActorAttribute(VanillaAttribute.Will, 0.15)
             .WithTargetAttribute(VanillaAttribute.Will, 0.3);
 
         /// <summary>Buying compliance. Wealth opens the door; Negotiation sets the price.</summary>
-        public static readonly CheckProfile Bribery = new CheckProfile("proc_bribery", 10)
+        public static readonly CheckProfile Bribery = new CheckProfile("proc_bribery", CheckFamily.Opposed, 10)
             .WithActorSkill(VanillaSkill.Negotiation, 0.35)
             .WithActorAttribute(VanillaAttribute.Charisma, 0.15)
             .WithTargetAttribute(VanillaAttribute.Will, 0.25);
 
         /// <summary>Vanilla pickpocketing already contests Dexterity against target Perception.</summary>
-        public static readonly CheckProfile Pickpocketing = new CheckProfile("proc_pickpocket", 13)
+        public static readonly CheckProfile Pickpocketing = new CheckProfile("proc_pickpocket", CheckFamily.Opposed, 13)
             .WithActorSkill(VanillaSkill.Pickpocket, 0.4)
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.3)
             .WithTargetAttribute(VanillaAttribute.Perception, 0.35);
 
         /// <summary>Turning over a scene for what it can tell you.</summary>
-        public static readonly CheckProfile Investigation = new CheckProfile("proc_investigation", 12)
+        public static readonly CheckProfile Investigation = new CheckProfile("proc_investigation", CheckFamily.Absolute, 12)
             .WithActorSkill(VanillaSkill.SpotHidden, 0.4)
             .WithActorAttribute(VanillaAttribute.Perception, 0.3)
             .WithActorAttribute(VanillaAttribute.Learning, 0.1);
@@ -69,13 +70,13 @@ namespace BrilliantQuesting.Actions.Library
         /// Reading a body. `MD 10.2` names this one outright: Anatomy plus Learning plus
         /// Perception, with the state of the remains as the situational term.
         /// </summary>
-        public static readonly CheckProfile Forensics = new CheckProfile("proc_forensics", 13)
+        public static readonly CheckProfile Forensics = new CheckProfile("proc_forensics", CheckFamily.Absolute, 13)
             .WithActorSkill(VanillaSkill.Anatomy, 0.4)
             .WithActorAttribute(VanillaAttribute.Learning, 0.2)
             .WithActorAttribute(VanillaAttribute.Perception, 0.2);
 
         /// <summary>Getting a document to give up what it says.</summary>
-        public static readonly CheckProfile Documents = new CheckProfile("proc_documents", 11)
+        public static readonly CheckProfile Documents = new CheckProfile("proc_documents", CheckFamily.Absolute, 11)
             .WithActorSkill(VanillaSkill.Literacy, 0.45)
             .WithActorAttribute(VanillaAttribute.Learning, 0.25)
             .WithActorAttribute(VanillaAttribute.Perception, 0.1);
@@ -85,18 +86,18 @@ namespace BrilliantQuesting.Actions.Library
         /// <see cref="Documents"/> and leans on Learning rather than Perception, because a cipher
         /// or a dead script is a thing you work out, not a thing you notice.
         /// </summary>
-        public static readonly CheckProfile Translation = new CheckProfile("proc_translation", 15)
+        public static readonly CheckProfile Translation = new CheckProfile("proc_translation", CheckFamily.Absolute, 15)
             .WithActorSkill(VanillaSkill.Literacy, 0.35)
             .WithActorAttribute(VanillaAttribute.Learning, 0.35);
 
         /// <summary>Working out what a substance is, and therefore what it did.</summary>
-        public static readonly CheckProfile SubstanceAnalysis = new CheckProfile("proc_substance", 13)
+        public static readonly CheckProfile SubstanceAnalysis = new CheckProfile("proc_substance", CheckFamily.Absolute, 13)
             .WithActorSkill(VanillaSkill.Alchemy, 0.4)
             .WithActorAttribute(VanillaAttribute.Learning, 0.2)
             .WithActorAttribute(VanillaAttribute.Perception, 0.15);
 
         /// <summary>Reading what a place still shows of what happened in it. `MD 10.2` tracking.</summary>
-        public static readonly CheckProfile Tracking = new CheckProfile("proc_tracking", 12)
+        public static readonly CheckProfile Tracking = new CheckProfile("proc_tracking", CheckFamily.Absolute, 12)
             .WithActorSkill(VanillaSkill.SpotHidden, 0.35)
             .WithActorSkill(VanillaSkill.Travel, 0.2)
             .WithActorAttribute(VanillaAttribute.Perception, 0.3);
@@ -105,7 +106,7 @@ namespace BrilliantQuesting.Actions.Library
         /// Staying with someone, or near them, without being the thing they notice. The one
         /// investigation profile that is contested, because the other side is a person.
         /// </summary>
-        public static readonly CheckProfile Shadowing = new CheckProfile("proc_shadowing", 12)
+        public static readonly CheckProfile Shadowing = new CheckProfile("proc_shadowing", CheckFamily.Opposed, 12)
             .WithActorSkill(VanillaSkill.Stealth, 0.4)
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.2)
             .WithTargetAttribute(VanillaAttribute.Perception, 0.35);
@@ -123,18 +124,18 @@ namespace BrilliantQuesting.Actions.Library
         /// Will carries it, and Charisma helps a little in the way practice does; no skill, because
         /// there is no skill in Elin for saying a thing you do not want to say.
         /// </summary>
-        public static readonly CheckProfile Nerve = new CheckProfile("proc_nerve", 11)
+        public static readonly CheckProfile Nerve = new CheckProfile("proc_nerve", CheckFamily.Absolute, 11)
             .WithActorAttribute(VanillaAttribute.Will, 0.4)
             .WithActorAttribute(VanillaAttribute.Charisma, 0.2);
 
         /// <summary>Holding two accounts side by side until one of them stops fitting.</summary>
-        public static readonly CheckProfile Corroboration = new CheckProfile("proc_corroboration", 12)
+        public static readonly CheckProfile Corroboration = new CheckProfile("proc_corroboration", CheckFamily.Absolute, 12)
             .WithActorSkill(VanillaSkill.Literacy, 0.15)
             .WithActorAttribute(VanillaAttribute.Learning, 0.35)
             .WithActorAttribute(VanillaAttribute.Perception, 0.25);
 
         /// <summary>Making a false thing look true, and the target's Literacy arguing back.</summary>
-        public static readonly CheckProfile Fabrication = new CheckProfile("proc_fabrication", 14)
+        public static readonly CheckProfile Fabrication = new CheckProfile("proc_fabrication", CheckFamily.Opposed, 14)
             .WithActorSkill(VanillaSkill.Literacy, 0.3)
             .WithActorSkill(VanillaSkill.Stealth, 0.2)
             .WithActorAttribute(VanillaAttribute.Learning, 0.2)
@@ -146,7 +147,7 @@ namespace BrilliantQuesting.Actions.Library
         /// Uncontested, because a strongbox is not a person. The difficulty is the thing itself
         /// and whoever happens to be standing about, and both arrive as situational terms.
         /// </summary>
-        public static readonly CheckProfile Burglary = new CheckProfile("proc_burglary", 13)
+        public static readonly CheckProfile Burglary = new CheckProfile("proc_burglary", CheckFamily.Absolute, 13)
             .WithActorSkill(VanillaSkill.Lockpicking, 0.35)
             .WithActorSkill(VanillaSkill.Stealth, 0.25)
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.2);
@@ -157,12 +158,12 @@ namespace BrilliantQuesting.Actions.Library
         /// Easier than <see cref="Sabotage"/>, because destroying a paper takes no craft at all -
         /// what takes some is being nowhere near it when anybody thinks to look.
         /// </summary>
-        public static readonly CheckProfile CoveringTracks = new CheckProfile("proc_covering_tracks", 10)
+        public static readonly CheckProfile CoveringTracks = new CheckProfile("proc_covering_tracks", CheckFamily.Absolute, 10)
             .WithActorSkill(VanillaSkill.Stealth, 0.4)
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.2);
 
         /// <summary>Breaking the thing somebody depends on, in a way that is not obviously breaking.</summary>
-        public static readonly CheckProfile Sabotage = new CheckProfile("proc_sabotage", 13)
+        public static readonly CheckProfile Sabotage = new CheckProfile("proc_sabotage", CheckFamily.Absolute, 13)
             .WithActorSkill(VanillaSkill.Stealth, 0.25)
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.3)
             .WithActorAttribute(VanillaAttribute.Learning, 0.15);
@@ -172,7 +173,7 @@ namespace BrilliantQuesting.Actions.Library
         /// because squeezing somebody with a great deal to lose is a different job to squeezing
         /// somebody with nothing.
         /// </summary>
-        public static readonly CheckProfile Extortion = new CheckProfile("proc_extortion", 13)
+        public static readonly CheckProfile Extortion = new CheckProfile("proc_extortion", CheckFamily.Opposed, 13)
             .WithActorSkill(VanillaSkill.Negotiation, 0.25)
             .WithActorAttribute(VanillaAttribute.Will, 0.2)
             .WithTargetAttribute(VanillaAttribute.Will, 0.4)
@@ -181,14 +182,19 @@ namespace BrilliantQuesting.Actions.Library
         /// <summary>
         /// Agreeing a price for something that cannot be sold over a counter. Appraising earns its
         /// place here: knowing what a thing is worth is the whole of not being cheated.
+        ///
+        /// Classified absolute although a fence is a person, because this row has never read one:
+        /// what it measures is whether the goods can be priced at all, and the buyer's own shrewdness
+        /// arrives as a situational term. Reading the fence would be a balance change, which is not
+        /// this classification's to make - it is recorded as a limit rather than assumed away.
         /// </summary>
-        public static readonly CheckProfile Fencing = new CheckProfile("proc_fencing", 11)
+        public static readonly CheckProfile Fencing = new CheckProfile("proc_fencing", CheckFamily.Absolute, 11)
             .WithActorSkill(VanillaSkill.Negotiation, 0.3)
             .WithActorSkill(VanillaSkill.Appraising, 0.3)
             .WithActorAttribute(VanillaAttribute.Charisma, 0.1);
 
         /// <summary>Putting a thing on a road nobody watches.</summary>
-        public static readonly CheckProfile Smuggling = new CheckProfile("proc_smuggling", 12)
+        public static readonly CheckProfile Smuggling = new CheckProfile("proc_smuggling", CheckFamily.Absolute, 12)
             .WithActorSkill(VanillaSkill.Stealth, 0.3)
             .WithActorSkill(VanillaSkill.Travel, 0.2)
             .WithActorSkill(VanillaSkill.Negotiation, 0.15);
@@ -201,7 +207,7 @@ namespace BrilliantQuesting.Actions.Library
         /// something ordinary and cooking something a physician would accept are the same craft at
         /// two difficulties rather than two crafts.
         /// </summary>
-        public static readonly CheckProfile Cookery = new CheckProfile("proc_cookery", 10)
+        public static readonly CheckProfile Cookery = new CheckProfile("proc_cookery", CheckFamily.Absolute, 10)
             .WithActorSkill(VanillaSkill.Cooking, 0.45)
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.2)
             .WithActorAttribute(VanillaAttribute.Learning, 0.1);
@@ -211,7 +217,7 @@ namespace BrilliantQuesting.Actions.Library
         /// neighbours meet: the kitchen work is Cooking and the chemistry is Alchemy, and reading
         /// both is nearer the truth than inventing a third.
         /// </summary>
-        public static readonly CheckProfile Brewing = new CheckProfile("proc_brewing", 11)
+        public static readonly CheckProfile Brewing = new CheckProfile("proc_brewing", CheckFamily.Absolute, 11)
             .WithActorSkill(VanillaSkill.Cooking, 0.25)
             .WithActorSkill(VanillaSkill.Alchemy, 0.25)
             .WithActorAttribute(VanillaAttribute.Learning, 0.2);
@@ -222,13 +228,13 @@ namespace BrilliantQuesting.Actions.Library
         /// The making counterpart to <see cref="SubstanceAnalysis"/>, and harder: telling what is
         /// in a bottle is not the same job as getting a bottle to be worth drinking.
         /// </summary>
-        public static readonly CheckProfile Compounding = new CheckProfile("proc_compounding", 13)
+        public static readonly CheckProfile Compounding = new CheckProfile("proc_compounding", CheckFamily.Absolute, 13)
             .WithActorSkill(VanillaSkill.Alchemy, 0.45)
             .WithActorAttribute(VanillaAttribute.Learning, 0.25)
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.1);
 
         /// <summary>Raising something that has to stand up. Elin's own Building skill.</summary>
-        public static readonly CheckProfile Construction = new CheckProfile("proc_construction", 12)
+        public static readonly CheckProfile Construction = new CheckProfile("proc_construction", CheckFamily.Absolute, 12)
             .WithActorSkill(VanillaSkill.Building, 0.4)
             .WithActorSkill(VanillaSkill.Carpentry, 0.2)
             .WithActorAttribute(VanillaAttribute.Strength, 0.15);
@@ -237,7 +243,7 @@ namespace BrilliantQuesting.Actions.Library
         /// Putting a broken thing back into service, which is a different skill from building one
         /// - working out what went wrong is most of it, so Learning weighs as heavily as the hands.
         /// </summary>
-        public static readonly CheckProfile Repairs = new CheckProfile("proc_repairs", 12)
+        public static readonly CheckProfile Repairs = new CheckProfile("proc_repairs", CheckFamily.Absolute, 12)
             .WithActorSkill(VanillaSkill.Carpentry, 0.35)
             .WithActorAttribute(VanillaAttribute.Learning, 0.25)
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.15);
@@ -246,7 +252,7 @@ namespace BrilliantQuesting.Actions.Library
         /// Making a thing to somebody's specification when no named craft covers it. Elin's own
         /// Handicraft, which is exactly the generalist's skill.
         /// </summary>
-        public static readonly CheckProfile Craftsmanship = new CheckProfile("proc_craftsmanship", 12)
+        public static readonly CheckProfile Craftsmanship = new CheckProfile("proc_craftsmanship", CheckFamily.Absolute, 12)
             .WithActorSkill(VanillaSkill.Handicraft, 0.4)
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.25)
             .WithActorAttribute(VanillaAttribute.Learning, 0.15);
@@ -260,7 +266,7 @@ namespace BrilliantQuesting.Actions.Library
         /// asking goes, which is Elin's own Faith skill, the Will to ask for something large, and
         /// the Magic that a granted power runs through.
         /// </summary>
-        public static readonly CheckProfile Devotion = new CheckProfile("proc_devotion", 13)
+        public static readonly CheckProfile Devotion = new CheckProfile("proc_devotion", CheckFamily.Absolute, 13)
             .WithActorSkill(VanillaSkill.Faith, 0.45)
             .WithActorAttribute(VanillaAttribute.Will, 0.2)
             .WithActorAttribute(VanillaAttribute.Magic, 0.15);
@@ -275,7 +281,7 @@ namespace BrilliantQuesting.Actions.Library
         /// already know you, which is Elin's own Negotiation, the Charisma under it, and the Will
         /// to press a hall that would rather be doing something else.
         /// </summary>
-        public static readonly CheckProfile GuildStanding = new CheckProfile("proc_guild_standing", 12)
+        public static readonly CheckProfile GuildStanding = new CheckProfile("proc_guild_standing", CheckFamily.Absolute, 12)
             .WithActorSkill(VanillaSkill.Negotiation, 0.4)
             .WithActorAttribute(VanillaAttribute.Charisma, 0.2)
             .WithActorAttribute(VanillaAttribute.Will, 0.15);
@@ -284,60 +290,60 @@ namespace BrilliantQuesting.Actions.Library
         /// Putting a collapsed business back on its feet. Money opens the attempt; Investing and
         /// Negotiation decide whether the old counter can actually trade again.
         /// </summary>
-        public static readonly CheckProfile RecoveryInvestment = new CheckProfile("proc_recovery_investment", 14)
+        public static readonly CheckProfile RecoveryInvestment = new CheckProfile("proc_recovery_investment", CheckFamily.Absolute, 14)
             .WithActorSkill(VanillaSkill.Investing, 0.45)
             .WithActorSkill(VanillaSkill.Negotiation, 0.2)
             .WithActorAttribute(VanillaAttribute.Learning, 0.15);
 
         /// <summary>Moving a physical obstruction by strength and stamina.</summary>
-        public static readonly CheckProfile Clearing = new CheckProfile("proc_clearing", 12)
+        public static readonly CheckProfile Clearing = new CheckProfile("proc_clearing", CheckFamily.Absolute, 12)
             .WithActorAttribute(VanillaAttribute.Strength, 0.35)
             .WithActorAttribute(VanillaAttribute.Endurance, 0.3)
             .WithActorSkill(VanillaSkill.Mining, 0.15);
 
         /// <summary>Making a way around stone with Elin's own mining skill.</summary>
-        public static readonly CheckProfile MiningBypass = new CheckProfile("proc_mine_bypass", 13)
+        public static readonly CheckProfile MiningBypass = new CheckProfile("proc_mine_bypass", CheckFamily.Absolute, 13)
             .WithActorSkill(VanillaSkill.Mining, 0.45)
             .WithActorAttribute(VanillaAttribute.Strength, 0.2)
             .WithActorAttribute(VanillaAttribute.Endurance, 0.15);
 
         /// <summary>Forcing a barrier where subtle access is not the problem.</summary>
-        public static readonly CheckProfile Breaking = new CheckProfile("proc_breaking", 13)
+        public static readonly CheckProfile Breaking = new CheckProfile("proc_breaking", CheckFamily.Absolute, 13)
             .WithActorAttribute(VanillaAttribute.Strength, 0.45)
             .WithActorAttribute(VanillaAttribute.Endurance, 0.2);
 
         /// <summary>Getting a heavy or awkward thing under control.</summary>
-        public static readonly CheckProfile Carrying = new CheckProfile("proc_carrying", 11)
+        public static readonly CheckProfile Carrying = new CheckProfile("proc_carrying", CheckFamily.Absolute, 11)
             .WithActorAttribute(VanillaAttribute.Strength, 0.35)
             .WithActorAttribute(VanillaAttribute.Endurance, 0.25);
 
         /// <summary>Moving something through the world without losing or ruining it.</summary>
-        public static readonly CheckProfile Transport = new CheckProfile("proc_transport", 11)
+        public static readonly CheckProfile Transport = new CheckProfile("proc_transport", CheckFamily.Absolute, 11)
             .WithActorSkill(VanillaSkill.Travel, 0.3)
             .WithActorAttribute(VanillaAttribute.Endurance, 0.25)
             .WithActorAttribute(VanillaAttribute.Strength, 0.15);
 
         /// <summary>Getting someone out of danger by reaching and moving them.</summary>
-        public static readonly CheckProfile Rescue = new CheckProfile("proc_rescue", 12)
+        public static readonly CheckProfile Rescue = new CheckProfile("proc_rescue", CheckFamily.Absolute, 12)
             .WithActorAttribute(VanillaAttribute.Strength, 0.25)
             .WithActorAttribute(VanillaAttribute.Endurance, 0.25)
             .WithActorSkill(VanillaSkill.Travel, 0.15);
 
         /// <summary>Keeping someone moving with you through a bad route.</summary>
-        public static readonly CheckProfile Escort = new CheckProfile("proc_escort", 11)
+        public static readonly CheckProfile Escort = new CheckProfile("proc_escort", CheckFamily.Absolute, 11)
             .WithActorSkill(VanillaSkill.Travel, 0.3)
             .WithActorAttribute(VanillaAttribute.Endurance, 0.2)
             .WithActorAttribute(VanillaAttribute.Will, 0.15);
 
         /// <summary>Taking control of a resisting person.</summary>
-        public static readonly CheckProfile Capture = new CheckProfile("proc_capture", 13)
+        public static readonly CheckProfile Capture = new CheckProfile("proc_capture", CheckFamily.Opposed, 13)
             .WithActorAttribute(VanillaAttribute.Strength, 0.3)
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.2)
             .WithTargetAttribute(VanillaAttribute.Dexterity, 0.25)
             .WithTargetLevel(0.25);
 
         /// <summary>Holding somebody in place once close enough.</summary>
-        public static readonly CheckProfile Restrain = new CheckProfile("proc_restrain", 12)
+        public static readonly CheckProfile Restrain = new CheckProfile("proc_restrain", CheckFamily.Opposed, 12)
             .WithActorAttribute(VanillaAttribute.Strength, 0.25)
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.25)
             .WithTargetAttribute(VanillaAttribute.Strength, 0.25);
@@ -350,7 +356,7 @@ namespace BrilliantQuesting.Actions.Library
         /// trade has somewhere else to be. Charisma and Negotiation are Elin's own reading of
         /// whether a stranger's word is worth trusting.
         /// </summary>
-        public static readonly CheckProfile Hospitality = new CheckProfile("proc_hospitality", 11)
+        public static readonly CheckProfile Hospitality = new CheckProfile("proc_hospitality", CheckFamily.Opposed, 11)
             .WithActorAttribute(VanillaAttribute.Charisma, 0.35)
             .WithActorSkill(VanillaSkill.Negotiation, 0.25)
             .WithActorAttribute(VanillaAttribute.Will, 0.1)
@@ -364,7 +370,7 @@ namespace BrilliantQuesting.Actions.Library
         /// the place is the kind of place that can keep one - the second of which arrives as the
         /// Home's own Public Safety, not as a term on this row.
         /// </summary>
-        public static readonly CheckProfile Vigilance = new CheckProfile("proc_vigilance", 12)
+        public static readonly CheckProfile Vigilance = new CheckProfile("proc_vigilance", CheckFamily.Absolute, 12)
             .WithActorAttribute(VanillaAttribute.Will, 0.3)
             .WithActorAttribute(VanillaAttribute.Perception, 0.2)
             .WithActorSkill(VanillaSkill.Negotiation, 0.2);
@@ -376,7 +382,7 @@ namespace BrilliantQuesting.Actions.Library
         /// and in how well the place is run. Learning and Negotiation are what a person organising
         /// a shipment reads off, and Travel is the road it has to cover.
         /// </summary>
-        public static readonly CheckProfile Logistics = new CheckProfile("proc_logistics", 11)
+        public static readonly CheckProfile Logistics = new CheckProfile("proc_logistics", CheckFamily.Absolute, 11)
             .WithActorAttribute(VanillaAttribute.Learning, 0.25)
             .WithActorSkill(VanillaSkill.Negotiation, 0.3)
             .WithActorSkill(VanillaSkill.Travel, 0.15);
@@ -385,33 +391,37 @@ namespace BrilliantQuesting.Actions.Library
         /// Public non-crisis competence: work the crowd, keep your hands steady, and make the
         /// ordinary skill being judged count. It is deliberately local to low-stakes contests; a
         /// cooking emergency still uses cookery, and a hard bargain still uses negotiation.
+        ///
+        /// Absolute despite the name: a village contest is judged against a standard, and the row
+        /// reads no rival. Competition between named actors is BQa-014's subject, not a target term
+        /// smuggled in here.
         /// </summary>
-        public static readonly CheckProfile FestivalCompetition = new CheckProfile("proc_festival_competition", 11)
+        public static readonly CheckProfile FestivalCompetition = new CheckProfile("proc_festival_competition", CheckFamily.Absolute, 11)
             .WithActorSkill(VanillaSkill.Cooking, 0.3)
             .WithActorSkill(VanillaSkill.Negotiation, 0.2)
             .WithActorAttribute(VanillaAttribute.Dexterity, 0.2)
             .WithActorAttribute(VanillaAttribute.Charisma, 0.15);
 
         /// <summary>Winning a room with the game's own performance skill.</summary>
-        public static readonly CheckProfile Performance = new CheckProfile("proc_performance", 11)
+        public static readonly CheckProfile Performance = new CheckProfile("proc_performance", CheckFamily.Opposed, 11)
             .WithActorSkill(VanillaSkill.Music, 0.45)
             .WithActorAttribute(VanillaAttribute.Charisma, 0.25)
             .WithTargetAttribute(VanillaAttribute.Will, 0.15);
 
         /// <summary>Turning time spent fishing into a supply route, not a dialogue claim.</summary>
-        public static readonly CheckProfile FishingHaul = new CheckProfile("proc_fishing_haul", 10)
+        public static readonly CheckProfile FishingHaul = new CheckProfile("proc_fishing_haul", CheckFamily.Absolute, 10)
             .WithActorSkill(VanillaSkill.Fishing, 0.45)
             .WithActorAttribute(VanillaAttribute.Perception, 0.2)
             .WithActorAttribute(VanillaAttribute.Endurance, 0.1);
 
         /// <summary>Turning harvested crops into a supply route, through Elin's Farming skill.</summary>
-        public static readonly CheckProfile Harvest = new CheckProfile("proc_harvest", 10)
+        public static readonly CheckProfile Harvest = new CheckProfile("proc_harvest", CheckFamily.Absolute, 10)
             .WithActorSkill(VanillaSkill.Farming, 0.45)
             .WithActorAttribute(VanillaAttribute.Learning, 0.15)
             .WithActorAttribute(VanillaAttribute.Endurance, 0.15);
 
         /// <summary>Being believed when you make a public claim.</summary>
-        public static readonly CheckProfile Credibility = new CheckProfile("proc_credibility", 12)
+        public static readonly CheckProfile Credibility = new CheckProfile("proc_credibility", CheckFamily.Opposed, 12)
             .WithActorSkill(VanillaSkill.Negotiation, 0.3)
             .WithActorAttribute(VanillaAttribute.Charisma, 0.25)
             .WithTargetAttribute(VanillaAttribute.Will, 0.2);
@@ -508,6 +518,22 @@ namespace BrilliantQuesting.Actions.Library
                 case "impersonate": return Deception;
                 default: return null;
             }
+        }
+
+        /// <summary>
+        /// The kind of uncertainty a verb's attempt represents (BQa-003).
+        ///
+        /// Every verb has an answer here, including the ones that roll nothing:
+        /// <see cref="CheckFamily.Certain"/> is a classification, not a missing profile. Offering
+        /// at an altar, buying supplies over a counter and investing in a supplier are settled by
+        /// whether you have the thing and whether the counter will deal, both of which are decided
+        /// before any dice would come out - so saying "no check" about them is the true answer
+        /// rather than a gap in this table.
+        /// </summary>
+        public static CheckFamily FamilyForAction(string actionId)
+        {
+            CheckProfile profile = ForAction(actionId);
+            return profile == null ? CheckFamily.Certain : profile.Family;
         }
 
         private static readonly Dictionary<string, CheckProfile> ByProfileId = BuildById();

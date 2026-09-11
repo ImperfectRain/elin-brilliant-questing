@@ -15,9 +15,14 @@ namespace BrilliantQuesting.Checks
     ///     roll 1d20; natural 20 is a critical pass, natural 1 a critical fail,
     ///     otherwise roll >= final DC passes.
     ///
-    /// This exists so the simulation can be developed and tested with no game process attached.
-    /// In game the intention is still to defer to vanilla Check where it maps cleanly - the point
-    /// of matching the arithmetic is that swapping resolvers should not re-balance the content.
+    /// The arithmetic is shaped after vanilla's so that the numbers on a profile mean in BQ what
+    /// they would mean in Elin, and so the difficulty wording a native row prints is not a lie
+    /// about our DC. It is not a staging post on the way to native resolution: this resolver is
+    /// the authority for composite BQ checks, and stays so while `Check.Perform` rolls Elin's RNG
+    /// rather than the persisted stream a replay is held to (`ICheckResolver`, `D079`).
+    ///
+    /// Every term above is a flat contribution to one sum, opposed and absolute profiles alike.
+    /// `CheckProfile.Family` classifies which is which (BQa-003) without yet changing that sum.
     /// </summary>
     public sealed class VanillaStyleCheckResolver : ICheckResolver
     {

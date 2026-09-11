@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using BrilliantQuesting.Integration;
 
@@ -6,17 +7,29 @@ namespace BrilliantQuesting.Checks
     /// <summary>
     /// Maps a semantic action ("lie to this guard") onto real Elin values.
     ///
-    /// A profile is data, not code: it names which of the actor's skills and attributes reduce
-    /// the difficulty and which of the target's resist it. This is the piece intended to migrate
-    /// into a native Check source sheet row once the runtime spike confirms the format - the
-    /// resolver below deliberately mirrors vanilla's arithmetic so that migration is a swap, not
-    /// a rewrite.
+    /// A profile is data, not code: it names the kind of uncertainty it represents, which of the
+    /// actor's skills and attributes reduce the difficulty, and which of the target's resist it.
+    ///
+    /// A vanilla `SourceCheck` row is single-element - one actor element, one target element, a
+    /// level modifier - and most of these are deliberately composite, so a profile is not a row
+    /// waiting to become one. Shipped rows earn their keep through `Check.GetText`, giving the
+    /// player vanilla's own difficulty wording over our arithmetic. Composition and the roll stay
+    /// here; see <see cref="ICheckResolver"/> for why the roll in particular does.
     /// </summary>
     public sealed class CheckProfile
     {
-        public CheckProfile(string id, int baseDifficulty)
+        public CheckProfile(string id, CheckFamily family, int baseDifficulty)
         {
+            if (family == CheckFamily.Certain)
+            {
+                throw new ArgumentException(
+                    "Check profile '" + id + "' cannot be Certain: a profile is a roll, and an attempt with no "
+                    + "uncertainty in it has no profile at all.",
+                    nameof(family));
+            }
+
             Id = id;
+            Family = family;
             BaseDifficulty = baseDifficulty;
             ActorSkills = new List<WeightedSkill>();
             ActorAttributes = new List<WeightedAttribute>();
@@ -27,6 +40,11 @@ namespace BrilliantQuesting.Checks
         }
 
         public string Id { get; }
+
+        /// <summary>
+        /// The kind of uncertainty this check is, declared rather than inferred (BQa-003).
+        /// </summary>
+        public CheckFamily Family { get; }
 
         /// <summary>Difficulty before anybody's stats are considered. Roughly a d20 target.</summary>
         public int BaseDifficulty { get; }
@@ -42,6 +60,24 @@ namespace BrilliantQuesting.Checks
 
         /// <summary>Whether a higher-level target is inherently harder, as vanilla GetDC does.</summary>
         public double TargetLevelWeight { get; private set; }
+
+        /// <summary>
+        /// Whether this profile actually names somebody on the other side.
+        ///
+        /// An <see cref="CheckFamily.Opposed"/> profile that declares no opposition is a row that
+        /// has lost the thing that made it opposed; the classification test rejects it rather than
+        /// letting it resolve as a fixed challenge under an opposed label.
+        /// </summary>
+        public bool DeclaresOpposition => TargetAttributes.Count > 0 || TargetLevelWeight != 0.0;
+
+        /// <summary>
+        /// Whether the target's level is part of the opposition on this profile (BQa-003).
+        ///
+        /// Only an opposed profile can carry a level term at all, so this is that declaration read
+        /// back rather than a second switch. A fixed challenge does not get harder because the
+        /// actor levelled, and nothing may infer a universal level term from its absence here.
+        /// </summary>
+        public bool TargetLevelIsOpposition => Family == CheckFamily.Opposed && TargetLevelWeight != 0.0;
 
         /// <summary>
         /// Faces on the die. Vanilla's SourceCheck row carries this per row rather than assuming
@@ -69,6 +105,7 @@ namespace BrilliantQuesting.Checks
 
         public CheckProfile WithTargetAttribute(VanillaAttribute attribute, double weight = 0.5)
         {
+            RequireOpposed("a resisting target attribute");
             TargetAttributes.Add(new WeightedAttribute(attribute, weight));
             return this;
         }
@@ -84,8 +121,26 @@ namespace BrilliantQuesting.Checks
 
         public CheckProfile WithTargetLevel(double weight = 0.5)
         {
+            RequireOpposed("a target level term");
             TargetLevelWeight = weight;
             return this;
+        }
+
+        /// <summary>
+        /// Refuses opposition on a profile that declared itself a fixed challenge.
+        ///
+        /// The point of declaring the family is lost if a row can then quietly acquire the other
+        /// family's terms: a lock that resists by Will is either miscategorised or not a lock, and
+        /// both of those are worth a build failure rather than a silent difficulty.
+        /// </summary>
+        private void RequireOpposed(string term)
+        {
+            if (Family != CheckFamily.Opposed)
+            {
+                throw new InvalidOperationException(
+                    "Check profile '" + Id + "' is classified " + Family + " and cannot declare " + term
+                    + "; classify it as Opposed or drop the term.");
+            }
         }
 
         public readonly struct WeightedSkill

@@ -51,6 +51,23 @@ by Elin. Plugin `ElinCheckResolver` defaults to portable resolution; its native 
 and native rows supply difficulty text. Do not swap to Elin RNG merely because `Check.Perform` exists.
 Consumers: verbs and routed storylet beats.
 
+**Check family.** Every profile declares a `CheckFamily`: `Opposed` (capability against a resisting
+actor or state) or `Absolute` (capability against a fixed challenge). `Certain` is the third kind and
+never sits on a profile - an attempt with no uncertainty has no profile, and `FamilyForAction` returns
+it for the verbs that roll nothing. The family is declared, not inferred from the terms present: an
+absolute profile may not take a target attribute or target level at all (`InvalidOperationException`),
+and an opposed profile that declares no opposition fails classification. `TargetLevelIsOpposition`
+is the only sanctioned reading of a level term; nothing may infer universal level scaling from its
+absence. Family classifies; it does not yet alter arithmetic, which stays one flat sum of declared
+terms. See [D079](../agent/decisions.md#d079--a-check-declares-which-kind-of-uncertainty-it-is-and-the-portable-resolver-is-the-authority-rather-than-a-stand-in).
+
+Limits the classification records rather than assumes away. An opposed profile resolved with no
+target keeps its actor terms and silently loses its opposing ones. A stat that cannot be read -
+unknown alias, unbound `Chara`, disabled read capability - returns 0 from both vanilla states and is
+dropped from the trace exactly like a genuine 0; only `CheckRequest.WithUnreadTerm` distinguishes
+them. `proc_fencing` and `proc_festival_competition` are classified absolute because neither row
+reads a rival, which is a limit of those rows, not proof that nobody is on the other side.
+
 Source: [VanillaStyleCheckResolver](../../src/BrilliantQuesting.Core/Checks/VanillaStyleCheckResolver.cs),
 [ElinCheckResolver](../../src/BrilliantQuesting.Plugin/ElinCheckResolver.cs).
 Proof: [CheckTests](../../tests/BrilliantQuesting.Core.Tests/CheckTests.cs).

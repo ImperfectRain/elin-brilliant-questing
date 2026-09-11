@@ -2357,3 +2357,36 @@ gets the same answer. Discovery and availability are read-only for the same reas
 Reason: without the separation, adding a line of content or turning rendering on would silently
 move a check; without the occurrence key, the same scene played twice would be the same scene twice,
 and a player who did not like an outcome could reload to be handed the identical one.
+
+---
+
+## D079 — A check declares which kind of uncertainty it is, and the portable resolver is the authority rather than a stand-in
+
+Three things can be true of an attempt: somebody is resisting it, a fixed thing in the world is
+hard, or there is no uncertainty in it at all. `CheckFamily` makes a profile say which, because the
+alternative is reading it off whichever terms happen to be on the row - and "nobody is resisting
+this" and "somebody is resisting this and the row forgot to name them" produce the same flat sum
+today while wanting opposite treatment the moment difficulty stops being a flat sum. Inferring would
+answer the second with the first, silently, in the direction that scales a fixed challenge against
+the actor.
+
+Declaring it is also enforceable in a way inferring is not. An absolute profile cannot take a target
+attribute or a target level at all; an opposed profile that names nobody fails classification rather
+than resolving as a fixed challenge under an opposed label. The target's level is opposition only
+where a profile declared both, so nothing may read a universal level term out of its absence. The
+no-roll family never sits on a profile: a profile is a roll, and an attempt settled before the dice
+- the offering you either have or do not, the counter that either deals or does not - has no profile
+and is classified by the verb instead. Classification changes no arithmetic; it is what later
+scaling is allowed to read.
+
+The second half is what the classification is *not* a step toward. `Check.Perform` rolls Elin's RNG,
+not the persisted stream a replay is held to, and a `SourceCheck` row is single-element where most BQ
+profiles are deliberately composite. Both are reasons the portable resolver is the authority for
+composite BQ checks, and neither is a defect awaiting a runtime spike. Native rows remain genuinely
+useful for `Check.GetText`, so the player reads vanilla's own difficulty wording over our arithmetic.
+Matching vanilla's shape is so those numbers mean the same thing in both places, not so the resolver
+can one day be swapped out.
+
+Reason: a classification that could be inferred would be re-inferred differently by the next thing
+that needed it, and a resolver documented as temporary invites a later step to "finish" the migration
+and lose replay authority to Elin's RNG to fix a problem that was never there.
