@@ -1384,6 +1384,98 @@ namespace BrilliantQuesting.Diagnostics
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Why one recorded event happened, with the three things that must never be read as each
+        /// other kept apart on the page.
+        ///
+        /// Objective cause is what the world holds to have led here. Motive evidence is what the
+        /// actor acted on, and is printed as theirs rather than as the world's - an accusation
+        /// built on a planted claim is a sincere act about a false belief, and a report that
+        /// listed the claim beside the theft as though both were established would be the exact
+        /// confusion `LW §12` asks this report to prevent. Outcome is what the act produced.
+        ///
+        /// A reference whose record is gone is printed as missing rather than dropped. Nothing
+        /// here mints an id, records an event or advances a stream: opening this report costs the
+        /// world nothing, however many times it is opened and then closed again.
+        /// </summary>
+        public static string DescribeCausality(NarrativeWorldState world, EntityId eventId)
+        {
+            CausalReading reading = CausalHistory.Read(world, eventId);
+            if (reading == null)
+            {
+                return "  " + eventId + " is not in the ledger.\n";
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append("  ").Append(DescribeEvent(world, eventId)).Append('\n');
+
+            if (reading.IsUnknown)
+            {
+                // Not "nothing caused it". Nothing was written down about what did, which is the
+                // state of every event recorded before this seam existed.
+                sb.Append("  why it happened: unknown - no provenance was recorded\n");
+                return sb.ToString();
+            }
+
+            AppendCauses(sb, world, "caused by", reading.Triggers);
+            AppendCauses(sb, world, "about", reading.About);
+            AppendCauses(sb, world, "acted on (motive evidence, not established fact)", reading.Motives);
+            AppendCauses(sb, world, "produced", reading.Outcomes);
+
+            if (reading.Decision != null)
+            {
+                sb.Append("  decided: ").Append(reading.Decision.Decision);
+                if (reading.Decision.Reasons.Count > 0)
+                {
+                    sb.Append(" on");
+                    for (int i = 0; i < reading.Decision.Reasons.Count; i++)
+                    {
+                        sb.Append(' ').Append(reading.Decision.Reasons[i]);
+                    }
+                }
+
+                sb.Append('\n');
+            }
+
+            return sb.ToString();
+        }
+
+        private static void AppendCauses(
+            StringBuilder sb, NarrativeWorldState world, string label, IReadOnlyList<ResolvedCause> causes)
+        {
+            for (int i = 0; i < causes.Count; i++)
+            {
+                ResolvedCause cause = causes[i];
+                sb.Append("  ").Append(label).Append(": ");
+                if (cause.Occurrence != null)
+                {
+                    sb.Append(DescribeEvent(world, cause.Reference));
+                }
+                else if (cause.Claim != null)
+                {
+                    sb.Append("the claim that ").Append(DescribeFact(world, cause.Claim));
+                }
+                else if (cause.Matter != null)
+                {
+                    sb.Append("the matter ").Append(cause.Matter.ArchetypeId).Append(' ').Append(cause.Reference);
+                }
+                else
+                {
+                    sb.Append(cause.Reference).Append(" (recorded, but no longer in the world)");
+                }
+
+                sb.Append('\n');
+            }
+        }
+
+        private static string DescribeFact(NarrativeWorldState world, Knowledge.Fact fact)
+        {
+            string subject = world.Registry.NameOf(fact.Subject);
+            string tail = fact.Object.IsNone ? fact.Value : world.Registry.NameOf(fact.Object);
+            return subject + " " + fact.Predicate + (string.IsNullOrEmpty(tail) ? string.Empty : " " + tail)
+                   + " [" + fact.Truth + "]";
+        }
+
         public static string DescribeHistory(NarrativeWorldState world, int limit = 20)
         {
             StringBuilder sb = new StringBuilder();
@@ -1445,6 +1537,10 @@ namespace BrilliantQuesting.Diagnostics
                 sb.Append("  created ").Append(thread.CreatedAt).Append(", last advanced ")
                   .Append(thread.LastAdvancedAt).Append('\n');
                 sb.Append("  origin event: ").Append(DescribeEvent(world, thread.OriginEventId)).Append('\n');
+
+                // BQa-001. The origin line says which event started it; this says what that event
+                // was recorded to have been caused by, what it named and what it produced.
+                sb.Append(DescribeCausality(world, thread.OriginEventId));
             }
 
             sb.Append("\n-- why is this person involved, and what do they know or falsely believe --\n");

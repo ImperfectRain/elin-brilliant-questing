@@ -254,7 +254,10 @@ namespace BrilliantQuesting.Actions.Library
                 {
                     // The accusation rebounds: you have announced your interest to your target.
                     outcome = new ActionOutcome(Id, check, who + " thinks you are inventing it - and word gets back.");
-                    outcome.Events.Add(context.World.Record(WorldEventType.FalseAccusation, context.Actor, fact.Subject, context.Now, 0.5, context.Zone, new[] { factId }, seen));
+                    outcome.Events.Add(context.World.Record(
+                        WorldEventType.FalseAccusation, context.Actor, fact.Subject, context.Now, 0.5, context.Zone,
+                        new[] { factId }, seen,
+                        provenance: EventProvenance.Draft().Motive(factId).About(fact.OriginEvent).Build()));
                     ActionSupport.WarnUnderInvestigation(
                         context, fact.Subject, context.Target, outcome,
                         note: context.NameOf(fact.Subject) + " learns you are accusing them");

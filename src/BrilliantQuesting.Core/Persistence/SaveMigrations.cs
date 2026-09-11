@@ -25,6 +25,7 @@ namespace BrilliantQuesting.Persistence
             Register(8, AddStoryletFirings);
             Register(9, AddNegativeSpaceProfiles);
             Register(10, AddTravelingGroups);
+            Register(11, AddUnknownEventProvenance);
         }
 
         /// <summary>Registers an upgrade from <paramref name="fromVersion"/> to the next version.</summary>
@@ -276,6 +277,28 @@ namespace BrilliantQuesting.Persistence
             }
 
             return root.Set("schemaVersion", 11);
+        }
+
+        /// <summary>
+        /// Every event in an older save gets explicit unknown provenance.
+        ///
+        /// The point of writing it rather than leaving the node absent is that unknown is a real
+        /// answer here. These events happened before anything recorded why, and nothing may go
+        /// back and invent a cause for them from what happened to be recorded next to them. An
+        /// empty link list says exactly that, and says it in the save rather than relying on
+        /// every future reader to reach the same conclusion from a missing field.
+        /// </summary>
+        private static JsonValue AddUnknownEventProvenance(JsonValue root)
+        {
+            foreach (JsonValue worldEvent in root.GetArray("events"))
+            {
+                if (worldEvent["provenance"] == null)
+                {
+                    worldEvent.Set("provenance", JsonValue.Object().Set("links", JsonValue.Array()));
+                }
+            }
+
+            return root.Set("schemaVersion", 12);
         }
 
         private static JsonValue NeutralValueProfile()

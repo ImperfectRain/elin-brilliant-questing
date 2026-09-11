@@ -20,9 +20,22 @@ explicit recorder callers retain their observation authority. Only admission of 
 never existing history. `VanillaActionRecorderTests` covers passive intake/reload and player/known
 actors; [native hook evidence](../elin/bq-integration/event-hooks.md) records the live defect.
 
+Also owns **typed causal provenance** (`D077`). `WorldEvent.Provenance` carries what prompted a
+transition, what it is about, what the actor acted on and what it produced; `Record` takes it and
+`CausalHistory` resolves it against the world. `Related`/`Evidence`/`Witnesses` keep their meaning -
+what the event touched - and are not where a cause belongs. Nothing infers a cause from adjacency,
+timestamp or tag: an event with no links reads as unknown, and old saves keep that after migration.
+Motive is the actor's, never the world's, so an accusation names the occurrence rather than the
+object. `ReserveEvent` hands out an identity for a record that must name its origin before that
+event exists; read-only inspection reserves nothing. A decision record holds bounded reason codes,
+never a snapshot.
+
 Source: [EventLedger](../../src/BrilliantQuesting.Core/Events/EventLedger.cs),
-[NarrativeWorldState](../../src/BrilliantQuesting.Core/World/NarrativeWorldState.cs).
+[NarrativeWorldState](../../src/BrilliantQuesting.Core/World/NarrativeWorldState.cs),
+[EventProvenance](../../src/BrilliantQuesting.Core/Events/EventProvenance.cs),
+[CausalHistory](../../src/BrilliantQuesting.Core/World/CausalHistory.cs).
 Proof: [FoundationTests](../../tests/BrilliantQuesting.Core.Tests/FoundationTests.cs),
+[CausalProvenanceTests](../../tests/BrilliantQuesting.Core.Tests/CausalProvenanceTests.cs),
 [PersistenceTests](../../tests/BrilliantQuesting.Core.Tests/PersistenceTests.cs).
 Lab: [theft](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/TheftLaboratoryScenario.cs).
 

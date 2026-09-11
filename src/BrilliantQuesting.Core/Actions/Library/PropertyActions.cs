@@ -106,6 +106,10 @@ namespace BrilliantQuesting.Actions.Library
             context.Vanilla.TryTransferItem(item.Id, context.Actor, context.Target);
 
             ActionOutcome outcome = new ActionOutcome(Id, null, "You hand the " + item.Name + " back to " + context.NameOf(context.Target) + ".");
+            // What this answers is the occurrence the matter began with, not the item. Reading it
+            // off the ledger instead - the most recent theft naming this object - is the guess
+            // BQa-001 rules out, and it gets the wrong answer the moment the same thing is stolen
+            // twice. Outside a matter there is nothing recorded to point at, so it stays unknown.
             outcome.Events.Add(context.World.Record(
                 WorldEventType.ItemReturned,
                 context.Actor,
@@ -115,7 +119,8 @@ namespace BrilliantQuesting.Actions.Library
                 context.Zone,
                 evidence: new[] { item.Id },
                 witnesses: ActionSupport.Bystanders(context, true),
-                threadId: context.Thread?.Id ?? EntityId.None));
+                threadId: context.Thread?.Id ?? EntityId.None,
+                provenance: EventProvenance.Draft().About(context.Thread?.OriginEventId ?? EntityId.None).Build()));
 
             ActionSupport.Resolve(context, outcome, "property_returned", 0.8);
 

@@ -65,10 +65,17 @@ namespace BrilliantQuesting.Actions.Library
                         : "Your fingers close on nothing.");
                     if (taken)
                     {
-                        Fact theft = RecordTheftFact(context, item);
+                        // The identity is reserved before the fact is built, because the fact has
+                        // to name the occurrence it came from and the occurrence does not exist
+                        // yet. Reserving asks the minter; the alternative was leaving the theft
+                        // fact with no origin at all, which is what it did until BQa-001.
+                        EventReservation occurrence = context.World.ReserveEvent();
+                        Fact theft = RecordTheftFact(context, item, occurrence.Id);
                         outcome.Events.Add(context.World.Record(
+                            occurrence,
                             WorldEventType.Theft, context.Actor, context.Target, context.Now, 0.5, context.Zone,
-                            new[] { theft.Id }, evidence: new[] { item.Id }, tags: new[] { EventTags.Unnoticed }));
+                            new[] { theft.Id }, evidence: new[] { item.Id }, tags: new[] { EventTags.Unnoticed },
+                            provenance: EventProvenance.Draft().Outcome(theft.Id).Build()));
                         outcome.Notes.Add("no witnesses: nobody in the world knows this happened");
                     }
 
@@ -83,10 +90,23 @@ namespace BrilliantQuesting.Actions.Library
                 {
                     // Caught in the act, in front of whoever is standing there.
                     IReadOnlyList<EntityId> seen = ActionSupport.Bystanders(context, true);
-                    Fact caught = RecordTheftFact(context, item);
+                    EventReservation occurrence = context.World.ReserveEvent();
+                    Fact caught = RecordTheftFact(context, item, occurrence.Id);
                     outcome = new ActionOutcome(Id, check, "Your hand is caught in their pocket in front of everyone.");
-                    outcome.Events.Add(context.World.Record(WorldEventType.Theft, context.Actor, context.Target, context.Now, 0.8, context.Zone, new[] { caught.Id }, seen, new[] { item.Id }));
-                    outcome.Events.Add(context.World.Record(WorldEventType.CrimeWitnessed, context.Actor, context.Target, context.Now, 0.8, context.Zone, new[] { caught.Id }, seen));
+                    WorldEvent theftEvent = context.World.Record(
+                        occurrence,
+                        WorldEventType.Theft, context.Actor, context.Target, context.Now, 0.8, context.Zone,
+                        new[] { caught.Id }, seen, new[] { item.Id },
+                        provenance: EventProvenance.Draft().Outcome(caught.Id).Build());
+                    outcome.Events.Add(theftEvent);
+
+                    // The witnessing is a reaction to that theft and says so. It used to be
+                    // identifiable only by sitting next to it in the ledger, which stops being
+                    // true the moment anything else records in between.
+                    outcome.Events.Add(context.World.Record(
+                        WorldEventType.CrimeWitnessed, context.Actor, context.Target, context.Now, 0.8, context.Zone,
+                        new[] { caught.Id }, seen,
+                        provenance: EventProvenance.Draft().Trigger(theftEvent.Id).Motive(caught.Id).Build()));
                     outcome.Notes.Add(seen.Count + " witness(es) can now prove it");
                     break;
                 }
@@ -95,9 +115,9 @@ namespace BrilliantQuesting.Actions.Library
             return outcome;
         }
 
-        private static Fact RecordTheftFact(ActionContext context, ItemDescriptor item)
+        private static Fact RecordTheftFact(ActionContext context, ItemDescriptor item, EntityId originEvent)
         {
-            Fact fact = new Fact(context.World.NewId("fact"), context.Actor, FactPredicates.Stole, item.Id, item.Name, TruthState.True, secrecy: 0);
+            Fact fact = new Fact(context.World.NewId("fact"), context.Actor, FactPredicates.Stole, item.Id, item.Name, TruthState.True, secrecy: 0, originEvent: originEvent);
             fact.EvidenceIds.Add(item.Id);
             context.World.Knowledge.AddFact(fact);
             return fact;
@@ -193,7 +213,10 @@ namespace BrilliantQuesting.Actions.Library
 
                     outcome = new ActionOutcome(Id, check, "The " + item.Name + " is in " + patsy + "'s belongings now.");
                     outcome.Notes.Add("created a fact flagged False: the world knows this is a frame even though nobody in it does");
-                    outcome.Events.Add(context.World.Record(WorldEventType.EvidenceCreated, context.Actor, context.ThirdParty, context.Now, 0.7, context.Zone, new[] { lie.Id }, seen, new[] { item.Id }));
+                    outcome.Events.Add(context.World.Record(
+                        WorldEventType.EvidenceCreated, context.Actor, context.ThirdParty, context.Now, 0.7, context.Zone,
+                        new[] { lie.Id }, seen, new[] { item.Id },
+                        provenance: EventProvenance.Draft().Outcome(lie.Id).Build()));
                     break;
                 }
 
@@ -206,7 +229,11 @@ namespace BrilliantQuesting.Actions.Library
                     // Seen doing it. Now the provable fact is about you.
                     IReadOnlyList<EntityId> seen = ActionSupport.Bystanders(context, true);
                     outcome = new ActionOutcome(Id, check, "You are seen slipping the " + item.Name + " into " + patsy + "'s things.");
-                    outcome.Events.Add(context.World.Record(WorldEventType.FalseAccusation, context.Actor, context.ThirdParty, context.Now, 0.8, context.Zone, witnesses: seen, evidence: new[] { item.Id }));
+                    // Nothing was planted and no claim was made, so there is no outcome to name
+                    // and this stays without recorded provenance rather than borrowing one.
+                    outcome.Events.Add(context.World.Record(
+                        WorldEventType.FalseAccusation, context.Actor, context.ThirdParty, context.Now, 0.8, context.Zone,
+                        witnesses: seen, evidence: new[] { item.Id }));
                     break;
                 }
             }

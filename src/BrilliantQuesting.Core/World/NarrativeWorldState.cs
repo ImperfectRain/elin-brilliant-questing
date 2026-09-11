@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
@@ -19,7 +20,7 @@ namespace BrilliantQuesting.World
     public sealed class NarrativeWorldState
     {
         /// <summary>Bumped whenever the persisted shape changes; drives save migration.</summary>
-        public const int CurrentSchemaVersion = 11;
+        public const int CurrentSchemaVersion = 12;
 
         public NarrativeWorldState(ulong worldSeed)
         {
@@ -141,6 +142,15 @@ namespace BrilliantQuesting.World
         public EntityId NewId(string kind) => Ids.Next(kind);
 
         /// <summary>
+        /// Takes the next event identity from the minter without recording anything yet.
+        ///
+        /// For the case where the records an event produces have to be built before the event
+        /// itself - a fact whose origin is the occurrence that is about to be written. The id
+        /// comes from the one owner that hands them out, so nothing downstream has to predict it.
+        /// </summary>
+        public EventReservation ReserveEvent() => new EventReservation(NewId("evt"));
+
+        /// <summary>
         /// Appends an event and dispatches it to every listener. All consequence handling hangs
         /// off this one call, which is what keeps causality inspectable.
         /// </summary>
@@ -155,10 +165,43 @@ namespace BrilliantQuesting.World
             IReadOnlyList<EntityId> witnesses = null,
             IReadOnlyList<EntityId> evidence = null,
             IReadOnlyList<string> tags = null,
-            EntityId threadId = default)
+            EntityId threadId = default,
+            EventProvenance provenance = null)
         {
+            return Record(
+                ReserveEvent(), type, actor, target, now, magnitude, zone,
+                related, witnesses, evidence, tags, threadId, provenance);
+        }
+
+        /// <summary>
+        /// Records an event under an identity reserved earlier, so that whatever already refers
+        /// to it refers to the event that actually went into the ledger.
+        /// </summary>
+        public WorldEvent Record(
+            EventReservation reservation,
+            WorldEventType type,
+            EntityId actor,
+            EntityId target,
+            GameTime now,
+            double magnitude = 0.5,
+            EntityId zone = default,
+            IReadOnlyList<EntityId> related = null,
+            IReadOnlyList<EntityId> witnesses = null,
+            IReadOnlyList<EntityId> evidence = null,
+            IReadOnlyList<string> tags = null,
+            EntityId threadId = default,
+            EventProvenance provenance = null)
+        {
+            if (reservation == null)
+            {
+                throw new ArgumentNullException(nameof(reservation));
+            }
+
+            reservation.Consume();
+
             WorldEvent worldEvent = new WorldEvent(
-                NewId("evt"), type, actor, target, now, magnitude, zone, related, witnesses, evidence, tags, threadId);
+                reservation.Id, type, actor, target, now, magnitude, zone,
+                related, witnesses, evidence, tags, threadId, provenance);
             Ledger.Append(worldEvent);
             return worldEvent;
         }

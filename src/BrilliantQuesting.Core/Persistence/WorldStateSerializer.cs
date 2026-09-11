@@ -416,7 +416,8 @@ namespace BrilliantQuesting.Persistence
                     .Set("witnesses", Ids(worldEvent.Witnesses))
                     .Set("evidence", Ids(worldEvent.Evidence))
                     .Set("tags", Strings(worldEvent.Tags))
-                    .Set("thread", worldEvent.ThreadId.Value));
+                    .Set("thread", worldEvent.ThreadId.Value)
+                    .Set("provenance", Provenance(worldEvent.Provenance)));
             }
 
             return array;
@@ -941,7 +942,8 @@ namespace BrilliantQuesting.Persistence
                     IdList(json, "witnesses"),
                     IdList(json, "evidence"),
                     StringList(json, "tags"),
-                    EntityId.Parse(json.GetString("thread")));
+                    EntityId.Parse(json.GetString("thread")),
+                    ReadProvenance(json["provenance"]));
 
                 // Restored, not replayed: listeners must not re-apply historical consequences.
                 world.Ledger.RestoreWithoutDispatch(worldEvent);
@@ -1237,6 +1239,71 @@ namespace BrilliantQuesting.Persistence
         }
 
         // -- helpers -------------------------------------------------------------------------
+
+        /// <summary>
+        /// Writes an event's causal provenance. Always present from schema 12 on, and empty when
+        /// nothing was recorded: "we never knew" is a state worth saying out loud, because the
+        /// alternative is a reader that cannot tell it from a field somebody forgot to write.
+        /// </summary>
+        private static JsonValue Provenance(EventProvenance provenance)
+        {
+            JsonValue links = JsonValue.Array();
+            for (int i = 0; i < provenance.Links.Count; i++)
+            {
+                links.Add(JsonValue.Object()
+                    .Set("role", provenance.Links[i].Role.ToString())
+                    .Set("ref", provenance.Links[i].Reference.Value));
+            }
+
+            JsonValue node = JsonValue.Object().Set("links", links);
+            if (provenance.Decision != null)
+            {
+                node.Set("decision", JsonValue.Object()
+                    .Set("code", provenance.Decision.Decision)
+                    .Set("reasons", Strings(provenance.Decision.Reasons)));
+            }
+
+            return node;
+        }
+
+        /// <summary>
+        /// Reads provenance back, including links whose referent is gone.
+        ///
+        /// A dangling reference is kept rather than dropped: the fact a quarantined matter took
+        /// with it is still what an accusation was about, and silently deleting the link would
+        /// turn a recoverable "we know what this named, and it is missing" into "this had no
+        /// cause". <see cref="World.CausalHistory"/> is what reports it as missing.
+        /// </summary>
+        private static EventProvenance ReadProvenance(JsonValue json)
+        {
+            if (json == null || json.Kind != JsonKind.Object)
+            {
+                return EventProvenance.Unknown;
+            }
+
+            List<CausalLink> links = new List<CausalLink>();
+            foreach (JsonValue link in json.GetArray("links"))
+            {
+                EntityId reference = EntityId.Parse(link.GetString("ref"));
+                if (reference.IsNone)
+                {
+                    continue;
+                }
+
+                links.Add(new CausalLink(
+                    (CausalRole)Enum.Parse(typeof(CausalRole), link.GetString("role")),
+                    reference));
+            }
+
+            JsonValue decision = json["decision"];
+            DecisionEvidence evidence = decision == null || decision.Kind != JsonKind.Object
+                ? null
+                : new DecisionEvidence(decision.GetString("code"), StringList(decision, "reasons"));
+
+            return links.Count == 0 && evidence == null
+                ? EventProvenance.Unknown
+                : new EventProvenance(links, evidence);
+        }
 
         private static JsonValue Ids(IReadOnlyList<EntityId> ids)
         {

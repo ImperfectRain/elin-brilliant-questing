@@ -135,6 +135,23 @@ This step owns serializer/default/migration coverage for this new provenance sea
 
 **Do not:** rewind an ID minter, redispatch restored events, treat the ledger as the sole owner of every store, or persist derived state simply for convenient querying.
 
+**Implementation/evidence** `WorldEvent.Provenance` carries typed `Trigger`/`About`/`Motive`/`Outcome`
+links and an optional bounded decision record; `Record` takes it, `ReserveEvent` hands out an identity
+for a record that must name its origin first, and `CausalHistory` resolves links back - reporting a
+reference whose record has gone as missing rather than dropping it. `Related`/`Evidence`/`Witnesses`
+keep their existing meaning, so affected entities and causes stay distinguishable without a second
+store. Schema 12 persists provenance and migrates older events to explicit unknown. The durable rule
+is [`D077`](agent/decisions.md); the reading surface is `NarrativeInspector.DescribeCausality`, which
+prints objective cause, motive evidence and outcome separately and mints nothing.
+`CausalProvenanceTests` covers the repeated-transfer/repeated-accusation case over one object across
+reload, nested reaction after intervening history, reserved identity, rejected read-only inspection,
+missing references and an old save gaining no inferred cause. Semantic defect fixed in scope: a
+pickpocket's theft fact was built with no origin event at all, so nothing linked the claim to the
+occurrence it came from.
+
+**Live verification still required** headless Core only. The changed recorders (`report`,
+`pickpocket`, `plant_evidence`, `return_item`) have not been exercised in a live Elin session, and
+the Plugin was not compiled here because the Elin assemblies are not redistributable.
 
 **Authority / proof route:** [owning source and representative tests](systems/state.md#history), [neighbor contract](systems/integration.md#persistence), [validation](agent/validation.md#state).
 

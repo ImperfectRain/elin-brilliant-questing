@@ -74,7 +74,7 @@ namespace BrilliantQuesting.Actions.Library
                 case AuthorityResponse.Acts:
                     TeachAuthority(context, fact.Id, confidence: 0.95, copyProof: true);
                     outcome = new ActionOutcome(Id, null, who + " takes the report seriously, and writes down what you can show them.");
-                    outcome.Events.Add(Accusation(context, fact, WorldEventType.CrimeReported, 0.9, seen: true));
+                    outcome.Events.Add(Accusation(context, fact, WorldEventType.CrimeReported, 0.9, seen: true, decision));
                     outcome.Notes.Add("authority response: " + decision.Role + " accepted it on " + decision.Evidence);
                     outcome.Notes.Add("nobody acts on it yet; authority autonomy arrives at BQ-093");
                     break;
@@ -82,14 +82,14 @@ namespace BrilliantQuesting.Actions.Library
                 case AuthorityResponse.OpensInquiry:
                     TeachAuthority(context, fact.Id, confidence: 0.65, copyProof: false);
                     outcome = new ActionOutcome(Id, null, who + " writes it down, and says they are not willing to act on your word alone.");
-                    outcome.Events.Add(Accusation(context, fact, WorldEventType.InquiryOpened, 0.5, seen: false));
+                    outcome.Events.Add(Accusation(context, fact, WorldEventType.InquiryOpened, 0.5, seen: false, decision));
                     outcome.Notes.Add("authority response: recorded, not actionable without proof");
                     break;
 
                 case AuthorityResponse.RejectsRumor:
                     TeachAuthority(context, fact.Id, confidence: 0.25, copyProof: false);
                     outcome = new ActionOutcome(Id, null, who + " files it with the rest of the talk and does nothing.");
-                    outcome.Events.Add(Accusation(context, fact, WorldEventType.AccusationRejected, 0.25, seen: false));
+                    outcome.Events.Add(Accusation(context, fact, WorldEventType.AccusationRejected, 0.25, seen: false, decision));
                     outcome.Notes.Add("authority response: filed as rumour");
                     break;
 
@@ -104,7 +104,8 @@ namespace BrilliantQuesting.Actions.Library
                         fact,
                         untrue ? WorldEventType.FalseAccusation : WorldEventType.AccusationMade,
                         0.6,
-                        seen: true));
+                        seen: true,
+                        decision));
                     WarnAccused(context, fact, outcome);
                     outcome.Notes.Add(untrue
                         ? "authority response: rejected, and the claim is untrue"
@@ -123,9 +124,20 @@ namespace BrilliantQuesting.Actions.Library
         /// <summary>
         /// Records the accusation itself. One shape for all of them, so the ledger describes the
         /// same act consistently however the authority reacted.
+        ///
+        /// The provenance is the whole reason an accusation is worth reading back. The claim is a
+        /// <see cref="CausalRole.Motive"/>, never a cause: the accuser acted on it, and whether it
+        /// is true is the fact's business and nobody else's - a frame is a sincere accusation
+        /// about a false claim, and the two have to stay distinguishable. The claim's own origin
+        /// is what the accusation is <see cref="CausalRole.About"/>, so an accusation about a
+        /// theft points at that theft rather than at the stolen thing: one object can be stolen
+        /// twice, and item identity cannot tell the two occurrences apart.
+        ///
+        /// The authority's answer is kept as reason codes, because by the time anyone asks why a
+        /// report was filed as rumour, the evidence that decided it has moved on.
         /// </summary>
         private static WorldEvent Accusation(
-            ActionContext context, Fact fact, WorldEventType type, double magnitude, bool seen)
+            ActionContext context, Fact fact, WorldEventType type, double magnitude, bool seen, AuthorityDecision decision)
         {
             return context.World.Record(
                 type,
@@ -136,7 +148,15 @@ namespace BrilliantQuesting.Actions.Library
                 context.Zone,
                 new[] { fact.Id },
                 seen ? ActionSupport.Bystanders(context, true) : null,
-                threadId: context.Thread?.Id ?? EntityId.None);
+                threadId: context.Thread?.Id ?? EntityId.None,
+                provenance: EventProvenance.Draft()
+                    .Motive(fact.Id)
+                    .About(fact.OriginEvent)
+                    .Decided(
+                        "authority." + decision.Response,
+                        "evidence:" + decision.Evidence,
+                        "role:" + decision.Role)
+                    .Build());
         }
 
         /// <summary>

@@ -2303,3 +2303,31 @@ Memory normalization must continue even after the native surface is disabled.
 
 Evidence and the unverified visual acceptance checklist live in docs/elin/api/journal-ui.md.
 This is a native UI corrective boundary, not implementation of the next roadmap feature.
+
+## D077 — A cause is recorded when it is known, and never inferred afterwards
+
+An event's typed provenance carries what prompted it, what it is about, what the actor acted on
+and what it produced. `WorldEvent.Provenance` holds those links; `NarrativeWorldState.Record`
+takes them; `CausalHistory` reads them back and resolves them against the world. `Related`,
+`Evidence` and `Witnesses` keep their existing meaning - what the event touched - and are not a
+place to hide a cause.
+
+Nothing derives a cause from list position, timestamp, a neighbouring event or a prose tag. An
+event with no recorded links reads as unknown provenance, which is what every event written before
+this seam is and what an old save keeps after migration. Historical events are never rewritten to
+gain a link. A reference whose record has gone is reported as missing rather than dropped.
+
+Motive is not cause. A claim the actor acted on is `Motive` and stays theirs even when it is false;
+what the world holds to have happened is `Trigger` or `About`. An accusation therefore points at
+the occurrence it names rather than at the object involved, because one object can be stolen twice
+and item identity cannot tell the two apart.
+
+Where a record has to be built before the event it comes from - a fact naming its origin - the
+identity is reserved from the minter through `NarrativeWorldState.ReserveEvent` and consumed once.
+Read-only inspection reserves nothing, so considering a causal question and then rejecting it costs
+no identity. A bounded decision record may retain reason codes for a committed decision; it refuses
+to carry a snapshot, a pressure list or a candidate set.
+
+Reason: by the time anything asks why something happened, the state that decided it is gone, and
+every cheap substitute for having written it down - adjacency, recency, the one id that happened to
+be in `Related` - gets a different answer as soon as the same thing happens twice.

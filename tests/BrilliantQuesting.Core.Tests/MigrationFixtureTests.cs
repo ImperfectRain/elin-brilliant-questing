@@ -110,6 +110,15 @@ namespace BrilliantQuesting.Tests
             }
             if (version < 9) Assert.All(saved["threads"].Items, thread => Assert.Empty(thread["storyletFirings"].Items));
             if (version < 11) Assert.Empty(saved["travelingGroups"].Items);
+            // Provenance is written for every event from schema 12 on; an older save's events had
+            // nowhere to record why they happened, and migration must leave them saying so rather
+            // than inventing a cause from whatever was recorded next to them.
+            if (version < 12)
+                Assert.All(saved["events"].Items, worldEvent =>
+                {
+                    Assert.Empty(worldEvent["provenance"].GetArray("links"));
+                    Assert.Null(worldEvent["provenance"]["decision"]);
+                });
         }
 
         // New optional fields may be added; every old field and array entry must retain its value.

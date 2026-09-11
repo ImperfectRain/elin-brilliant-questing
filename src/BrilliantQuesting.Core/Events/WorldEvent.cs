@@ -22,7 +22,8 @@ namespace BrilliantQuesting.Events
             IReadOnlyList<EntityId> witnesses = null,
             IReadOnlyList<EntityId> evidence = null,
             IReadOnlyList<string> tags = null,
-            EntityId threadId = default)
+            EntityId threadId = default,
+            EventProvenance provenance = null)
         {
             Id = id;
             Type = type;
@@ -36,6 +37,7 @@ namespace BrilliantQuesting.Events
             Evidence = evidence ?? Empty;
             Tags = tags ?? EmptyTags;
             ThreadId = threadId;
+            Provenance = provenance ?? EventProvenance.Unknown;
         }
 
         private static readonly EntityId[] Empty = new EntityId[0];
@@ -69,6 +71,17 @@ namespace BrilliantQuesting.Events
         public IReadOnlyList<string> Tags { get; }
 
         public EntityId ThreadId { get; }
+
+        /// <summary>
+        /// Why this happened, in typed causal references: what prompted it, what it is about,
+        /// what the actor acted on and what it produced.
+        ///
+        /// Never null, and <see cref="EventProvenance.Unknown"/> for every event recorded before
+        /// anything recorded causes - which is honest rather than convenient. The untyped lists
+        /// above stay what they always were: <see cref="Related"/> and <see cref="Evidence"/> are
+        /// the entities the event touched, not the reasons it happened.
+        /// </summary>
+        public EventProvenance Provenance { get; }
 
         public override string ToString()
         {

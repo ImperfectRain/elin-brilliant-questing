@@ -55,6 +55,7 @@ incomplete joins with links to their adopted planning owners.
 | Question | Owning answer / source navigation |
 |---|---|
 | What happened? | `EventLedger`, through `NarrativeWorldState.Record`; [history](systems/state.md#history) |
+| Why did it happen? | `WorldEvent.Provenance` as recorded, read through `CausalHistory`; never inferred from adjacency, and unknown where nothing was written; [history](systems/state.md#history) |
 | What is objectively true? | BQ claims: `Fact.Truth`; native inventory/life/location: `IVanillaState`; [truth](systems/state.md#truth) |
 | What does X believe? | `KnowledgeGraph` / `KnowledgeRecord`, including false and uncertain claims; [belief](systems/state.md#belief-and-proof) |
 | What can X prove? | `ProofLink` and `KnowledgeGraph.CanProve`; physical backing needs reconciliation; [proof](systems/state.md#belief-and-proof) |
