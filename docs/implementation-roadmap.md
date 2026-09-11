@@ -1,8 +1,11 @@
 # Implementation Roadmap
 
-The single ordered plan for Brilliant Questing, audited against the canonical design documents and
-the code as it stands. Every other document describes *what* to build and *why*; this one says *in
-what order*, *how you know a step is finished*, and *where every idea went*.
+The ordered BQ launch/hardening plan for Brilliant Questing, audited against the canonical design
+documents and code. This file retains authority for unfinished `BQ-xxx` work and its acceptance.
+The [living-world implementation roadmap](living-world-roadmap.md) is the authoritative **subsequent**
+BQa phase, with separate numbering and an explicit BQ closure/start gate. Adopting that plan does not
+complete or waive any BQ requirement. This file says in what order BQ work proceeds, how a step is
+finished, and where the original design ideas went.
 
 If you are an agent picking this project up cold, read [`AGENTS.md`](../AGENTS.md) first. It says
 how to establish current state from Git and how to retrieve only what a task needs.
@@ -3947,8 +3950,10 @@ At launch, every system in §4 is **Complete-until-launch** and every unbuilt id
 
 ## 8. Post-launch register
 
-Deliberately deferred. Recorded so that no idea is lost to a system moving on without it. Each entry
-names why it is not in 1.0.
+Deliberately deferred from BQ launch. Recorded so that no idea is lost to a system moving on without
+it. The [post-BQ plan](living-world-roadmap.md#scope-and-release-judgment) now selects the bounded
+living-world beta work; this register retains the original deferral rationale and ideas beyond it.
+Each entry names why it is not in the BQ launch scope.
 
 | Idea | Source | Why deferred |
 |---|---|---|

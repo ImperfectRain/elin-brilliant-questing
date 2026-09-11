@@ -22,7 +22,9 @@ For an ordinary implementation task:
    - inspect `git status`;
    - inspect recent commit subjects only if needed; do not reconstruct settled architecture from history;
    - identify one BQ step or scoped defect and its done-when condition.
-3. Locate only that step in `docs/implementation-roadmap.md`; use the affected row in
+3. Locate only that step in `docs/implementation-roadmap.md` for BQ work, or the
+   [post-BQ living-world roadmap](docs/living-world-roadmap.md) for authorized BQa work;
+   unfinished BQ launch/hardening retains priority and its own acceptance. Use the affected row in
    [the architecture/authority router](docs/architecture.md) to find the owning source and tests.
 4. Read only the affected subsystem card, implementation and neighboring tests, not the entire map corpus.
 5. Read `docs/agent/decisions.md` if an architectural question arises.
@@ -47,6 +49,7 @@ Do not generate or maintain a permanent `current-state.md`.
 - `tools/BrilliantQuesting.Lab/` — headless simulation/probes.
 - `tools/ApiDump/` — shipped-assembly metadata inspection.
 - `docs/implementation-roadmap.md` — ordered BQ steps and done-when criteria; query by step.
+- `docs/living-world-roadmap.md` — authoritative post-BQ BQa plan; its start gate preserves unfinished BQ work.
 - `docs/architecture.md` — authority lookup and subsystem source/test/Lab router, not status.
 - `docs/agent/validation.md` — affected subsystem to targeted/full/native validation.
 - `docs/agent/documentation.md` — exact documentation owners for contract changes.
@@ -66,7 +69,8 @@ When sources disagree, prefer:
 2. Current code and tests.
 3. Canonical `docs/elin/` API/evidence pages and unsuperseded `docs/elin-api-notes.md` findings
    for Elin facts; metadata never outranks reproducible runtime observation.
-4. `docs/implementation-roadmap.md` for planned order and done-when criteria.
+4. `docs/implementation-roadmap.md` for BQ launch/hardening order and done-when criteria;
+   `docs/living-world-roadmap.md` for the subsequent BQa phase, subject to its BQ start gate.
 5. Design documents for intent/rationale.
 6. Old commits and handoffs for historical context only.
 
@@ -100,7 +104,7 @@ When sources disagree, prefer:
 
 ## Implementation contract
 
-For a scoped BQ step:
+For a scoped BQ or authorized BQa step:
 
 1. Determine the concrete done-when condition.
 2. Inspect only relevant implementation, neighboring tests, and required dependencies.

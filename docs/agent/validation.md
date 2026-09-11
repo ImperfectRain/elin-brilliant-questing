@@ -139,7 +139,7 @@ python -m unittest discover -s tools/tests -p test_validate_docs.py
 ```
 
 The checker validates local inline Markdown links/anchors in agent entry points and navigation
-documents, including source/test/Lab paths. It does not validate C# symbols, code examples, remote
+documents, including the adopted BQa roadmap/audit and source/test/Lab paths. It does not validate C# symbols, code examples, remote
 URLs, reference-style links or semantic correctness. Lab IDs/classes in this table are human routes;
 their primary source links live in cards and [LabCatalog](../../tools/BrilliantQuesting.Lab/Cli/LabCatalog.cs).
 

@@ -26,7 +26,7 @@ contract; do not infer ownership from filenames or old roadmap prose.
 | Storylet/content/fragment/grammar vocabulary | [Expression](../systems/expression.md) or [sites](../systems/world.md#sites); [content pipeline](../design/content-pipeline.md) for authoring contract changes | Authored content or prose copied into architecture/save |
 | Player knowledge/presentation contract | [Integration](../systems/integration.md#discovery); native visual evidence in [journal UI](../elin/api/journal-ui.md) when relevant | Inspector state in player projections |
 | Missing join closed / new demonstrated gap | [Flow](../systems/flow.md) and affected [extension seam](../systems/extension-seams.md); evidence stays with owner | Speculative requirements or unfinalized step numbering |
-| Roadmap order/dependency/done-when changed | [BQ roadmap](../implementation-roadmap.md); extension routing only if navigation changes | Settled architecture copied back into Current implementation essays |
+| Roadmap order/dependency/done-when changed | [BQ roadmap](../implementation-roadmap.md) for launch/hardening, [BQa roadmap](../living-world-roadmap.md) for the subsequent phase; extension routing only if navigation changes | Settled architecture copied back into Current implementation essays |
 | Deleted/moved entry point | Links in affected router/card; run doc checker | Architecture edits for an unreferenced internal rename |
 
 ## Document authority and graph
@@ -40,7 +40,8 @@ contract; do not infer ownership from filenames or old roadmap prose.
 | [Validation](validation.md) | Change-to-check routing |
 | This file | Change-to-document routing |
 | [Decisions](decisions.md) | Durable why |
-| [Implementation roadmap](../implementation-roadmap.md) | Order, dependency, done-when, implementation/evidence references |
+| [BQ implementation roadmap](../implementation-roadmap.md) | Unfinished BQ launch/hardening order, dependency, done-when and evidence references |
+| [BQa living-world roadmap](../living-world-roadmap.md) | Authoritative post-BQ sequence, start gate, causal contracts and beta acceptance |
 | Design archive | Intent/rationale; superseded statements visibly marked |
 | Git/tests/runtime | Status, historical diffs and current proof |
 
@@ -58,8 +59,8 @@ in its card, durable reasons in decisions, and implementation history in Git. Th
 authoritative for planning, not a compulsory reconstruction archive.
 
 Future proposals are provisional until a committed document explicitly designates their authority.
-Consult proposals as input without copying numbers/dependencies into system truth. Adoption later
-updates the [planning seam](../systems/extension-seams.md), not the entire architecture layout.
+Consult proposals as input without copying numbers/dependencies into system truth. The [adopted BQa roadmap](../living-world-roadmap.md) is authoritative only for the post-BQ phase.
+Adoption updates the [planning seam](../systems/extension-seams.md), not implemented subsystem truth.
 
 ## Drift check
 

@@ -13,6 +13,7 @@ ENTRY_POINTS = (
     "AGENTS.md", "CLAUDE.md", "README.md", "docs/README.md", "docs/architecture.md",
     "docs/agent/workflow.md", "docs/agent/documentation.md", "docs/agent/validation.md",
     "docs/elin/README.md", "docs/elin/capabilities.md",
+    "docs/living-world-roadmap.md", "docs/agent/bqa-roadmap-audit.md",
 )
 LINK = re.compile(r'!?\[[^\]\n]*\]\(\s*(?:<([^>]+)>|([^\s)]+))(?:\s+"[^"]*")?\s*\)')
 

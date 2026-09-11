@@ -86,4 +86,5 @@ creation costs in that selection seam. Neither adds a director-to-spawner join o
 | Native catch-up → BQ tiers | Plugin attach/zone change reads Home state through `OffScreenSchemes.ReconcileZone`; observed Active residents consume elapsed scheme windows without replaying physical work. [Tier contract](world.md#autonomy); actual Home revisit timing/readback still needs live evidence |
 
 The [extension register](extension-seams.md) links these limits to proofs and committed planning.
-No provisional future roadmap is an implementation requirement.
+The [adopted BQa roadmap](../living-world-roadmap.md) owns the post-BQ work on these joins;
+its planned cycle is not implemented by the current call sites described here.

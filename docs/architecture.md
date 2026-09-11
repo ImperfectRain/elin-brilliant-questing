@@ -3,7 +3,9 @@
 Start with the affected row, then its source and representative test. **Do not preload all linked
 documents.** This is navigation to implemented contracts, not project status or a replacement for
 the [authority order](../AGENTS.md#authority-order). Git/code/tests establish implementation;
-the [BQ roadmap](implementation-roadmap.md) owns order and done-when criteria. Use old commits only
+the [BQ roadmap](implementation-roadmap.md) owns unfinished BQ launch/hardening order and acceptance,
+followed by the authoritative [BQa living-world roadmap](living-world-roadmap.md). Planned BQa
+contracts do not change the implemented authorities below. Use old commits only
 when current evidence leaves a historical question unanswered.
 
 ## Subsystem index
@@ -11,7 +13,7 @@ when current evidence leaves a historical question unanswered.
 Cards name ownership, inputs/outputs, storage, exclusions, consumers, proof and native limits.
 Use [validation](agent/validation.md) and [documentation maintenance](agent/documentation.md) for
 the affected contract. [Extension seams](systems/extension-seams.md) route committed planning and
-incomplete joins without speculative step numbers.
+incomplete joins with links to their adopted planning owners.
 
 | Concept | Read this card |
 |---|---|

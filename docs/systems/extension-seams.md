@@ -1,14 +1,32 @@
 # Extension seams and planning handoff
 
 [Router](../architecture.md) · [flow](flow.md). This is a boundary/gap register, not progress tracking.
-Each row preserves an existing authority and routes planning to the committed
-[implementation roadmap](../implementation-roadmap.md). Search the exact BQ token there for order,
-dependencies and done-when; rows below do not declare a step complete or incomplete.
+Each row preserves an existing authority. The [BQ roadmap](../implementation-roadmap.md) owns
+unfinished launch/hardening, followed by the authoritative
+[BQa living-world roadmap](../living-world-roadmap.md). Search the exact token in its owning plan
+for dependencies and done-when; rows below do not declare a step complete or incomplete.
 
-No finalized, explicitly authoritative BQa roadmap was found in this audit. Any separately supplied
-BQa proposal remains provisional design input. Do not assign numbers/dependencies here. If a future
-roadmap is formally adopted, add its canonical link and affected contract links; retain the subsystem
-headings and source/test ownership. Provisional ideas must not outrank code, tests, evidence or BQ.
+The adopted BQa plan extends these sources after its BQ start gate. Its
+[adoption audit](../agent/bqa-roadmap-audit.md) records repository evidence and renumbering;
+unadopted proposals remain provisional. No planning link upgrades native evidence or makes a
+Core/Lab join live.
+
+## Post-BQ contract routing
+
+These are future implementation owners; the current source/test cards below retain authority.
+
+| Join | Adopted BQa owner |
+|---|---|
+| Durable causal identity and decision provenance | BQa-001 |
+| Classified uncertainty and feasibility | BQa-002–BQa-004 |
+| Pressure → local interpretation → desired conditions → registered actions → feedback | BQa-005–BQa-012 |
+| Evidence-graded opportunity → competition → recurring production host | BQa-013–BQa-015 |
+| Institutional information → goals → supported execution → live enrollment | BQa-016–BQa-018 |
+| Existing causes → proposals → safe establishment → cross-matter recurrence | BQa-019–BQa-023 |
+| Payload/voice → incremental interaction → player controls → live continuation | BQa-024–BQa-030 |
+| Verified physical consequences and honest unsupported exits | BQa-031–BQa-033 |
+| Player-known journal/discovery/commissions and exposure feedback | BQa-034–BQa-037 |
+| Production range, stress, causal audit and real-save beta acceptance | BQa-038–BQa-043 |
 
 ## Foundations and extension routing
 
@@ -23,8 +41,8 @@ headings and source/test ownership. Provisional ideas must not outrank code, tes
 | Threads/developments | BQ-052/069; durable matters distinct from derived pressures | BQ-102/103 selection/conservation and BQ-105 integrity; extend detector rules only over owned state. [Developments](actions.md#developments) |
 | Generation/archetypes | BQ-039–051/103/114/115/124/152; pressure-led establishment, recoverable outcomes, read-only proposals with actor/premise creation costs | Hypothetical fulfillment remains owner responsibility; ranking does not establish state. BQ-125/126 family weighting, setting seeds; reuse registry/facts/sites. [Generation](world.md#generation) |
 | Storylets/casting/chemistry | BQ-065–068/146; qualification before chemistry, actor-selected beat meaning | BQ-102/104 diversity/harness; reuse casting and routed beats rather than another scene database. [Expression](expression.md) |
-| Intent/disclosure/speech/conversation | BQ-070–073/083/146; meaning before words, no free disclosure | Further host integration must reuse `SpeechAct`, `ActionBinding`, `Disclosure` and commitment events. No new committed step inferred from this gap. [Flow](flow.md#partial-joins-and-extension-points) |
-| Realization/voice/repetition/weirdness | BQ-074–079/127/128/142/147–151; eligible wording preserves meaning | BQ-104/133 coverage; BQ-149–151 address contextual trait gates, diversity metrics and ordinary high-frequency wording. Durable voice assignment needs an explicit owner/save decision, not inferred BQa work. [Controls](expression.md#expression-controls) |
+| Intent/disclosure/speech/conversation | BQ-070–073/083/146; meaning before words, no free disclosure | Further host integration must reuse `SpeechAct`, `ActionBinding`, `Disclosure` and commitment events. BQa-027–BQa-030 own subsequent integration. [Flow](flow.md#partial-joins-and-extension-points) |
+| Realization/voice/repetition/weirdness | BQ-074–079/127/128/142/147–151; eligible wording preserves meaning | BQ-104/133 coverage; BQ-149–151 address contextual trait gates, diversity metrics and ordinary high-frequency wording. BQa-026 owns durable voice assignment and its save decision. [Controls](expression.md#expression-controls) |
 | Director/attention | BQ-098–101; selection doesn't deliver or alter truth | BQ-102/103/104/119/120 selection, conservation, telemetry/intensity; reuse delivery history. [Attention](expression.md#attention) |
 | Autonomy/travel | BQ-093–098; shared attempts, semantic milestones, no duplicate embodiment | BQ-107/108 scale/catch-up; respect absence/global movement ownership. [World](world.md) |
 | Organizations | BQ-053/054; generated organization state distinct from vanilla guilds | BQ-116 supply coupling and BQ-107 scheduling; do not invent a second native economy. [Organizations](world.md#organizations) |
