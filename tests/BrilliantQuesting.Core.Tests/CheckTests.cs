@@ -97,16 +97,18 @@ namespace BrilliantQuesting.Tests
         [Fact]
         public void PortableSingleElementDistributionMatchesSourceCheckShape()
         {
+            // The recorded baseline, still owned by the family it still describes. A fixed
+            // challenge is the flat sum vanilla's own single-element row is, and BQa-004 left that
+            // branch alone; the opposed half of this baseline moved on purpose and is measured in
+            // OpposedScalingDepartsFromTheFlatSourceCheckSumOnPurpose below.
             SandboxVanillaState vanilla = new SandboxVanillaState(Player);
             vanilla.Define(Player, level: 5);
             vanilla.Define(Guard, level: 12);
             vanilla.SetSkill(Player, VanillaSkill.Negotiation, 18);
             vanilla.SetAttribute(Guard, VanillaAttribute.Perception, 9);
 
-            CheckProfile profile = new CheckProfile("test_single_element", CheckFamily.Opposed, 14)
+            CheckProfile profile = new CheckProfile("test_single_element", CheckFamily.Absolute, 14)
                 .WithActorSkill(VanillaSkill.Negotiation, 0.5)
-                .WithTargetAttribute(VanillaAttribute.Perception, 0.5)
-                .WithTargetLevel(0.25)
                 .WithDice(20, critRange: 1, fumbleRange: 1);
             CheckRequest request = new CheckRequest(profile, Player, Guard).WithModifier("hard rain", 2);
             VanillaStyleCheckResolver resolver = new VanillaStyleCheckResolver(vanilla);
@@ -263,7 +265,7 @@ namespace BrilliantQuesting.Tests
         // --- BQa-003: representative portable DC calculations --------------------------------
 
         [Fact]
-        public void AnOpposedCompositeDcIsTheSumOfItsDeclaredTerms()
+        public void AnOpposedCompositeDcIsTheRatioBetweenItsDeclaredSides()
         {
             SandboxVanillaState vanilla = new SandboxVanillaState(Player);
             vanilla.Define(Player, level: 5);
@@ -276,12 +278,27 @@ namespace BrilliantQuesting.Tests
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Intimidation, Player, Guard)
                 .WithModifier("they have seen you lose a fight", 2);
 
-            // base 12 + level(10 x 0.3 = 3) + will(16 x 0.35 = 6 rounded from 5.6)
-            //   - negotiation(20 x 0.2 = 4) - charisma(12 x 0.15 = 2 rounded from 1.8)
-            //   - strength(30 x 0.3 = 9) + 2
+            // actor power = negotiation(20 x 0.2 = 4.0) + charisma(12 x 0.15 = 1.8)
+            //   + strength(30 x 0.3 = 9.0) = 14.8
+            // target power = will(16 x 0.35 = 5.6) + level(10 x 0.3 = 3.0) = 8.6
+            // 14.8 / 8.6 is 0.783 bands, 2.35 raw DC, 2 whole bands.
+            // base 12 - 2 + the situational 2, which stays outside the ratio.
             CheckResult result = new VanillaStyleCheckResolver(vanilla).Resolve(request, new DeterministicRng(7));
-            Assert.Equal(8, result.FinalDifficulty);
+            Assert.Equal(12, result.FinalDifficulty);
             Assert.Equal(12, result.BaseDifficulty);
+
+            OpposedPowerTrace power = Assert.IsType<OpposedPowerTrace>(result.Opposition);
+            Assert.Equal(14.8, power.ActorPower, 6);
+            Assert.Equal(8.6, power.TargetPower, 6);
+            Assert.Equal(2, power.AppliedDcAdjustment);
+
+            // Composition rounds once, at the end: 1.8 and 5.6 reach the composites whole rather
+            // than being rounded to 2 and 6 inside the ratio, where small sides would distort most.
+            Assert.Contains("Charisma 1.8", result.Explain());
+            Assert.Contains("target Will 5.6", result.Explain());
+
+            // The named contest term carries the whole adjustment; nothing else moved the DC.
+            Assert.Equal(-2, Assert.Single(result.Terms, t => t.Label == "opposed power").Delta);
         }
 
         [Fact]
@@ -326,12 +343,19 @@ namespace BrilliantQuesting.Tests
             CheckResult opposed = resolver.Resolve(
                 new CheckRequest(ProceduralCheckProfiles.Persuasion, Player, Guard), new DeterministicRng(2));
 
-            // base 11 - negotiation(4) - charisma(3), then the target's Will(4) on top when there
-            // is a target. An opposed check with nobody to oppose is the actor's terms alone; it
-            // does not fall back to the base difficulty or refuse to resolve.
-            Assert.Equal(4, unopposed.FinalDifficulty);
-            Assert.Equal(8, opposed.FinalDifficulty);
+            // Actor power is negotiation(10 x 0.4 = 4.0) + charisma(10 x 0.3 = 3.0) = 7.0 either
+            // way. With nobody to oppose, the opposing composite is empty and the stabilizer
+            // floors it at 1.0, so 7.0 against 1.0 is 2.81 bands and 8 whole DC off the base of
+            // 11. Against the guard's Will(20 x 0.2 = 4.0) it is 0.81 bands and 2 DC.
+            //
+            // An opposed check with nobody to oppose still resolves off the actor's own side; it
+            // does not fall back to the base difficulty, refuse to resolve, or divide by nothing.
+            Assert.Equal(3, unopposed.FinalDifficulty);
+            Assert.Equal(9, opposed.FinalDifficulty);
             Assert.DoesNotContain("Will", unopposed.Explain());
+
+            Assert.Equal(0.0, unopposed.Opposition.TargetPower);
+            Assert.Equal(1.0, unopposed.Opposition.StabilizedTargetPower);
         }
 
         [Fact]
@@ -360,6 +384,320 @@ namespace BrilliantQuesting.Tests
 
             Assert.Equal(ProceduralCheckProfiles.Deception.BaseDifficulty, declared.FinalDifficulty);
             Assert.Contains("this build cannot read notoriety", declared.Explain());
+        }
+
+        // --- BQa-004: progression-safe opposed power-band scaling ---------------------------
+
+        /// <summary>
+        /// One opposed contest at a named actor/target power, through the production resolver.
+        /// Strength and Will are single-weight terms on the intimidation-shaped profile below, so
+        /// a composite is the number put in rather than something the fixture had to solve for.
+        /// </summary>
+        private static CheckResult Contest(int actorPower, int targetPower, params (string Label, int Delta)[] modifiers)
+        {
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.Define(Player, level: 5);
+            vanilla.Define(Guard, level: 10);
+            vanilla.SetAttribute(Player, VanillaAttribute.Strength, actorPower);
+            vanilla.SetAttribute(Guard, VanillaAttribute.Will, targetPower);
+
+            CheckProfile profile = new CheckProfile("test_contest", CheckFamily.Opposed, 20)
+                .WithActorAttribute(VanillaAttribute.Strength, 1.0)
+                .WithTargetAttribute(VanillaAttribute.Will, 1.0);
+            CheckRequest request = new CheckRequest(profile, Player, Guard);
+            foreach ((string Label, int Delta) modifier in modifiers)
+            {
+                request.WithModifier(modifier.Label, modifier.Delta);
+            }
+
+            return new VanillaStyleCheckResolver(vanilla).Resolve(request, new DeterministicRng(11));
+        }
+
+        private static int Bands(int actorPower, int targetPower)
+        {
+            return Contest(actorPower, targetPower).Opposition.AppliedDcAdjustment;
+        }
+
+        [Fact]
+        public void EachDoublingOfRelativePowerIsOneBandWorthThreeDc()
+        {
+            // Parity is no adjustment at all, whatever the absolute numbers are.
+            Assert.Equal(0, Bands(8, 8));
+            Assert.Equal(20, Contest(8, 8).FinalDifficulty);
+
+            Assert.Equal(3, Bands(16, 8));   // 2:1
+            Assert.Equal(6, Bands(32, 8));   // 4:1
+            Assert.Equal(-3, Bands(8, 16));  // 1:2
+            Assert.Equal(-6, Bands(8, 32));  // 1:4
+
+            // And the DC moves the other way from the adjustment: advantage makes it easier.
+            Assert.Equal(17, Contest(16, 8).FinalDifficulty);
+            Assert.Equal(23, Contest(8, 16).FinalDifficulty);
+        }
+
+        [Fact]
+        public void ScalingBothSidesEquallyIsTheSameContest()
+        {
+            // The point of a ratio over a difference: 200 against 100 is the advantage 2 against 1
+            // is, where a flat sum would call the first a hundred points and the second one point.
+            Assert.Equal(3, Bands(2, 1));
+            Assert.Equal(3, Bands(20, 10));
+            Assert.Equal(3, Bands(200, 100));
+            Assert.Equal(3, Bands(20000, 10000));
+
+            Assert.Equal(0, Bands(7, 7));
+            Assert.Equal(0, Bands(7000, 7000));
+        }
+
+        [Fact]
+        public void RelativePowerIsMonotonicInBothSides()
+        {
+            int previous = int.MinValue;
+            for (int actor = 1; actor <= 400; actor++)
+            {
+                int adjustment = Bands(actor, 40);
+                Assert.True(adjustment >= previous, "growing actor power never made the contest harder");
+                previous = adjustment;
+            }
+
+            previous = int.MaxValue;
+            for (int target = 1; target <= 400; target++)
+            {
+                int adjustment = Bands(40, target);
+                Assert.True(adjustment <= previous, "growing opposition never made the contest easier");
+                previous = adjustment;
+            }
+        }
+
+        [Fact]
+        public void TheWholeNumberRuleRoundsTowardZeroInBothDirections()
+        {
+            // 3:1 is 4.75 raw DC and 1:3 is -4.75. Toward zero pays neither side for the part of
+            // the band it did not finish; a mathematical floor would quietly charge the loser 5.
+            Assert.Equal(4, Bands(24, 8));
+            Assert.Equal(-4, Bands(8, 24));
+
+            Assert.Equal(4.754887, Contest(24, 8).Opposition.RawDcAdjustment, 5);
+            Assert.Equal(-4.754887, Contest(8, 24).Opposition.RawDcAdjustment, 5);
+
+            // The rule, stated as the property it exists for: swapping the two sides negates the
+            // adjustment exactly, at every ratio and on both sides of zero.
+            for (int actor = 1; actor <= 60; actor++)
+            {
+                for (int target = 1; target <= 60; target++)
+                {
+                    Assert.Equal(-Bands(actor, target), Bands(target, actor));
+                }
+            }
+        }
+
+        [Fact]
+        public void ExactBoundariesLandOnTheBandRatherThanAUnitBelowIt()
+        {
+            // Every exact power of two is a whole number of raw DC. Truncating a representation
+            // error would hand back one DC less than the boundary mathematically earns.
+            for (int doublings = 0; doublings <= 20; doublings++)
+            {
+                int actor = 1 << doublings;
+                Assert.Equal(3 * doublings, Bands(actor, 1));
+                Assert.Equal(-3 * doublings, Bands(1, actor));
+            }
+        }
+
+        [Fact]
+        public void ZeroAndNearZeroSidesUseTheOneStabilizerRatherThanAnInfinity()
+        {
+            // Nothing against nothing is a contest between equals, not an undefined ratio.
+            CheckResult empty = Contest(0, 0);
+            Assert.Equal(0, empty.Opposition.AppliedDcAdjustment);
+            Assert.Equal(empty.BaseDifficulty, empty.FinalDifficulty);
+            Assert.Equal(1.0, empty.Opposition.StabilizedActorPower);
+            Assert.Equal(1.0, empty.Opposition.StabilizedTargetPower);
+
+            // The floor is the same value on both sides, so a missing stat is the weakest real
+            // opposition either way round and never an infinity in one direction only.
+            Assert.Equal(-Bands(0, 16), Bands(16, 0));
+            Assert.Equal(Bands(1, 16), Bands(0, 16));
+
+            // A negative composite is invalid rather than a reversal: it floors like a zero.
+            Assert.Equal(Bands(0, 16), Bands(-40, 16));
+            Assert.Equal(1.0, Contest(-40, 16).Opposition.StabilizedActorPower);
+            Assert.Equal(-40.0, Contest(-40, 16).Opposition.ActorPower);
+        }
+
+        [Fact]
+        public void TheTraceExplainsTheRatioIncludingWhereTheStabilizerLiftedASide()
+        {
+            // The whole arithmetic has to be reproducible from the line: both composites, every
+            // stat that fed them, and the band count they produced.
+            string contested = Contest(16, 8).Explain();
+            Assert.Contains("power 16 (Strength 16) vs 8 (target Will 8) = +1 bands", contested);
+            Assert.Contains("-3 (opposed power)", contested);
+            Assert.DoesNotContain("floored", contested);
+
+            // And where the floor did the work, it says so rather than leaving "16 vs 0 = +4
+            // bands" sitting there as arithmetic the reader cannot reproduce.
+            string unopposed = Contest(16, 0).Explain();
+            Assert.Contains("vs 0 floored to 1", unopposed);
+            Assert.Contains("= +4 bands", unopposed);
+            Assert.Contains("-12 (opposed power)", unopposed);
+        }
+
+        [Fact]
+        public void ExtremeMasteryTrivializesWeakOppositionWithoutOverflowing()
+        {
+            // Not capped by default: enough relative power really should settle a weak contest.
+            Assert.True(Contest(100000, 4).FinalDifficulty < 0);
+
+            // But the die is still rolled and the profile's fumble window survives it, so mastery
+            // lowers the DC without abolishing the failure the profile explicitly kept.
+            CheckProfile profile = new CheckProfile("test_mastery", CheckFamily.Opposed, 20)
+                .WithActorAttribute(VanillaAttribute.Strength, 1.0)
+                .WithTargetAttribute(VanillaAttribute.Will, 1.0);
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.Define(Player, level: 5);
+            vanilla.Define(Guard, level: 10);
+            vanilla.SetAttribute(Player, VanillaAttribute.Strength, 100000);
+            vanilla.SetAttribute(Guard, VanillaAttribute.Will, 4);
+            VanillaStyleCheckResolver resolver = new VanillaStyleCheckResolver(vanilla);
+            CheckRequest request = new CheckRequest(profile, Player, Guard);
+
+            Assert.Equal(CheckOutcome.CriticalFail, resolver.Resolve(request, RngThatRolls(20, 1)).Outcome);
+            Assert.Equal(CheckOutcome.Pass, resolver.Resolve(request, RngThatRolls(20, 2)).Outcome);
+
+            // A level far past anything the game reaches still produces an ordinary integer DC.
+            CheckResult vast = Contest(int.MaxValue, 1);
+            Assert.True(vast.Opposition.AppliedDcAdjustment > 0);
+            Assert.True(vast.FinalDifficulty < vast.BaseDifficulty);
+        }
+
+        [Fact]
+        public void SituationalModifiersStayOutsideTheRatioRatherThanScalingWithIt()
+        {
+            // A modifier is a fact about the occasion, so it is worth the same 4 DC in a contest
+            // between equals and in a hopelessly lopsided one. Inside the ratio it would not be.
+            Assert.Equal(
+                Contest(8, 8).FinalDifficulty + 4,
+                Contest(8, 8, ("they have proof", 4)).FinalDifficulty);
+            Assert.Equal(
+                Contest(512, 4).FinalDifficulty + 4,
+                Contest(512, 4, ("they have proof", 4)).FinalDifficulty);
+
+            // And it never reaches either composite.
+            Assert.Equal(8.0, Contest(8, 8, ("they have proof", 4)).Opposition.ActorPower);
+            Assert.Equal(8.0, Contest(8, 8, ("they have proof", 4)).Opposition.TargetPower);
+        }
+
+        [Fact]
+        public void TargetLevelEntersTheOppositionOnlyWhereTheProfileDeclaredIt()
+        {
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.Define(Player, level: 5);
+            vanilla.Define(Guard, level: 40);
+            vanilla.SetSkill(Player, VanillaSkill.Negotiation, 30);
+            vanilla.SetAttribute(Player, VanillaAttribute.Charisma, 20);
+            vanilla.SetAttribute(Player, VanillaAttribute.Strength, 20);
+            vanilla.SetAttribute(Player, VanillaAttribute.Will, 20);
+            vanilla.SetAttribute(Guard, VanillaAttribute.Will, 20);
+            VanillaStyleCheckResolver resolver = new VanillaStyleCheckResolver(vanilla);
+
+            // Intimidation declared a level term; interrogation did not. Both are opposed, both
+            // read the same level-40 guard, and only the one that said so pays for it.
+            CheckResult declared = resolver.Resolve(
+                new CheckRequest(ProceduralCheckProfiles.Intimidation, Player, Guard), new DeterministicRng(5));
+            CheckResult silent = resolver.Resolve(
+                new CheckRequest(ProceduralCheckProfiles.Interrogation, Player, Guard), new DeterministicRng(5));
+
+            Assert.Equal(40 * 0.3, Assert.Single(declared.Opposition.Contributions, c => c.Label == "target level").Value);
+            Assert.DoesNotContain(silent.Opposition.Contributions, c => c.Label == "target level");
+
+            // Levelling the guard moves the profile that declared the term and nothing else. No
+            // hidden universal level scaling arrives through the power composite.
+            vanilla.Define(Guard, level: 80);
+            Assert.True(
+                resolver.Resolve(new CheckRequest(ProceduralCheckProfiles.Intimidation, Player, Guard), new DeterministicRng(5))
+                    .FinalDifficulty > declared.FinalDifficulty);
+            Assert.Equal(
+                silent.FinalDifficulty,
+                resolver.Resolve(new CheckRequest(ProceduralCheckProfiles.Interrogation, Player, Guard), new DeterministicRng(5))
+                    .FinalDifficulty);
+        }
+
+        [Fact]
+        public void AFixedChallengeKeepsTheFlatSumAndNoPowerRatio()
+        {
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.Define(Player, level: 5);
+            vanilla.SetSkill(Player, VanillaSkill.Lockpicking, 10);
+            vanilla.SetSkill(Player, VanillaSkill.Stealth, 12);
+            vanilla.SetAttribute(Player, VanillaAttribute.Dexterity, 15);
+
+            CheckResult burglary = new VanillaStyleCheckResolver(vanilla).Resolve(
+                new CheckRequest(ProceduralCheckProfiles.Burglary, Player, EntityId.None), new DeterministicRng(1));
+
+            // The same flat arithmetic BQa-004 found: base 13 - lockpicking(4) - stealth(3)
+            // - dexterity(3). A lock does not get easier because the actor is relatively strong.
+            Assert.Equal(3, burglary.FinalDifficulty);
+            Assert.Null(burglary.Opposition);
+            Assert.Contains(burglary.Terms, t => t.Label == "Lockpicking");
+            Assert.DoesNotContain(burglary.Terms, t => t.Label == "opposed power");
+        }
+
+        [Fact]
+        public void EveryOpposedProfileScalesByPowerAndEveryAbsoluteOneDoesNot()
+        {
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.Define(Player, level: 5);
+            vanilla.Define(Guard, level: 10);
+            VanillaStyleCheckResolver resolver = new VanillaStyleCheckResolver(vanilla);
+
+            foreach (string id in ProceduralCheckProfiles.ProfileIds)
+            {
+                CheckProfile profile = ProceduralCheckProfiles.ById(id);
+                CheckResult result = resolver.Resolve(
+                    new CheckRequest(profile, Player, Guard), new DeterministicRng(6));
+
+                if (profile.Family == CheckFamily.Opposed)
+                {
+                    Assert.NotNull(result.Opposition);
+                }
+                else
+                {
+                    Assert.Null(result.Opposition);
+                    Assert.DoesNotContain(result.Terms, t => t.Label == "opposed power");
+                }
+            }
+        }
+
+        [Fact]
+        public void OpposedScalingDepartsFromTheFlatSourceCheckSumOnPurpose()
+        {
+            // The recorded baseline this replaces: the same single-element opposed row that used
+            // to match vanilla's flat sum exactly. It no longer does, and the direction is the
+            // point rather than an accident.
+            SandboxVanillaState vanilla = new SandboxVanillaState(Player);
+            vanilla.Define(Player, level: 5);
+            vanilla.Define(Guard, level: 12);
+            vanilla.SetSkill(Player, VanillaSkill.Negotiation, 18);
+            vanilla.SetAttribute(Guard, VanillaAttribute.Perception, 9);
+
+            CheckProfile profile = new CheckProfile("test_single_element_opposed", CheckFamily.Opposed, 14)
+                .WithActorSkill(VanillaSkill.Negotiation, 0.5)
+                .WithTargetAttribute(VanillaAttribute.Perception, 0.5)
+                .WithTargetLevel(0.25)
+                .WithDice(20, critRange: 1, fumbleRange: 1);
+            CheckRequest request = new CheckRequest(profile, Player, Guard).WithModifier("hard rain", 2);
+
+            CheckResult result = new VanillaStyleCheckResolver(vanilla).Resolve(request, new DeterministicRng(0));
+            int flatSourceCheckSum = 14 + 3 + 5 - 9 + 2;
+
+            // actor 9.0 against target 7.5 is 0.26 bands: near parity, and 0.79 raw DC is not yet
+            // a band anyone finished earning. The flat sum read the same contest as a whole point
+            // of advantage because it was counting a gap of 1.5 rather than a ratio of 1.2.
+            Assert.Equal(15, flatSourceCheckSum);
+            Assert.Equal(16, result.FinalDifficulty);
+            Assert.Equal(0, result.Opposition.AppliedDcAdjustment);
+            Assert.Equal(0.789, result.Opposition.RawDcAdjustment, 3);
         }
 
         private static string[] Sorted(List<string> values)

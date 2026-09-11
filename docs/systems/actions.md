@@ -58,8 +58,34 @@ it for the verbs that roll nothing. The family is declared, not inferred from th
 absolute profile may not take a target attribute or target level at all (`InvalidOperationException`),
 and an opposed profile that declares no opposition fails classification. `TargetLevelIsOpposition`
 is the only sanctioned reading of a level term; nothing may infer universal level scaling from its
-absence. Family classifies; it does not yet alter arithmetic, which stays one flat sum of declared
-terms. See [D079](../agent/decisions.md#d079--a-check-declares-which-kind-of-uncertainty-it-is-and-the-portable-resolver-is-the-authority-rather-than-a-stand-in).
+absence. Family now selects the arithmetic as well (BQa-004). See
+[D079](../agent/decisions.md#d079--a-check-declares-which-kind-of-uncertainty-it-is-and-the-portable-resolver-is-the-authority-rather-than-a-stand-in)
+and [D080](../agent/decisions.md#d080--an-opposed-check-scales-on-the-ratio-between-the-two-sides-and-a-partial-band-is-paid-to-neither).
+
+**Opposed arithmetic.** An `Absolute` DC stays the flat sum it was: base minus each declared actor
+term, plus situational modifiers. An `Opposed` DC is a ratio instead. Both sides compose in double
+precision - actor skills and attributes against target attributes, plus target level only where
+`TargetLevelIsOpposition` - and the DC moves by
+`wholeNumber(log2(stabilize(actorPower) / stabilize(targetPower)) x 3)`, subtracted so an advantage
+lowers it. One doubling of relative power is one band worth 3 DC at any scale, so 2000 against 1000
+is the advantage 2 against 1 is. `BaseDifficulty` and situational modifiers stay outside both
+composites; folding them in would make a fact about the occasion scale with the contest. Mastery is
+uncapped and the profile's dice/critical windows are untouched, so a low DC never abolishes a
+retained fumble. The stabilizer is one floor of 1.0 applied identically to both sides, which also
+absorbs negative and non-finite composites; the whole-number rule is toward zero in both directions,
+the only rule under which swapping the two sides negates the adjustment exactly.
+
+`CheckResult.Opposition` carries that working - both composites, the band count and the applied
+adjustment - because a list of signed deltas cannot show a ratio. It is non-null on exactly the
+opposed resolutions of this resolver and null elsewhere, including the native diagnostic path.
+`CheckResult.Terms` keeps its invariant: every entry is a real signed contribution to the DC, and
+the composite arrives there as the single `opposed power` term.
+
+Deliberate rebalance: a single-element opposed row no longer reproduces vanilla's flat `SourceCheck`
+sum, and the recorded baseline distribution test now covers the absolute family, which still does.
+Near parity the ratio is more conservative than the flat sum was - a gap of 1.5 that used to read as
+a point of advantage is 0.26 of a band and buys nothing - while a large relative advantage is worth
+far more than a flat difference could express.
 
 Limits the classification records rather than assumes away. An opposed profile resolved with no
 target keeps its actor terms and silently loses its opposing ones. A stat that cannot be read -

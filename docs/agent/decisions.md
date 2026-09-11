@@ -2390,3 +2390,48 @@ can one day be swapped out.
 Reason: a classification that could be inferred would be re-inferred differently by the next thing
 that needed it, and a resolver documented as temporary invites a later step to "finish" the migration
 and lose replay authority to Elin's RNG to fix a problem that was never there.
+
+## D080 — An opposed check scales on the ratio between the two sides, and a partial band is paid to neither
+
+Elin's progression is effectively open-ended, so a flat difference between two capability composites
+stops meaning anything as soon as both are large. Twenty points of advantage is decisive at 20
+against 0 and noise at 200 against 180, and a flat sum calls them the same contest. An opposed check
+therefore scales on the ratio: `log2(actorPower / targetPower)`, three DC per doubling, subtracted
+from the base so advantage lowers the difficulty. One doubling means the same thing at every scale,
+which is the property a difference cannot have and the reason this is not a tuning pass.
+
+What deliberately stays outside the ratio. `BaseDifficulty` is how hard the thing is before anybody
+shows up. Situational modifiers - rapport, fame, hard rain, they-have-proof - are facts about the
+occasion rather than capability either side brought, and inside the ratio they would scale with the
+contest, so four DC of proof would mean less against a strong opponent than a weak one. Absolute
+checks do not go through any of this at all: a lock does not get easier because the actor is
+relatively strong, and a fixed challenge that rose to meet the player would be the level scaling
+[D079](#d079--a-check-declares-which-kind-of-uncertainty-it-is-and-the-portable-resolver-is-the-authority-rather-than-a-stand-in)
+refused to infer. Target level enters the opposing composite only where a profile declared it does.
+
+Mastery is uncapped on purpose. Enough relative power really should trivialise weak opposition, so
+nothing clamps the adjustment except a guard far outside any reachable composite. It buys a lower DC
+and never a changed die: the profile's critical windows are untouched, so a retained fumble still
+fails at whatever mastery. A logarithm needs a floor on both sides or the same missing stat reads as
+infinite advantage one way round and infinite disadvantage the other, so there is exactly one
+stabilizer - 1.0, applied identically to both composites, absorbing zero, negative and non-finite
+values alike. Composition rounds once at the end rather than per stat, because rounding inside a
+ratio distorts a small side far more than a large one.
+
+The whole-number rule is toward zero in both directions, chosen rather than inherited. C#'s cast and
+a mathematical floor agree above zero and disagree below it, and taking whichever fell out of the
+expression would make a slight disadvantage cost a whole band while its mirror-image slight
+advantage earned nothing. Toward zero is the only rule under which swapping the two sides negates
+the adjustment exactly, matching the symmetry the stabilizer and the logarithm already have. A
+representation error is snapped out before that rule runs, so an exact 2:1 is decided by the
+mathematics rather than by a unit in the last place.
+
+This is a deliberate rebalance against a recorded baseline: a single-element opposed row no longer
+reproduces vanilla's flat `SourceCheck` sum. The distribution test that pinned that shape now covers
+the absolute family, which still reproduces it exactly, and the opposed departure is measured rather
+than dropped. Near parity the ratio is the more conservative of the two.
+
+Reason: a difference-based opposed check silently stops modelling anything once a save matures, and
+its failure mode is invisible - the numbers keep resolving, they just stop meaning a contest. The
+rounding rule is named here because an unnamed one is an artefact of the language, and an artefact
+would make the model asymmetric in exactly the direction nobody chose.
