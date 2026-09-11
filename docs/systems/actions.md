@@ -159,17 +159,39 @@ Native: life/location in [capabilities](../elin/capabilities.md).
 
 ## Developments
 
-**Owns:** `DevelopmentDetector.Detect` reads unresolved unproven-knowledge and unmet-obligation
-pressure into ID-linked `Development`s. Inputs: saved facts/beliefs/obligations/history/threads.
-Outputs: stable sorted pressure readings for storylet eligibility and inspector. **All derived;
-never saved.** **Does not own:** a lifecycle, new facts/threads, a universal detector for every world
-pressure or a promise of a scene. Resolution belongs to source state: pressure disappears when no
-longer derivable. `DevelopmentScoring` is a separate attention reader over eligible news, not a
-second `Development` store or general goal planner.
+**Owns:** `DevelopmentDetector.Detect` reads standing conditions into ID-linked `Development`s over
+several authoritative families: unproven knowledge, belief conflict, unresolved crime, damaged
+property, shortage, service continuity, unmet obligation and organization stake. Inputs: saved
+facts/beliefs/obligations/demands/businesses/organizations/history/threads. Outputs: stable sorted
+pressure readings for storylet eligibility and inspector. **All derived; never saved.**
+
+Two contracts hold the rule set together. **Aggregation:** rules contribute readings, and readings
+naming the same standing condition merge onto one id, so a demand-ledger entry and the `Needs` claim
+it cites are one pressure with two sources; distinct causes keep distinct ids. Urgency is the
+highest contributing reading, never a sum. **Bounded intake:** `Detect(world, DevelopmentScope)`
+enumerates an affected work set of facts/obligations/sites/businesses/organizations, so a live
+consumer does not scan every store; `DevelopmentScope.EntireWorld` is the unbounded diagnostic and
+fixture reading. Every rule applying to an entity in the work set runs on it exactly as in a
+whole-world pass, with the same identity, tags and urgency; a work set answers only for what it
+names, so a condition recorded in two stores is complete when both are named and a later pass
+naming the other source lands on the same development.
+
+Each rule declares source, default and refusal. Refusals are the contract: no live vanilla stock,
+operator availability or native crime state is read, and unsupported native facts stay unknown.
+Positive (`opportunity`) and easing (`recovering`) readings exist so the cycle is not only crises.
+
+**Does not own:** a lifecycle, new facts/threads, actor-local interpretation of who cares, or a
+promise of a scene. Resolution belongs to source state: pressure disappears when no longer derivable.
+`DevelopmentScoring` is a separate attention reader over eligible news, not a second `Development`
+store or general goal planner.
 
 Source: [DevelopmentDetector](../../src/BrilliantQuesting.Core/Developments/DevelopmentDetector.cs),
+[DevelopmentScope](../../src/BrilliantQuesting.Core/Developments/DevelopmentScope.cs),
+[DevelopmentPressures](../../src/BrilliantQuesting.Core/Developments/DevelopmentPressures.cs),
 [DevelopmentExpression.Opportunities](../../src/BrilliantQuesting.Core/Developments/DevelopmentExpression.cs),
 [Development](../../src/BrilliantQuesting.Core/Developments/Development.cs).
-Proof: [DevelopmentLayerTests](../../tests/BrilliantQuesting.Core.Tests/DevelopmentLayerTests.cs).
+Proof: [DevelopmentLayerTests](../../tests/BrilliantQuesting.Core.Tests/DevelopmentLayerTests.cs),
+[PressureSynthesisTests](../../tests/BrilliantQuesting.Core.Tests/PressureSynthesisTests.cs).
 Lab: [playground](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/PlaygroundScenario.cs).
-Rationale: [character design](../design/character-dialogue-system.md#365-development-layer).
+Rationale: [character design](../design/character-dialogue-system.md#365-development-layer),
+[`D082`](../agent/decisions.md#d082--pressure-is-aggregated-by-the-condition-and-read-from-a-bounded-work-set).

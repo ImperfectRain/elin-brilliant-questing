@@ -2468,3 +2468,47 @@ by state and a world where it is decided by statistics, and both failure modes a
 the impossible looks like a generous system until an actor talks their way into a room that does not
 exist; treating a low DC as certainty looks like a tidy optimisation until the fumble that made a
 master interesting is gone and nothing records that it was removed.
+
+## D082 — Pressure is aggregated by the condition and read from a bounded work set
+
+A `Development` is a derived reading of a standing condition, and broadening what counts as one
+breaks in two specific ways that have nothing to do with whether the individual rules are right.
+
+The first is identity. Once more than one rule can see the same standing condition - the demand
+ledger holds a shortage, and the `Needs` claim that shortage cites is in the knowledge graph -
+the naive detector emits two pressures for one thing the world is short of. Nothing downstream can
+then answer "which of these did the actor address", because they were never two things. So rules do
+not emit developments; they contribute *readings*, and readings that name the same condition merge
+onto one id carrying every source that found it. The merge is deterministic by construction: rule
+order is fixed, work sets are sorted, the first rule to name a thread or focus keeps it, and urgency
+is the highest contributing reading rather than the sum, because a condition noticed twice is not
+worse. Distinct causes keep distinct ids - two categories short in one town stay two shortages -
+since collapsing them loses the same answerability from the other direction.
+
+The second is cost. Detection is a pure read, so it is always *correct* to walk the whole save, and
+that is exactly the trap: BQ-107 and BQ-108 bought bounded off-screen work, and an unbounded
+per-tick pressure scan hands it straight back. `DevelopmentScope` names the affected facts,
+obligations, places, businesses and organizations, and detection enumerates *from* it rather than
+walking each store and filtering into it - filtering still costs the scan. Every rule applying to an
+entity in the work set runs on it exactly as it would in a whole-world pass, with the same identity,
+tags and urgency, which is what lets a live consumer trust the cheap call. A work set answers only
+for what it names, so a condition recorded in two stores is read completely when both are named -
+and because identity is keyed on the condition rather than on the rule, the pass that names the
+other source lands on the same development instead of minting a second one. `DevelopmentScope.EntireWorld` keeps the unbounded reading available under an
+honest name for the inspector, the Lab and fixture worlds, and is not what a per-tick consumer asks
+for.
+
+Every rule declares three things, because a pressure family that cannot state them is a guess: its
+source (the authoritative store it reads), its default (what it derives when that store says
+nothing), and its refusal (what it will not infer). The refusals carry the weight. No live vanilla
+stock, operator availability or native crime state is read, so a sleeping shopkeeper and an empty
+shelf cannot mint a business pressure and unsupported native facts stay unknown. Nothing is taught
+to anybody: the objective detector says a condition exists, never that an actor knows it, which is
+the boundary actor-local interpretation depends on. And positive (`opportunity`) and easing
+(`recovering`) readings exist so that a detector reporting only failure cannot be truthful about
+every single pressure while describing a world nobody recognises.
+
+Reason: the two failures are quiet in opposite ways. Duplicate pressure identities read correctly in
+a dump and only surface much later, as goals that cannot be satisfied and consequences that cannot
+be attributed; an unbounded scan reads correctly forever and only surfaces as frame time in a save
+large enough that nobody wants to re-architect it.

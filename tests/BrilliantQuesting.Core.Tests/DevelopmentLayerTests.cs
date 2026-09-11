@@ -88,7 +88,8 @@ namespace BrilliantQuesting.Tests
             // is in the same list and does reach the dramatic machinery.
             Development theft = Assert.Single(
                 DevelopmentDetector.Detect(lab.World),
-                d => d.FocusFactId == lab.Situation.TheftFactId);
+                d => d.HasPressure(DevelopmentPressures.UnprovenKnowledge));
+            Assert.Equal(lab.Situation.TheftFactId, theft.FocusFactId);
             Assert.True(theft.CanBeExpressedAsStorylet);
             Assert.NotEmpty(DevelopmentExpression.Opportunities(engine, lab.World, lab.Vanilla, theft));
 
@@ -119,7 +120,7 @@ namespace BrilliantQuesting.Tests
 
             Development before = Assert.Single(
                 DevelopmentDetector.Detect(lab.World),
-                d => d.FocusFactId == lab.Situation.TheftFactId);
+                d => d.HasPressure(DevelopmentPressures.UnprovenKnowledge));
             Assert.NotEmpty(DevelopmentExpression.Opportunities(engine, lab.World, lab.Vanilla, before));
 
             lab.Vanilla.Kill(lab.Situation.ThiefId);
@@ -133,7 +134,7 @@ namespace BrilliantQuesting.Tests
             // it asks the game who is still standing.
             Development after = Assert.Single(
                 DevelopmentDetector.Detect(lab.World),
-                d => d.FocusFactId == lab.Situation.TheftFactId);
+                d => d.HasPressure(DevelopmentPressures.UnprovenKnowledge));
             Assert.Equal(before.Id, after.Id);
             Assert.Equal(before.Urgency, after.Urgency);
             Assert.Equal(before.SubjectIds, after.SubjectIds);
@@ -201,18 +202,26 @@ namespace BrilliantQuesting.Tests
             // One thread, two facts, one pressure: an ownership record everybody may repeat is not
             // a matter waiting on anyone, so only the secret produces anything.
             Assert.Equal(2, lab.Situation.Thread.FactIds.Count);
-            Development only = Assert.Single(DevelopmentDetector.Detect(lab.World));
+            Development only = Assert.Single(
+                DevelopmentDetector.Detect(lab.World),
+                d => d.HasPressure(DevelopmentPressures.UnprovenKnowledge));
             Assert.Equal(lab.Situation.TheftFactId, only.FocusFactId);
 
             // Resolving the thread does not resolve the pressure - the secret is still unproven -
             // which is the clearest sign the two are not the same record under two names.
             lab.Situation.Thread.State = ThreadState.Resolved;
-            Assert.Single(DevelopmentDetector.Detect(lab.World));
+            Assert.Single(
+                DevelopmentDetector.Detect(lab.World),
+                d => d.HasPressure(DevelopmentPressures.UnprovenKnowledge));
 
-            // It stops being derived when the state that made it changes, and only then.
+            // It stops being derived when the state that made it changes, and only then. BQa-006
+            // broadened the rule set, so the theft still presses as an unresolved wrong: what
+            // ended here is the pressure that came from nobody being able to prove it.
             Fact theft = lab.World.Knowledge.GetFact(lab.Situation.TheftFactId);
             theft.Secrecy = 0;
-            Assert.Empty(DevelopmentDetector.Detect(lab.World));
+            Assert.DoesNotContain(
+                DevelopmentDetector.Detect(lab.World),
+                d => d.HasPressure(DevelopmentPressures.UnprovenKnowledge));
 
             Assert.Empty(typeof(Development).GetConstructors(BindingFlags.Public | BindingFlags.Instance));
             foreach (PropertyInfo property in typeof(Development).GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -242,7 +251,8 @@ namespace BrilliantQuesting.Tests
             RecordFavor(lab, lab.Situation.ThiefId, lab.Situation.VictimId);
 
             IReadOnlyList<Development> before = DevelopmentDetector.Detect(lab.World);
-            Assert.Equal(2, before.Count);
+            Assert.Contains(before, d => d.HasPressure(DevelopmentPressures.UnprovenKnowledge));
+            Assert.Contains(before, d => d.HasPressure(DevelopmentPressures.UnmetObligation));
 
             string json = WorldStateSerializer.Save(lab.World);
             Assert.DoesNotContain("development", json, StringComparison.OrdinalIgnoreCase);
@@ -301,8 +311,9 @@ namespace BrilliantQuesting.Tests
             TheftLaboratory lab = TheftLaboratory.Create();
             StoryletEngine engine = ShippedEngine();
 
-            Development development = Assert.Single(DevelopmentDetector.Detect(lab.World));
-            Assert.True(development.HasPressure(DevelopmentPressures.UnprovenKnowledge));
+            Development development = Assert.Single(
+                DevelopmentDetector.Detect(lab.World),
+                d => d.HasPressure(DevelopmentPressures.UnprovenKnowledge));
             Assert.True(development.HasPressure(DevelopmentPressures.Contested));
             Assert.Equal(lab.Situation.Thread.Id, development.ThreadId);
 
@@ -319,7 +330,9 @@ namespace BrilliantQuesting.Tests
             engine.Fire(throughDevelopment[0], lab.Situation.Thread, lab.Vanilla.Now);
 
             Assert.Single(lab.Situation.Thread.StoryletFirings);
-            Development stillThere = Assert.Single(DevelopmentDetector.Detect(lab.World));
+            Development stillThere = Assert.Single(
+                DevelopmentDetector.Detect(lab.World),
+                d => d.HasPressure(DevelopmentPressures.UnprovenKnowledge));
             Assert.Equal(development.Id, stillThere.Id);
             Assert.Equal(development.Urgency, stillThere.Urgency);
         }
@@ -339,7 +352,9 @@ namespace BrilliantQuesting.Tests
             int factsBefore = lab.World.Knowledge.Facts.Count;
             int eventsBefore = lab.World.Ledger.Events.Count;
 
-            Development development = Assert.Single(DevelopmentDetector.Detect(lab.World));
+            Development development = Assert.Single(
+                DevelopmentDetector.Detect(lab.World),
+                d => d.HasPressure(DevelopmentPressures.UnprovenKnowledge));
             IReadOnlyList<StoryletOpportunity> opportunities =
                 DevelopmentExpression.Opportunities(engine, lab.World, lab.Vanilla, development);
 
@@ -372,7 +387,6 @@ namespace BrilliantQuesting.Tests
 
             string dump = NarrativeInspector.DescribeDevelopments(lab.World);
 
-            Assert.Contains("developments: 2", dump);
             Assert.Contains("dev.unproven_knowledge:" + lab.Situation.TheftFactId.Value, dump);
             Assert.Contains("dev.unmet_obligation:", dump);
             Assert.Contains("a storylet could be looked for", dump);

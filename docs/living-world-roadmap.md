@@ -371,6 +371,31 @@ Broader coverage also needs a **stable aggregation contract**. Equivalent readin
 **Required coverage:** the first rules must cover property/crime, economic/service continuity, social obligation/belief conflict and existing organization stakes, with source/default/refusal defined for each. Unsupported native facts remain unknown; the beta can use honest BQ-owned obligations/business continuity, but not fabricated native stock. Include positive opportunities and recovery/quiet states so the cycle does not only generate crises. Source changes without a thread remain detectable. Initial rules use bounded supplied work sets; BQa-012 and BQa-016 connect invalidation and recurring execution, then BQa-017 supplies live hooks.
 
 
+**Implementation/evidence** `DevelopmentDetector` now reads eight families over five authoritative
+stores - unproven knowledge and belief conflict from the knowledge graph, unresolved crime and
+damaged property from the crime/damage vocabulary, shortage from `Needs` claims and BQ-050's demand
+ledger, service continuity from BQ-051's business ledger, unmet obligation from the obligation
+ledger and organization stake from the organization records - and each rule states its source,
+default and refusal. Rules contribute readings that merge by condition identity, so a demand entry
+and the need it cites are one pressure with two sources while distinct causes stay separate;
+urgency is the highest contributing reading. `DevelopmentScope` supplies the bounded work set and
+`Detect(world, scope)` enumerates from it, with `DevelopmentScope.EntireWorld` the named unbounded
+diagnostic reading. `opportunity` and `recovering` keep non-crisis conditions in the cycle.
+Developments remain derived and unsaved; no durable field was added. The durable rule is
+[`D082`](agent/decisions.md). `PressureSynthesisTests` covers the four required families, dedup
+versus distinct cause, bounded-equals-unbounded, an empty work set, no-thread pressure, the live
+service surface refusing to mint a business pressure, and each family disappearing with its
+condition. Two lookups were added to their own owners so a bounded pass does not walk a
+store to answer a question about one entry: `LocalDemandLedger.At` reads one place, and
+`EventLedger.Find` reads one occasion by id (`CausalHistory.FindEvent` now resolves through it
+instead of keeping a second scan). Settlement of a wrong is read off the matter that ended, where
+both `Settled` producers file it, rather than by hunting the knowledge graph. BQ-069's tests now name the pressure family they mean rather than the whole-world count.
+
+**Live verification still required** headless Core only. No live Elin session exercised these
+readings, no live consumer supplies a work set yet - BQa-012 and BQa-016 connect invalidation and
+recurring execution and BQa-017 supplies the native hooks - and the Plugin was not compiled here
+because the Elin assemblies are not redistributable. Evidence grade unchanged: headless/source.
+
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#developments), [neighbor contract](systems/world.md#organizations), [validation](agent/validation.md#actions).
 
 **Sequence:** BQa-005 → BQa-006 → BQa-007.

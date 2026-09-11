@@ -12,6 +12,7 @@ namespace BrilliantQuesting.Events
     public sealed class EventLedger
     {
         private readonly List<WorldEvent> _events = new List<WorldEvent>();
+        private readonly Dictionary<EntityId, WorldEvent> _byId = new Dictionary<EntityId, WorldEvent>();
         private readonly List<Action<WorldEvent>> _listeners = new List<Action<WorldEvent>>();
         private readonly Queue<WorldEvent> _pending = new Queue<WorldEvent>();
         private bool _dispatching;
@@ -39,6 +40,7 @@ namespace BrilliantQuesting.Events
             }
 
             _events.Add(worldEvent);
+            _byId[worldEvent.Id] = worldEvent;
             _pending.Enqueue(worldEvent);
 
             if (_dispatching)
@@ -108,6 +110,26 @@ namespace BrilliantQuesting.Events
         internal void RestoreWithoutDispatch(WorldEvent worldEvent)
         {
             _events.Add(worldEvent);
+            _byId[worldEvent.Id] = worldEvent;
+        }
+
+        /// <summary>
+        /// The event with this id, or null.
+        ///
+        /// History is append-only and grows for the life of a save, so callers that need one
+        /// occasion by id must not pay a walk of the whole ledger for it. The index is the
+        /// ledger's own - the list still owns the order, and this answers identity only.
+        /// </summary>
+        public WorldEvent Find(EntityId eventId)
+        {
+            if (eventId.IsNone)
+            {
+                return null;
+            }
+
+            WorldEvent found;
+            _byId.TryGetValue(eventId, out found);
+            return found;
         }
 
         private static bool Contains(IReadOnlyList<EntityId> list, EntityId id)

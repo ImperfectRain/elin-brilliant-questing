@@ -28,7 +28,9 @@ timestamp or tag: an event with no links reads as unknown, and old saves keep th
 Motive is the actor's, never the world's, so an accusation names the occurrence rather than the
 object. `ReserveEvent` hands out an identity for a record that must name its origin before that
 event exists; read-only inspection reserves nothing. A decision record holds bounded reason codes,
-never a snapshot.
+never a snapshot. The ledger owns identity as well as order: `EventLedger.Find` answers one
+occasion by id without walking history, and `CausalHistory.FindEvent` resolves through it rather
+than keeping a second scan.
 
 Source: [EventLedger](../../src/BrilliantQuesting.Core/Events/EventLedger.cs),
 [NarrativeWorldState](../../src/BrilliantQuesting.Core/World/NarrativeWorldState.cs),

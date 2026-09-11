@@ -135,6 +135,43 @@ namespace BrilliantQuesting.World
             return existing;
         }
 
+        /// <summary>
+        /// Every pressure recorded for one place, in stable category order.
+        ///
+        /// A lookup rather than a filter over <see cref="Pressures"/>: a caller working from a
+        /// bounded set of affected places must be able to read those places without walking the
+        /// whole ledger to find them.
+        /// </summary>
+        public IReadOnlyList<LocalDemandPressure> At(EntityId placeId)
+        {
+            List<LocalDemandPressure> found = null;
+            for (int i = 0; i < _pressures.Count; i++)
+            {
+                if (_pressures[i].PlaceId == placeId)
+                {
+                    (found ?? (found = new List<LocalDemandPressure>())).Add(_pressures[i]);
+                }
+            }
+
+            if (found == null)
+            {
+                return NoPressures;
+            }
+
+            found.Sort(ByCategoryThenSource);
+            return found;
+        }
+
+        private static readonly IReadOnlyList<LocalDemandPressure> NoPressures = new LocalDemandPressure[0];
+
+        private static int ByCategoryThenSource(LocalDemandPressure left, LocalDemandPressure right)
+        {
+            int byCategory = string.CompareOrdinal(left.Category, right.Category);
+            return byCategory != 0
+                ? byCategory
+                : string.CompareOrdinal(left.SourceFactId.Value, right.SourceFactId.Value);
+        }
+
         public LocalDemandPressure Get(EntityId placeId, string category, EntityId sourceFactId = default)
         {
             string canonical = LocalDemandCategory.Normalize(category);

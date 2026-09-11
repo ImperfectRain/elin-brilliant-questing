@@ -194,25 +194,11 @@ namespace BrilliantQuesting.World
             return found == null ? (IReadOnlyList<WorldEvent>)NoEvents : found;
         }
 
-        /// <summary>The event with this id, or null. A plain scan: the ledger owns the order.</summary>
+        /// <summary>The event with this id, or null. The ledger owns identity as well as order.</summary>
         public static WorldEvent FindEvent(NarrativeWorldState world, EntityId eventId)
         {
             if (world == null) throw new ArgumentNullException(nameof(world));
-            if (eventId.IsNone)
-            {
-                return null;
-            }
-
-            IReadOnlyList<WorldEvent> events = world.Ledger.Events;
-            for (int i = 0; i < events.Count; i++)
-            {
-                if (events[i].Id == eventId)
-                {
-                    return events[i];
-                }
-            }
-
-            return null;
+            return world.Ledger.Find(eventId);
         }
     }
 }

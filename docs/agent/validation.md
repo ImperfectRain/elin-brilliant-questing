@@ -38,7 +38,7 @@ changes also require [Native](#native).
 | Check arithmetic/profile | `CheckTests` | Affected verb family, `SemanticConversationIntegrationTests`; `actor-action` |
 | Reactions/observed deeds | `ConsequenceTests` or `VanillaActionRecorderTests` | `RecognizedViolenceTests`, `RelationshipHarmTests`, `VisibleConsequenceTests`; `theft` |
 | Thread lifecycle/ending | `ThreadLifecycleTests` | `ResolutionScopeTests`, `ChronicleTests`, persistence; `questline` |
-| Development rules | `DevelopmentLayerTests` | `StoryletEngineTests`, `DevelopmentScoringTests`; `playground` |
+| Development rules | `DevelopmentLayerTests`, `PressureSynthesisTests` | `StoryletEngineTests`, `DevelopmentScoringTests`, the affected source owner's tests (e.g. `BusinessContinuityTests`); `playground` |
 
 New semantic/profile vocabulary consumed by content requires the [content gate](#content-and-full-gate).
 Native mechanics/choices require Plugin build and live [Native](#native) verification.
