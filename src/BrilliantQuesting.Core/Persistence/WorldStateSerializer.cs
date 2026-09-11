@@ -154,12 +154,22 @@ namespace BrilliantQuesting.Persistence
                 JsonValue goals = JsonValue.Array();
                 foreach (NpcGoal goal in npc.Goals)
                 {
+                    // `satisfied` is still written because every save ever made carries it and a
+                    // reader older than schema 13 would otherwise see every goal as outstanding.
+                    // `lifecycle` is the authority; this is its boolean projection.
                     goals.Add(JsonValue.Object()
                         .Set("kind", goal.Kind)
                         .Set("subject", goal.Subject.Value)
                         .Set("weight", goal.Weight)
                         .Set("reason", goal.Reason)
-                        .Set("satisfied", goal.Satisfied));
+                        .Set("satisfied", goal.Satisfied)
+                        .Set("lifecycle", goal.Lifecycle.ToString())
+                        .Set("retiredAt", goal.RetiredAt.TotalMinutes)
+                        .Set("retirementCode", goal.RetirementCode)
+                        .Set("supersededBy", goal.SupersededBy)
+                        .Set("assessment", goal.ActorAssessment.ToString())
+                        .Set("condition", ConditionToJson(goal.Condition))
+                        .Set("origin", OriginToJson(goal.Origin)));
                 }
 
                 array.Add(JsonValue.Object()
@@ -694,14 +704,23 @@ namespace BrilliantQuesting.Persistence
 
                 foreach (JsonValue goalJson in json.GetArray("goals"))
                 {
-                    npc.Goals.Add(new NpcGoal(
+                    NpcGoal goal = new NpcGoal(
                         goalJson.GetString("kind"),
                         EntityId.Parse(goalJson.GetString("subject")),
                         goalJson.GetInt("weight"),
-                        goalJson.GetString("reason"))
-                    {
-                        Satisfied = goalJson.GetBool("satisfied")
-                    });
+                        goalJson.GetString("reason"),
+                        ReadCondition(goalJson["condition"]),
+                        ReadOrigin(goalJson["origin"]));
+
+                    goal.Restore(
+                        ParseEnum(goalJson.GetString("lifecycle"),
+                            goalJson.GetBool("satisfied") ? GoalLifecycle.Satisfied : GoalLifecycle.Active),
+                        new GameTime(goalJson.GetLong("retiredAt")),
+                        goalJson.GetString("retirementCode"),
+                        goalJson.GetString("supersededBy"),
+                        ParseEnum(goalJson.GetString("assessment"), GoalAssessment.Unknown));
+
+                    npc.Goals.Add(goal);
                 }
 
                 foreach (JsonValue orgJson in json.GetArray("organizations"))
@@ -1680,6 +1699,89 @@ namespace BrilliantQuesting.Persistence
             }
 
             return proofs;
+        }
+
+        private static JsonValue ConditionToJson(GoalCondition condition)
+        {
+            if (condition == null)
+            {
+                return JsonValue.Null();
+            }
+
+            JsonValue bindings = JsonValue.Array();
+            foreach (GoalBinding binding in condition.Bindings)
+            {
+                bindings.Add(JsonValue.Object().Set("name", binding.Name).Set("ref", binding.Reference.Value));
+            }
+
+            return JsonValue.Object().Set("kind", condition.Kind).Set("bindings", bindings);
+        }
+
+        /// <summary>
+        /// Reads a condition back without asking the registry to admit it. A save written by a
+        /// build that knew a term this one does not has to load, and the goal it belongs to stays
+        /// an inspectable unsupported desire rather than being dropped or guessed into another term.
+        /// </summary>
+        private static GoalCondition ReadCondition(JsonValue json)
+        {
+            if (json == null || json.Kind != JsonKind.Object)
+            {
+                return null;
+            }
+
+            string kind = json.GetString("kind");
+            if (kind.Length == 0)
+            {
+                return null;
+            }
+
+            List<GoalBinding> bindings = new List<GoalBinding>();
+            foreach (JsonValue binding in json.GetArray("bindings"))
+            {
+                EntityId reference = EntityId.Parse(binding.GetString("ref"));
+                if (!reference.IsNone)
+                {
+                    bindings.Add(new GoalBinding(binding.GetString("name"), reference));
+                }
+            }
+
+            return new GoalCondition(kind, bindings);
+        }
+
+        private static JsonValue OriginToJson(GoalOrigin origin)
+        {
+            if (origin == null
+                || (origin.Kind == GoalSourceKind.Unknown
+                    && origin.SourceId.Length == 0
+                    && origin.ObjectiveCauseId.Length == 0
+                    && origin.RecordId.IsNone))
+            {
+                // Unknown provenance with nothing to point at is expressed by having no record,
+                // the same way an event with no known cause carries no causal link.
+                return JsonValue.Null();
+            }
+
+            return JsonValue.Object()
+                .Set("kind", origin.Kind.ToString())
+                .Set("sourceId", origin.SourceId)
+                .Set("objectiveCauseId", origin.ObjectiveCauseId)
+                .Set("record", origin.RecordId.Value)
+                .Set("formedAt", origin.FormedAt.TotalMinutes);
+        }
+
+        private static GoalOrigin ReadOrigin(JsonValue json)
+        {
+            if (json == null || json.Kind != JsonKind.Object)
+            {
+                return null;
+            }
+
+            return new GoalOrigin(
+                ParseEnum(json.GetString("kind"), GoalSourceKind.Unknown),
+                json.GetString("sourceId"),
+                json.GetString("objectiveCauseId"),
+                EntityId.Parse(json.GetString("record")),
+                new GameTime(json.GetLong("formedAt")));
         }
 
         private static T ParseEnum<T>(string value, T fallback) where T : struct

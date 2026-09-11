@@ -510,6 +510,32 @@ retirement without deleting history
 **Persistence and extension refinement:** condition evaluators use a validated typed/registered vocabulary and concrete bindings, not arbitrary expressions or a central goal-name switch. Unknown legacy goals remain inspectable unsupported desires, never guessed actions. Store only needed lifecycle/provenance/actor-assessment fields with explicit old-save defaults and no event replay; bound active goals and preserve meaningful retired-goal history without one durable record per unchanged evaluation. Objective satisfaction and the actor's justified assessment remain distinct, as required by BQa-011.
 
 
+**Current implementation (BQa-008).** `NpcGoal` answers the four questions in fields.
+`Identity` is derived from kind, subject and condition, so `NpcGoalCollection.Adopt` is the entry
+point automatic formation uses and a pressure read again revises one goal instead of stacking
+another; plain `Add` stays the raw path a hand-established scenario uses, and
+`MissingGoatProblemSolver` now dedupes through the identity rather than its own kind/subject scan.
+`GoalCondition` is a term from `GoalConditionRegistry` plus concrete `EntityId` bindings —
+`property.owned_by`, `obligation.discharged`, `claim.unproven`, `person.alive`, `demand.relieved` —
+validated where a condition is written and deliberately not where a save is read, so an unknown term
+loads as an inspectable unsupported desire. Evaluation is a pure read answering Met/Unmet/Unsupported
+and never moves the lifecycle. `GoalOrigin` carries the causing reading's id, its objective cause
+where there is one and the record it focused on, by reference; `GoalOrigin.FromPressure` maps
+BQa-007's output onto it. `GoalLifecycle` distinguishes active, satisfied, abandoned and superseded,
+retirement keeps the record, and `ActorAssessment` stays separate from objective satisfaction as
+BQa-011 requires. Active goals and retained retired history are both bounded. `Satisfied` remains as
+the boolean projection of the lifecycle so the sixty existing call sites keep working. Schema 13
+persists lifecycle, retirement, assessment, condition and origin; migration takes an old goal's
+lifecycle from `satisfied` and invents neither a condition nor a cause. `NpcGoalContractTests` covers
+the four Done-when clauses, the vocabulary's refusals, every registered term's Met/Unmet/Unsupported
+answers, the objective/belief separation and the bounds; the durable rule is
+[`D084`](agent/decisions.md).
+
+**Live verification still required** headless Core only. No live Elin session exercised these goals,
+no automatic producer forms them yet — BQa-009 is what makes goals arise from pressure — and the
+Plugin was not compiled here because the Elin assemblies are not redistributable. Evidence grade
+unchanged: headless/source.
+
 **Authority / proof route:** [owning source and representative tests](systems/state.md#character-state), [neighbor contract](systems/integration.md#persistence), [validation](agent/validation.md#persistence).
 
 **Sequence:** BQa-007 → BQa-008 → BQa-009.

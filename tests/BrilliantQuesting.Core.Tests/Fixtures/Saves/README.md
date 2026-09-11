@@ -24,6 +24,7 @@ The collection does not claim to exercise every optional feature; neighboring su
 | schema-10.json | 5564cec (BQ-077) |
 | schema-11.json | fa7b874 (BQ-097) |
 | schema-12.json | BQa-001, the commit that introduced this schema |
+| schema-13.json | BQa-008, the commit that introduced this schema |
 
 To reproduce a fixture, export that commit's `src/BrilliantQuesting.Core` and `Directory.Build.props`
 with `git archive` into a temporary directory. Beside `src`, create a net8.0 console project referencing

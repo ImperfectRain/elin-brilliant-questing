@@ -107,6 +107,20 @@ namespace BrilliantQuesting.Tests
                 }
                 if (version < 8) Assert.All(npc["emotions"].Members, p => Assert.Equal(0, p.Value.NumberValue));
                 if (version < 10) Assert.Empty(npc["negativeSpace"].Items);
+                // From schema 13 a goal says which state it is in, what would satisfy it and why
+                // it exists. An older save recorded only `satisfied`, so migration reads the
+                // lifecycle off that and invents neither a condition nor a cause: an old goal is
+                // an unsupported desire with unknown provenance, and says so.
+                if (version < 13)
+                    Assert.All(npc["goals"].Items, goal =>
+                    {
+                        Assert.Equal(goal.GetBool("satisfied") ? "Satisfied" : "Active", goal.GetString("lifecycle"));
+                        Assert.Equal("Unknown", goal.GetString("assessment"));
+                        Assert.Equal(string.Empty, goal.GetString("retirementCode"));
+                        Assert.Equal(string.Empty, goal.GetString("supersededBy"));
+                        Assert.Equal(JsonKind.Null, goal["condition"].Kind);
+                        Assert.Equal(JsonKind.Null, goal["origin"].Kind);
+                    });
             }
             if (version < 9) Assert.All(saved["threads"].Items, thread => Assert.Empty(thread["storyletFirings"].Items));
             if (version < 11) Assert.Empty(saved["travelingGroups"].Items);

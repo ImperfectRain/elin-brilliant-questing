@@ -26,6 +26,7 @@ namespace BrilliantQuesting.Persistence
             Register(9, AddNegativeSpaceProfiles);
             Register(10, AddTravelingGroups);
             Register(11, AddUnknownEventProvenance);
+            Register(12, AddGoalLifecycleAndProvenance);
         }
 
         /// <summary>Registers an upgrade from <paramref name="fromVersion"/> to the next version.</summary>
@@ -299,6 +300,40 @@ namespace BrilliantQuesting.Persistence
             }
 
             return root.Set("schemaVersion", 12);
+        }
+
+        /// <summary>
+        /// Gives every saved goal an explicit lifecycle, and says out loud that nothing knows why
+        /// it exists.
+        ///
+        /// The lifecycle comes from the one thing an old save recorded - `satisfied` - and nothing
+        /// else is inferred. An old goal has no desired-state condition and no causal source, and
+        /// guessing either from its kind string would be exactly the parse this step exists to
+        /// make unnecessary. It stays an inspectable unsupported desire until something legitimate
+        /// gives it a condition.
+        /// </summary>
+        private static JsonValue AddGoalLifecycleAndProvenance(JsonValue root)
+        {
+            foreach (JsonValue npc in root.GetArray("npcs"))
+            {
+                foreach (JsonValue goal in npc.GetArray("goals"))
+                {
+                    if (goal["lifecycle"] != null)
+                    {
+                        continue;
+                    }
+
+                    goal.Set("lifecycle", goal.GetBool("satisfied") ? "Satisfied" : "Active")
+                        .Set("retiredAt", 0.0)
+                        .Set("retirementCode", string.Empty)
+                        .Set("supersededBy", string.Empty)
+                        .Set("assessment", "Unknown")
+                        .Set("condition", JsonValue.Null())
+                        .Set("origin", JsonValue.Null());
+                }
+            }
+
+            return root.Set("schemaVersion", 13);
         }
 
         private static JsonValue NeutralValueProfile()

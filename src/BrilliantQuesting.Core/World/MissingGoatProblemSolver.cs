@@ -244,16 +244,12 @@ namespace BrilliantQuesting.World
 
             actor.Needs.Set(need, Math.Max(actor.Needs.Get(need), pressure));
 
-            NpcGoal existing = FindOpenGoal(actor, formed.Kind, subject);
-            if (existing != null)
-            {
-                existing.Weight = formed.Weight;
-                existing.Reason = formed.Reason;
-                return existing;
-            }
+            NpcGoal goal = actor.Goals.Adopt(new NpcGoal(formed.Kind, subject, formed.Weight, formed.Reason));
 
-            NpcGoal goal = new NpcGoal(formed.Kind, subject, formed.Weight, formed.Reason);
-            actor.Goals.Add(goal);
+            // Adopt returns the want already held rather than a second copy of it, so the same
+            // problem read again revises one goal instead of stacking another.
+            goal.Weight = formed.Weight;
+            goal.Reason = formed.Reason;
             return goal;
         }
 
@@ -438,20 +434,6 @@ namespace BrilliantQuesting.World
                 default:
                     return "answer_need_" + NeedName(need);
             }
-        }
-
-        private static NpcGoal FindOpenGoal(NarrativeNpc actor, string kind, EntityId subject)
-        {
-            for (int i = 0; i < actor.Goals.Count; i++)
-            {
-                NpcGoal goal = actor.Goals[i];
-                if (!goal.Satisfied && goal.Kind == kind && goal.Subject == subject)
-                {
-                    return goal;
-                }
-            }
-
-            return null;
         }
 
         private static string ConcernName(ValueConcern concern) => concern.ToString().ToLowerInvariant();

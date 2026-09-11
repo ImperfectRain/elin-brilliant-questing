@@ -54,9 +54,10 @@ or UI/decision caches. Save compatibility is a behavior, not only a version numb
 | Stored families | Restoration rule |
 |---|---|
 | IDs, external refs, RNG/counters | Preserve identity and deterministic continuation; handles require native readback |
-| NPC profiles/goals, organizations, sites | Restore explicit owned fields; re-read live identity/activity instead of mirroring them; no persisted voice assignment yet |
+| NPC profiles/goals, organizations, sites | Restore explicit owned fields; re-read live identity/activity instead of mirroring them; no persisted voice assignment yet. `satisfied` is still written beside a goal's lifecycle so older readers keep working |
 | Events, facts, beliefs/proofs, memories, ties, obligations | Restore stores directly; never redispatch old events or repeat standing writes |
 | Event causal provenance (schema 12) | Restore typed links and any decision codes verbatim, including references whose record is gone; an older save's events migrate to explicit unknown provenance and are never given an inferred cause |
+| Goal lifecycle, condition and provenance (schema 13) | Restore the lifecycle, its retirement code and the owner's own assessment verbatim, and the desired condition and causal source as references; a condition whose term this build does not know still loads and stays an unsupported desire; an older save's goals take their lifecycle from `satisfied` and are given no condition and no inferred cause |
 | Threads/firings, absences, travel, demands, businesses | Restore lifecycle/manifests and their one-time markers; rebuild handlers in host |
 | Rumor/ambient stamps | Preserve pacing across reload; policy objects themselves are not saved |
 

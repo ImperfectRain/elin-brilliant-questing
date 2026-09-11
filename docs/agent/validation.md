@@ -25,7 +25,7 @@ class filters with `|` inside quotes. Lab tests live in the separate
 | Actor-local pressure projection | `ActorPressureViewTests` | `PressureSynthesisTests`, `ActorLocalInterpretationTests`, `KnowledgeTests`; `playground` |
 | Memory/callback/provenance | `MemoryTests`, affected `Callback*Tests`, `ItemProvenanceTests` or `LocationHistoryTests` | `CallbackDisclosureTests`, `ChronicleNarrativeTests`; `scene`, `questline` |
 | Ties/obligations/standing | `RelationshipHarmTests` or `SocialObligationTests` | `DisclosureDecisionTests`, `StandingSheetTests`, `DevelopmentLayerTests`; `authority` |
-| Character/goals/emotion | `ProblemSolvingStyleTests`, `EmotionalStateTests`, affected profile tests | `ActorLocalInterpretationTests`, `DisclosureDecisionTests`, `ActorActionScenarioTests` (Lab project); `actor-action`, `playground` |
+| Character/goals/emotion | `ProblemSolvingStyleTests`, `NpcGoalContractTests`, `EmotionalStateTests`, affected profile tests | `ActorLocalInterpretationTests`, `DisclosureDecisionTests`, `MigrationFixtureTests`, `ActorActionScenarioTests` (Lab project); `actor-action`, `playground` |
 | Identity/affordances | `IdentityAffordanceTests`, `ActorIdentityIntakeTests` | `CharacterIdentityTests`, `HouseholdActorCastingTests`, persistence; `playground` plus native attach diagnostic |
 
 For any saved semantics, add [Persistence](#persistence). Native identity, standing and physical proof

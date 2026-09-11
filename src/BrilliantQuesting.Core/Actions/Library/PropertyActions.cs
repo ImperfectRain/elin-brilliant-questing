@@ -30,9 +30,15 @@ namespace BrilliantQuesting.Actions.Library
             return null;
         }
 
-        public static EntityId OwnerOf(ActionContext context, EntityId itemId)
+        public static EntityId OwnerOf(ActionContext context, EntityId itemId) => OwnerOf(context.World, itemId);
+
+        /// <summary>
+        /// The same lookup without an action in hand, for readers - goal conditions among them -
+        /// that ask who holds a thing outside any attempt. One authority, two callers.
+        /// </summary>
+        public static EntityId OwnerOf(World.NarrativeWorldState world, EntityId itemId)
         {
-            foreach (KeyValuePair<EntityId, Fact> pair in context.World.Knowledge.Facts)
+            foreach (KeyValuePair<EntityId, Fact> pair in world.Knowledge.Facts)
             {
                 Fact fact = pair.Value;
                 if (fact.Predicate == FactPredicates.Possesses && fact.Object == itemId && fact.Truth == TruthState.True)

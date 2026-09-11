@@ -156,10 +156,24 @@ Emotion decays with time; personality grants no institutional role. `MissingGoat
 a concrete goal-formation probe, not a universal planner. An unattemptable chosen goal is not silently
 substituted with an attemptable alternative.
 
+A goal also owns its machine-readable contract (BQa-008, [`D084`](../agent/decisions.md)). `Identity`
+is derived from kind, subject and condition, so `NpcGoalCollection.Adopt` is how automatic formation
+takes on a want without accumulating duplicates across passes; plain `Add` stays the raw path a
+hand-established scenario uses. `GoalCondition` is a term from `GoalConditionRegistry` plus concrete
+`EntityId` bindings, and evaluation is a pure read of authoritative state that answers `Unsupported`
+rather than guessing — including for a legacy goal with no condition and for a term this build does
+not know. `GoalOrigin` records which reading caused the goal by reference, never a copy of it, and
+unknown provenance stays unknown. `GoalLifecycle` distinguishes active, satisfied, abandoned and
+superseded; retirement keeps the record and both the active set and the retained history are bounded.
+`ActorAssessment` is what the owner believes and is never set by objective evaluation. `Reason` stays
+an explanation for people, and no production decision parses it.
+
 Source: [NarrativeNpc](../../src/BrilliantQuesting.Core/World/NarrativeNpc.cs),
 [MissingGoatProblemSolver](../../src/BrilliantQuesting.Core/World/MissingGoatProblemSolver.cs),
 [ActionIntent.FromGoalChoice](../../src/BrilliantQuesting.Core/Actions/ActionAttempt.cs).
+Source: [GoalContract](../../src/BrilliantQuesting.Core/World/GoalContract.cs).
 Proof: [ProblemSolvingStyleTests](../../tests/BrilliantQuesting.Core.Tests/ProblemSolvingStyleTests.cs),
+[NpcGoalContractTests](../../tests/BrilliantQuesting.Core.Tests/NpcGoalContractTests.cs),
 [EmotionalStateTests](../../tests/BrilliantQuesting.Core.Tests/EmotionalStateTests.cs).
 Lab: [actor-action](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/ActorActionScenario.cs),
 [playground](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/PlaygroundScenario.cs).

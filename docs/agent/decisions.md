@@ -2550,3 +2550,46 @@ teaches nothing, which is why they are two components and not one.
 Reason: omniscience leaks are silent. A projection that let a stake double as a route would read
 perfectly in every dump and surface only as actors who act on matters nobody ever told them, which
 is indistinguishable from a scripted world and impossible to attribute after the fact.
+
+## D084 — A goal answers four questions in fields, and its sentence answers none of them
+
+`NpcGoal` was a kind string, a subject, a weight, a human sentence and a boolean. Every question an
+automatically evolving goal has to answer — is this the same want I formed last pass, what would
+actually satisfy it, why does this person have it, and did they give up or did something else take
+it over — had exactly one place it could be answered from, and that place was the sentence. Prose as
+an input language is the failure this closes: nothing may key off `Reason`, because the moment
+something does, every later change to the wording is a behaviour change nobody can see coming.
+
+**Identity is derived, not minted.** The same want is the same kind, the same subject and the same
+condition, so the pass that reads an unchanged world again lands on the goal it formed last time
+instead of stacking a second copy beside it. A minted id would land nowhere and would not survive a
+reload; a derived one does both.
+
+**Conditions are registered terms with concrete bindings.** Not an expression — an expression
+language is a second simulation nobody can test — and not a switch on goal names, which is the
+central table BQa-010 and BQa-011 have to add verbs without editing. The shape is validated where a
+condition is written and deliberately not validated where a save is read: a save written by a build
+that knew a term this one does not must load, and its goal stays an inspectable unsupported desire
+rather than being dropped or mapped onto the nearest registered term. `Unsupported` is the
+load-bearing answer of the evaluator for the same reason — a shortage term that reported relief
+because it found no pressure would be a confident wrong answer, and a goal system acting on
+confident wrong answers is worse than one that waits.
+
+**Provenance is references.** The pressure that caused a goal is derived and recomputed every pass;
+a copy of it here would freeze one pass's urgency and stakes into the save and let a goal go on
+disagreeing with the world forever. What is stored is that reading's id, whether the world was
+objectively holding it too, and the record it focused on — enough to go back and look, and not
+enough to answer instead of looking. Unknown provenance stays unknown; nothing infers a cause later.
+
+**Retirement is not deletion, and objective satisfaction is not the owner's belief.** Satisfied,
+abandoned and superseded are three different things to have happened, and a consumer handed one for
+another draws the wrong conclusion about the person; the goal leaves the active set and stays in the
+history. Evaluation is a pure read that never moves the lifecycle, because another actor can settle
+a debt or return a ring without telling anybody, and a goal that closed itself the instant a
+background pass ran would hand every actor the save's knowledge for free. Both the active set and
+the retained history are bounded, because automatic formation runs forever and neither list may grow
+with playtime.
+
+Reason: all four failures are quiet. Duplicate goals, a guessed condition, a frozen pressure copy
+and a lifecycle that closes itself all read plausibly in a dump, and each surfaces much later as an
+actor pursuing something nobody told them about or abandoning something nobody resolved.
