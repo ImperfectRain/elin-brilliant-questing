@@ -3394,6 +3394,11 @@ Disable each capability in turn and confirm the mod loses exactly one feature, w
 and never breaks.
 - **Depends** BQ-003.
 - **Done when** every capability has been switched off in a live game and the result documented.
+- **Disposition — mostly complete (user-approved deferral).** Implementation and automated
+  validation are complete; three live passes confirm disable diagnostics and attach/save survival.
+  The remaining 19 capability disables and gameplay isolation checks are non-pressing follow-up
+  verification, deferred until there is time for focused testing. They do not block proceeding to
+  BQ-110. This scheduling decision does not claim the full live done-when criterion has been met.
 - **Sources** LW §2.4, §16; PM §56.
 - **Evidence** [User-reported stability observation](elin/verification/runtime-probes.md#bq-109-capability-degradation-observation).
   The opt-in disable control and headless probe isolation checks are implemented; follow the

@@ -108,7 +108,10 @@ the log does not verify crime witness suppression during an action, dialogue beh
 transition behavior, or full feature isolation. There is no post-final-save reload or final
 all-enabled restoration in this capture. Long frame intervals occur around attach windows;
 without a controlled baseline these do not establish either a regression or performance safety.
-The remaining 19 disables and the unexercised gameplay checks keep BQ-109's full acceptance open.
+The remaining 19 disables and the unexercised gameplay checks remain unverified. The user has
+accepted BQ-109 as mostly complete and deferred these non-pressing checks until there is time for
+focused testing. They do not block subsequent roadmap work; this disposition does not upgrade
+the evidence or claim that the full live acceptance criterion has been met.
 
 ## Performance and Home capture
 
