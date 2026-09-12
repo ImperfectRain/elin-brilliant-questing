@@ -18,6 +18,14 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.StandingAltered))
+            .NeedingAnyOf(
+                SemanticSlots.Proposition,
+                SemanticSlots.Item,
+                SemanticSlots.Destination,
+                SemanticSlots.Purpose);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -25,7 +33,7 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.NotRelevant("nobody to lean on");
             }
 
-            if (!ActionBinding.HasRequiredSemanticSlots(Id, context))
+            if (!ActionBinding.HasRequiredSemanticSlots(this, context))
             {
                 return Availability.NotRelevant("nothing specific to demand");
             }
@@ -188,6 +196,17 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.StandingAltered,
+                "IVanillaState.TrySpendMoney",
+                VanillaCapability.SpendMoney))
+            .NeedingAnyOf(
+                SemanticSlots.Proposition,
+                SemanticSlots.Item,
+                SemanticSlots.Destination,
+                SemanticSlots.Purpose);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -206,7 +225,7 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.Impossible("you cannot offer " + price + " orens you do not have");
             }
 
-            if (!ActionBinding.HasRequiredSemanticSlots(Id, context))
+            if (!ActionBinding.HasRequiredSemanticSlots(this, context))
             {
                 return Availability.NotRelevant("nothing specific to buy");
             }

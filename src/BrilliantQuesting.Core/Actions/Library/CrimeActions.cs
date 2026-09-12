@@ -21,6 +21,12 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.PossessionTransferred,
+                "IVanillaState.TryTransferItem",
+                VanillaCapability.TransferItems));
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -163,6 +169,18 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>
+        /// Two halves, and both are real: the object ends up in somebody else's keeping, and a
+        /// claim that can be shown comes into the world. That the claim is false is the graph's
+        /// business, not this declaration's - manufactured proof is still proof to whoever holds it.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects.Declaring(
+            ActionEffect.Delegated(
+                SemanticEffects.PossessionTransferred,
+                "IVanillaState.TryTransferItem",
+                VanillaCapability.TransferItems),
+            ActionEffect.Recorded(SemanticEffects.EvidenceCreated));
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (context.ThirdParty.IsNone)
@@ -303,6 +321,10 @@ namespace BrilliantQuesting.Actions.Library
         public TrespassAction() : base("trespass", ActionFamily.Crime, "Let yourself in")
         {
         }
+
+        /// <summary>It grants reach, not location: what changes is what the place lets somebody get at.</summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.AccessAltered));
 
         // BQ-090. The lock this answers is `NarrativeSite.Restricted`, not an Elin door: nothing
         // on the build has to exist for a burglar to get past it, and the roll is the portable
@@ -535,6 +557,16 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>
+        /// Proof stops being producible; belief is untouched, so this is never a way to make
+        /// somebody stop believing a thing.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.EvidenceRemoved,
+                "IVanillaState.TryDestroyItem",
+                VanillaCapability.DestroyItems));
+
         protected override string NothingToBreak => "you are carrying nothing that proves anything";
 
         protected override EntityId HolderOf(ActionContext context) => context.Actor;
@@ -603,6 +635,12 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.ObjectDamaged,
+                "IVanillaState.TryDestroyItem",
+                VanillaCapability.DestroyItems));
+
         protected override string NothingToBreak => "they have nothing here worth breaking";
 
         protected override EntityId HolderOf(ActionContext context) => context.Target;
@@ -650,6 +688,9 @@ namespace BrilliantQuesting.Actions.Library
         public ExtortAction() : base("extort", ActionFamily.Crime, "Name your price")
         {
         }
+
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.StandingAltered));
 
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
@@ -843,6 +884,11 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>What being taken for somebody else buys: their run of a place, and their standing.</summary>
+        public override ActionEffects Effects => ActionEffects.Declaring(
+            ActionEffect.Recorded(SemanticEffects.AccessAltered),
+            ActionEffect.Recorded(SemanticEffects.StandingAltered));
+
         // BQ-090. Being let past for who they take you for, which needs paper: the credentials are
         // read out of the actor's own carried inventory, a read a running game has exercised
         // (`API-017`).
@@ -992,6 +1038,14 @@ namespace BrilliantQuesting.Actions.Library
         public AttackAction() : base("attack", ActionFamily.Physical, "Attack")
         {
         }
+
+        /// <summary>
+        /// The mod does not resolve combat, so what is declared is the intent the record carries.
+        /// It is the counterpart of <see cref="SemanticEffects.PersonSecured"/> and never a route
+        /// to it: a want that somebody stay alive is not answered by starting a fight.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.PersonHarmed));
 
         protected override Availability GetAvailabilityCore(ActionContext context)
         {

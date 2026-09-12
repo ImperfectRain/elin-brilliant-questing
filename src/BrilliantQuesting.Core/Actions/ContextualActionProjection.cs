@@ -26,7 +26,7 @@ namespace BrilliantQuesting.Actions
             for (int i = 0; i < offers.Count; i++)
             {
                 ActionOffer offer = offers[i];
-                if (offer != null && ActionBinding.HasRequiredSemanticSlots(offer.Action.Id, context))
+                if (offer != null && ActionBinding.HasRequiredSemanticSlots(offer.Action, context))
                 {
                     eligible.Add(offer);
                 }

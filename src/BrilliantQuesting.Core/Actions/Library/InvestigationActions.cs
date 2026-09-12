@@ -22,6 +22,17 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>
+        /// The searcher learns, and where there is a physical thing to find it ends up in their
+        /// keeping - which is what makes what they learned provable rather than merely known.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects.Declaring(
+            ActionEffect.Recorded(SemanticEffects.InformationLearned),
+            ActionEffect.Delegated(
+                SemanticEffects.PossessionTransferred,
+                "IVanillaState.TryTransferItem",
+                VanillaCapability.TransferItems));
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (context.SubjectFact.IsNone)
@@ -179,6 +190,9 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.InformationDisclosed));
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -293,6 +307,13 @@ namespace BrilliantQuesting.Actions.Library
         public ShowItemAction() : base("show_item", ActionFamily.Information, "Show it to them")
         {
         }
+
+        /// <summary>The other person places the object; what changes is what they know, not who holds it.</summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.InformationDisclosed,
+                "IVanillaState.GetInventory",
+                VanillaCapability.ReadInventory));
 
         protected override Availability GetAvailabilityCore(ActionContext context)
         {

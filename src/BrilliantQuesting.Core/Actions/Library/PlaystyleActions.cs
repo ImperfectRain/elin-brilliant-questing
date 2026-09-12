@@ -15,6 +15,9 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.StandingAltered));
+
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
 
@@ -137,6 +140,13 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects.Declaring(
+            ActionEffect.Delegated(
+                SemanticEffects.PossessionTransferred,
+                "IVanillaState.TryTransferItem",
+                VanillaCapability.TransferItems),
+            ActionEffect.Recorded(SemanticEffects.ObligationAltered));
+
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
 
@@ -242,6 +252,12 @@ namespace BrilliantQuesting.Actions.Library
         public GiveBredAnimalAction() : base("give_bred_animal", ActionFamily.HomeCommunity, "Give a bred animal")
         {
         }
+
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.PossessionTransferred,
+                "IVanillaState.TryTransferItem",
+                VanillaCapability.TransferItems));
 
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
@@ -403,6 +419,12 @@ namespace BrilliantQuesting.Actions.Library
             _stockKinds = stockKinds;
             _routeName = routeName;
         }
+
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.ResourceSupplied,
+                "IVanillaState.TryDestroyItem",
+                VanillaCapability.DestroyItems));
 
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;

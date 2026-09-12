@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using BrilliantQuesting.Integration;
 
 namespace BrilliantQuesting.Actions
 {
@@ -63,6 +65,99 @@ namespace BrilliantQuesting.Actions
             }
 
             return offers;
+        }
+
+        /// <summary>
+        /// Which registered verbs say they could advance that kind of state change (BQa-010).
+        ///
+        /// Metadata only, and deliberately contextless: this is the question a consumer asks
+        /// before it has a place, a target or a binding - which verbs are even worth building a
+        /// candidate for. <see cref="Discover"/> still answers whether any of them applies here.
+        /// Reading it changes nothing, including the verbs it reads.
+        /// </summary>
+        public List<NarrativeAction> Advancing(string effectKind)
+        {
+            List<NarrativeAction> matched = new List<NarrativeAction>();
+            for (int i = 0; i < _actions.Count; i++)
+            {
+                if (_actions[i].Effects.Advances(effectKind))
+                {
+                    matched.Add(_actions[i]);
+                }
+            }
+
+            return matched;
+        }
+
+        /// <summary>
+        /// The same question, narrowed to the effects this build could actually carry: a verb
+        /// whose possession half is a vanilla item move is not a route on a build that cannot
+        /// move items, and saying so here is cheaper and more honest than finding out at the
+        /// seam. A null build answers nothing, so every delegated effect is refused.
+        /// </summary>
+        public List<NarrativeAction> Advancing(string effectKind, IVanillaState vanilla)
+        {
+            List<NarrativeAction> matched = new List<NarrativeAction>();
+            for (int i = 0; i < _actions.Count; i++)
+            {
+                if (_actions[i].CanPotentiallyAdvance(effectKind, vanilla, out string _))
+                {
+                    matched.Add(_actions[i]);
+                }
+            }
+
+            return matched;
+        }
+
+        /// <summary>
+        /// What the library has said about itself and where it has said nothing (BQa-010).
+        ///
+        /// Missing coverage is reported rather than defaulted, because to a consumer that only
+        /// asks what matches, an undeclared verb and a kind of want nothing answers both read as
+        /// "there is nothing to be done".
+        /// </summary>
+        public ActionEffectCoverage EffectCoverage()
+        {
+            List<NarrativeAction> undeclared = new List<NarrativeAction>();
+            HashSet<string> declared = new HashSet<string>(StringComparer.Ordinal);
+            List<string> unregistered = new List<string>();
+
+            for (int i = 0; i < _actions.Count; i++)
+            {
+                ActionEffects effects = _actions[i].Effects;
+                if (!effects.IsDeclared)
+                {
+                    undeclared.Add(_actions[i]);
+                    continue;
+                }
+
+                for (int e = 0; e < effects.Effects.Count; e++)
+                {
+                    string kind = effects.Effects[e].Kind;
+                    declared.Add(kind);
+                    if (!SemanticEffects.IsRegistered(kind) && !unregistered.Contains(kind))
+                    {
+                        unregistered.Add(kind);
+                    }
+                }
+            }
+
+            List<string> declaredInOrder = new List<string>();
+            List<string> unanswered = new List<string>();
+            for (int i = 0; i < SemanticEffects.All.Count; i++)
+            {
+                string kind = SemanticEffects.All[i];
+                if (declared.Contains(kind))
+                {
+                    declaredInOrder.Add(kind);
+                }
+                else
+                {
+                    unanswered.Add(kind);
+                }
+            }
+
+            return new ActionEffectCoverage(undeclared, declaredInOrder, unanswered, unregistered);
         }
 
         /// <summary>

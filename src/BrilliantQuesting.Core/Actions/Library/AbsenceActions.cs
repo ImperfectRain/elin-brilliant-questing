@@ -24,6 +24,12 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>
+        /// Being out of reach is the effect; no position is claimed and nobody is moved (`VS 3.2`).
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.PersonSecured));
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (context.ActorIsPlayer)

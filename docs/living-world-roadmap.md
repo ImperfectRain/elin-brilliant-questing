@@ -651,6 +651,31 @@ This is **potential capability metadata**, not outcome prediction. `GetAvailabil
 **Required coverage:** register effects for the real verbs needed by property, economic/resource, information, protection and obligation goals; expose missing coverage explicitly. Candidate binding search is bounded and reads actor-accessible possibilities. Metadata must name potential effects and required evidence, including delegated/refused operations, rather than advertising every illustrative effect listed here.
 
 
+**Current implementation (BQa-010).** `NarrativeAction.Effects` is the declaration: the kinds of
+state change this verb could potentially advance, from the registered `SemanticEffects` vocabulary,
+plus the `SemanticSlots` any one of which would point it at something. Thirteen keys, each read off a
+verb that already does that to authoritative state rather than designed as a world ontology, and a key
+nothing answers is reported rather than kept as a placeholder. `ActionRegistry.Advancing` answers
+"which verbs could do this kind of thing" with no context at all; its build-gated overload drops an
+effect vanilla would have to carry on a build that cannot, through the same BQ-090 gate a spatial route
+uses, so a delegated half is refused by name rather than at the seam. `EffectCoverage` names both gaps
+explicitly — the verbs that have declared nothing (`host`, `recruit_specialist`, `buy_business`,
+`reopen_business`, `invoke_authority`, `invoke_blessing`, `make_offering`, each a later step's question)
+and any vocabulary key no verb answers. `GoalConditionRegistry` terms now name effect kinds rather than
+verbs, which is what makes "a new verb needs no central goal-name switch" literally true and lets a term
+refuse a change that only touches the same subject: disclosure is not a route to keeping a claim
+unproven. The one hand-maintained action table this touched — the verb-id switch that decided which
+verbs need a semantic binding — is gone, read off the same declaration instead. Inspection executes
+nothing and mutates nothing; availability, the check and the seam still decide everything they decided
+before. `ActionEffectContractTests` covers the four Done-when clauses, the coverage report, the
+build-gated refusal and a verb registered by the test joining goal discovery without a central edit; the
+durable rule is [`D086`](agent/decisions.md).
+
+**Live verification still required** headless Core only. Nothing consumes these descriptors yet —
+the goal/action bridge is BQa-011, the integrated headless proof BQa-016 and live integration BQa-017 —
+and the Plugin was not compiled here because the Elin assemblies are not redistributable. Evidence
+grade unchanged: headless/source.
+
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#actions), [neighbor contract](systems/actions.md#availability), [validation](agent/validation.md#actions).
 
 **Sequence:** BQa-009 → BQa-010 → BQa-011.

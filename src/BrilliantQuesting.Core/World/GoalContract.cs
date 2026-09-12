@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using BrilliantQuesting.Actions;
 using BrilliantQuesting.Actions.Library;
 using BrilliantQuesting.Developments;
 using BrilliantQuesting.Foundation;
@@ -251,20 +252,51 @@ namespace BrilliantQuesting.World
 
         static GoalConditionRegistry()
         {
-            Register(GoalConditionKinds.PropertyOwnedBy, new[] { "item", "owner" }, OwnedBy);
-            Register(GoalConditionKinds.ObligationDischarged, new[] { "obligation" }, ObligationDischarged);
-            Register(GoalConditionKinds.ClaimUnproven, new[] { "claim", "subject" }, ClaimUnproven);
-            Register(GoalConditionKinds.PersonAlive, new[] { "person" }, PersonAlive);
-            Register(GoalConditionKinds.DemandRelieved, new[] { "place", "source" }, DemandRelieved);
+            Register(
+                GoalConditionKinds.PropertyOwnedBy,
+                new[] { "item", "owner" },
+                OwnedBy,
+                new[] { SemanticEffects.PossessionTransferred });
+            Register(
+                GoalConditionKinds.ObligationDischarged,
+                new[] { "obligation" },
+                ObligationDischarged,
+                new[] { SemanticEffects.ObligationAltered });
+            Register(
+                GoalConditionKinds.ClaimUnproven,
+                new[] { "claim", "subject" },
+                ClaimUnproven,
+                // Removing what can be shown, and only that. Telling somebody makes a claim more
+                // provable, not less, so disclosure is not a route to this condition however
+                // much it is about the same claim.
+                new[] { SemanticEffects.EvidenceRemoved });
+            Register(
+                GoalConditionKinds.PersonAlive,
+                new[] { "person" },
+                PersonAlive,
+                new[] { SemanticEffects.PersonSecured });
+            Register(
+                GoalConditionKinds.DemandRelieved,
+                new[] { "place", "source" },
+                DemandRelieved,
+                new[] { SemanticEffects.ResourceSupplied });
         }
 
         /// <summary>
-        /// Declares a condition term: the binding names it requires, and the pure read that answers it.
+        /// Declares a condition term: the binding names it requires, the pure read that answers
+        /// it, and which kinds of state change could move it toward holding (BQa-010).
+        ///
+        /// <paramref name="advancedBy"/> names <see cref="SemanticEffects"/> keys, never verbs.
+        /// That indirection is the whole of "a new verb needs no central switch": a term says
+        /// what sort of change would satisfy it, a verb says what sort of change it could make,
+        /// and nothing in between holds a list of which verbs answer which wants. A term that
+        /// names none is inspectable and simply has no declared route.
         /// </summary>
         public static void Register(
             string kind,
             IReadOnlyList<string> requiredBindings,
-            Func<NarrativeWorldState, GoalCondition, GoalConditionState> evaluate)
+            Func<NarrativeWorldState, GoalCondition, GoalConditionState> evaluate,
+            IReadOnlyList<string> advancedBy = null)
         {
             string term = GoalCodes.Require(kind, nameof(kind));
             if (evaluate == null)
@@ -279,7 +311,14 @@ namespace BrilliantQuesting.World
             }
 
             Array.Sort(names, StringComparer.Ordinal);
-            Terms[term] = new Term(names, evaluate);
+
+            string[] effects = new string[advancedBy == null ? 0 : advancedBy.Count];
+            for (int i = 0; i < effects.Length; i++)
+            {
+                effects[i] = GoalCodes.Require(advancedBy[i], nameof(advancedBy));
+            }
+
+            Terms[term] = new Term(names, evaluate, effects);
         }
 
         public static bool IsRegistered(string kind) => kind != null && Terms.ContainsKey(kind);
@@ -288,6 +327,24 @@ namespace BrilliantQuesting.World
         public static IReadOnlyList<string> RequiredBindings(string kind)
         {
             return kind != null && Terms.TryGetValue(kind, out Term term) ? term.Bindings : null;
+        }
+
+        /// <summary>
+        /// The effect kinds that could move this term toward holding, or null when it is
+        /// unregistered. Empty is a real answer: the term is known and nothing has been said
+        /// about how it would ever be satisfied.
+        /// </summary>
+        public static IReadOnlyList<string> AdvancedBy(string kind)
+        {
+            return kind != null && Terms.TryGetValue(kind, out Term term) ? term.AdvancedBy : null;
+        }
+
+        /// <summary>Every registered term, in stable order.</summary>
+        public static IReadOnlyList<string> RegisteredKinds()
+        {
+            List<string> kinds = new List<string>(Terms.Keys);
+            kinds.Sort(StringComparer.Ordinal);
+            return kinds;
         }
 
         /// <summary>
@@ -435,13 +492,19 @@ namespace BrilliantQuesting.World
 
         private sealed class Term
         {
-            internal Term(IReadOnlyList<string> bindings, Func<NarrativeWorldState, GoalCondition, GoalConditionState> evaluate)
+            internal Term(
+                IReadOnlyList<string> bindings,
+                Func<NarrativeWorldState, GoalCondition, GoalConditionState> evaluate,
+                IReadOnlyList<string> advancedBy)
             {
                 Bindings = bindings;
                 Evaluate = evaluate;
+                AdvancedBy = advancedBy;
             }
 
             internal IReadOnlyList<string> Bindings { get; }
+
+            internal IReadOnlyList<string> AdvancedBy { get; }
 
             internal Func<NarrativeWorldState, GoalCondition, GoalConditionState> Evaluate { get; }
         }

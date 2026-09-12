@@ -83,6 +83,17 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>
+        /// What it is for: the ownership record and the object agree again. The move itself is
+        /// vanilla's, so a build that cannot transfer items is not offered this half at all.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.PossessionTransferred,
+                "IVanillaState.TryTransferItem",
+                VanillaCapability.TransferItems))
+            .NeedingAnyOf(SemanticSlots.Item);
+
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
 
@@ -148,6 +159,14 @@ namespace BrilliantQuesting.Actions.Library
         public KeepItemAction() : base("keep_item", ActionFamily.Crime, "Keep it")
         {
         }
+
+        /// <summary>
+        /// Nothing moves and no ownership record changes - which is the point of the verb, and
+        /// why it advances no possession effect however much property is involved. What it can
+        /// change is how the owner stands with whoever kept it, once somebody finds out.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.StandingAltered));
 
         protected override Availability GetAvailabilityCore(ActionContext context)
         {

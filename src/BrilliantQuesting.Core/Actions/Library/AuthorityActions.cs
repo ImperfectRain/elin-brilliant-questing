@@ -13,6 +13,14 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.InformationDisclosed))
+            .NeedingAnyOf(
+                SemanticSlots.Proposition,
+                SemanticSlots.Item,
+                SemanticSlots.Destination,
+                SemanticSlots.Purpose);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))

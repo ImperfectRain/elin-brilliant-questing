@@ -468,6 +468,17 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>
+        /// A bed ends the exposure, and the roll it spends is Elin's own - so a build that will
+        /// not take a resident is not offered this as an answer to anybody's danger. `host` is
+        /// deliberately not declared here: a night by the fire buys presence, not safety.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.PersonSecured,
+                "IVanillaState.TryAdmitResident",
+                VanillaCapability.WriteHomeResidents));
+
         protected override bool SpendsABed => true;
 
         protected override Availability Eligible(ActionContext context, HomeState home)
@@ -627,6 +638,10 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>The answer that spends people rather than beds, and it ends the exposure too.</summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.PersonSecured));
+
         protected override bool AnswersTheDanger => true;
 
         protected override Availability Eligible(ActionContext context, HomeState home)
@@ -678,6 +693,10 @@ namespace BrilliantQuesting.Actions.Library
             : base("provide_supplies", ActionFamily.HomeCommunity, "Send supplies from home")
         {
         }
+
+        /// <summary>The settlement's own route to a shortage: it makes nothing and buys nothing.</summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.ResourceSupplied));
 
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
@@ -834,6 +853,16 @@ namespace BrilliantQuesting.Actions.Library
             : base("store_evidence", ActionFamily.HomeCommunity, "Put it somewhere safe")
         {
         }
+
+        /// <summary>
+        /// The object changes keeping. It is deliberately not an evidence effect in either
+        /// direction: moving a thing is not unmaking it, and the proof is untouched (`D013`).
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.PossessionTransferred,
+                "IVanillaState.TryTransferItem",
+                VanillaCapability.TransferItems));
 
         /// <summary>
         /// The Home is the player's, and Elin keeps exactly one (`D018`). "Nessa takes the

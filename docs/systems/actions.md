@@ -11,13 +11,30 @@ per verb, not a blanket guarantee that every registered action works in Elin.
 purpose, fact/item/thread and adapter/resolver. Outputs: availability or `ActionOutcome`, checks,
 recorded events and native writes. Registry/context/outcomes are transient; resulting history and
 owned state are saved. **Does not own:** NPC motive selection, native combat/crafting resolution or
-a separate NPC verb library. `ActorScope`, `Embodiment` and `SettlesMatters` are declarations on the
-verb; consumers must not keep parallel lists. Player projection and NPC attempts ask the same verbs.
+a separate NPC verb library. `ActorScope`, `Embodiment`, `SettlesMatters` and `Effects` are declarations
+on the verb; consumers must not keep parallel lists. Player projection and NPC attempts ask the same verbs.
+
+**Semantic effects (BQa-010).** `NarrativeAction.Effects` is the fourth declaration: which kinds of
+state change this verb could potentially advance, from the registered `SemanticEffects` vocabulary,
+and which `SemanticSlots` any one of which would point it at something. `ActionRegistry.Advancing`
+answers "which verbs could do this kind of thing" with no context at all, and its build-gated
+overload drops an effect vanilla would have to carry on a build that cannot; `EffectCoverage` names
+the verbs that have declared nothing and the vocabulary keys no verb answers, because to a consumer
+that only asks what matches, those read the same as "nothing can be done". `GoalConditionRegistry`
+terms name effect kinds rather than verbs, so registering a verb with existing vocabulary joins every
+want that vocabulary answers with no central edit. It is potential capability, not outcome
+prediction: inspection mutates nothing, `GetAvailability` still decides whether the attempt makes
+sense here, the check and the seam still decide what happens, and failure may produce a different
+effect than success. The binding requirement `ContextualActionProjection` and the verbs themselves
+read now comes from this declaration rather than from a switch on verb ids. See
+[D086](../agent/decisions.md#d086--a-verb-declares-what-kind-of-change-it-could-make-nothing-keeps-a-list-of-which-verbs-answer-which-wants).
 
 Source: [NarrativeAction](../../src/BrilliantQuesting.Core/Actions/NarrativeAction.cs),
 [ActionRegistry](../../src/BrilliantQuesting.Core/Actions/ActionRegistry.cs),
+[ActionEffects](../../src/BrilliantQuesting.Core/Actions/ActionEffects.cs),
 [ActionAttempt](../../src/BrilliantQuesting.Core/Actions/ActionAttempt.cs).
 Proof: [ActionBindingTests](../../tests/BrilliantQuesting.Core.Tests/ActionBindingTests.cs),
+[ActionEffectContractTests](../../tests/BrilliantQuesting.Core.Tests/ActionEffectContractTests.cs),
 [PlayerNpcActionSymmetryTests](../../tests/BrilliantQuesting.Core.Tests/PlayerNpcActionSymmetryTests.cs).
 Lab: [actor-action](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/ActorActionScenario.cs).
 Native: [capability routing](../elin/capabilities.md#capability-routing).

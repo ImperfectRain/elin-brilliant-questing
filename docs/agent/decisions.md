@@ -2637,3 +2637,48 @@ Reason: both failures are silent and symmetrical. A goal formed from hidden trut
 by hidden truth each read perfectly in a dump and each surface much later as an actor who knows
 things nobody told them, which is indistinguishable from a scripted world and impossible to
 attribute after the fact.
+
+## D086 — A verb declares what kind of change it could make; nothing keeps a list of which verbs answer which wants
+
+BQa-008 gave a goal a machine-readable condition and BQa-011 has to find routes to it. There are two
+ways to join them. One is a table: for each kind of want, the verbs that answer it. It is obvious, it
+is small at first, and it is the failure this decision exists to prevent — the table is a second
+authority over a library that already knows the answer, it drifts silently because nothing fails when
+it is stale, and the symptom is not an error but an actor who quietly has no route to something they
+plainly could do.
+
+**The verb says what it could change, in a registered vocabulary.** `NarrativeAction.Effects` is the
+fourth thing a verb declares about itself, beside `ActorScope`, `Embodiment` and `SettlesMatters`, and
+for the same reason as the third: a consumer choosing a verb on somebody's behalf has to know what
+taking it could change, and the verb is the only thing that does. `ActionFamily` is not that answer —
+it says which kind of character has a route into a situation, and `bribe` and `buy_supplies` are both
+Economic while only one of them feeds anybody.
+
+**The desired condition says what kind of change would satisfy it.** `GoalConditionRegistry` terms name
+effect kinds, never verbs. That indirection is the whole of "a new verb needs no central switch":
+registering a verb that declares `possession.transferred` makes it a candidate for every want about who
+owns what, and nothing in between was edited. It also lets a term refuse a change that merely touches
+the same subject — telling somebody a thing makes it more provable, so disclosure is not a route to
+keeping a claim unproven.
+
+**The vocabulary is read off the verbs that exist.** Thirteen keys, each there because some registered
+verb already does that to authoritative state. It is not an ontology of the world and must not become
+one: a key nothing answers is reported as an unanswered want rather than kept as a placeholder for a
+verb somebody might write.
+
+**It is capability, never prediction, and never availability.** Effect inspection executes nothing and
+mutates nothing, including the verbs it reads. `GetAvailability` still decides whether the attempt makes
+sense here, the check and the seam still decide what happens, and a failed attempt may do something else
+entirely. The one thing the metadata does answer ahead of a world is whether a build could carry the
+change at all: an effect vanilla performs names its capabilities and goes through the same BQ-090 gate a
+spatial route does, so a build that cannot move items is not offered a possession route it would refuse
+at the seam.
+
+**Where nothing has been said, that is reported.** `ActionEffects.Undeclared` is a coverage gap, not a
+claim that a verb changes nothing, and `ActionRegistry.EffectCoverage` names the verbs and the
+vocabulary keys nobody answers. To a consumer that only asks what matches, an undeclared verb and a want
+with no route both read as "there is nothing to be done", and those are different repairs.
+
+Reason: the drift is invisible. A stale side table, an undeclared verb and a want nothing answers all
+produce the same observable — a plausible actor doing nothing — and none of them fails a test that was
+not written to look for them, which is why coverage is a reported answer here rather than a default.

@@ -80,6 +80,9 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.InformationLearned));
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (context.Zone.IsNone)
@@ -225,6 +228,9 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.InformationLearned));
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target) || context.Target == context.Actor)
@@ -360,6 +366,9 @@ namespace BrilliantQuesting.Actions.Library
         public EavesdropAction() : base("eavesdrop", ActionFamily.Information, "Listen in")
         {
         }
+
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.InformationLearned));
 
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
@@ -509,6 +518,9 @@ namespace BrilliantQuesting.Actions.Library
         public CompareTestimonyAction() : base("compare_testimony", ActionFamily.Information, "Compare what you have been told")
         {
         }
+
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.InformationLearned));
 
         protected override Availability GetAvailabilityCore(ActionContext context)
         {

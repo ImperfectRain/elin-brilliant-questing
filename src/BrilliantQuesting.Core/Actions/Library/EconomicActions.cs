@@ -82,6 +82,12 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.ObligationAltered,
+                "IVanillaState.TrySpendMoney",
+                VanillaCapability.SpendMoney));
+
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
 
@@ -285,6 +291,12 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.ResourceSupplied,
+                "IVanillaState.TrySpendMoney",
+                VanillaCapability.SpendMoney));
+
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
 
@@ -405,6 +417,13 @@ namespace BrilliantQuesting.Actions.Library
         public InvestInSupplierAction() : base("invest_in_supplier", ActionFamily.Economic, "Invest in the supplier")
         {
         }
+
+        /// <summary>Answers the shortage by paying for its cause rather than by covering the symptom.</summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.ResourceSupplied,
+                "IVanillaState.TrySpendMoney",
+                VanillaCapability.SpendMoney));
 
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;

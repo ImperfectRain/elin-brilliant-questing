@@ -166,7 +166,12 @@ not know. `GoalOrigin` records which reading caused the goal by reference, never
 unknown provenance stays unknown. `GoalLifecycle` distinguishes active, satisfied, abandoned and
 superseded; retirement keeps the record and both the active set and the retained history are bounded.
 `ActorAssessment` is what the owner believes and is never set by objective evaluation. `Reason` stays
-an explanation for people, and no production decision parses it.
+an explanation for people, and no production decision parses it. A term also names the
+`SemanticEffects` kinds that could move it toward holding (BQa-010,
+[`D086`](../agent/decisions.md)) — effect kinds, never verbs, so a new verb using existing vocabulary
+becomes a route with no edit here; a term naming none is inspectable and simply has no declared
+route. Which verbs make that kind of change is
+[the registry's answer](actions.md#actions), not a list kept beside the terms.
 
 Goals also arise and end on their own (BQa-009, [`D085`](../agent/decisions.md)). `ActorGoalEvolution`
 is the goal owner's pass: it forms and revises wants from the actor-local pressure view BQa-007

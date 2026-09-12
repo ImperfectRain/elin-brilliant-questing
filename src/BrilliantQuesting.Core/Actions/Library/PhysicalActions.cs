@@ -71,6 +71,10 @@ namespace BrilliantQuesting.Actions.Library
                 needs.ToArray());
         }
 
+        /// <summary>What every barrier verb is for: the way through stops being shut.</summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.AccessAltered));
+
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
 
@@ -306,6 +310,12 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.PossessionTransferred,
+                "IVanillaState.TryTransferItem",
+                VanillaCapability.TransferItems));
+
         /// <summary>
         /// The object actually changes hands through the seam; what stays unclaimed is the walk.
         /// </summary>
@@ -373,6 +383,12 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.PossessionTransferred,
+                "IVanillaState.TryTransferItem",
+                VanillaCapability.TransferItems));
+
         /// <summary>
         /// The object actually changes hands through the seam; what stays unclaimed is the walk.
         /// </summary>
@@ -433,6 +449,15 @@ namespace BrilliantQuesting.Actions.Library
         /// <summary>A successful rescue answers the matter that made someone unsafe.</summary>
         public override bool SettlesMatters => true;
 
+        /// <summary>
+        /// The same effect as its siblings, reached from a named risk as well as from a
+        /// destination: a rescue is about the danger, so the claim that states it points the
+        /// verb just as a place to take somebody would.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.PersonSecured))
+            .NeedingAnyOf(SemanticSlots.Proposition, SemanticSlots.Destination, SemanticSlots.Purpose);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target) || context.Target == context.Actor)
@@ -440,7 +465,7 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.NotRelevant("nobody here to rescue");
             }
 
-            return ActionBinding.HasRequiredSemanticSlots(Id, context) && RescueMatter(context) != null
+            return ActionBinding.HasRequiredSemanticSlots(this, context) && RescueMatter(context) != null
                 ? Availability.Available()
                 : Availability.NotRelevant("no standing risk to answer");
         }
@@ -565,6 +590,17 @@ namespace BrilliantQuesting.Actions.Library
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
 
+        /// <summary>
+        /// Seeing somebody through secures them, and where what they were carrying is what a
+        /// place is short of it answers that shortage too - which is why escorting is a route to
+        /// a supply want and capturing is not.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(
+                ActionEffect.Recorded(SemanticEffects.PersonSecured),
+                ActionEffect.Recorded(SemanticEffects.ResourceSupplied))
+            .NeedingAnyOf(SemanticSlots.Destination, SemanticSlots.Purpose);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             Availability baseAvailability = base.GetAvailabilityCore(context);
@@ -635,10 +671,10 @@ namespace BrilliantQuesting.Actions.Library
             return outcome;
         }
 
-        private static Fact FindEscortDemand(ActionContext context, out ProductionSpec spec)
+        private Fact FindEscortDemand(ActionContext context, out ProductionSpec spec)
         {
             spec = null;
-            if (context.Thread == null || !ActionBinding.HasRequiredSemanticSlots("escort", context))
+            if (context.Thread == null || !ActionBinding.HasRequiredSemanticSlots(this, context))
             {
                 return null;
             }
@@ -697,6 +733,18 @@ namespace BrilliantQuesting.Actions.Library
         }
 
         /// <summary>
+        /// Putting somebody out of reach of what threatens them, or holding them so they cannot
+        /// act, is one effect reached four ways. It is declared coarse alongside
+        /// <see cref="Embodiment"/> and claims no route, position or moment.
+        ///
+        /// The slot requirement is the family's, not a per-verb table: without somewhere to take
+        /// them or a standing objective there is nothing for the verb to be about.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.PersonSecured))
+            .NeedingAnyOf(SemanticSlots.Destination, SemanticSlots.Purpose);
+
+        /// <summary>
         /// Nobody is moved. Rescuing, escorting, capturing and restraining are physical acts and
         /// there is no verified vanilla path by which BQ may carry an actor to a place, so the
         /// resolution stays coarse: the record says what was attempted, whether it came off and
@@ -718,7 +766,7 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.NotRelevant("nobody here to " + Label.ToLowerInvariant());
             }
 
-            if (!ActionBinding.HasRequiredSemanticSlots(Id, context))
+            if (!ActionBinding.HasRequiredSemanticSlots(this, context))
             {
                 return Availability.NotRelevant("no destination or persistent objective");
             }

@@ -146,6 +146,14 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>The object leaves, so what it could have shown leaves with it.</summary>
+        public override ActionEffects Effects => ActionEffects.Declaring(
+            ActionEffect.Delegated(
+                SemanticEffects.PossessionTransferred,
+                "IVanillaState.TryTransferItem",
+                VanillaCapability.TransferItems),
+            ActionEffect.Recorded(SemanticEffects.EvidenceRemoved));
+
         /// <summary>
         /// Not player-specific in meaning - a village blacksmith has a fence too - and refused for
         /// anybody else all the same, because whether the receiver deals with somebody is read
@@ -309,6 +317,14 @@ namespace BrilliantQuesting.Actions.Library
         public ForgeAction() : base("forge", ActionFamily.Crime, "Have papers made")
         {
         }
+
+        /// <summary>
+        /// Proof of something the forger already believed. It does not make the claim true, and
+        /// the specimen it was copied from may not survive the work.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects.Declaring(
+            ActionEffect.Recorded(SemanticEffects.EvidenceCreated),
+            ActionEffect.Recorded(SemanticEffects.EvidenceRemoved));
 
         /// <summary>
         /// Not player-specific in meaning - a village blacksmith has a fence too - and refused for
@@ -519,6 +535,14 @@ namespace BrilliantQuesting.Actions.Library
         public SmuggleAction() : base("smuggle", ActionFamily.Crime, "Get it to them")
         {
         }
+
+        /// <summary>Reaching somebody you are not standing next to, at the cost of your own proof.</summary>
+        public override ActionEffects Effects => ActionEffects.Declaring(
+            ActionEffect.Delegated(
+                SemanticEffects.PossessionTransferred,
+                "IVanillaState.TryTransferItem",
+                VanillaCapability.TransferItems),
+            ActionEffect.Recorded(SemanticEffects.EvidenceRemoved));
 
         /// <summary>
         /// Not player-specific in meaning - a village blacksmith has a fence too - and refused for

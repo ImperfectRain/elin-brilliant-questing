@@ -1,3 +1,5 @@
+using BrilliantQuesting.Integration;
+
 namespace BrilliantQuesting.Actions
 {
     /// <summary>
@@ -68,6 +70,43 @@ namespace BrilliantQuesting.Actions
         /// offers, including things that will not help.
         /// </summary>
         public virtual bool SettlesMatters => false;
+
+        /// <summary>
+        /// What kinds of state change this verb could potentially advance, and what it has to be
+        /// pointed at before it means anything (BQa-010).
+        ///
+        /// The fourth thing a verb declares about itself, beside <see cref="ActorScope"/>,
+        /// <see cref="Embodiment"/> and <see cref="SettlesMatters"/>, and declared for the same
+        /// reason: a consumer choosing a verb on somebody's behalf has to know what taking it
+        /// could change, and the verb is the only thing that does. <see cref="Family"/> answers a
+        /// different question - which kind of character has a route in - and two verbs of one
+        /// family routinely do unrelated things to the world.
+        ///
+        /// <see cref="ActionEffects.Undeclared"/> by default, and that default is a reported gap
+        /// rather than a claim that nothing changes. It is metadata and never a promise: it
+        /// executes nothing, it does not answer <see cref="GetAvailability"/>, and an attempt
+        /// that fails may do something else entirely.
+        /// </summary>
+        public virtual ActionEffects Effects => ActionEffects.Undeclared;
+
+        /// <summary>
+        /// Whether this verb claims that kind of change at all, and - for a half vanilla has to
+        /// carry - whether this build could carry it. Side-effect free, like every other question
+        /// asked of a verb before it is taken.
+        /// </summary>
+        public bool CanPotentiallyAdvance(string effectKind, IVanillaState vanilla, out string refusal)
+        {
+            ActionEffect effect = Effects.Find(effectKind);
+            if (effect == null)
+            {
+                refusal = Effects.IsDeclared
+                    ? Id + " does not advance " + effectKind
+                    : Id + " has declared no semantic effects";
+                return false;
+            }
+
+            return effect.CanBeCarried(vanilla, out refusal);
+        }
 
         /// <summary>
         /// Whether this makes sense here at all. Must be side-effect free: the discovery pass

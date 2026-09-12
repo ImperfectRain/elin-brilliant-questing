@@ -19,6 +19,9 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.StandingAltered));
+
         /// <summary>
         /// How warm small talk can make somebody before it stops being small talk. Chosen low on
         /// purpose: rapport is a way in, not a substitute for doing anything.
@@ -127,6 +130,9 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.InformationLearned));
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -221,6 +227,20 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>
+        /// What lands is somebody undertaking to do something, which is an obligation record and
+        /// not merely a warmer feeling - so a want that an undertaking exist can find this verb.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(
+                ActionEffect.Recorded(SemanticEffects.ObligationAltered),
+                ActionEffect.Recorded(SemanticEffects.StandingAltered))
+            .NeedingAnyOf(
+                SemanticSlots.Proposition,
+                SemanticSlots.Item,
+                SemanticSlots.Destination,
+                SemanticSlots.Purpose);
+
         // BQ-090. Somebody standing there deciding who passes is answered by asking them, and
         // being let through is `NarrativeSite.Admit` - nothing on the live build has to exist for
         // it. Declared here and not on the other social verbs because only the verbs that end in
@@ -238,7 +258,7 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.NotRelevant("nobody to persuade");
             }
 
-            if (!ActionBinding.HasRequiredSemanticSlots(Id, context))
+            if (!ActionBinding.HasRequiredSemanticSlots(this, context))
             {
                 return Availability.NotRelevant("nothing specific to ask for");
             }
@@ -366,6 +386,17 @@ namespace BrilliantQuesting.Actions.Library
         {
         }
 
+        /// <summary>Spending a favour is the recorded debt being discharged, once, and then it is gone.</summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(
+                ActionEffect.Recorded(SemanticEffects.ObligationAltered),
+                ActionEffect.Recorded(SemanticEffects.StandingAltered))
+            .NeedingAnyOf(
+                SemanticSlots.Proposition,
+                SemanticSlots.Item,
+                SemanticSlots.Destination,
+                SemanticSlots.Purpose);
+
         // BQ-090. A favour buys the same concession persuasion does, including being let past
         // whoever is deciding, so it is the same route taken with something already owed.
         public SpatialRouteClaim SpatialRoute { get; } = new SpatialRouteClaim(
@@ -380,7 +411,7 @@ namespace BrilliantQuesting.Actions.Library
                 return Availability.NotRelevant("nobody to call on");
             }
 
-            if (!ActionBinding.HasRequiredSemanticSlots(Id, context))
+            if (!ActionBinding.HasRequiredSemanticSlots(this, context))
             {
                 return Availability.NotRelevant("nothing specific to ask them for");
             }
@@ -485,6 +516,13 @@ namespace BrilliantQuesting.Actions.Library
         public LieAction() : base("lie", ActionFamily.Social, "Lie about it")
         {
         }
+
+        /// <summary>
+        /// Disclosure is the effect whether or not what was said is true: the listener comes away
+        /// holding a claim, and which claim is the knowledge graph's business.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Recorded(SemanticEffects.InformationDisclosed));
 
         protected override Availability GetAvailabilityCore(ActionContext context)
         {

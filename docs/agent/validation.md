@@ -35,7 +35,7 @@ changes also require [Native](#native).
 
 | Change | Smallest useful class(es) | Neighbors / Lab |
 |---|---|---|
-| Verb/binding/availability | Affected family, e.g. `CrimeActionTests`, plus `ActionBindingTests` or `ActionAvailabilityTests` | `ContextualActionProjectionTests`, `PlayerNpcActionSymmetryTests`, `ResolutionScopeTests`; `theft`, `actor-action` |
+| Verb/binding/availability | Affected family, e.g. `CrimeActionTests`, plus `ActionBindingTests` or `ActionAvailabilityTests`; `ActionEffectContractTests` when a verb's declared effects or binding slots change | `ContextualActionProjectionTests`, `PlayerNpcActionSymmetryTests`, `ResolutionScopeTests`; `theft`, `actor-action` |
 | Check arithmetic/profile | `CheckTests` | Affected verb family, `SemanticConversationIntegrationTests`; `actor-action` |
 | Reactions/observed deeds | `ConsequenceTests` or `VanillaActionRecorderTests` | `RecognizedViolenceTests`, `RelationshipHarmTests`, `VisibleConsequenceTests`; `theft` |
 | Thread lifecycle/ending | `ThreadLifecycleTests` | `ResolutionScopeTests`, `ChronicleTests`, persistence; `questline` |

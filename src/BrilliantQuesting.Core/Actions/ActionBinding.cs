@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Threads;
@@ -93,32 +94,37 @@ namespace BrilliantQuesting.Actions
             return null;
         }
 
-        public static bool HasRequiredSemanticSlots(string actionId, ActionContext context)
+        /// <summary>
+        /// Whether this verb has been pointed at anything it could be about (BQa-010).
+        ///
+        /// The requirement is read off <see cref="NarrativeAction.Effects"/> rather than off a
+        /// switch on verb ids kept here. A verb declares the slots any one of which would point
+        /// it, so a new verb that needs a binding gets one by saying so, and a verb that needs
+        /// none is attemptable unbound - which is the great majority of the library and the
+        /// reason the default is permissive.
+        ///
+        /// It is not availability and does not replace it: this asks only whether the caller
+        /// said what the attempt is about. Whether that thing makes the attempt possible is the
+        /// verb's own question, asked afterwards.
+        /// </summary>
+        public static bool HasRequiredSemanticSlots(NarrativeAction action, ActionContext context)
         {
-            ActionBinding binding = Infer(context);
-            switch (actionId)
+            IReadOnlyList<string> needed = action == null ? null : action.Effects.NeedsAnyOf;
+            if (needed == null || needed.Count == 0)
             {
-                case "call_favor":
-                case "persuade":
-                case "intimidate":
-                case "bribe":
-                case "report":
-                    return binding.HasProposition || binding.HasPurpose;
-
-                case "return_item":
-                    return binding.HasItem;
-
-                case "rescue":
-                    return binding.HasProposition || binding.HasDestination || !string.IsNullOrEmpty(binding.Purpose);
-
-                case "escort":
-                case "capture":
-                case "restrain":
-                    return binding.HasDestination || !string.IsNullOrEmpty(binding.Purpose);
-
-                default:
-                    return true;
+                return true;
             }
+
+            ActionBinding binding = Infer(context);
+            for (int i = 0; i < needed.Count; i++)
+            {
+                if (SemanticSlots.IsBound(needed[i], binding))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public string Describe(ActionContext context)

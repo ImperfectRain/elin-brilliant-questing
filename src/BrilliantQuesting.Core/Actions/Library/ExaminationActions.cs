@@ -38,6 +38,16 @@ namespace BrilliantQuesting.Actions.Library
             Profile = profile;
         }
 
+        /// <summary>
+        /// One question asked by several disciplines, so one declaration: reading an object in
+        /// hand is how its holder comes to know what it can say. Reading the pack is vanilla's.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.InformationLearned,
+                "IVanillaState.GetInventory",
+                VanillaCapability.ReadInventory));
+
         protected CheckProfile Profile { get; }
 
         /// <summary>What to say when there is nothing this discipline can be pointed at.</summary>

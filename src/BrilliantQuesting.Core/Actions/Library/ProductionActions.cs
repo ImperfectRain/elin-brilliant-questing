@@ -235,6 +235,16 @@ namespace BrilliantQuesting.Actions.Library
             Stock = stock;
         }
 
+        /// <summary>
+        /// Every craft in the family answers a recorded shortage, whether the goods were carried
+        /// in or worked from stock; the handing over is vanilla's.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects
+            .Declaring(ActionEffect.Delegated(
+                SemanticEffects.ResourceSupplied,
+                "IVanillaState.TryTransferItem",
+                VanillaCapability.TransferItems));
+
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
 
@@ -611,6 +621,14 @@ namespace BrilliantQuesting.Actions.Library
         public RepairAction() : base("repair", ActionFamily.Crafting, "Repair it")
         {
         }
+
+        /// <summary>
+        /// The route that removes a shortage's cause instead of covering it: the thing works
+        /// again, and the demand that named it goes with it.
+        /// </summary>
+        public override ActionEffects Effects => ActionEffects.Declaring(
+            ActionEffect.Recorded(SemanticEffects.ObjectRepaired),
+            ActionEffect.Recorded(SemanticEffects.ResourceSupplied));
 
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
