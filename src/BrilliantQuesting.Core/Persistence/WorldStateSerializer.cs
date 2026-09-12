@@ -67,6 +67,7 @@ namespace BrilliantQuesting.Persistence
             root.Set("travelingGroups", TravelingGroupsToJson(world));
             root.Set("demands", DemandsToJson(world));
             root.Set("businesses", BusinessesToJson(world));
+            root.Set("productionCycle", ProductionCycleToJson(world));
             return root;
         }
 
@@ -128,6 +129,7 @@ namespace BrilliantQuesting.Persistence
             ReadTravelingGroups(world, root);
             ReadDemands(world, root);
             ReadBusinesses(world, root);
+            ReadProductionCycle(world, root);
             return new WorldStateLoadResult(world, diagnostics);
         }
 
@@ -304,6 +306,50 @@ namespace BrilliantQuesting.Persistence
             }
 
             return array;
+        }
+
+        /// <summary>
+        /// The cycle's own markers (BQa-016). Additive and optional, exactly like the identity
+        /// map above: a save written before this existed has no node and loads with no consumed
+        /// interval and no spent openings, which is the state it was already in, so no schema
+        /// bump is owed. Never a reservation - only closures that already happened.
+        /// </summary>
+        private static JsonValue ProductionCycleToJson(NarrativeWorldState world)
+        {
+            JsonValue openings = JsonValue.Array();
+            foreach (ConsumedOpening opening in world.ProductionCycle.Openings)
+            {
+                openings.Add(JsonValue.Object()
+                    .Set("contest", opening.ContestKey)
+                    .Set("holder", opening.Holder.Value)
+                    .Set("when", opening.When.TotalMinutes)
+                    .Set("because", opening.Because));
+            }
+
+            return JsonValue.Object()
+                .Set("lastConsumedDay", world.ProductionCycle.LastConsumedDay)
+                .Set("openings", openings);
+        }
+
+        private static void ReadProductionCycle(NarrativeWorldState world, JsonValue root)
+        {
+            JsonValue cycle = root["productionCycle"];
+            if (cycle == null)
+            {
+                return;
+            }
+
+            world.ProductionCycle.LastConsumedDay =
+                cycle.GetLong("lastConsumedDay", ProductionCycleLedger.NeverRun);
+
+            foreach (JsonValue json in cycle.GetArray("openings"))
+            {
+                world.ProductionCycle.Restore(new ConsumedOpening(
+                    json.GetString("contest"),
+                    EntityId.Parse(json.GetString("holder")),
+                    new GameTime(json.GetLong("when")),
+                    json.GetString("because", ConsumedOpening.Committed)));
+            }
         }
 
         private static JsonValue OrganizationsToJson(NarrativeWorldState world)

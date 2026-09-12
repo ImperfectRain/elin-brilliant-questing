@@ -38,6 +38,12 @@ namespace BrilliantQuesting.Lab
         public int AbsenceReturns { get; set; }
         public int AbsenceEnforcements { get; set; }
         public int MemoriesCompacted { get; set; }
+
+        /// <summary>BQa-016. What the production runner did, reported like every other owner.</summary>
+        public int CyclePasses { get; set; }
+        public int CycleGoalChanges { get; set; }
+        public int CycleIntentions { get; set; }
+        public int CycleCommits { get; set; }
         public HarnessCoverage Coverage { get; } = new HarnessCoverage();
         public Dictionary<string, int> EventsByType { get; } = new Dictionary<string, int>();
         public Dictionary<string, int> ThreadsByArchetype { get; } = new Dictionary<string, int>();
@@ -73,6 +79,10 @@ namespace BrilliantQuesting.Lab
                 AbsenceReturns = runtime.AbsenceReturns,
                 AbsenceEnforcements = runtime.AbsenceEnforcements,
                 MemoriesCompacted = runtime.MemoriesCompacted,
+                CyclePasses = runtime.CyclePasses,
+                CycleGoalChanges = runtime.CycleGoalChanges,
+                CycleIntentions = runtime.CycleIntentions,
+                CycleCommits = runtime.CycleCommits,
                 FinalWorldJson = WorldStateSerializer.Save(state.World, indented: false)
             };
 
@@ -147,6 +157,10 @@ namespace BrilliantQuesting.Lab
                 .Set("absenceReturns", AbsenceReturns)
                 .Set("absenceEnforcements", AbsenceEnforcements)
                 .Set("memoriesCompacted", MemoriesCompacted)
+                .Set("cyclePasses", CyclePasses)
+                .Set("cycleGoalChanges", CycleGoalChanges)
+                .Set("cycleIntentions", CycleIntentions)
+                .Set("cycleCommits", CycleCommits)
                 .Set("eventsByType", Map(EventsByType))
                 .Set("threadsByArchetype", Map(ThreadsByArchetype))
                 .Set("coverage", CoverageJson())

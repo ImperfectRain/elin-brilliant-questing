@@ -2932,3 +2932,59 @@ that lets two actors both complete one exclusive opportunity produces two thefts
 answers to one shortage, two people taken into custody who are the same person — and where it does
 not, it produces a world where the same actor always wins because the queue always reaches them
 first, which reads as character and is really ordering.
+
+---
+
+## D092 — A pass owns its boundary, its budget, its turn order and its spent openings, and nothing else
+
+BQa-001 to BQa-015 left a complete causal chain with nobody to walk it. Every link had an owner —
+work sets, readings, wants, routes, contests — and each owner answered one question well and had no
+opinion about when it should be asked. `ProductionCycle` is that caller, and the discipline that
+makes it safe is that it owns exactly the four things none of those owners could own alone.
+
+**Where a pass starts and ends.** One interval, one day, one batch, recorded in the save. A host
+that fires the same day twice — a reload onto the same morning, a hook that runs again after a zone
+change — gets one pass, because "replaying a consumed interval is harmless" has to be a fact about
+the code rather than a hope about call sites. And a pass may not re-enter itself: the consequence
+engine and the feedback collector are immediate listeners, and an attempt made inside a pass appends
+events they both see, so re-entering from that reaction would let one theft start a second pressure
+pass on the same stack. It is refused outright and the changes wait for the next interval, which is
+what "queued reaction" has to mean if the phrase means anything.
+
+**How much work it may do.** Counts, never a wall clock, so the same pass costs the same in a test
+and on a slow machine. The execution bound is on the batch's input rather than on its executions,
+because arbitration runs each gathered intention at most once: bounding what is gathered bounds the
+pass without the cycle reaching into how arbitration walks it. `IBatchCancellation` stays what
+BQa-015 built it for — somewhere a live host can say "not this frame" — rather than being pressed
+into service as the budget.
+
+**Whose turn it is.** Off `NarrativeNpc.LastSimulatedAt`, which the save already carries, and not
+off the simulation index's rotation position, which it does not. The index hands out a window to
+keep the sample bounded; the window is wherever the round happens to be, and a load rebuilds it from
+the front. Sampling several windows and choosing the least recently considered inside them is what
+makes resume rest on the save rather than on the rotation. An actor who was read has had their turn
+whether or not anything came of it — leaving them at the front because they had nothing to say would
+starve everybody behind them — and people a change named are read first, because somebody whose shop
+burned down this morning should not wait for the rotation to come round.
+
+**Which openings are gone.** BQa-015's `TransientClaim` prevents two people finishing the same theft
+inside one batch and expires with it, by design: a reservation in a save file is a claim about the
+world no event ever justified. What it cannot prevent is the same opening being offered again
+tomorrow, or being offered by the scheme pass an hour later, because the committed attempt's own
+record says only that somebody lifted a purse. So the ledger records closures — this contest is
+spent, by this holder, for this reason — and `OffScreenSchemes` and `AutonomousInterventions` read
+the same record. A native outcome supplied as already observed closes its opening the same way: it
+is written down through `VanillaActionRecorder` and never rolled again, because the outcome is not
+in question. Remembering is capped with oldest-first eviction, and that is a real cost honestly
+taken: a save that grew without limit would be worse than a stale purse.
+
+**And nothing else.** It scores no pressure, forms no want, ranks no contender, resolves no check,
+writes no fact, opens no matter and mints no event of its own. A pass whose result is thrown away
+leaves the world as it was, exactly as the detector and the collector already promise. That is also
+why the player-protection rule had to change here rather than somewhere else: `AutonomousInterventions`
+took a matter off the world's table for the rest of the save on the strength of one player act, which
+made "ignored" mean "never once touched" and froze every matter the player had ever looked at. A
+bounded interaction may defer a conflicting attempt; having once acted may not.
+
+Headless Core throughout. Nothing in the Plugin calls any of it, and a green month here is not
+evidence that an Elin hook advances one — that is BQa-017's to show.

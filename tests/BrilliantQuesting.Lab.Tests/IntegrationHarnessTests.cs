@@ -35,6 +35,40 @@ namespace BrilliantQuesting.Lab.Tests
             Assert.Contains("live_witness_los", result.Coverage.Entries.Keys);
         }
 
+        /// <summary>
+        /// BQa-016. The Lab calls the production runner, and the proof is the runner's own durable
+        /// marker: nothing but <c>ProductionCycle</c> writes a consumed interval, so a harness run
+        /// that ends with one has been through the production implementation rather than a
+        /// fixture's copy of its scheduling.
+        /// </summary>
+        [Fact]
+        public void TheHarnessAdvancesTheProductionCycleItself()
+        {
+            IntegrationHarnessConfig config = new IntegrationHarnessConfig
+            {
+                Mode = IntegrationHarnessMode.Synthetic,
+                Seed = 42,
+                Days = 12,
+                Population = 12,
+                SaveReloadDay = 6
+            };
+
+            HarnessRunResult result = IntegrationHarness.Run(config);
+
+            Assert.True(result.Passed, string.Join("; ", result.Failures));
+            Assert.Equal(12, result.CyclePasses);
+            Assert.True(result.CycleIntentions >= 0);
+
+            NarrativeWorldState ended = WorldStateSerializer.Load(result.FinalWorldJson);
+            Assert.Equal(12, ended.ProductionCycle.LastConsumedDay);
+            Assert.True(ended.ProductionCycle.HasConsumed(12));
+
+            // The reload in the middle did not cost the runner its place, and did not let the
+            // days before it be consumed twice.
+            Assert.Contains("production_cycle", result.Coverage.Entries.Keys);
+            Assert.Contains("production_cycle_pass", result.Coverage.Entries.Keys);
+        }
+
         [Fact]
         public void CapturedSnapshotHydratesUnknownsWithoutFabricatingActorClassification()
         {

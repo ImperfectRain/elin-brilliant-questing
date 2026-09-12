@@ -73,6 +73,19 @@ namespace BrilliantQuesting.Autonomy
         public long Patience { get; set; } = 2;
 
         /// <summary>
+        /// How long the player's own act in a matter defers a conflicting attempt (BQa-016).
+        ///
+        /// A window, not a claim. The player acting in a matter used to take it off the world's
+        /// table for the rest of the save, which made "ignored" mean "never once touched" and
+        /// quietly froze every matter the player had ever looked at - a permanent protection no
+        /// NPC gets and no rule ever justified. What deferring a neighbour is entitled to defer
+        /// them for is the length of an actual interaction: long enough that a situation is not
+        /// solved out from under somebody mid-visit, short enough that a matter abandoned three
+        /// weeks ago is the world's again.
+        /// </summary>
+        public long PlayerInteractionDays { get; set; } = 3;
+
+        /// <summary>
         /// How plausible an opening has to look before somebody acts on it.
         ///
         /// Below <see cref="InterventionOpportunity.Unread"/> on purpose, so a build that answers
@@ -160,7 +173,7 @@ namespace BrilliantQuesting.Autonomy
                 return null;
             }
 
-            if (PlayerHasItInHand(world, player, thread))
+            if (PlayerIsInItNow(world, player, thread, now))
             {
                 return null;
             }
@@ -223,6 +236,20 @@ namespace BrilliantQuesting.Autonomy
                     List<ActionOffer> offers = RoutesToEndIt(registry, context, anyDay);
                     for (int o = 0; o < offers.Count; o++)
                     {
+                        // BQa-016. A matter whose indivisible opening is already spent is not one
+                        // this pass may take up again, whichever owner spent it. Dropped before it
+                        // is weighed: a contest nobody can win is not an option.
+                        ActionContest reaching = ActionContest.ForIntent(
+                            offers[o].Action,
+                            new ActionIntent(actor, offers[o].Action.Id, target, string.Empty)
+                            {
+                                SubjectFact = matter != null ? matter.Id : EntityId.None
+                            });
+                        if (reaching.IsExclusive && world.ProductionCycle.IsSpent(reaching.Key))
+                        {
+                            continue;
+                        }
+
                         InterventionOption option = Weigh(world, offers[o], actor, target, opportunity, motive, thread);
                         trace.Options.Add(option);
 
@@ -262,6 +289,18 @@ namespace BrilliantQuesting.Autonomy
             };
 
             trace.Attempt = ActionAttempt.Run(registry, intent, bestContext);
+
+            // BQa-016. A committed attempt on an indivisible contest closes it for every later
+            // pass, so the production cycle cannot offer the same opening tomorrow.
+            if (trace.Attempt != null && trace.Attempt.Outcome != null && trace.Attempt.Outcome.Succeeded)
+            {
+                ActionContest closed = ActionContest.ForIntent(registry.Get(best.ActionId), intent);
+                if (closed.IsExclusive)
+                {
+                    world.ProductionCycle.Spend(closed.Key, best.Actor, now, ConsumedOpening.Committed);
+                }
+            }
+
             RecordEnding(world, thread, best.Actor, matter, trace, now);
             return trace;
         }
@@ -330,26 +369,32 @@ namespace BrilliantQuesting.Autonomy
         }
 
         /// <summary>
-        /// Whether the player is already in this matter.
+        /// Whether the player is in this matter <em>now</em> (BQa-016).
         ///
         /// Read off history through the thread's own attribution rule, so an act counts when the
         /// verb that recorded it said which matter it belonged to - never because the player
-        /// happened to be nearby.
+        /// happened to be nearby. What is new is the tense. Having ever acted is not being in
+        /// something: only an act inside <see cref="PlayerInteractionDays"/> defers a conflicting
+        /// attempt, and once that window closes the matter is available to whoever else has a
+        /// stake in it. A matter the player opened and walked away from is not theirs forever.
+        ///
+        /// The latest such act is what is measured, so continuing to work on a matter keeps
+        /// renewing the window rather than spending it.
         /// </summary>
-        private static bool PlayerHasItInHand(NarrativeWorldState world, EntityId player, NarrativeThread thread)
+        private bool PlayerIsInItNow(NarrativeWorldState world, EntityId player, NarrativeThread thread, GameTime now)
         {
-            if (player.IsNone)
+            if (player.IsNone || PlayerInteractionDays <= 0)
             {
                 return false;
             }
 
             IReadOnlyList<WorldEvent> events = world.Ledger.Events;
-            for (int i = 0; i < events.Count; i++)
+            for (int i = events.Count - 1; i >= 0; i--)
             {
                 WorldEvent worldEvent = events[i];
                 if (worldEvent.Actor == player && thread.IsNamedBy(worldEvent))
                 {
-                    return true;
+                    return now.DaysSince(worldEvent.Time) < PlayerInteractionDays;
                 }
             }
 

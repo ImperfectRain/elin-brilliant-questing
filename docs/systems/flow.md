@@ -67,6 +67,31 @@ Proof: [DevelopmentLayerTests](../../tests/BrilliantQuesting.Core.Tests/Developm
 [StoryletRoutingTests](../../tests/BrilliantQuesting.Core.Tests/StoryletRoutingTests.cs),
 [SemanticConversationIntegrationTests](../../tests/BrilliantQuesting.Core.Tests/SemanticConversationIntegrationTests.cs).
 
+## Core production cycle
+
+```text
+supplied observations (VanillaActionRecorder)
+  -> PressureFeedback.Inspect/Take -> PressurePass (bounded work set + woken people)
+  -> DevelopmentDetector.Detect(scope) -> Development
+  -> ActorPressureView.Of -> ActorLocalPressure
+  -> ActorGoalEvolution.Advance -> GoalChange / NpcGoal
+  -> GoalRoutes.Discover -> GoalRoute -> ActionIntent -> ActionCandidate
+  -> ArbitrationBatch.Gather/Resolve -> ActionAttempt.Run
+  -> attached ConsequenceEngine and the verbs' own owners
+  -> changed state -> back into PressureFeedback for the next interval
+```
+
+One interval per pass, recorded in `ProductionCycleLedger`; replaying a consumed interval does
+nothing, and a re-entrant call from an immediate listener is refused rather than run. Attempts
+happen inside the batch and nowhere else on this path. `ProductionCycle` is called by the Lab's
+[production registry](../../tools/BrilliantQuesting.Lab/ProductionSystemRegistry.cs) and by nothing in
+the Plugin: the live join is BQa-017's, and the host table above is unchanged by this path.
+
+Source: [ProductionCycle](../../src/BrilliantQuesting.Core/Autonomy/ProductionCycle.cs).
+Contract: [autonomy](world.md#autonomy), [persistence](integration.md#persistence).
+Proof: [ProductionCycleTests](../../tests/BrilliantQuesting.Core.Tests/ProductionCycleTests.cs),
+[IntegrationHarnessTests](../../tests/BrilliantQuesting.Lab.Tests/IntegrationHarnessTests.cs).
+
 ## Partial joins and extension points
 
 The [generation proposal seam](world.md#generation) also accepts hypothetical actor requirements
@@ -82,6 +107,7 @@ creation costs in that selection seam. Neither adds a director-to-spawner join o
 | Routed storylets → live Drama | Plugin has no `StoryletRouter`/`StoryletEngine` host. Preserve semantic/wording/delivery boundaries when adding one |
 | Stable voice → save | `VoiceProfile` is caller-supplied; `NarrativeNpc`/serializer do not store an assigned voice. Reuse existing tone/idiolect vocabulary if persistent assignment is introduced |
 | Generated organization activity → live tick | Called by Lab `ProductionSystemRegistry`, not instantiated in Plugin. No claim of live organization simulation |
+| Core production cycle → live tick | `ProductionCycle` is called by Lab `ProductionSystemRegistry` only; no Plugin call site, no Elin hook and no live evidence. BQa-017 owns the host join, its zone/time boundaries and its save/load reconstruction |
 | Site plan → native structure → future spatial pressure | Core plan/realization/addition exists; live structure/addition capabilities refuse. Do not promote plan geometry to native fact |
 | Native catch-up → BQ tiers | Plugin attach/zone change reads Home state through `OffScreenSchemes.ReconcileZone`; observed Active residents consume elapsed scheme windows without replaying physical work. [Tier contract](world.md#autonomy); actual Home revisit timing/readback still needs live evidence |
 

@@ -44,6 +44,7 @@ incomplete joins with links to their adopted planning owners.
 | Director/attention | [Attention](systems/expression.md#attention) |
 | Autonomy | [Autonomy](systems/world.md#autonomy) |
 | Simulation tiers/bounded scheme scheduling | [Autonomy](systems/world.md#autonomy) |
+| Bounded production cycle, per-pass budgets, turn order and spent openings | [Autonomy](systems/world.md#autonomy) |
 | Traveling groups | [Travel](systems/world.md#travel) |
 | Organizations | [Organizations](systems/world.md#organizations) |
 | Sites/planning/realization | [Sites](systems/world.md#sites) |

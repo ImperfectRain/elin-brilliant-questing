@@ -169,6 +169,18 @@ namespace BrilliantQuesting.Autonomy
                         out contextRefusal);
 
                     NarrativeAction action = registry.Get(candidate.ActionId);
+
+                    // BQa-016. An indivisible opening that has already been spent is not one this
+                    // pass may offer again - the purse is gone, whether this simulation's own
+                    // batch took it or the game did. Dropped before it is weighed, because a
+                    // contest nobody can win is not a contest and putting it in the trace as an
+                    // option would say it was one.
+                    ActionContest reaching = ActionContest.ForIntent(action, Reaching(actor.Id, candidate));
+                    if (reaching.IsExclusive && world.ProductionCycle.IsSpent(reaching.Key))
+                    {
+                        continue;
+                    }
+
                     Availability availability = Availability.Impossible("no registered verb with id '" + candidate.ActionId + "'");
                     string barred = string.Empty;
                     if (built && action != null)
@@ -223,10 +235,37 @@ namespace BrilliantQuesting.Autonomy
             };
 
             trace.Attempt = ActionAttempt.Run(registry, intent, bestContext);
+
+            // BQa-016. A committed attempt on an indivisible contest closes it for every later
+            // pass, this owner's and the production cycle's alike. Only a commit closes it: an
+            // attempt that changed nothing leaves the thing exactly where it was.
+            if (trace.Attempt != null && trace.Attempt.Outcome != null && trace.Attempt.Outcome.Succeeded)
+            {
+                ActionContest closed = ActionContest.ForIntent(registry.Get(best.ActionId), intent);
+                if (closed.IsExclusive)
+                {
+                    world.ProductionCycle.Spend(closed.Key, actor.Id, now, ConsumedOpening.Committed);
+                }
+            }
+
             trace.Chosen = best.Option;
             ReadTheWantAgainst(world, best.Goal, trace, now);
 
             return trace;
+        }
+
+        /// <summary>
+        /// What one candidate is reaching for, as an intent the contest reader can be asked about
+        /// (BQa-016). Built rather than reused because the real intent is only assembled for the
+        /// option that wins, and the question has to be asked of every one of them.
+        /// </summary>
+        private static ActionIntent Reaching(EntityId actor, SchemeCandidate candidate)
+        {
+            return new ActionIntent(actor, candidate.ActionId, candidate.Target, string.Empty)
+            {
+                SubjectFact = candidate.SubjectFact,
+                SubjectItem = candidate.SubjectItem
+            };
         }
 
         private List<NarrativeNpc> DueActors(

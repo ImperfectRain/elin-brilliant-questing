@@ -194,7 +194,11 @@ namespace BrilliantQuesting.Lab
                 OrganizationActions = previous.OrganizationActions,
                 AbsenceReturns = previous.AbsenceReturns,
                 AbsenceEnforcements = previous.AbsenceEnforcements,
-                MemoriesCompacted = previous.MemoriesCompacted
+                MemoriesCompacted = previous.MemoriesCompacted,
+                CyclePasses = previous.CyclePasses,
+                CycleGoalChanges = previous.CycleGoalChanges,
+                CycleIntentions = previous.CycleIntentions,
+                CycleCommits = previous.CycleCommits
             };
             foreach (ProductionSystemDescriptor descriptor in descriptors)
             {

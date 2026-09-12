@@ -32,6 +32,14 @@ namespace BrilliantQuesting.Lab
         public OrganizationActivity Organizations { get; set; }
         public AbsenceLifecycle Absences { get; set; }
         public OffScreenSchemes Schemes { get; set; }
+
+        /// <summary>BQa-016. The production runner itself, not a Lab copy of its scheduling.</summary>
+        public ProductionCycle Cycle { get; set; }
+
+        public int CyclePasses { get; set; }
+        public int CycleGoalChanges { get; set; }
+        public int CycleIntentions { get; set; }
+        public int CycleCommits { get; set; }
         public int RumorTells { get; set; }
         public int RumorRoutes { get; set; }
         public int ThreadEscalations { get; set; }
@@ -82,6 +90,16 @@ namespace BrilliantQuesting.Lab
                 new ProductionSystemDescriptor("consequence_engine", HarnessPhase.Initialize, AttachConsequences, "production Core"),
                 new ProductionSystemDescriptor("rumor_system", HarnessPhase.Initialize, BuildRumors, "production Core"),
                 new ProductionSystemDescriptor("thread_engine", HarnessPhase.Initialize, BuildThreads, "production Core"),
+
+                // BQa-016. Built here and rebuilt after a reload, exactly as the consequence
+                // engine is, because the collector it owns is an event listener: attaching after
+                // the load is what keeps restored history from being replayed into a work set.
+                new ProductionSystemDescriptor(
+                    "production_cycle",
+                    HarnessPhase.Initialize,
+                    BuildProductionCycle,
+                    "production Core",
+                    "Constructing and attaching writes no event, so coverage reads Available until a pass commits something."),
                 // BQ-115 runs ahead of both generation passes, exactly as the plugin's attach path
                 // orders them. The ordering is the step: faces have to be elected before there is a
                 // situation for them to be cast into.
@@ -95,6 +113,15 @@ namespace BrilliantQuesting.Lab
                 new ProductionSystemDescriptor("home_resident_pressure", HarnessPhase.Daily, GenerateHomeResidentPressure, "production Core"),
                 new ProductionSystemDescriptor("thread_lifecycle", HarnessPhase.Daily, ReviewThreadLifecycle, "production Core"),
                 new ProductionSystemDescriptor("thread_escalation", HarnessPhase.Daily, AdvanceThreads, "production Core"),
+                // BQa-016. The Lab calls the production runner; it does not reproduce its
+                // scheduling. Ahead of the other autonomy owners so that a pass's committed
+                // openings are already closed when the scheme pass looks at the same day.
+                new ProductionSystemDescriptor(
+                    "production_cycle_pass",
+                    HarnessPhase.Daily,
+                    AdvanceProductionCycle,
+                    "production Core",
+                    "Headless Core only: a pass here is no evidence that any Elin hook advances one (BQa-017)."),
                 new ProductionSystemDescriptor("organization_activity", HarnessPhase.Daily, AdvanceOrganizations, "production Core"),
                 new ProductionSystemDescriptor("off_screen_schemes", HarnessPhase.Daily, AdvanceSchemes, "production Core"),
                 new ProductionSystemDescriptor("absence_lifecycle", HarnessPhase.Daily, ReconcileAbsences, "production Core"),
@@ -192,6 +219,35 @@ namespace BrilliantQuesting.Lab
             {
                 runtime.ThreadEscalations += runtime.Threads.Advance(state.World, state.Vanilla.Now);
             }
+        }
+
+        private static void BuildProductionCycle(HarnessState state, HarnessRuntime runtime)
+        {
+            runtime.Cycle = new ProductionCycle(
+                state.World,
+                state.Vanilla,
+                new VanillaStyleCheckResolver(state.Vanilla),
+                StandardActions.CreateRegistry());
+            runtime.Cycle.Attach();
+        }
+
+        private static void AdvanceProductionCycle(HarnessState state, HarnessRuntime runtime)
+        {
+            if (runtime.Cycle == null)
+            {
+                return;
+            }
+
+            ProductionCyclePass pass = runtime.Cycle.Run(state.Vanilla.Now);
+            if (!pass.Ran)
+            {
+                return;
+            }
+
+            runtime.CyclePasses++;
+            runtime.CycleGoalChanges += pass.GoalChanges.Count;
+            runtime.CycleIntentions += pass.IntentionsGathered;
+            runtime.CycleCommits += pass.Committed;
         }
 
         private static void AdvanceOrganizations(HarnessState state, HarnessRuntime runtime)

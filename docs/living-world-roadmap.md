@@ -1083,8 +1083,59 @@ measurement rather than providing the first integrated causal proof.
 **Do not:** add a Lab-only scheduler, poll every actor, make generation mandatory on every pass,
 persist transient reservations, or claim unloaded native observations from headless doubles.
 
+**Current implementation (BQa-016).** `ProductionCycle` is the bounded pass, and it coordinates
+rather than decides: supplied observations go to `VanillaActionRecorder`, the work set to
+`PressureFeedback`, conditions to `DevelopmentDetector`, actor-local readings to `ActorPressureView`,
+wants to `ActorGoalEvolution`, routes to `GoalRoutes`, and every attempt runs inside one
+`ArbitrationBatch`. It scores no pressure, forms no want, ranks no contender and resolves no check;
+a pass whose result is discarded leaves the world as it was.
+
+Four things are its own. The batch boundary is one interval, recorded in `ProductionCycleLedger`, so
+a host firing the same day twice gets one pass and replaying a consumed interval does nothing at all.
+Re-entry is refused, so an immediate listener reacting to what a pass did cannot start another on the
+same stack and its changes wait for the next interval. `ProductionCycleBudget` bounds the pass by
+counts on its own input - arbitration runs each gathered intention at most once, so a bounded batch
+is a bounded pass - and routes are taken a round at a time across an actor's wants, so one want with
+twelve registered routes cannot spend their whole allowance. Turn order comes off the persisted
+`NarrativeNpc.LastSimulatedAt` rather than off the simulation index's rotation position, which a load
+rebuilds from the front; people a change named are read first, everyone else least-recently-considered
+first, and being read counts as a turn whether or not anything came of it.
+
+Spent indivisible openings are the durable marker this step owns. A `TransientClaim` expires with its
+batch by design, so it cannot stop the same purse being offered tomorrow or being taken by the scheme
+pass an hour later; `OffScreenSchemes` and `AutonomousInterventions` now read the same ledger and
+close their own committed contests into it. A supplied native outcome closes its opening the same way
+and is written down rather than rolled again. The markers are closures, never reservations, stored in
+an additive optional node with old-save defaults and no schema bump.
+
+One semantic defect in directly affected code was fixed with it: `AutonomousInterventions` deferred a
+matter permanently on the strength of one player act, which made "ignored" mean "never once touched"
+and froze every matter the player had ever looked at. Only an act inside `PlayerInteractionDays`
+defers a conflicting attempt now, and the latest act renews the window.
+
+`ProductionCycleTests` covers the Done-when: thirty-five passes evolving all three pressure families
+from initial conditions with no injected goal or incident, no live thread and no running storylet,
+ignored and previously engaged matters, bounded per-pass work in a crowd, no starvation, deterministic
+reconstruction from a save and no turn lost across it, a harmless replay of a consumed interval, an
+identical month on a repeat, a refused re-entrant pass, an opening offered once across the cycle and
+the scheme pass, and a supplied theft recorded rather than simulated. The Lab calls the production
+runner through `ProductionSystemRegistry` and `IntegrationHarnessTests` proves it by the runner's own
+consumed-interval marker, which nothing else writes. The durable rule is
+[`D092`](agent/decisions.md#d092--a-pass-owns-its-boundary-its-budget-its-turn-order-and-its-spent-openings-and-nothing-else).
+
+**Live verification still required** headless Core only. Nothing in the Plugin calls `ProductionCycle`:
+BQa-017 owns the live host, its zone/time boundaries and its save/load reconstruction, so no Elin hook
+advances a pass and a green month here is not evidence that one would. No new native observation is
+claimed - the cycle asks `IVanillaState` only what the existing off-screen owners already ask it. Two
+things are deliberately left as they stand: a `demand.relieved` want routes at the place rather than at
+a person, so the shortage family's registered verbs refuse on presence, and spent-opening memory is
+capped with oldest-first eviction. Both are reported limits rather than guesses, and neither is this
+step's to change. Evidence grade unchanged: headless/source.
+
+
 **Authority / proof route:** [autonomy and tier owners](systems/world.md#autonomy),
 [current host boundaries](systems/flow.md#live-host-joins),
+[Core production cycle](systems/flow.md#core-production-cycle),
 [Lab production registry](../tools/BrilliantQuesting.Lab/ProductionSystemRegistry.cs),
 [persistence](systems/integration.md#persistence), [validation](agent/validation.md#world).
 

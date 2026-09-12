@@ -129,6 +129,60 @@ namespace BrilliantQuesting.Tests
             Assert.NotEqual(ThreadState.Resolved, village.Thread.State);
         }
 
+        /// <summary>
+        /// BQa-016. The deferral is a window, not a claim. An act the player made weeks ago used
+        /// to take the matter off the world's table permanently, which froze every matter the
+        /// player had ever touched; now it defers a conflicting attempt only while they are
+        /// actually in it.
+        /// </summary>
+        [Fact]
+        public void AMatterThePlayerTouchedLongAgoBecomesTheWorldsAgain()
+        {
+            Village village = Village.Create();
+            GameTime touched = village.Now;
+            village.World.Record(
+                WorldEventType.Conversed, village.Player, village.Marla, touched, 0.2, village.Town,
+                threadId: village.Thread.Id);
+
+            Assert.Equal(0, village.Autonomy.Advance(
+                village.World, village.Vanilla, village.Checks, village.Actions, touched));
+
+            // Still inside the window: their visit is not interrupted.
+            GameTime during = touched.PlusDays(village.Autonomy.PlayerInteractionDays - 1);
+            village.Vanilla.Now = during;
+            Assert.Equal(0, village.Autonomy.Advance(
+                village.World, village.Vanilla, village.Checks, village.Actions, during));
+
+            // Past it, the neighbour is entitled to take it up.
+            GameTime after = touched.PlusDays(village.Autonomy.PlayerInteractionDays);
+            village.Vanilla.Now = after;
+            Assert.Equal(1, village.Autonomy.Advance(
+                village.World, village.Vanilla, village.Checks, village.Actions, after));
+        }
+
+        /// <summary>
+        /// And what renews the window is the latest act, not the first: somebody still working on
+        /// a matter keeps deferring the world rather than spending one window and losing it.
+        /// </summary>
+        [Fact]
+        public void ThePlayerStillWorkingOnAMatterKeepsDeferringIt()
+        {
+            Village village = Village.Create();
+            GameTime first = village.Now;
+            village.World.Record(
+                WorldEventType.Conversed, village.Player, village.Marla, first, 0.2, village.Town,
+                threadId: village.Thread.Id);
+
+            GameTime again = first.PlusDays(village.Autonomy.PlayerInteractionDays);
+            village.World.Record(
+                WorldEventType.Conversed, village.Player, village.Marla, again, 0.2, village.Town,
+                threadId: village.Thread.Id);
+
+            village.Vanilla.Now = again;
+            Assert.Equal(0, village.Autonomy.Advance(
+                village.World, village.Vanilla, village.Checks, village.Actions, again));
+        }
+
         [Fact]
         public void NobodyActsOnAMatterTheyHaveNeverHeardOf()
         {

@@ -96,6 +96,17 @@ namespace BrilliantQuesting.World
         /// </summary>
         public BusinessLedger Businesses { get; }
 
+        /// <summary>
+        /// What the production cycle has already done: the interval it last consumed and the
+        /// indivisible openings it has spent (BQa-016).
+        ///
+        /// It lives on the world, and therefore in the save, for the reason every other ledger
+        /// here does: a marker the game keeps and the simulation forgets is an opening offered
+        /// twice. Nothing in it is a reservation - a thing nobody has taken yet is never written -
+        /// and an old save loads with an empty ledger, which is exactly the state it was in.
+        /// </summary>
+        public ProductionCycleLedger ProductionCycle { get; } = new ProductionCycleLedger();
+
         /// <summary>World-level stream. Subsystems should Fork() rather than draw from this.</summary>
         public DeterministicRng Rng { get; }
 

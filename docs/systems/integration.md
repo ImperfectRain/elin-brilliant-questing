@@ -60,6 +60,7 @@ or UI/decision caches. Save compatibility is a behavior, not only a version numb
 | Goal lifecycle, condition and provenance (schema 13) | Restore the lifecycle, its retirement code and the owner's own assessment verbatim, and the desired condition and causal source as references; a condition whose term this build does not know still loads and stays an unsupported desire; an older save's goals take their lifecycle from `satisfied` and are given no condition and no inferred cause |
 | Threads/firings, absences, travel, demands, businesses | Restore lifecycle/manifests and their one-time markers; rebuild handlers in host |
 | Rumor/ambient stamps | Preserve pacing across reload; policy objects themselves are not saved |
+| Production-cycle markers (additive node, no bump) | Restore the last consumed interval and the indivisible openings already closed; an older save has no node and loads as a world that has run no cycle and closed nothing, which is what it was. Closures only - a transient claim on something nobody has taken is never written - and whose turn it is stays derived from `LastSimulatedAt` rather than stored |
 
 Changing a persisted contract: inspect `ToJson` and the matching reader, older-save defaults,
 `SaveMigrations` and neighboring round-trip tests. Versioned incompatible shape changes need a
@@ -70,7 +71,8 @@ reattach/reconciliation separately from JSON restoration.
 
 Source: [WorldStateSerializer](../../src/BrilliantQuesting.Core/Persistence/WorldStateSerializer.cs),
 [SaveMigrations](../../src/BrilliantQuesting.Core/Persistence/SaveMigrations.cs),
-[NarrativeWorldState](../../src/BrilliantQuesting.Core/World/NarrativeWorldState.cs).
+[NarrativeWorldState](../../src/BrilliantQuesting.Core/World/NarrativeWorldState.cs),
+[ProductionCycleLedger](../../src/BrilliantQuesting.Core/World/ProductionCycleLedger.cs).
 Proof: [PersistenceTests](../../tests/BrilliantQuesting.Core.Tests/PersistenceTests.cs),
 [MigrationFixtureTests](../../tests/BrilliantQuesting.Core.Tests/MigrationFixtureTests.cs) with
 [historical serializer fixtures](../../tests/BrilliantQuesting.Core.Tests/Fixtures/Saves/README.md),

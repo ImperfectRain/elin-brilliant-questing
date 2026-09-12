@@ -117,18 +117,52 @@ leaves the want open for `ActorGoalEvolution` to retire. `OffScreenSchemeTrace` 
 condition reading and which of those two closes applied. The pass selects active wants rather than
 merely unsatisfied ones, so a want BQa-009 abandoned or superseded is no longer pursued.
 
-**Owns:** bounded off-screen selection and passes: `AutonomousInterventions` handles ignored matters;
-`OffScreenSchemes` pursues staged schemes; `AdventurerEcology` handles rival involvement. Inputs:
+**Production cycle (BQa-016).** `ProductionCycle` is the one bounded causal pass and the only
+authority over where a pass starts and ends, how much work it may do, whose turn it is and which
+indivisible openings are already gone. It decides nothing else: supplied observations go to
+`VanillaActionRecorder`, the work set to `PressureFeedback`, conditions to `DevelopmentDetector`,
+actor-local readings to `ActorPressureView`, wants to `ActorGoalEvolution`, routes to `GoalRoutes`,
+and every attempt runs inside one `ArbitrationBatch` and nowhere else, so a contested opening is
+settled once against the world as it is at that moment.
+
+The batch boundary is one day, recorded in `ProductionCycleLedger.LastConsumedDay`, so a host that
+fires the same interval twice gets one pass and a reload onto the same morning does not re-run it.
+Re-entry is refused outright: an immediate listener reacting to what a pass did cannot start
+another pass on the same stack, and its changes wait for the next interval. Per-pass work is bounded
+by `ProductionCycleBudget` counts rather than by wall clock, and arbitration runs each gathered
+intention at most once, so bounding the batch's input bounds the pass. Whose turn it is comes off the
+persisted `NarrativeNpc.LastSimulatedAt` rather than off the rotation's position, which a load
+rebuilds from the front; the index supplies a bounded sample and the turn marker chooses inside it.
+Actors a change named are read first, everyone else in least-recently-considered order, and an actor
+who was read has had their turn whether or not anything came of it.
+
+An indivisible opening a committed attempt or a supplied native outcome closed is recorded in the
+same ledger, which `OffScreenSchemes` and `AutonomousInterventions` also consult, so one purse
+cannot be lifted once by each pass. Those markers are closures rather than reservations - a thing
+nobody has taken yet is never written - and remembering them is capped, with oldest-first eviction
+as the documented cost of a bounded save.
+
+Headless Core only. Nothing in the Plugin calls it; BQa-017 owns the live host, and a green pass
+here is not evidence that any Elin hook advances one.
+
+**Owns:** bounded off-screen selection and passes: `ProductionCycle` runs the shared causal pass;
+`AutonomousInterventions` handles ignored matters; `OffScreenSchemes` pursues staged schemes;
+`AdventurerEcology` handles rival involvement. Inputs:
 known matters, stakes/goals, personal limits, activity and shared action offers. Outputs: `ActionIntent`
 through `ActionAttempt.Run`, deeds/endings and discoverable claims. Choices/traces are transient;
 meaningful outcomes and relevant scheduling state survive through owned world records/history.
-**Does not own:** another check resolver, embodiment, or free player knowledge. Interventions protect
-matters the player has already acted in. Host calls advance; these classes are not independent clocks.
+**Does not own:** another check resolver, embodiment, or free player knowledge. An active, bounded
+player interaction temporarily defers a conflicting attempt (`AutonomousInterventions.PlayerInteractionDays`);
+having once acted in a matter does not, and a matter the player walked away from returns to the world.
+Host calls advance; these classes are not independent clocks.
 
-Source: [AutonomousInterventions](../../src/BrilliantQuesting.Core/Autonomy/AutonomousInterventions.cs),
+Source: [ProductionCycle](../../src/BrilliantQuesting.Core/Autonomy/ProductionCycle.cs),
+[AutonomousInterventions](../../src/BrilliantQuesting.Core/Autonomy/AutonomousInterventions.cs),
 [OffScreenSchemes](../../src/BrilliantQuesting.Core/Autonomy/OffScreenSchemes.cs),
-[AdventurerEcology](../../src/BrilliantQuesting.Core/Autonomy/AdventurerEcology.cs).
-Proof: [AutonomousInterventionTests](../../tests/BrilliantQuesting.Core.Tests/AutonomousInterventionTests.cs).
+[AdventurerEcology](../../src/BrilliantQuesting.Core/Autonomy/AdventurerEcology.cs),
+[cycle markers](../../src/BrilliantQuesting.Core/World/ProductionCycleLedger.cs).
+Proof: [ProductionCycleTests](../../tests/BrilliantQuesting.Core.Tests/ProductionCycleTests.cs),
+[AutonomousInterventionTests](../../tests/BrilliantQuesting.Core.Tests/AutonomousInterventionTests.cs).
 Lab: [autonomy](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/AutonomyScenario.cs),
 [off-screen-schemes](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/OffScreenSchemesScenario.cs),
 [adventurer-ecology](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/AdventurerEcologyScenario.cs).
