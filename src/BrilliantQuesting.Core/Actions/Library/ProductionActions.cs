@@ -804,7 +804,7 @@ namespace BrilliantQuesting.Actions.Library
                     continue;
                 }
 
-                ItemDescriptor found = Reach(context, fact.Subject, out EntityId where);
+                ItemDescriptor found = WithinReach(context, fact.Subject, out EntityId where);
                 if (found != null)
                 {
                     broken = found;
@@ -816,7 +816,7 @@ namespace BrilliantQuesting.Actions.Library
             return null;
         }
 
-        private static ItemDescriptor Reach(ActionContext context, EntityId itemId, out EntityId holder)
+        private static ItemDescriptor WithinReach(ActionContext context, EntityId itemId, out EntityId holder)
         {
             holder = EntityId.None;
             ItemDescriptor carried = Find(context.Vanilla.GetInventory(context.Actor), itemId);

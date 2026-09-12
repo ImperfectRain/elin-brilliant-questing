@@ -107,6 +107,21 @@ namespace BrilliantQuesting.Actions
         public virtual ActionPostconditions Postconditions => ActionPostconditions.Undeclared;
 
         /// <summary>
+        /// How this verb gets to whoever it is aimed at (BQa-014).
+        ///
+        /// The sixth declaration, and the smallest: one axis, because it answers one question the
+        /// other five cannot. <see cref="Embodiment"/> says what vanilla has to carry and
+        /// <see cref="Effects"/> what could change; neither says whether the two people have to be
+        /// in one place, and a verb can need no vanilla write at all and still need a face.
+        ///
+        /// <see cref="ActionReach.Present"/> by default, and that default is a claim rather than a
+        /// gap: almost everything in the library is hands, faces and objects. A verb that really
+        /// does travel - a word left with whoever holds an office - says so, and
+        /// <see cref="ActionOpportunity"/> then stops asking it for a meeting it never needed.
+        /// </summary>
+        public virtual ActionReach Reach => ActionReach.Present;
+
+        /// <summary>
         /// Whether this verb claims that kind of change at all, and - for a half vanilla has to
         /// carry - whether this build could carry it. Side-effect free, like every other question
         /// asked of a verb before it is taken.

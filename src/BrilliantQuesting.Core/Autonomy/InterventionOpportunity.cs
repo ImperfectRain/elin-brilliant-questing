@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using BrilliantQuesting.Actions;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Integration;
 
@@ -7,6 +8,12 @@ namespace BrilliantQuesting.Autonomy
     /// <summary>
     /// How plausible it is that this actor could get at this matter at all, read from vanilla's
     /// own answer about what they are doing (BQ-094, BQ-135).
+    ///
+    /// The matter-sized half of the question, asked before any verb or context exists, which is
+    /// why it survives BQa-014 rather than being replaced by it. What it is <em>not</em> is a
+    /// second opinion about the same facets: the activity and routine weights come from
+    /// <see cref="ActionOpportunity"/>'s readers, and the attempt-sized reading - co-location,
+    /// witnesses, the object, the other party - belongs to <see cref="ActionOpportunity"/> alone.
     ///
     /// It is a <em>weight</em> and almost never a gate, which is the roadmap's own instruction and
     /// also the only honest shape. Elin answers what somebody is doing right now; whether they
@@ -96,40 +103,47 @@ namespace BrilliantQuesting.Autonomy
                 terms.Add("somewhere else: still possible, and only coarsely");
             }
 
-            switch (activity.CurrentActivity)
-            {
-                case ActivityFamily.Unknown:
-                    terms.Add("what they are doing: unread, counted for nothing");
-                    break;
-                case ActivityFamily.Combat:
-                    plausibility *= 0.15;
-                    terms.Add("in combat: their hands are full");
-                    break;
-                case ActivityFamily.Sleep:
-                case ActivityFamily.Needs:
-                    plausibility *= 0.5;
-                    terms.Add("asleep or seeing to themselves");
-                    break;
-                default:
-                    terms.Add("doing " + activity.CurrentActivity.ToString().ToLowerInvariant() + ": no obstacle");
-                    break;
-            }
+            // What they are doing and which stretch of their day it is are read through the
+            // BQa-014 facet readers rather than weighed again here, so that "they are asleep"
+            // cannot be worth one number to an intervention and another to the attempt that
+            // intervention then makes.
+            OpportunityTerm doing = ActionOpportunity.ReadActivity(activity);
+            plausibility *= doing.Weight;
+            terms.Add(doing.Observation);
 
-            if (activity.CurrentSpan == ActivitySpan.Unknown)
-            {
-                terms.Add("their routine's stretch of the day: unread, counted for nothing");
-            }
-            else if (activity.CurrentSpan == ActivitySpan.Sleep)
-            {
-                plausibility *= 0.6;
-                terms.Add("their routine puts them asleep about now");
-            }
-            else
-            {
-                terms.Add("their routine's stretch of the day: " + activity.CurrentSpan.ToString().ToLowerInvariant());
-            }
+            OpportunityTerm routine = ActionOpportunity.ReadRoutine(activity);
+            plausibility *= routine.Weight;
+            terms.Add(routine.Observation);
 
             return new InterventionOpportunity(actor, plausibility, terms);
+        }
+
+        /// <summary>
+        /// The same matter-sized weight, narrowed by what the attempt-sized reading found
+        /// (BQa-014).
+        ///
+        /// The two are about different things and both are true at once: this one asks whether
+        /// the person could have got at the matter this week, and <paramref name="attempt"/> asks
+        /// whether the world allowed the particular act on the particular day. Multiplying them
+        /// keeps the coarse reading honest - an eligible act in a place the save keeps them both
+        /// in still scores below one, because a shared zone is a chance to have crossed paths and
+        /// never a meeting. Every term of the narrower reading is carried across verbatim, so a
+        /// trace still names the observation behind each move of the number.
+        /// </summary>
+        public InterventionOpportunity Refined(ActionOpportunity attempt)
+        {
+            if (attempt == null)
+            {
+                return this;
+            }
+
+            List<string> terms = new List<string>(_terms);
+            for (int i = 0; i < attempt.Terms.Count; i++)
+            {
+                terms.Add(attempt.Terms[i].ToString());
+            }
+
+            return new InterventionOpportunity(Actor, Plausibility * attempt.Plausibility, terms);
         }
 
         public string Describe()

@@ -36,6 +36,7 @@ changes also require [Native](#native).
 | Change | Smallest useful class(es) | Neighbors / Lab |
 |---|---|---|
 | Verb/binding/availability | Affected family, e.g. `CrimeActionTests`, plus `ActionBindingTests` or `ActionAvailabilityTests`; `ActionEffectContractTests` when a verb's declared effects or binding slots change, `ActionPostconditionContractTests` when its success/failure/refusal postconditions do | `ContextualActionProjectionTests`, `PlayerNpcActionSymmetryTests`, `ResolutionScopeTests`; `theft`, `actor-action` |
+| Spatial/temporal opportunity and a verb's reach | `ActionOpportunityTests` | `ActionAvailabilityTests`, `PlayerNpcActionSymmetryTests`, `OffScreenSchemeTests`, `AutonomousInterventionTests`, `ActorActivityTests`; `off-screen-schemes`, `actor-action`; a newly claimed native observation also requires [Native](#native) |
 | Goal/action routing and want satisfaction | `GoalActionBridgeTests` | `ActionEffectContractTests`, `NpcGoalContractTests`, `ActorGoalEvolutionTests`, `OffScreenSchemeTests`; `off-screen-schemes` |
 | Check arithmetic/profile | `CheckTests` | Affected verb family, `SemanticConversationIntegrationTests`; `actor-action` |
 | Reactions/observed deeds | `ConsequenceTests` or `VanillaActionRecorderTests` | `RecognizedViolenceTests`, `RelationshipHarmTests`, `VisibleConsequenceTests`; `theft` |

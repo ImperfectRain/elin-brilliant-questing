@@ -178,8 +178,13 @@ namespace BrilliantQuesting.Autonomy
                         context.SubjectItem = candidate.SubjectItem;
                         context.ThirdParty = candidate.ThirdParty;
                         context.Binding = candidate.Binding;
-                        availability = action.GetAvailability(context);
-                        barred = OffScreenBar(action, candidate, vanilla);
+                        // The whole feasibility order, not just the verb's half: a coarse pass
+                        // that asked only about availability would select an act across two
+                        // zones and discover at `Run` that the world never allowed it (BQa-014).
+                        AttemptFeasibility feasibility = AttemptFeasibility.Classify(action, context);
+                        availability = feasibility.Availability;
+                        opportunity = opportunity.Refined(feasibility.Opportunity);
+                        barred = OffScreenBar(action);
                     }
                     else if (!built)
                     {
@@ -490,20 +495,18 @@ namespace BrilliantQuesting.Autonomy
                 barred);
         }
 
-        private static string OffScreenBar(NarrativeAction action, SchemeCandidate candidate, IVanillaState vanilla)
+        /// <summary>
+        /// The one bar that is about the verb rather than about the world.
+        ///
+        /// It used to also refuse a target vanilla was carrying between zones. That reading moved
+        /// to <see cref="ActionOpportunity"/> with BQa-014, where it is asked of both parties, in
+        /// both evidence modes, and for every surface rather than only for this pass.
+        /// </summary>
+        private static string OffScreenBar(NarrativeAction action)
         {
-            if (action.Embodiment.Mode == EmbodimentMode.Delegated)
-            {
-                return "it needs a delegated vanilla body write, and no such write is verified off screen";
-            }
-
-            if (!candidate.Target.IsNone
-                && vanilla.GetActorActivity(candidate.Target).VanillaMovementState() == VanillaMovement.Moving)
-            {
-                return "the target is already under vanilla global travel";
-            }
-
-            return string.Empty;
+            return action.Embodiment.Mode == EmbodimentMode.Delegated
+                ? "it needs a delegated vanilla body write, and no such write is verified off screen"
+                : string.Empty;
         }
 
         /// <summary>

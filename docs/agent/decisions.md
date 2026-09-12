@@ -2834,3 +2834,48 @@ Reason: every failure here produces a plausible narration, a plausible ledger en
 has not moved. Nothing crashes, nothing looks wrong, and the save is indistinguishable from one where
 the deed happened - which is why the check is a gate on the shared path rather than a rule in a
 document.
+
+## D090 — What was seen and what is merely recorded are different evidence, and a verb says which one it needs
+
+Elin answers where it keeps somebody whether or not the zone is loaded. That single fact is why an
+opportunity reading needs two modes rather than one confidence number: a zone id out of the save and
+a room the game actually ran are both "they are in Cordwall", and only one of them is a person
+anybody could have seen.
+
+**Coarse co-location is an opportunity and never a meeting.** Two people the save keeps in one town
+is a chance to have crossed paths. It may make an attempt more plausible, and it may never become a
+position, a moment, an eyewitness or a recognition (`VS 3.2`, `VS 5.4`, `D021`). So the reading
+carries the answer explicitly instead of leaving it to be inferred from a good score:
+`VerifiedCoLocation` is true only where the room was read, the witness facet off screen is unread
+rather than zero, and an eligible coarse attempt can score well and prove nothing. The alternative -
+one plausibility number - loses the distinction at the first caller who treats a high one as a fact.
+
+**Unknown refuses what needs a face; it does not refuse everything.** Before this, an off-screen
+context dropped the co-location check that the on-screen builder enforces, so a coarse pass could
+pick a pocket two zones away because nothing said it could not. Requiring it universally would be
+the opposite error: a report left at a guard post is exactly the thing a town does at a distance,
+and the standing rule is that organizations receive information through identifiable channels. The
+verb is the only thing that knows which it is, so `NarrativeAction.Reach` is a declaration, default
+`Present`, and the channel exception has to name the route it travels. A channel buys eligibility
+and nothing else - no meeting, no place, no hour - which is why it changes the co-location facet and
+leaves the witness facet exactly as unread as it was.
+
+**A named zero is the deliverable.** Every facet contributes a sentence saying what was read,
+including the ones that moved the number by nothing, and every refusal is that sentence verbatim.
+A reading that silently returned 0.42 would be unreviewable and, worse, unfalsifiable: nobody could
+tell "the build cannot see travel" from "nobody is travelling", which are the same number and
+opposite facts.
+
+**It refuses, it does not duplicate.** The four things that can refuse are the four nothing else
+owns at the time they are asked - vanilla already carrying either party, a coarse pair the save
+keeps apart or cannot place, a party the game does not answer for. Whether the object is one this
+verb can use stays with the verb, which already answers it; a second gate here would be a second
+authority in different words, wrong the moment a binding names something the verb is not reaching
+for. For the same reason the activity and routine weights have exactly one implementation, read by
+both the attempt-sized and the matter-sized reading.
+
+Reason: the failure this prevents leaves no trace. A scheme pass that robs somebody in another
+valley produces a plausible theft, a plausible ledger entry, and a save nobody can tell from one
+where it happened - and an off-screen act that quietly acquires witnesses hands a town proof of
+something nobody watched. Both are decided before any roll, which is why the answer is a gate on
+the one ordered path every attempt takes rather than a rule in a document.

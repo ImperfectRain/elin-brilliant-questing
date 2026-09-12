@@ -898,6 +898,55 @@ Unknown remains unknown. A coarse opportunity score can make an attempt more or 
 **Commit boundary:** implement the pure opportunity contract over production `ActorContexts` before the recurring host. Model an eligible coarse communication through an established contact/report channel without claiming a precise meeting; unknown exact co-location still refuses actions that require it. Cover Active/Warm/Cold changes, inventory removal and vanilla movement ownership. Live evidence is required for any newly claimed native observation, not for semantic coarse eligibility.
 
 
+**Current implementation (BQa-014).** `ActionOpportunity.Read` is the contract, and it is a read:
+given a verb and a production `ActorContexts` context it returns a refusal, a plausibility and one
+named term per facet, and it rolls, records and holds nothing. The two evidence modes are kept
+apart rather than averaged. An observed reading is taken in a zone the game is running - co-location
+verified, the room's contents the witness list, privacy an observation. A coarse reading has only
+the save's own state, and none of it is allowed to become a meeting: `VerifiedCoLocation` is false
+for every coarse reading however well it scores, the witness facet reads unread rather than zero,
+and the co-location term says in words that a shared zone is a chance to have crossed paths and
+never proof that they did. `OpportunityFacet` is the ten the step lists; four of them can refuse
+and each refusal is the observation behind it verbatim, the rest are named weights including the
+named zeros, and `OpportunityTerm.Known` is what separates an unread facet from a harmless one
+since both are worth 1.0 (`D017`).
+
+`NarrativeAction.Reach` is the sixth declaration and the one axis the other five do not answer:
+`ActionReach.Present` by default, so unknown or split co-location refuses a verb that has to be done
+with somebody - the gap that let an off-screen pass pick a pocket two zones away, because
+`TryBuildOffScreen` drops the same-zone check the on-screen builder enforces and nothing replaced it.
+`report` declares `ActionReach.ThroughChannel`, which is the eligible coarse communication: a
+standing report reaches whoever holds authority without anybody standing anywhere, the office is
+still required, and the channel buys eligibility and nothing else - no meeting, no place, no hour,
+and `ActionSupport.Bystanders` still has no room to draw from. The reading is asked in
+`AttemptFeasibility.Classify`, which now asks three questions in one order - opportunity, then
+availability, then certainty - so every performing surface, the player's and the scheme pass's
+alike, asks them the same way; `OffScreenSchemes` reads the whole order rather than availability
+alone, and its ad-hoc target-travel bar moved into the shared reading where it is asked of both
+parties in both modes. No new authority was duplicated: object accessibility is a weight because the
+verb already refuses an attempt without its object, and the activity and routine weights have one
+implementation that `InterventionOpportunity` now reads rather than repeating.
+`ActionOpportunityTests` covers the Done-when - the same actor and goal reading differently as
+vanilla moves the victim, puts the thief to sleep, removes the purse and carries either party;
+every term naming its observation and every refusal quoting the term that produced it; and a coarse
+run recording no witness and no place claim beside an observed control that does. Active/Warm/Cold
+is covered from both directions: leaving the active zone changes the reading, and a `BackgroundTier`
+flip between Warm and Cold changes nothing at all, because a work budget was never a claim about
+where anybody is. The durable rule is
+[`D090`](agent/decisions.md#d090--what-was-seen-and-what-is-merely-recorded-are-different-evidence-and-a-verb-says-which-one-it-needs).
+
+**Live verification still required** headless Core only. No live Elin session supplied an activity
+snapshot, a zone read or an inventory read here; the reading is proven against the sandbox, and the
+Plugin was not compiled because the Elin assemblies are not redistributable. No new native
+observation is claimed - every facet is read through seam calls that already existed
+(`GetActorActivity`, `GetZoneOf`, `GetInventory`, `GetCharactersInZone`), and the open runtime
+question behind the travel facet is still `ELIN-Q-0014`, unchanged. Nothing durable was added: the
+reading, its terms and the reach declaration are transient, no schema field moved, and existing
+saves are unaffected. One thing is deliberately left as it stands: the coarse co-location gate is
+zone-grained, because a finer answer would be a claim about position that the save does not make.
+Evidence grade unchanged: headless/source.
+
+
 **Authority / proof route:** [owning source and representative tests](systems/world.md#activity), [neighbor contract](systems/actions.md#availability), [validation](agent/validation.md#native).
 
 **Sequence:** BQa-013 → BQa-014 → BQa-015.

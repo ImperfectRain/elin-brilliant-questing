@@ -11,8 +11,8 @@ per verb, not a blanket guarantee that every registered action works in Elin.
 purpose, fact/item/thread and adapter/resolver. Outputs: availability or `ActionOutcome`, checks,
 recorded events and native writes. Registry/context/outcomes are transient; resulting history and
 owned state are saved. **Does not own:** NPC motive selection, native combat/crafting resolution or
-a separate NPC verb library. `ActorScope`, `Embodiment`, `SettlesMatters` and `Effects` are declarations
-on the verb; consumers must not keep parallel lists. Player projection and NPC attempts ask the same verbs.
+a separate NPC verb library. `ActorScope`, `Embodiment`, `SettlesMatters`, `Effects`, `Postconditions`
+and `Reach` are declarations on the verb; consumers must not keep parallel lists. Player projection and NPC attempts ask the same verbs.
 
 **Semantic effects (BQa-010).** `NarrativeAction.Effects` is the fourth declaration: which kinds of
 state change this verb could potentially advance, from the registered `SemanticEffects` vocabulary,
@@ -79,6 +79,52 @@ Proof: [ActionBindingTests](../../tests/BrilliantQuesting.Core.Tests/ActionBindi
 Lab: [actor-action](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/ActorActionScenario.cs).
 Native: [capability routing](../elin/capabilities.md#capability-routing).
 
+## Opportunity
+
+**Owns:** the side-effect-free reading of what the world around one attempt allowed and how
+plausible it made it, and the verb's declaration of how it reaches whoever it is aimed at. Inputs:
+the BQ-135 activity snapshot, the context's own evidence mode, zone, witness list, named object and
+matter clock. Outputs: a refusal quoting the observation behind it, a 0..1 plausibility, and one
+named term per facet. Nothing is saved and nothing is rolled. **Does not own:** the verb's own
+rules, the check, the consequence, or whether the object is one this verb can use - that stays with
+[availability](#availability). `ActorContexts` still builds the context; this reads it.
+
+**Two evidence modes, kept apart (BQa-014).** `ActionOpportunity.Read` upgrades the loose activity
+weighting `InterventionOpportunity` did into a reading about an actual attempt, and the thing it
+adds is the line between what was seen and what is merely recorded. An **observed local** reading
+is taken in a zone the game is running: co-location is verified, the room's contents are the
+witness list, privacy is an observation. A **coarse off-screen** reading has only the save's own
+state - which zone the game keeps somebody in, what vanilla has them doing, what is in whose pack -
+and none of it becomes a meeting, a witness, a position or a moment. Two people the save keeps in
+one town is a chance to have crossed paths and never proof that they did, so
+`ActionOpportunity.VerifiedCoLocation` is false for every coarse reading and the witness facet
+reads unread rather than zero. An unread facet and a harmless one are both worth 1.0 and only
+`OpportunityTerm.Known` separates them (`D017`).
+
+The ten facets an attempt can care about are the `OpportunityFacet` vocabulary. Four of them can
+refuse, and each refusal quotes the observation that produced it: somebody Elin is already carrying
+between zones, either party (`VS 3.3`, `D021`); a coarse attempt whose parties the save keeps apart
+or cannot place at all; a party the game does not answer for. The rest are named weights, including
+the named zeros. Object accessibility is deliberately a weight: whether a verb can proceed without
+its object is the verb's own question and it already answers it.
+
+**Reach (BQa-014).** `NarrativeAction.Reach` is the sixth declaration and the smallest: one axis,
+because it answers the one question the other five cannot. `ActionReach.Present` is the default and
+is a claim rather than a gap - almost the whole library is hands, faces and objects - so unknown
+exact co-location refuses it off screen. `ActionReach.ThroughChannel` names an established contact
+or report channel and is the exception: `report` reaches whoever holds authority without anybody
+standing anywhere, which is the standing rule that organizations receive information through
+identifiable channels. The channel buys eligibility and nothing else - no meeting, no place, no
+hour, and `ActionSupport.Bystanders` still has no room to draw anybody from. See
+[D090](../agent/decisions.md#d090--what-was-seen-and-what-is-merely-recorded-are-different-evidence-and-a-verb-says-which-one-it-needs).
+
+Source: [ActionOpportunity](../../src/BrilliantQuesting.Core/Actions/ActionOpportunity.cs),
+[NarrativeAction](../../src/BrilliantQuesting.Core/Actions/NarrativeAction.cs),
+[AttemptFeasibility](../../src/BrilliantQuesting.Core/Actions/AttemptFeasibility.cs).
+Proof: [ActionOpportunityTests](../../tests/BrilliantQuesting.Core.Tests/ActionOpportunityTests.cs).
+Lab: [off-screen-schemes](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/OffScreenSchemesScenario.cs),
+[actor-action](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/ActorActionScenario.cs).
+
 ## Availability
 
 **Owns:** side-effect-free feasibility classification and rejection reasons. Inputs: actor scope,
@@ -89,8 +135,15 @@ menu. Native capability refusal and hard impossibility differ from a contested a
 action with no roll. `ActionAttempt.Run` rechecks availability; the base `Perform` structurally gates
 actor scope, not every verb-specific precondition. Native mutation gates remain necessary underneath.
 
-**Feasibility before difficulty (BQa-005).** `AttemptFeasibility.Classify` is the one place the two
-questions are asked in order: availability first, and only for a possible attempt the certainty
+**Opportunity before feasibility before difficulty (BQa-005, BQa-014).** `AttemptFeasibility.Classify`
+is the one place the questions are asked in order, and there are three of them. [Opportunity](#opportunity)
+comes first because it is about the place and the hour rather than about the verb: somebody Elin is
+carrying between zones, or two people the save keeps a valley apart, are not a hard attempt but no
+attempt at all, and asking the verb first would spend its reasoning - and let a caller read a
+considered yes - on a place the act could not occur in. The refusal is `NotRelevant` and carries the
+observation behind it verbatim; `AttemptFeasibility.Opportunity` carries the reading either way, so
+a caller ranking options has the plausibility of the ones that were allowed as well as the reason
+for the ones that were not. Then availability, and only for a possible attempt the certainty
 question. It is side-effect free like the availability call underneath it, and `ActionAttempt.Run`
 and `TheftLaboratory.Perform` both go through it rather than each remembering the order. A refused
 attempt returns at that gate, so no resolver is asked and the actor's RNG stream does not move;
@@ -107,6 +160,7 @@ success does not overturn them. See
 
 Source: [Availability](../../src/BrilliantQuesting.Core/Actions/Availability.cs),
 [AttemptFeasibility](../../src/BrilliantQuesting.Core/Actions/AttemptFeasibility.cs),
+[ActionOpportunity](../../src/BrilliantQuesting.Core/Actions/ActionOpportunity.cs),
 [NarrativeAction](../../src/BrilliantQuesting.Core/Actions/NarrativeAction.cs),
 [ContextualActionProjection](../../src/BrilliantQuesting.Core/Actions/ContextualActionProjection.cs).
 Proof: [ActionAvailabilityTests](../../tests/BrilliantQuesting.Core.Tests/ActionAvailabilityTests.cs),

@@ -39,6 +39,22 @@ namespace BrilliantQuesting.Actions.Library
             .Succeeding(SemanticEffects.InformationDisclosed)
             .Failing(FailureOutcomes.InformationRevealed, FailureOutcomes.OptionsTransformed);
 
+        /// <summary>
+        /// Reporting travels (BQa-014). Telling whoever holds an office what you know is the one
+        /// thing in this library that a town genuinely does at a distance - a word left at the
+        /// guard post, a complaint filed, a message carried - and the standing rule that
+        /// organizations receive information through identifiable channels is what makes it
+        /// legitimate rather than convenient.
+        ///
+        /// What it buys is eligibility and nothing else. The channel claims no meeting, no place
+        /// and no hour; what is recorded is that the authority came to hold the claim, and
+        /// <c>ActionSupport.Bystanders</c> still has no room to draw anybody from. The office
+        /// itself is still required - <see cref="AuthorityPolicy.RoleOf"/> below - so this is a
+        /// route to somebody who holds one, never a broadcast to the world.
+        /// </summary>
+        public override ActionReach Reach => ActionReach.ThroughChannel(
+            "a standing report to whoever holds authority here");
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))

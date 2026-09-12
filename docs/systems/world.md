@@ -11,12 +11,17 @@ scheduling, needs or occupation work. Core simulations below do not establish li
 span, activity, global eligibility/activity and transition. Inputs: existing native state through
 `ElinActorActivity`; outputs: typed readings for actor contexts, autonomy, travel and diagnostics.
 No snapshot is saved. **Does not own:** routines, work/needs execution, pathfinding or a BQ travel
-claim. Unknown is neither idle nor moving. Native behavior is source-observed; facet populations
-remain runtime questions. Do not call goal-constructing APIs just to observe activity.
+claim, nor what the snapshot means for one attempt - that is
+[opportunity](actions.md#opportunity)'s, and the activity and routine weights it and
+`InterventionOpportunity` share are read through `ActionOpportunity`'s own facet readers so that
+"they are asleep" is one answer rather than two (BQa-014). Unknown is neither idle nor moving.
+Native behavior is source-observed; facet populations remain runtime questions. Do not call
+goal-constructing APIs just to observe activity.
 
 Source: [ActorActivity](../../src/BrilliantQuesting.Core/Integration/ActorActivity.cs),
 [ElinActorActivity](../../src/BrilliantQuesting.Plugin/ElinActorActivity.cs).
-Proof: [ActorActivityTests](../../tests/BrilliantQuesting.Core.Tests/ActorActivityTests.cs).
+Proof: [ActorActivityTests](../../tests/BrilliantQuesting.Core.Tests/ActorActivityTests.cs),
+[ActionOpportunityTests](../../tests/BrilliantQuesting.Core.Tests/ActionOpportunityTests.cs).
 Lab: [actor-action](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/ActorActionScenario.cs);
 Plugin attach diagnostics for native observations. [Evidence](../elin/api/time-ai-and-global-goals.md).
 

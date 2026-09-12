@@ -28,6 +28,7 @@ incomplete joins with links to their adopted planning owners.
 | Vanilla actor activity | [Activity](systems/world.md#activity) |
 | Actions/registry | [Actions](systems/actions.md#actions) |
 | Feasibility/availability | [Availability](systems/actions.md#availability) |
+| Spatial/temporal opportunity | [Opportunity](systems/actions.md#opportunity) |
 | Checks/uncertainty | [Checks](systems/actions.md#checks) |
 | Consequences | [Reactions](systems/actions.md#reactions) |
 | Threads | [Threads](systems/actions.md#threads) |
@@ -69,6 +70,7 @@ incomplete joins with links to their adopted planning owners.
 | What actions are available? | `ActionRegistry.Discover` asks each `NarrativeAction`; [actions](systems/actions.md#actions) |
 | What kind of change could a verb make? | `NarrativeAction.Effects` declares it; `ActionRegistry.Advancing`/`EffectCoverage` read it; [actions](systems/actions.md#actions) |
 | What could somebody do about what they want? | `GoalRoutes.Discover` joins the condition term, the effect kinds and the verbs; [actions](systems/actions.md#actions) |
+| Did the world allow the attempt at all? | `ActionOpportunity.Read` over the activity snapshot; co-location, travel, the object, the room; [opportunity](systems/actions.md#opportunity) |
 | Is an attempt possible? | `GetAvailability`, actor scope, binding, capability and write policy; [availability](systems/actions.md#availability) |
 | Is an attempt uncertain; who resolves it? | Verb/beat declares `CheckRequest`; `ICheckResolver` resolves; [checks](systems/actions.md#checks) |
 | What consequence becomes history? | Performing owner records `WorldEvent`; `ConsequenceEngine` applies reactions; [reactions](systems/actions.md#reactions) |
