@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
+using BrilliantQuesting.Knowledge;
 
 namespace BrilliantQuesting.World
 {
@@ -211,6 +212,58 @@ namespace BrilliantQuesting.World
                 record.PlaceId,
                 causeFactId.IsNone ? null : new[] { causeFactId },
                 tags: new[] { state.ToString() });
+            return true;
+        }
+
+        /// <summary>
+        /// The goods a tracked business runs on are gone, for a reason the record already holds.
+        ///
+        /// The BQ-owned half of a supply loss, and deliberately a coarse one: it moves the durable
+        /// continuity meaning to <see cref="BusinessContinuityState.ShortOnStock"/> and records a
+        /// local demand at the place the business serves. It does not touch Elin's stock, count
+        /// anything, or claim to know what is on the shelf - vanilla owns the shelf, and BQ owns
+        /// what it means that the cart never arrived.
+        ///
+        /// <b>Justified or refused.</b> The cause must be a claim the world already holds and does
+        /// not hold to be false: a shortage minted from nothing, or from a lie, would be this layer
+        /// inventing the very incident it exists to react to. An untracked business is refused too
+        /// - registering one to have something to interrupt is the same mistake one step earlier.
+        ///
+        /// <b>Two owners, one cause.</b> The business record carries the continuity meaning and the
+        /// demand ledger carries the town's side of it, and both cite the same claim - so the
+        /// pressure reading merges them onto one standing condition rather than deriving a shop in
+        /// trouble and a town short of something as two unrelated troubles. That is also what
+        /// carries it past the business: a demand at a place is a condition of the place, which
+        /// whoever lives or trades there can legitimately see.
+        /// </summary>
+        public bool TryRecordSupplyLoss(
+            EntityId business,
+            string category,
+            EntityId causeFactId,
+            int severity,
+            GameTime now,
+            long expectedReliefDays = 14,
+            EntityId actor = default)
+        {
+            BusinessRecord record = _world.Businesses.Of(business);
+            if (record == null || severity <= 0 || LocalDemandCategory.Normalize(category) == null)
+            {
+                return false;
+            }
+
+            Fact cause = _world.Knowledge.GetFact(causeFactId);
+            if (cause == null || cause.IsUntrue)
+            {
+                return false;
+            }
+
+            if (!TryChangeState(business, BusinessContinuityState.ShortOnStock, now, causeFactId, actor))
+            {
+                return false;
+            }
+
+            _world.Demands.AddOrUpdate(
+                record.PlaceId, category, severity, now, now.PlusDays(expectedReliefDays), causeFactId);
             return true;
         }
 

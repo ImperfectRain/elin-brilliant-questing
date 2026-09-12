@@ -66,6 +66,22 @@ namespace BrilliantQuesting.Integration
         /// its own dice over the top of them would be inventing a second, worse crafting mechanic
         /// and disagreeing with the first.
         /// </summary>
-        Crafted
+        Crafted,
+
+        /// <summary>
+        /// The game says a thing is no longer held by whoever the record says held it (BQa-012).
+        ///
+        /// <see cref="ObservedVanillaAction.Item"/> is the thing,
+        /// <see cref="ObservedVanillaAction.Actor"/> is whoever holds it now and is
+        /// <see cref="EntityId.None"/> when it is simply gone, and
+        /// <see cref="ObservedVanillaAction.Target"/> is whoever is losing it, where the observer
+        /// can say.
+        ///
+        /// A readback, never an inference. Inventory is a thing the adapter can look at; who moved
+        /// something and whether anybody saw them are not, and an observation that a ring changed
+        /// hands is emphatically not an observation that it was stolen - that is
+        /// <see cref="Theft"/>, and it comes from having watched it happen.
+        /// </summary>
+        PossessionChanged
     }
 }

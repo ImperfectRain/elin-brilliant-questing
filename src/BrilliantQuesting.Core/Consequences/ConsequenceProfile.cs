@@ -86,6 +86,12 @@ namespace BrilliantQuesting.Consequences
                 // for giving it back lives; paying for a look at it here would make showing the
                 // same ring twice a way to buy affinity.
                 { WorldEventType.ObjectRecognized, new ConsequenceProfile("was_shown_something_they_knew", MemoryWeight.Notable, 0) },
+
+                // Deliberately inert. Nobody saw it, so nobody's affinity moves and nobody's karma
+                // is touched; what a possession change is for is the record it leaves, so that
+                // missing property can press on the people whose records name it rather than
+                // producing a reaction from a town that has not noticed anything.
+                { WorldEventType.PossessionChanged, new ConsequenceProfile("something_changed_hands", MemoryWeight.Routine, 0) },
                 // Making something is ordinary life. It is on the record because provenance
                 // matters later, not because anybody's opinion of anybody moves.
                 { WorldEventType.GoodsProduced, new ConsequenceProfile("made_something", MemoryWeight.Trivial, 0) },

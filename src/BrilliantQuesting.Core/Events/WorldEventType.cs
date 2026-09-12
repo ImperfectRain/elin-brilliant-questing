@@ -73,6 +73,21 @@ namespace BrilliantQuesting.Events
         ObjectRecognized,
 
         /// <summary>
+        /// A thing is not where the record says it was, and nothing observed it move (BQa-012).
+        ///
+        /// Read back from the game rather than inferred from an act: an act callback saying
+        /// something happened is not evidence about who now holds what, and a possession that
+        /// changed while nobody was looking is the ordinary case rather than the interesting one.
+        ///
+        /// It names no culprit and no witness, and that is the whole of its discipline. The actor
+        /// is whoever the game says holds the thing now, which is frequently nobody; the target is
+        /// whoever the record said held it before. A theft somebody actually saw is
+        /// <see cref="Theft"/>, arrives through a different observation, and is the only one of the
+        /// two that puts a name to it.
+        /// </summary>
+        PossessionChanged,
+
+        /// <summary>
         /// The game finished making something, and the simulation noticed.
         ///
         /// Recorded from observation rather than from any procedural roll: Elin's own cooking,

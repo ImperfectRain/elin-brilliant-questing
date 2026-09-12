@@ -41,6 +41,7 @@ changes also require [Native](#native).
 | Reactions/observed deeds | `ConsequenceTests` or `VanillaActionRecorderTests` | `RecognizedViolenceTests`, `RelationshipHarmTests`, `VisibleConsequenceTests`; `theft` |
 | Thread lifecycle/ending | `ThreadLifecycleTests` | `ResolutionScopeTests`, `ChronicleTests`, persistence; `questline` |
 | Development rules | `DevelopmentLayerTests`, `PressureSynthesisTests` | `StoryletEngineTests`, `DevelopmentScoringTests`, the affected source owner's tests (e.g. `BusinessContinuityTests`); `playground` |
+| Consequence-to-pressure feedback and observation intake | `PressureFeedbackTests` | `PressureSynthesisTests`, `ActorPressureViewTests`, `VanillaActionRecorderTests`, `BusinessContinuityTests`, persistence; `theft`, `playground` |
 
 New semantic/profile vocabulary consumed by content requires the [content gate](#content-and-full-gate).
 Native mechanics/choices require Plugin build and live [Native](#native) verification.

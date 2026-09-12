@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using BrilliantQuesting.Actions.Library;
 using BrilliantQuesting.Events;
 using BrilliantQuesting.Foundation;
 using BrilliantQuesting.Knowledge;
@@ -34,7 +36,20 @@ namespace BrilliantQuesting.Integration
 
         public WorldEvent Record(ObservedVanillaAction action)
         {
-            if (action == null || action.Actor.IsNone)
+            if (action == null)
+            {
+                return null;
+            }
+
+            // The one observation with no actor of its own: a thing that is simply gone is still
+            // something the world has to be able to record, and insisting on somebody to blame for
+            // it is exactly how a missing ring becomes a theft nobody committed.
+            if (action.Kind == ObservedVanillaActionKind.PossessionChanged)
+            {
+                return RecordPossessionChange(action);
+            }
+
+            if (action.Actor.IsNone)
             {
                 return null;
             }
@@ -118,6 +133,83 @@ namespace BrilliantQuesting.Integration
                 0.2,
                 action.Zone,
                 related: new[] { made.Id },
+                evidence: new[] { action.Item },
+                tags: new[] { EventTags.Observed, action.SourceActionId });
+        }
+
+        /// <summary>
+        /// A thing has changed hands, and nobody watched it happen.
+        ///
+        /// What it records is the possession and nothing else. The standing claim that the old
+        /// holder has it is superseded rather than rewritten, a claim for the new holder is made
+        /// only where the game named one, and no culprit, no crime and no witness is minted on the
+        /// way - because none of those was observed. Somebody's property going missing is a real
+        /// change to the world whether or not there is anybody to accuse, and it is the reading of
+        /// it that has to stay honest, not the fact of it that has to be suppressed.
+        ///
+        /// Idempotent against the record rather than against a memory of having been called: if
+        /// the world already agrees with what the game is showing, there is nothing to record and
+        /// nothing is. That is what makes a reconciliation after a reload a no-op instead of a
+        /// second telling - a session-scoped set of seen ids could not survive the reload that
+        /// makes the question worth asking.
+        /// </summary>
+        private WorldEvent RecordPossessionChange(ObservedVanillaAction action)
+        {
+            if (action.Item.IsNone)
+            {
+                return null;
+            }
+
+            Fact standing = Ownership.ClaimOn(_world, action.Item);
+            EntityId recorded = standing == null ? EntityId.None : standing.Subject;
+            if (recorded == action.Actor)
+            {
+                // Already taken in, or never disagreed in the first place.
+                return null;
+            }
+
+            EventReservation reservation = _world.ReserveEvent();
+            if (standing != null)
+            {
+                standing.Truth = TruthState.Superseded;
+            }
+
+            List<EntityId> related = new List<EntityId>();
+            if (standing != null)
+            {
+                related.Add(standing.Id);
+            }
+
+            if (!action.Actor.IsNone)
+            {
+                Fact held = new Fact(
+                    _world.NewId("fact"),
+                    action.Actor,
+                    FactPredicates.Possesses,
+                    action.Item,
+                    action.ItemName,
+                    TruthState.True,
+                    secrecy: 0,
+                    originEvent: reservation.Id);
+                held.EvidenceIds.Add(action.Item);
+                _world.Knowledge.AddFact(held);
+                related.Add(held.Id);
+            }
+
+            return _world.Record(
+                reservation,
+                WorldEventType.PossessionChanged,
+                action.Actor,
+                recorded.IsNone ? action.Target : recorded,
+                _vanilla.Now,
+                0.3,
+                action.Zone,
+                related: related,
+
+                // Whoever the adapter actually saw, which for a change noticed by reading an
+                // inventory is nobody. A witness list is an observation, never a consolation for
+                // not having one.
+                witnesses: action.Witnesses,
                 evidence: new[] { action.Item },
                 tags: new[] { EventTags.Observed, action.SourceActionId });
         }

@@ -753,6 +753,39 @@ Pressure invalidation must cover non-event-owned changes as well as event listen
 **Do not:** add a second truth store, a goal engine inside `ConsequenceEngine`, routine consumption simulation, or rely on a situation constructor to supply missing causes.
 
 
+**Current implementation (BQa-012).** `PressureFeedback` is the seam, and it collects rather than
+interprets: it hands back a `PressurePass` carrying the work set to read next and the people a
+changed record names, and it appends nothing, teaches nobody and chooses no goal. Three intakes,
+because changes arrive three ways - `Attach` listens to the ledger and reads an event's own claim,
+place and party references rather than switching on its type; `Changed` is the route for a store
+mutation no event announces, resolved against the owning stores so a caller need not know which work
+set an id belongs in; and `Inspect` is a bounded rotation over the records the detector reads, never
+over actors or history, which is what covers elapsed-time conditions and the invalidations nobody
+mentioned. Waking is the parties the record itself records - operator, debtor, a claim's subject and
+its knowers - so somebody holding no goal is still considered, and it fires even for a record already
+in the pass, because the second change to one record is often the one that brings a new person into
+it. Waking is not informing: `ActorPressureView` still decides what, if anything, each of them has a
+route to, and an unrelated actor is neither woken nor told. Two owner-side additions carry the
+families the step names: `VanillaActionRecorder` gained observed possession change, the one actorless
+intake - a readback that supersedes the standing claim and mints no culprit, no crime and no witness,
+idempotent against the record rather than against a session so a reconciliation after a reload is a
+no-op - and `BusinessContinuity.TryRecordSupplyLoss` moves the continuity meaning and the town's
+demand together against a cause the graph already holds, refusing an untracked business or a cause
+the world holds to be false, which is what carries a supply loss past the counter to a customer or a
+rival who merely trades there. `Ownership.ClaimOn` is the existing ownership authority read one step
+earlier, for a caller that must supersede the claim rather than read its subject.
+`PressureFeedbackTests` covers the seven Done-when clauses; the durable rule is
+[`D088`](agent/decisions.md#d088--a-change-reaches-the-next-reading-through-the-owner-that-holds-it-and-wakes-only-the-people-that-owner-names).
+
+**Live verification still required** headless Core only. No live Elin session supplied an observation
+here, nothing schedules a pass beyond the tests - the integrated headless proof is BQa-016 and live
+hooks BQa-017 - and the Plugin was not compiled here because the Elin assemblies are not
+redistributable. In particular, the possession-change intake is proven against the record and the
+sandbox, never against a real inventory readback; `IVanillaState.GetInventory` is the read it is
+shaped for, and that join does not exist yet. No durable field was added: the pass, its work set and
+the woken names are derived and transient, and the two owner-side transitions write only schema 13
+fields that already existed. Evidence grade unchanged: headless/source.
+
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#reactions), [neighbor contract](systems/flow.md#live-host-joins), [validation](agent/validation.md#world).
 
 **Sequence:** BQa-011 → BQa-012 → BQa-013.

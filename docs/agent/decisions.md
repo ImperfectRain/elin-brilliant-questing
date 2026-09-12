@@ -2734,3 +2734,58 @@ Reason: both failures are silent. A want with no route and a want closed by an u
 leave a plausible-looking actor and a plausible-looking save, and neither trips anything that was not
 written to look for it — which is why the search reports why it found nothing and the trace records
 what the world said as well as what was decided.
+
+## D088 — A change reaches the next reading through the owner that holds it, and wakes only the people that owner names
+
+BQa-006 made a pressure reading affordable by letting the caller name the handful of records that
+changed, and then nothing named them. Every consumer was left with the same two bad options it had
+before: read the whole save each tick, or read a world that has moved. BQa-012 supplies the missing
+half, and the shape of it is the decision — the alternatives are all worse in ways that are quiet.
+
+**Collecting is not interpreting.** `PressureFeedback` reads owners and hands back a work set and a
+list of names. It appends nothing, teaches nobody, and never asks what a change means: a pass over a
+world and the result thrown away leaves the world identical, which is the same promise
+`DevelopmentDetector` makes and for the same reason. The tempting version of this component notices
+that a shop's stock is gone and helpfully opens a theft; that component would be writing the
+incidents it exists to react to, and its output would be indistinguishable from a world that had
+actually had something happen in it.
+
+**Three intakes, because changes arrive three ways.** History announces most of them, so there is a
+ledger listener. Some stores mutate and append nothing — a demand relieved, a claim superseded by
+the verb that repaired the thing, a debt fulfilled — so there is an explicit notice for whoever made
+such a change, resolved against the owning stores rather than trusting a caller to know which store
+its id is in. And some changes nobody announces at all: a business that has now been failed for
+thirty days, an invalidation somebody simply forgot. A bounded rotation over the records the detector
+reads is the catch-all, and it is what makes the first two allowed to be incomplete. It walks records
+and never actors or history, because the actor rotation already exists and a second one over everyone
+who has ever lived is exactly the per-frame scan BQ-107 bought its way out of.
+
+**Waking is not informing, and it is not deduplicated against the work set.** A record that changes
+wakes the parties it records — an operator, a debtor, a claim's subject and its knowers — so somebody
+holding no goal at all is still considered when their shop burns down; only a person already busy
+noticing things would be a strange world. What any of them can legitimately make of it stays
+`ActorPressureView`'s answer, and for most of a town it is nothing. The wake deliberately fires even
+when the id is already in the pass, because the second change to one record is frequently the one
+that brings a new person into it — somebody told about a claim that was already due to be re-read —
+and a dedupe on the work set would drop exactly that.
+
+**Observed possession change is the one intake with no actor.** A thing that is not where the record
+says it is is a real change whether or not anybody saw it move, and the honest record of it names no
+culprit and no witness, because none was observed. That is also why it is a readback rather than
+anything derived from an act callback: inventory is a thing the adapter can look at, and who moved
+something is not. It is idempotent against the record rather than against a memory of having been
+called — if the world already agrees with what the game is showing there is nothing to record — which
+is what makes reconciliation after a reload a no-op, since the session that would have remembered is
+the one that just ended.
+
+**A supply loss is a transition against a cause the world already holds.** `TryRecordSupplyLoss`
+moves the durable continuity meaning and records the town's demand, both citing the same claim, so
+the shop's trouble and the town's shortage merge onto one standing condition instead of standing
+beside each other as two. It refuses an untracked business, a cause the graph does not hold, and a
+cause the graph holds to be false. Nothing about it reads or pretends to control Elin's stock: what
+BQ owns is that the cart did not come, and vanilla still owns the shelf.
+
+Reason: every failure here is silent. A pressure derived from a world that has moved, a town woken
+about a shop it has not heard of, a missing ring with a thief attached and a reconciliation that
+tells the same story twice all produce a plausible save and a plausible actor, and none of them trips
+anything that was not written to look for it.

@@ -64,6 +64,7 @@ incomplete joins with links to their adopted planning owners.
 | What does X remember? | `MemoryLedger`; callbacks/provenance are derived history views; [memory](systems/state.md#memory-and-continuity) |
 | What does X want? | `NarrativeNpc.Goals`, `ActorGoalEvolution` passes, values/needs and goal-formation traces; [character](systems/state.md#character-state) |
 | What unresolved pressure exists? | `DevelopmentDetector.Detect`, not a new saved pressure list; [developments](systems/actions.md#developments) |
+| What changed, and whose pressure must be re-read? | `PressureFeedback` collects it into a `PressurePass`; it decides nothing about what any of it means; [developments](systems/actions.md#developments) |
 | Which durable matter is continuing? | `NarrativeThread`, lifecycle and escalation; [threads](systems/actions.md#threads) |
 | What actions are available? | `ActionRegistry.Discover` asks each `NarrativeAction`; [actions](systems/actions.md#actions) |
 | What kind of change could a verb make? | `NarrativeAction.Effects` declares it; `ActionRegistry.Advancing`/`EffectCoverage` read it; [actions](systems/actions.md#actions) |

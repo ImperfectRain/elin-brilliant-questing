@@ -38,16 +38,35 @@ namespace BrilliantQuesting.Actions.Library
         /// </summary>
         public static EntityId OwnerOf(World.NarrativeWorldState world, EntityId itemId)
         {
+            Fact claim = ClaimOn(world, itemId);
+            return claim == null ? EntityId.None : claim.Subject;
+        }
+
+        /// <summary>
+        /// The standing claim that somebody holds this thing, rather than just their name.
+        ///
+        /// The same lookup one step earlier, for a caller that has to do something to the claim
+        /// itself - observed possession changing hands supersedes it rather than editing who it
+        /// names, because a claim that quietly changed its subject would take every belief, proof
+        /// link and piece of evidence that referred to it along with it.
+        /// </summary>
+        public static Fact ClaimOn(World.NarrativeWorldState world, EntityId itemId)
+        {
+            if (world == null || itemId.IsNone)
+            {
+                return null;
+            }
+
             foreach (KeyValuePair<EntityId, Fact> pair in world.Knowledge.Facts)
             {
                 Fact fact = pair.Value;
                 if (fact.Predicate == FactPredicates.Possesses && fact.Object == itemId && fact.Truth == TruthState.True)
                 {
-                    return fact.Subject;
+                    return fact;
                 }
             }
 
-            return EntityId.None;
+            return null;
         }
 
         /// <summary>

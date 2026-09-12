@@ -167,8 +167,14 @@ violence is not automatically murder. Witness reactions use `SocialPractices.Nor
 practices bearing on the current event, using the same table as a full reading; nothing is cached
 across events. Consumers: social state, journal, developments, future acts.
 
+Observed possession change (BQa-012) is the recorder's one actorless intake: a readback saying a
+thing is no longer whoever's the record says, which supersedes the standing claim and names no
+culprit, no crime and no witness. It is idempotent against the record rather than against a session,
+so reconciling a world that already agrees does nothing. A theft somebody watched stays `Theft`.
+
 Source: [ConsequenceEngine](../../src/BrilliantQuesting.Core/Consequences/ConsequenceEngine.cs),
-[SocialPractices](../../src/BrilliantQuesting.Core/World/SocialPractices.cs).
+[SocialPractices](../../src/BrilliantQuesting.Core/World/SocialPractices.cs),
+[VanillaActionRecorder](../../src/BrilliantQuesting.Core/Integration/VanillaActionRecorder.cs).
 Proof: [ConsequenceTests](../../tests/BrilliantQuesting.Core.Tests/ConsequenceTests.cs),
 [RecognizedViolenceTests](../../tests/BrilliantQuesting.Core.Tests/RecognizedViolenceTests.cs).
 Lab: [theft](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/TheftLaboratoryScenario.cs),
@@ -222,6 +228,22 @@ Positive (`opportunity`) and easing (`recovering`) readings exist so the cycle i
 promise of a scene. Resolution belongs to source state: pressure disappears when no longer derivable.
 `DevelopmentScoring` is a separate attention reader over eligible news, not a second `Development`
 store or general goal planner.
+
+**Feedback intake (BQa-012).** `PressureFeedback` is what supplies that work set: it collects real
+changes into a `PressurePass` carrying the scope to read next and the people a changed record names.
+Three intakes, because changes arrive three ways — `Attach` listens to the ledger, `Changed` is the
+route for a store mutation no event announces (demand relieved, claim superseded, debt fulfilled),
+and `Inspect` is a bounded rotation over the records the detector reads, never over actors or
+history, covering elapsed-time conditions and missed invalidations. Attach after load, as
+`ConsequenceEngine` does: restored events are not dispatched, so reattachment is not replay. Woken
+actors are the parties the changed record itself records, its claim's knowers included, so somebody
+holding no goal is still considered; waking is not informing, and what any of them may legitimately
+make of it stays `ActorPressureView`'s answer. **Derived and never saved**, like the pressures: it
+writes no fact, records no event and chooses no goal.
+
+Source: [PressureFeedback](../../src/BrilliantQuesting.Core/Developments/PressureFeedback.cs).
+Proof: [PressureFeedbackTests](../../tests/BrilliantQuesting.Core.Tests/PressureFeedbackTests.cs).
+Rationale: [`D088`](../agent/decisions.md#d088--a-change-reaches-the-next-reading-through-the-owner-that-holds-it-and-wakes-only-the-people-that-owner-names).
 
 Source: [DevelopmentDetector](../../src/BrilliantQuesting.Core/Developments/DevelopmentDetector.cs),
 [DevelopmentScope](../../src/BrilliantQuesting.Core/Developments/DevelopmentScope.cs),
