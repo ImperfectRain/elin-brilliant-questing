@@ -73,6 +73,20 @@ namespace BrilliantQuesting.Foundation
             return Simulation(scene, "bq146|intent|" + speaker.Value + "|" + beatId + "|" + act);
         }
 
+        /// <summary>
+        /// Which of two level contenders takes an indivisible opportunity (BQa-015). Simulation.
+        ///
+        /// Keyed on the batch as well as the contest, so a contest that comes level again in a
+        /// later batch is not settled the same way twice - ties move with the seed and with the
+        /// batch, which is to say with time, and never with the order a collection enumerated in.
+        /// A fork rather than a draw, so ranking a contest cannot move the check its winner is
+        /// about to roll.
+        /// </summary>
+        public static DeterministicRng TieBreak(DeterministicRng world, string batchKey, string contestKey, EntityId contender)
+        {
+            return Simulation(world, "bqa015|tiebreak|" + batchKey + "|" + contestKey + "|" + contender.Value);
+        }
+
         /// <summary>The wording of one beat, when anybody is rendering it. Expression.</summary>
         public static DeterministicRng Line(DeterministicRng scene, string beatId)
         {

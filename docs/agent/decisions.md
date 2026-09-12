@@ -2879,3 +2879,56 @@ valley produces a plausible theft, a plausible ledger entry, and a save nobody c
 where it happened - and an off-screen act that quietly acquires witnesses hands a town proof of
 something nobody watched. Both are decided before any roll, which is why the answer is a gate on
 the one ordered path every attempt takes rather than a rule in a document.
+
+## D091 — One indivisible thing is settled by a ranked batch, and a claim that outlives nothing
+
+Every off-screen owner today walks its own candidates and runs each as it meets it. Two thieves who
+both want one purse therefore have it decided by which of them the work queue reached first — a
+stable iteration order deciding an outcome, invisibly, and identically every time the same queue is
+rebuilt. Arbitration exists to remove that, and the shape it takes is a batch because nothing else
+can: you cannot rank contenders you are already executing.
+
+**The batch is the input, and it is taken once.** `ArbitrationBatch.Gather` copies its candidates,
+so a caller still filling its own list cannot change a decision already being made, and a batch
+resolved twice from the same world resolves the same way. Candidates carry no `ActionContext`: a
+context built during selection is a reading of an older world, and in a contested batch the older
+world is exactly the one where nobody had taken the purse yet.
+
+**What is contested comes from the intent; whether it is scarce comes from the verb.** The intent
+already named the object, the matter or the other party. Indivisibility is the verb's BQa-010
+declaration read again (`D086`), because a separate list of exclusive verbs beside the library is
+the hand-kept copy that drifts silently. Five effect kinds qualify, and each because a second actor
+completing the same change against the same subject would have to invent a second subject to do it
+to. Everything else is a race the world can carry — two people can both tell the reeve, both learn
+the same thing, both damage the same wall — and arbitrating those would manufacture a scarcity that
+does not exist. An undeclared verb is shared, not exclusive: a reported coverage gap must not become
+silent refusals.
+
+**Ties may vary with the seed and the hour; they may never vary with enumeration.** Contenders are
+ordered by standing, then readiness, then a keyed draw, then their own id — every key a property of
+the contender, so the same four people rank the same way whatever order they were handed over in.
+The draw is forked by batch, contest and contender, so a contest that comes level again next week is
+not settled the same way twice, and forking rather than drawing means ranking a crowded contest
+cannot move the check its winner is about to roll.
+
+**A claim is a hold, not a booking.** It says only that this attempt is the one currently running
+against this contest. Winners are revalidated immediately before execution rather than against the
+reading they were ranked on. The claim is released on refusal, on a fault, on cancellation, on
+commit and at batch end — and only a commit also closes the contest, because an attempt that was
+made and changed nothing leaves the object precisely where it was and the next contender is owed
+their turn. That is the difference between "somebody got there first" and "somebody tried", and it
+is the whole of how a failed roll returns an opportunity to the world.
+
+**Nothing transient reaches the save.** A reservation in a save file is a claim about the world that
+no event ever justified, and after a reload it is a promise to somebody who may no longer want it.
+History gets the committed outcome; a batch that committed nothing leaves the save byte-identical.
+
+**The player is a contender.** There is no player branch here and there must never be one: a
+privileged parallel resolver would mean the player either always wins the purse or is quietly
+exempted from losing it, and both are the same lie about a shared world.
+
+Reason: this failure is silent in the ordinary case and absurd in the worst one. A coarse scheduler
+that lets two actors both complete one exclusive opportunity produces two thefts of one purse, two
+answers to one shortage, two people taken into custody who are the same person — and where it does
+not, it produces a world where the same actor always wins because the queue always reaches them
+first, which reads as character and is really ordering.

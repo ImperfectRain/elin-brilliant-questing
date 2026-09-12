@@ -985,6 +985,52 @@ The player participates under the same matter state rather than a privileged par
 **Required arbitration contract:** gather intentions from one immutable batch input, group by contested object/resource/opportunity, then choose with deterministic stable keyed tie-breaking independent of collection enumeration; ties may vary by seed/time, not by dictionary order. Revalidate each winner against current state immediately before execution. Claims expire on refusal, exception, cancellation and batch end; save only committed outcomes, never reservations. Test one object/two actors, player-versus-NPC conflict, loser retry, reordered candidate input and reload at a boundary. Core arbitration is consumed by BQa-016 before BQa-017 supplies its live host.
 
 
+**Current implementation (BQa-015).** `ArbitrationBatch` is the authority and it is a batch,
+because nothing else can be: contenders cannot be ranked against each other while they are already
+being executed one at a time, which is what every off-screen owner does today and why which of two
+thieves lifts the purse is decided by which of them the work queue reached first. `Gather` copies
+its input, so a caller still filling its own list cannot change a decision already being made, and
+`ActionCandidate` carries no `ActionContext` - a context built during selection is a reading of the
+world before anybody had taken anything.
+
+`ActionContest` keeps the two questions apart. What is contended for is read off the intent, which
+already named the object, the matter or the other party. Whether it is indivisible is read off the
+verb's BQa-010 effects rather than a second list beside the library (`D086`); the five
+`ActionContest.IndivisibleEffects` are the changes a second completion would have to invent a second
+subject for, and everything else stays a race the world can carry. An undeclared verb yields a
+shared contest, because BQa-010's reported coverage gap must not become silent refusals. Contenders
+are grouped by contest key, the groups walked in ordinal key order, and ranked by standing (the
+caller's own goal weight scaled by what `ActionOpportunity` allowed), then readiness, then
+`RngStreams.TieBreak`, then their own id - every key a property of the contender, so the same
+contenders rank the same way whatever order they arrived in, while ties move with the seed and with
+the batch. The draw is a fork rather than a draw, so ranking a crowded contest does not move the
+check its winner is about to roll.
+
+`TransientClaim` is taken only for an exclusive contest and buys one thing: nobody else executes
+against it while it is held. Each winner is revalidated through `IAttemptEnvironment` immediately
+before execution, never against the reading it was ranked on. Claims are released on refusal, on a
+fault, on cancellation, on commit and at batch end, and only a commit closes the contest - an
+attempt that was made and changed nothing leaves the object where it was, so the next contender gets
+their turn. Nothing is persisted: a batch that committed nothing leaves the save byte-identical, and
+a reload at the batch boundary finds the committed theft in history and no reservation to honour.
+There is no player branch; the player is ranked like anybody else and loses to an NPC who wants it
+more. `ActionArbitrationTests` covers the Done-when and the required cases - one object and two
+actors, player versus NPC in both directions, the loser retry after a failed roll, all six orderings
+of three level contenders deciding alike, the same contest settled differently across seeds and
+batches, a refused winner, a throwing verb, a stopped batch, and reload at a boundary. The durable
+rule is [`D091`](agent/decisions.md#d091--one-indivisible-thing-is-settled-by-a-ranked-batch-and-a-claim-that-outlives-nothing).
+
+**Live verification still required** headless Core only, and nothing is wired to a host: BQa-016
+owns the cycle that gathers a batch and BQa-017 the live host that drives it, so no existing
+subsystem calls this yet and no live Elin session has resolved one. No new native observation is
+claimed - `ActorContextEnvironment` calls the two `ActorContexts` builders that already existed and
+adds no probe of its own. Nothing durable was added: the batch, the rankings, the claims and the
+result are all transient, no schema field moved, and existing saves are unaffected. One thing is
+deliberately left as it stands: the indivisible set is five effect kinds and not a general scarcity
+model, because a sixth would be a guess about a verb nobody has written. Evidence grade unchanged:
+headless/source.
+
+
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#actions), [neighbor contract](systems/world.md#autonomy), [validation](agent/validation.md#world).
 
 **Sequence:** BQa-014 → BQa-015 → BQa-016.

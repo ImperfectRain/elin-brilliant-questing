@@ -29,6 +29,7 @@ incomplete joins with links to their adopted planning owners.
 | Actions/registry | [Actions](systems/actions.md#actions) |
 | Feasibility/availability | [Availability](systems/actions.md#availability) |
 | Spatial/temporal opportunity | [Opportunity](systems/actions.md#opportunity) |
+| Competition/transient claims | [Competition](systems/actions.md#competition) |
 | Checks/uncertainty | [Checks](systems/actions.md#checks) |
 | Consequences | [Reactions](systems/actions.md#reactions) |
 | Threads | [Threads](systems/actions.md#threads) |
@@ -72,6 +73,7 @@ incomplete joins with links to their adopted planning owners.
 | What could somebody do about what they want? | `GoalRoutes.Discover` joins the condition term, the effect kinds and the verbs; [actions](systems/actions.md#actions) |
 | Did the world allow the attempt at all? | `ActionOpportunity.Read` over the activity snapshot; co-location, travel, the object, the room; [opportunity](systems/actions.md#opportunity) |
 | Is an attempt possible? | `GetAvailability`, actor scope, binding, capability and write policy; [availability](systems/actions.md#availability) |
+| Who gets the one thing several people want? | `ArbitrationBatch` ranks the gathered batch and holds a `TransientClaim` for the attempt; [competition](systems/actions.md#competition) |
 | Is an attempt uncertain; who resolves it? | Verb/beat declares `CheckRequest`; `ICheckResolver` resolves; [checks](systems/actions.md#checks) |
 | What consequence becomes history? | Performing owner records `WorldEvent`; `ConsequenceEngine` applies reactions; [reactions](systems/actions.md#reactions) |
 | What does an NPC decide to do? | Autonomy selects `ActionIntent`, then shared registry/attempt; [autonomy](systems/world.md#autonomy) |

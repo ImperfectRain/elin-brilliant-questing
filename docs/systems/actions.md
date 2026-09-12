@@ -169,6 +169,51 @@ Lab: [theft](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/TheftLaboratoryScen
 [performance](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/PerformanceScenario.cs) for restored-history
 CPU/allocation inspection (not native frame time).
 
+## Competition
+
+**Owns:** which of several people reaching for one indivisible thing gets to try for it, and the
+transient hold that stops a coarse scheduler letting two of them finish it at once. Inputs: one
+gathered batch of `ActionCandidate` intentions, the world stream, a registry and an
+`IAttemptEnvironment`. Outputs: an `ArbitrationResult` - a ranked decision per contender, each
+attempt that was actually run, and every claim taken with the reason it was given back. Nothing
+here is saved. **Does not own:** goal ranking (the caller's `Motive` is carried, never recomputed),
+the verb's own rules, the roll, or any schedule - `ArbitrationBatch` has no clock and runs when a
+host resolves it.
+
+**Contest, claim and the draw (BQa-015).** `ActionContest` keeps two questions apart. *What* is
+contended for is read off the intent, because the intent already said which object, matter or
+person the attempt is about. *Whether it is indivisible* is read off the verb's BQa-010 effects, so
+there is no second list of exclusive verbs to drift (`D086`); the five
+`ActionContest.IndivisibleEffects` are the changes a second completion would have to invent a
+second subject for. Most contests are not exclusive and nothing pretends otherwise - two people can
+both tell the reeve, both learn the same fact - and an undeclared verb yields a shared contest,
+because BQa-010's reported coverage gap must not read as scarcity.
+
+`ArbitrationBatch.Gather` copies its input, so a caller still filling its own list cannot change a
+decision already being made. Contenders are grouped by `ActionContest.Key`, the groups are walked
+in ordinal key order, and inside a group the order is standing (the caller's motive scaled by what
+`ActionOpportunity` allowed), then who is ready sooner, then a keyed draw, then the contender's own
+id. The draw is `RngStreams.TieBreak`, forked by batch, contest and contender: ties move with the
+seed and with the batch - which is to say with time - and never with the order anything was
+enumerated in. It is a fork rather than a draw, so ranking a crowded contest cannot move the check
+its winner is about to roll.
+
+`TransientClaim` is taken only for an exclusive contest and buys one thing: nobody else executes
+against that contest while it is held. Each winner is revalidated through `IAttemptEnvironment`
+immediately before execution rather than against the reading it was ranked on, because the world
+the loser was ranked in is precisely the one where nobody had taken the purse yet. The claim is
+released on refusal, on a fault, on cancellation, on commit and at batch end, and only a commit
+also closes the contest: an attempt that was made and changed nothing leaves the object where it
+was, so the next contender is owed their turn. No reservation is ever written to a save - history
+gets the committed outcome and nothing else. There is no player branch: the player enters the same
+batch and loses to an NPC who wants it more, is readier, or wins the draw. See
+[D091](../agent/decisions.md#d091--one-indivisible-thing-is-settled-by-a-ranked-batch-and-a-claim-that-outlives-nothing).
+
+Source: [ActionContest](../../src/BrilliantQuesting.Core/Actions/ActionContest.cs),
+[ActionArbitration](../../src/BrilliantQuesting.Core/Actions/ActionArbitration.cs),
+[RngStreams](../../src/BrilliantQuesting.Core/Foundation/RngStreams.cs).
+Proof: [ActionArbitrationTests](../../tests/BrilliantQuesting.Core.Tests/ActionArbitrationTests.cs).
+
 ## Checks
 
 **Owns:** declared uncertainty and explainable arithmetic. `CheckRequest` supplies a profile,
