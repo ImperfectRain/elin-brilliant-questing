@@ -30,6 +30,18 @@ namespace BrilliantQuesting.Actions.Library
         public override ActionEffects Effects => ActionEffects
             .Declaring(ActionEffect.Recorded(SemanticEffects.PersonSecured));
 
+        /// <summary>
+        /// Success is being out of ordinary reach (BQa-013). A lifecycle that refused the
+        /// withdrawal has left them exactly where they were and answerable to exactly the same
+        /// people, so it is a refusal rather than a quiet non-event dressed as ducking out.
+        ///
+        /// Failing to get away leaves the obligation live and puts the failure into history;
+        /// being caught at it tells the room what they were trying to do.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.PersonSecured)
+            .Failing(FailureOutcomes.OptionsTransformed, FailureOutcomes.InformationRevealed);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (context.ActorIsPlayer)
@@ -57,8 +69,7 @@ namespace BrilliantQuesting.Actions.Library
             if (pressure == null)
             {
                 ActionOutcome empty = new ActionOutcome(Id, null, "There is nothing to duck.");
-                empty.Notes.Add("no debt or exposure pressure in the binding");
-                return empty;
+                return empty.Refuse("no debt or exposure pressure in the binding");
             }
 
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Deception, context.Actor, context.Target)
@@ -87,6 +98,7 @@ namespace BrilliantQuesting.Actions.Library
 
                     if (withdrawn)
                     {
+                        outcome.Change(SemanticEffects.PersonSecured);
                         WorldEvent recorded = Latest(context.World, WorldEventType.WentAbsent, context.Actor);
                         if (recorded != null)
                         {
@@ -97,7 +109,7 @@ namespace BrilliantQuesting.Actions.Library
                     }
                     else
                     {
-                        outcome.Notes.Add("absence lifecycle refused the withdrawal");
+                        outcome.Refuse("absence lifecycle refused the withdrawal; they are where they were");
                     }
 
                     return outcome;

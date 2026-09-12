@@ -161,6 +161,69 @@ namespace BrilliantQuesting.Actions
         }
 
         /// <summary>
+        /// What the library has said about how its verbs end, and where it has said nothing
+        /// (BQa-013).
+        ///
+        /// The companion to <see cref="EffectCoverage"/> and reported the same way: a verb nobody
+        /// has classified is a gap, not a promise that failing it is free. A verb that has not
+        /// declared its effects at all is listed separately, because what success means for it is
+        /// the earlier open question rather than this one.
+        /// </summary>
+        public ActionPostconditionCoverage PostconditionCoverage()
+        {
+            List<NarrativeAction> unclassified = new List<NarrativeAction>();
+            List<NarrativeAction> withoutEffects = new List<NarrativeAction>();
+            List<string> unregistered = new List<string>();
+            List<string> outsideEffects = new List<string>();
+
+            for (int i = 0; i < _actions.Count; i++)
+            {
+                NarrativeAction action = _actions[i];
+                ActionPostconditions declared = action.Postconditions;
+
+                if (!action.Effects.IsDeclared)
+                {
+                    withoutEffects.Add(action);
+                    continue;
+                }
+
+                if (!declared.IsDeclared)
+                {
+                    unclassified.Add(action);
+                    continue;
+                }
+
+                for (int c = 0; c < declared.FailureClasses.Count; c++)
+                {
+                    string failureClass = declared.FailureClasses[c];
+                    if (!FailureOutcomes.IsRegistered(failureClass) && !unregistered.Contains(failureClass))
+                    {
+                        unregistered.Add(failureClass);
+                    }
+                }
+
+                // Two descriptions of one verb that disagree are worse than one that says nothing.
+                for (int s = 0; s < declared.SuccessChanges.Count; s++)
+                {
+                    if (!action.Effects.Advances(declared.SuccessChanges[s]))
+                    {
+                        outsideEffects.Add(action.Id + ": " + declared.SuccessChanges[s]);
+                    }
+                }
+
+                for (int f = 0; f < declared.FailureChanges.Count; f++)
+                {
+                    if (!action.Effects.Advances(declared.FailureChanges[f]))
+                    {
+                        outsideEffects.Add(action.Id + ": " + declared.FailureChanges[f]);
+                    }
+                }
+            }
+
+            return new ActionPostconditionCoverage(unclassified, withoutEffects, unregistered, outsideEffects);
+        }
+
+        /// <summary>
         /// Which solution families are currently open. The generator's route-diversity target is
         /// measured with this: a situation offering only Social is a design failure.
         /// </summary>

@@ -199,10 +199,20 @@ namespace BrilliantQuesting.Actions.Library
         /// <summary>
         /// Whoever the caller says is close enough to notice. Actions decide, per outcome, whether
         /// these people actually saw anything - a clean theft has no witnesses even in a crowd.
+        ///
+        /// An act resolved where nobody's presence was read has no bystanders to offer, whatever
+        /// the caller asks for (BQa-013). The list being empty off screen was already true of
+        /// every context <see cref="ActorContexts.TryBuildOffScreen"/> builds, but it was true by
+        /// arithmetic rather than by contract: a caller that assembled a context by hand and
+        /// marked it <see cref="ContextObservation.OffScreen"/> could hand a botched attempt a
+        /// room full of eyewitnesses to an act nobody watched. Refusing here is the structural
+        /// version of the guard <c>DestructiveAction</c> already wrote out by hand, and it is what
+        /// makes "a hidden failure cannot cost somebody trust" a property of the library rather
+        /// than of each verb's memory.
         /// </summary>
         public static IReadOnlyList<EntityId> Bystanders(ActionContext context, bool noticed)
         {
-            if (!noticed || context.Witnesses.Count == 0)
+            if (!noticed || context.Observation == ContextObservation.OffScreen || context.Witnesses.Count == 0)
             {
                 return NoWitnesses;
             }

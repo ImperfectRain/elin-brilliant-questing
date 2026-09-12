@@ -21,6 +21,18 @@ namespace BrilliantQuesting.Actions.Library
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
 
+        /// <summary>
+        /// Success is the room hearing somebody differently afterwards (BQa-013) - which is the
+        /// social trouble softened, through Music rather than through talking anybody round.
+        ///
+        /// A song that lands badly leaves the room cold and the trouble exactly where it was.
+        /// Nothing is spent and nobody thinks worse of the performer for having tried, so it can
+        /// be tried again; the event it records is only that a performance happened.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.StandingAltered)
+            .Failing(FailureOutcomes.NoMaterialChange);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -39,8 +51,7 @@ namespace BrilliantQuesting.Actions.Library
             if (trouble == null)
             {
                 ActionOutcome none = new ActionOutcome(Id, null, "There is no room to win over.");
-                none.Notes.Add("no open social trouble");
-                return none;
+                return none.Refuse("no open social trouble");
             }
 
             CheckResult check = context.Checks.Resolve(
@@ -65,6 +76,7 @@ namespace BrilliantQuesting.Actions.Library
             trouble.Truth = TruthState.Superseded;
             ActionOutcome outcome = new ActionOutcome(Id, check,
                 "You play until the room is listening to " + context.NameOf(context.Target) + " differently.");
+            outcome.Change(SemanticEffects.StandingAltered);
             outcome.Events.Add(context.World.Record(
                 WorldEventType.Conversed,
                 context.Actor,
@@ -147,6 +159,17 @@ namespace BrilliantQuesting.Actions.Library
                 VanillaCapability.TransferItems),
             ActionEffect.Recorded(SemanticEffects.ObligationAltered));
 
+        /// <summary>
+        /// Success is an honour debt settled by parting with something worth keeping (BQa-013),
+        /// which is what makes it an answer rather than a loot payout - the piece leaves and the
+        /// undertaking closes together.
+        ///
+        /// No roll, so no failure. A missing debt, a missing piece or a transfer the build would
+        /// not carry is a refusal: the debt is still owed and the piece is still yours.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.ObligationAltered, SemanticEffects.PossessionTransferred);
+
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
 
@@ -179,13 +202,14 @@ namespace BrilliantQuesting.Actions.Library
             if (debt == null || piece == null || !context.Vanilla.TryTransferItem(piece.Id, context.Actor, context.Target))
             {
                 ActionOutcome none = new ActionOutcome(Id, null, "The donation cannot be made.");
-                none.Notes.Add("missing honour debt, museum piece, or transfer support");
-                return none;
+                return none.Refuse("missing honour debt, museum piece, or transfer support");
             }
 
             debt.Truth = TruthState.Superseded;
             ActionOutcome outcome = new ActionOutcome(Id, null,
                 "You place " + piece.Name + " with the museum, and " + context.NameOf(context.Target) + " accepts the debt as settled.");
+            outcome.Change(SemanticEffects.PossessionTransferred);
+            outcome.Change(SemanticEffects.ObligationAltered);
             outcome.Events.Add(context.World.Record(
                 WorldEventType.ItemGiven,
                 context.Actor,
@@ -291,8 +315,7 @@ namespace BrilliantQuesting.Actions.Library
             if (matter == null || animal == null || !context.Vanilla.TryTransferItem(animal.Id, context.Actor, context.Target))
             {
                 ActionOutcome none = new ActionOutcome(Id, null, "There is no animal here to give.");
-                none.Notes.Add("missing animal gift matter or bred animal in the actor's keeping");
-                return none;
+                return none.Refuse("missing animal gift matter or bred animal in the actor's keeping");
             }
 
             matter.Truth = TruthState.Superseded;
@@ -471,8 +494,7 @@ namespace BrilliantQuesting.Actions.Library
                 || !context.Vanilla.Supports(VanillaCapability.DestroyItems))
             {
                 ActionOutcome none = new ActionOutcome(Id, null, "There are no supplies to bring.");
-                none.Notes.Add("missing demand, supply, or consumption support");
-                return none;
+                return none.Refuse("missing demand, supply, or consumption support");
             }
 
             CheckRequest request = new CheckRequest(_profile, context.Actor, EntityId.None)
@@ -481,8 +503,7 @@ namespace BrilliantQuesting.Actions.Library
             if (!context.Vanilla.TryDestroyItem(supply.Id, context.Actor))
             {
                 ActionOutcome missing = new ActionOutcome(Id, check, "The " + supply.Name + " is not where you thought it was.");
-                missing.Notes.Add("supply consumption refused");
-                return missing;
+                return missing.Refuse("supply consumption refused");
             }
 
             if (!check.Succeeded)

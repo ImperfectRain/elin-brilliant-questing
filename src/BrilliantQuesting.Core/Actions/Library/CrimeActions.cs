@@ -27,6 +27,20 @@ namespace BrilliantQuesting.Actions.Library
                 "IVanillaState.TryTransferItem",
                 VanillaCapability.TransferItems));
 
+        /// <summary>
+        /// Success is the object moving and nothing else (BQa-013). A roll that passed and a
+        /// transfer vanilla would not carry is a refusal, not a theft: the fingers close on
+        /// nothing, and nothing about the world may say otherwise.
+        ///
+        /// Failure comes in two shapes and the roll picks which. Thinking better of it halfway
+        /// through leaves the pocket, the room and the ledger as they were. Being caught leaves
+        /// the room knowing - which is why the caught branch cannot be resolved where nobody's
+        /// presence was read.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.PossessionTransferred)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -71,6 +85,8 @@ namespace BrilliantQuesting.Actions.Library
                         : "Your fingers close on nothing.");
                     if (taken)
                     {
+                        outcome.Change(SemanticEffects.PossessionTransferred);
+
                         // The identity is reserved before the fact is built, because the fact has
                         // to name the occurrence it came from and the occurrence does not exist
                         // yet. Reserving asks the minter; the alternative was leaving the theft
@@ -181,6 +197,19 @@ namespace BrilliantQuesting.Actions.Library
                 VanillaCapability.TransferItems),
             ActionEffect.Recorded(SemanticEffects.EvidenceCreated));
 
+        /// <summary>
+        /// Success is the manufactured claim coming into the world (BQa-013), and it is declared
+        /// alongside the move rather than instead of it: the paper claim is BQ's own, so a build
+        /// that will not move the object can still leave somebody holding a story about it, and
+        /// saying so is more honest than pretending the frame needed the item to travel.
+        ///
+        /// Failing to get near enough leaves the pocket and the record alone. Being seen doing it
+        /// turns the provable thing round onto the actor, which needs a room that was read.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.EvidenceCreated, SemanticEffects.PossessionTransferred)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (context.ThirdParty.IsNone)
@@ -216,7 +245,7 @@ namespace BrilliantQuesting.Actions.Library
                 case CheckOutcome.CriticalPass:
                 case CheckOutcome.Pass:
                 {
-                    context.Vanilla.TryTransferItem(item.Id, context.Actor, context.ThirdParty);
+                    bool planted = context.Vanilla.TryTransferItem(item.Id, context.Actor, context.ThirdParty);
 
                     Fact lie = FalseClaimForPlantedItem(context, item);
                     lie.EvidenceIds.Add(item.Id);
@@ -229,7 +258,19 @@ namespace BrilliantQuesting.Actions.Library
                         context.World.Knowledge.Teach(seen[i], lie.Id, KnowledgeSource.Witnessed, 0.9, context.Now, true);
                     }
 
-                    outcome = new ActionOutcome(Id, check, "The " + item.Name + " is in " + patsy + "'s belongings now.");
+                    outcome = new ActionOutcome(Id, check, planted
+                        ? "The " + item.Name + " is in " + patsy + "'s belongings now."
+                        : "The story is out about " + patsy + ", though the " + item.Name + " never left your hands.");
+                    outcome.Change(SemanticEffects.EvidenceCreated);
+                    if (planted)
+                    {
+                        outcome.Change(SemanticEffects.PossessionTransferred);
+                    }
+                    else
+                    {
+                        outcome.Notes.Add("the object would not move; what was manufactured is the claim, not its resting place");
+                    }
+
                     outcome.Notes.Add("created a fact flagged False: the world knows this is a frame even though nobody in it does");
                     outcome.Events.Add(context.World.Record(
                         WorldEventType.EvidenceCreated, context.Actor, context.ThirdParty, context.Now, 0.7, context.Zone,
@@ -326,6 +367,19 @@ namespace BrilliantQuesting.Actions.Library
         public override ActionEffects Effects => ActionEffects
             .Declaring(ActionEffect.Recorded(SemanticEffects.AccessAltered));
 
+        /// <summary>
+        /// Success is being inside (BQa-013), and the critical failure is *also* being inside -
+        /// watched. That is the one shape in the family where a failed roll still moves the state
+        /// the verb is for, so access is declared on both sides rather than the failure quietly
+        /// doing something the classification does not mention.
+        ///
+        /// The ordinary failure is the lock holding: nothing recorded, and it can be tried again.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.AccessAltered)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed, FailureOutcomes.OptionsTransformed)
+            .AlsoChangingOnFailure(SemanticEffects.AccessAltered);
+
         // BQ-090. The lock this answers is `NarrativeSite.Restricted`, not an Elin door: nothing
         // on the build has to exist for a burglar to get past it, and the roll is the portable
         // resolver, so the route reads the same on every build.
@@ -356,8 +410,7 @@ namespace BrilliantQuesting.Actions.Library
             if (site == null || site.Admits(context.Actor))
             {
                 ActionOutcome open = new ActionOutcome(Id, null, "Nothing here is shut to you.");
-                open.Notes.Add("no restricted site at " + context.Zone);
-                return open;
+                return open.Refuse("no restricted site at " + context.Zone);
             }
 
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Burglary, context.Actor, EntityId.None)
@@ -372,12 +425,14 @@ namespace BrilliantQuesting.Actions.Library
                 case CheckOutcome.CriticalPass:
                     site.Admit(context.Actor);
                     outcome = new ActionOutcome(Id, check, "It opens for you, and closes behind you as though it never did.");
+                    outcome.Change(SemanticEffects.AccessAltered);
                     outcome.Notes.Add("no event recorded: nothing about " + site.Name + " will ever say you were here");
                     break;
 
                 case CheckOutcome.Pass:
                     site.Admit(context.Actor);
                     outcome = new ActionOutcome(Id, check, "The lock gives, and you have the run of " + site.Name + ".");
+                    outcome.Change(SemanticEffects.AccessAltered);
                     outcome.Events.Add(context.World.Record(
                         WorldEventType.Trespass, context.Actor, site.ControllingOrganizationId, context.Now, 0.4, context.Zone,
                         tags: new[] { EventTags.Unnoticed }, threadId: context.Thread?.Id ?? EntityId.None));
@@ -396,6 +451,7 @@ namespace BrilliantQuesting.Actions.Library
                     IReadOnlyList<EntityId> seen = ActionSupport.Bystanders(context, true);
                     site.Admit(context.Actor);
                     outcome = new ActionOutcome(Id, check, "You are inside - and you were watched going in.");
+                    outcome.Change(SemanticEffects.AccessAltered);
                     outcome.Events.Add(context.World.Record(
                         WorldEventType.Trespass, context.Actor, site.ControllingOrganizationId, context.Now, 0.6, context.Zone,
                         witnesses: seen, threadId: context.Thread?.Id ?? EntityId.None));
@@ -472,8 +528,7 @@ namespace BrilliantQuesting.Actions.Library
             if (item == null)
             {
                 ActionOutcome nothing = new ActionOutcome(Id, null, "There is nothing here for you to do that to.");
-                nothing.Notes.Add(NothingToBreak);
-                return nothing;
+                return nothing.Refuse(NothingToBreak);
             }
 
             EntityId holder = HolderOf(context);
@@ -490,9 +545,10 @@ namespace BrilliantQuesting.Actions.Library
 
             if (!context.Vanilla.TryDestroyItem(item.Id, holder))
             {
+                // A roll that passed and a write the build would not carry is not a botched
+                // attempt at breaking something; it is an attempt that never reached the object.
                 ActionOutcome refused = new ActionOutcome(Id, check, "The " + item.Name + " is not where you thought it was.");
-                refused.Notes.Add("destruction refused: " + context.NameOf(holder) + " is not holding " + item.Id);
-                return refused;
+                return refused.Refuse("destruction refused: " + context.NameOf(holder) + " is not holding " + item.Id);
             }
 
             bool seen = check.Outcome == CheckOutcome.CriticalFail
@@ -501,6 +557,13 @@ namespace BrilliantQuesting.Actions.Library
             IReadOnlyList<EntityId> witnesses = ActionSupport.Bystanders(context, seen);
             ActionOutcome outcome = new ActionOutcome(Id, check, Narrate(context, item)
                 + (seen ? " Somebody was watching you do it." : string.Empty));
+
+            // Read off the verb's own classification rather than restated here: each verb sharing
+            // this body declares exactly one thing success moves, and they do not agree on which.
+            for (int i = 0; i < Postconditions.SuccessChanges.Count; i++)
+            {
+                outcome.Change(Postconditions.SuccessChanges[i]);
+            }
 
             outcome.Events.Add(context.World.Record(
                 RecordedAs, context.Actor, holder, context.Now, seen ? 0.7 : 0.5, context.Zone,
@@ -566,6 +629,20 @@ namespace BrilliantQuesting.Actions.Library
                 SemanticEffects.EvidenceRemoved,
                 "IVanillaState.TryDestroyItem",
                 VanillaCapability.DestroyItems));
+
+        /// <summary>
+        /// Success is the object gone and the proof with it (BQa-013). Balking leaves both: the
+        /// thing is where it was, and every case that rested on it still stands.
+        ///
+        /// The botched ending is not a refusal to burn it - it is burning it in front of somebody.
+        /// The object goes either way, so evidence removal is declared for failure too: a failure
+        /// that quietly took a real object out of the world while its classification said nothing
+        /// moved is exactly the undeclared state movement this contract exists to catch.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.EvidenceRemoved)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed)
+            .AlsoChangingOnFailure(SemanticEffects.EvidenceRemoved);
 
         protected override string NothingToBreak => "you are carrying nothing that proves anything";
 
@@ -641,6 +718,19 @@ namespace BrilliantQuesting.Actions.Library
                 "IVanillaState.TryDestroyItem",
                 VanillaCapability.DestroyItems));
 
+        /// <summary>
+        /// Success is the thing somebody depended on being out of service (BQa-013), which is the
+        /// change a later reading of their trouble is entitled to see. Balking leaves it working.
+        ///
+        /// As with burning evidence, the botched ending still breaks the thing - and is watched
+        /// while doing it, which is what "failed sabotage may expose interference" actually means
+        /// here. The damage is declared on both sides because it happens on both sides.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.ObjectDamaged)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed)
+            .AlsoChangingOnFailure(SemanticEffects.ObjectDamaged);
+
         protected override string NothingToBreak => "they have nothing here worth breaking";
 
         protected override EntityId HolderOf(ActionContext context) => context.Target;
@@ -692,6 +782,19 @@ namespace BrilliantQuesting.Actions.Library
         public override ActionEffects Effects => ActionEffects
             .Declaring(ActionEffect.Recorded(SemanticEffects.StandingAltered));
 
+        /// <summary>
+        /// Success is how the two of them stand having changed (BQa-013): the target knows
+        /// exactly who holds this, and that is true whether or not the money was there. The
+        /// orens are the visible half and not the load-bearing one, which is why an agreement
+        /// nobody could pay still counts and says in as many words that nothing changed hands.
+        ///
+        /// Being told to do your worst leaves the secret, the purse and the standing alone.
+        /// Being overheard asking makes the threat itself the provable thing.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.StandingAltered)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed, FailureOutcomes.OptionsTransformed);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target) || context.Target == context.Actor)
@@ -723,8 +826,7 @@ namespace BrilliantQuesting.Actions.Library
             if (leverage == null)
             {
                 ActionOutcome empty = new ActionOutcome(Id, null, "You have nothing to hold over them.");
-                empty.Notes.Add("no leverage: nothing true, secret and theirs that you know of");
-                return empty;
+                return empty.Refuse("no leverage: nothing true, secret and theirs that you know of");
             }
 
             bool canProve = context.World.Knowledge.CanProve(context.Actor, leverage.Id);
@@ -750,6 +852,7 @@ namespace BrilliantQuesting.Actions.Library
                     outcome = new ActionOutcome(Id, check, paid
                         ? who + " counts out " + asked + " orens and does not look at you while doing it."
                         : who + " agrees to your price and cannot raise it.");
+                    outcome.Change(SemanticEffects.StandingAltered);
 
                     if (paid)
                     {
@@ -889,6 +992,17 @@ namespace BrilliantQuesting.Actions.Library
             ActionEffect.Recorded(SemanticEffects.AccessAltered),
             ActionEffect.Recorded(SemanticEffects.StandingAltered));
 
+        /// <summary>
+        /// Success is being taken for the man on the paper (BQa-013) - the standing that buys,
+        /// and sometimes the door it opens too. Not being taken for anyone in particular costs
+        /// nothing and can be tried on somebody else. Being seen through is the expensive one:
+        /// they now know somebody goes about wearing other people's names, and they know whose
+        /// face went with it.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.StandingAltered, SemanticEffects.AccessAltered)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed, FailureOutcomes.OptionsTransformed);
+
         // BQ-090. Being let past for who they take you for, which needs paper: the credentials are
         // read out of the actor's own carried inventory, a read a running game has exercised
         // (`API-017`).
@@ -928,8 +1042,7 @@ namespace BrilliantQuesting.Actions.Library
             if (papers == null)
             {
                 ActionOutcome bare = new ActionOutcome(Id, null, "You have nothing to show for the claim.");
-                bare.Notes.Add("no credentials carried");
-                return bare;
+                return bare.Refuse("no credentials carried");
             }
 
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Deception, context.Actor, context.Target)
@@ -947,12 +1060,21 @@ namespace BrilliantQuesting.Actions.Library
                 {
                     double confidence = check.Outcome == CheckOutcome.CriticalPass ? 0.9 : 0.7;
                     outcome = new ActionOutcome(Id, check, who + " reads the " + papers.Name + ", and treats you as the man it names.");
+                    outcome.Change(SemanticEffects.StandingAltered);
                     outcome.Events.Add(context.World.Record(
                         WorldEventType.Deceived, context.Actor, context.Target, context.Now, 0.5, context.Zone,
                         evidence: new[] { papers.Id }, tags: new[] { EventTags.Unnoticed },
                         threadId: context.Thread?.Id ?? EntityId.None));
 
-                    if (!Told(context, confidence, outcome) && !LetIn(context, outcome))
+                    // Order preserved: being told a thing is tried before being let past, and
+                    // only one of the two happens.
+                    bool told = Told(context, confidence, outcome);
+                    bool admitted = !told && LetIn(context, outcome);
+                    if (admitted)
+                    {
+                        outcome.Change(SemanticEffects.AccessAltered);
+                    }
+                    else if (!told)
                     {
                         outcome.Notes.Add("they take you for him and have nothing that station would be given");
                     }

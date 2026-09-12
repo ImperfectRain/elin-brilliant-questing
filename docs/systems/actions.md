@@ -47,13 +47,33 @@ objectively true without closing it. `lie` declares `information.denied` rather 
 `information.disclosed`: it moves one belief downward, and a want that somebody be told something must
 not be offered it. See [D087](../agent/decisions.md#d087--what-the-world-holds-and-what-a-wants-owner-may-believe-are-two-answers-and-a-route-is-found-through-the-vocabulary-rather-than-through-a-name).
 
+**Postconditions (BQa-013).** `NarrativeAction.Postconditions` is the fifth declaration, and it
+refines the fourth rather than repeating it: `Effects` is capability, read before anybody attempts
+anything; this is what each of the three endings actually leaves behind, read afterwards. Three,
+because a failure and a refusal both end with the actor holding nothing and are not the same event -
+a failure was performed and has fallout, a refusal never took place. `ActionOutcome.Resolution`
+carries the answer, `ActionOutcome.Changed` records what the attempt actually moved at the line
+after the write, and `Perform` demotes a success claim with none of its declared changes behind it
+to a refusal, so an unsupported native write cannot be narrated as a deed. A refusal records no
+change and no event; `ActionPostconditionAudit` reports anything an outcome says that its verb's
+declaration does not support, including witnesses named where nobody's presence was read.
+Failure is classified from `FailureOutcomes` - nothing changed, information revealed, cost paid,
+harm done, later options transformed - and never required to cost something: a lie nobody believed
+leaves the world byte-identical. `ActionRegistry.PostconditionCoverage` reports the verbs that have
+said nothing, and separately the verbs whose effects are undeclared, whose success is still BQa-010's
+open question. See
+[D089](../agent/decisions.md#d089--a-verb-says-what-each-of-its-endings-leaves-behind-and-the-library-holds-every-attempt-to-it).
+
 Source: [NarrativeAction](../../src/BrilliantQuesting.Core/Actions/NarrativeAction.cs),
 [ActionRegistry](../../src/BrilliantQuesting.Core/Actions/ActionRegistry.cs),
 [ActionEffects](../../src/BrilliantQuesting.Core/Actions/ActionEffects.cs),
+[ActionPostconditions](../../src/BrilliantQuesting.Core/Actions/ActionPostconditions.cs),
+[ActionOutcome](../../src/BrilliantQuesting.Core/Actions/ActionOutcome.cs),
 [GoalRoutes](../../src/BrilliantQuesting.Core/Actions/GoalRoutes.cs),
 [ActionAttempt](../../src/BrilliantQuesting.Core/Actions/ActionAttempt.cs).
 Proof: [ActionBindingTests](../../tests/BrilliantQuesting.Core.Tests/ActionBindingTests.cs),
 [ActionEffectContractTests](../../tests/BrilliantQuesting.Core.Tests/ActionEffectContractTests.cs),
+[ActionPostconditionContractTests](../../tests/BrilliantQuesting.Core.Tests/ActionPostconditionContractTests.cs),
 [GoalActionBridgeTests](../../tests/BrilliantQuesting.Core.Tests/GoalActionBridgeTests.cs),
 [PlayerNpcActionSymmetryTests](../../tests/BrilliantQuesting.Core.Tests/PlayerNpcActionSymmetryTests.cs).
 Lab: [actor-action](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/ActorActionScenario.cs).
@@ -166,6 +186,10 @@ or universal institutional judgment. Unnoticed deeds must not leak through affin
 violence is not automatically murder. Witness reactions use `SocialPractices.NormFor` to read only
 practices bearing on the current event, using the same table as a full reading; nothing is cached
 across events. Consumers: social state, journal, developments, future acts.
+
+An act resolved where nobody's presence was read produces no witnesses, whatever the caller's
+witness list holds (BQa-013): `ActionSupport.Bystanders` refuses off screen rather than relying on
+each verb to remember, which is what keeps a hidden failure from costing somebody trust.
 
 Observed possession change (BQa-012) is the recorder's one actorless intake: a readback saying a
 thing is no longer whoever's the record says, which supersedes the standing claim and names no

@@ -91,6 +91,16 @@ namespace BrilliantQuesting.Actions.Library
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
 
+        /// <summary>
+        /// Success is the undertaking discharged (BQa-013), and nothing else counts: a purse that
+        /// would not cover it leaves the debt standing, the creditor waiting and the matter open,
+        /// which is a refusal rather than a settlement that happened to fail.
+        ///
+        /// No roll, so no performed failure - the money moves or the attempt did not happen.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.ObligationAltered);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -123,21 +133,20 @@ namespace BrilliantQuesting.Actions.Library
             if (debt == null)
             {
                 ActionOutcome refused = new ActionOutcome(Id, null, "There is no debt here to settle.");
-                refused.Notes.Add("no payable debt fact");
-                return refused;
+                return refused.Refuse("no payable debt fact");
             }
 
             if (!context.Vanilla.TrySpendMoney(context.Actor, context.Target, amount))
             {
                 ActionOutcome broke = new ActionOutcome(Id, null, "You cannot cover the debt.");
-                broke.Notes.Add("payment failed: insufficient funds at resolution time");
-                return broke;
+                return broke.Refuse("payment failed: insufficient funds at resolution time");
             }
 
             debt.Truth = TruthState.Superseded;
 
             string debtor = debt.Subject == context.Actor ? "your" : context.NameOf(debt.Subject) + "'s";
             ActionOutcome outcome = new ActionOutcome(Id, null, "You pay " + amount + " orens and settle " + debtor + " debt with " + context.NameOf(context.Target) + ".");
+            outcome.Change(SemanticEffects.ObligationAltered);
             outcome.Events.Add(context.World.Record(
                 WorldEventType.DebtPaid,
                 context.Actor,
@@ -188,8 +197,7 @@ namespace BrilliantQuesting.Actions.Library
             if (!DistressedBusinessSituation.TryMarkBought(context, out int cost, outcome))
             {
                 ActionOutcome refused = new ActionOutcome(Id, null, "There is no buyout to make here.");
-                refused.Notes.Add("no live distressed-business debt, business record, or payable funds at resolution time");
-                return refused;
+                return refused.Refuse("no live distressed-business debt, business record, or payable funds at resolution time");
             }
 
             outcome.Notes.Add("spent " + cost + " orens");
@@ -234,16 +242,14 @@ namespace BrilliantQuesting.Actions.Library
             if (business == null || debt == null)
             {
                 ActionOutcome refused = new ActionOutcome(Id, null, "There is no failed business here to reopen.");
-                refused.Notes.Add("no failed distressed-business record tied to this thread");
-                return refused;
+                return refused.Refuse("no failed distressed-business record tied to this thread");
             }
 
             int cost = DistressedBusinessSituation.RecoveryCost(amount);
             if (!context.Vanilla.TrySpendMoney(context.Actor, business.OperatorId, cost))
             {
                 ActionOutcome broke = new ActionOutcome(Id, null, "You cannot cover the reopening stake.");
-                broke.Notes.Add("payment failed for " + cost + " orens");
-                return broke;
+                return broke.Refuse("payment failed for " + cost + " orens");
             }
 
             CheckRequest request = new CheckRequest(
@@ -300,6 +306,16 @@ namespace BrilliantQuesting.Actions.Library
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
 
+        /// <summary>
+        /// Success is the shortage answered (BQa-013). Both of the other endings are refusals and
+        /// neither is a failure of the buyer: a shortage somebody else closed between the option
+        /// being drawn and being taken was never there to answer, and a purse the build would not
+        /// open bought nothing. Either way the demand record is untouched, and the next pressure
+        /// reading is entitled to still see it.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.ResourceSupplied);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.SpendMoney))
@@ -330,22 +346,21 @@ namespace BrilliantQuesting.Actions.Library
             if (demand == null)
             {
                 ActionOutcome refused = new ActionOutcome(Id, null, "There is no open shortage to buy for.");
-                refused.Notes.Add("no needs fact for " + context.NameOf(context.Target));
-                return refused;
+                return refused.Refuse("no needs fact for " + context.NameOf(context.Target));
             }
 
             int cost = ProcurementCost(spec);
             if (!context.Vanilla.TrySpendMoney(context.Actor, EntityId.None, cost))
             {
                 ActionOutcome broke = new ActionOutcome(Id, null, "You cannot cover the purchase.");
-                broke.Notes.Add("payment failed for " + cost + " orens");
-                return broke;
+                return broke.Refuse("payment failed for " + cost + " orens");
             }
 
             demand.Truth = TruthState.Superseded;
 
             ActionOutcome outcome = new ActionOutcome(Id, null,
                 "You spend " + cost + " orens and buy " + spec.Describe() + " for " + context.NameOf(context.Target) + ".");
+            outcome.Change(SemanticEffects.ResourceSupplied);
             ActionSupport.RelieveDemand(context, demand, spec, outcome, 25, 2);
             CloseTreatedTrouble(context, demand, spec, outcome);
             outcome.Events.Add(context.World.Record(
@@ -428,6 +443,15 @@ namespace BrilliantQuesting.Actions.Library
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
 
+        /// <summary>
+        /// Success is the cause mended, which is what distinguishes this from buying round it:
+        /// one shortage closes for everybody who depended on that supplier rather than only for
+        /// the person standing in front of you (BQa-013). An unpayable stake is a refusal - the
+        /// failure is still failing, and a later reading is entitled to see it.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.ResourceSupplied);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.SpendMoney))
@@ -458,21 +482,20 @@ namespace BrilliantQuesting.Actions.Library
             if (damage == null)
             {
                 ActionOutcome refused = new ActionOutcome(Id, null, "There is no supplier failure to invest in.");
-                refused.Notes.Add("no damaged cause with open dependent demand");
-                return refused;
+                return refused.Refuse("no damaged cause with open dependent demand");
             }
 
             int cost = InvestmentCost(context, cause);
             if (!context.Vanilla.TrySpendMoney(context.Actor, owner, cost))
             {
                 ActionOutcome broke = new ActionOutcome(Id, null, "The investment never leaves your purse.");
-                broke.Notes.Add("payment failed for " + cost + " orens");
-                return broke;
+                return broke.Refuse("payment failed for " + cost + " orens");
             }
 
             damage.Truth = TruthState.Superseded;
             ActionOutcome outcome = new ActionOutcome(Id, null,
                 "You put " + cost + " orens into " + context.NameOf(owner) + "'s failure, and the supply starts again.");
+            outcome.Change(SemanticEffects.ResourceSupplied);
             outcome.Events.Add(context.World.Record(
                 WorldEventType.Helped,
                 context.Actor,

@@ -21,6 +21,24 @@ namespace BrilliantQuesting.Actions.Library
                 SemanticSlots.Destination,
                 SemanticSlots.Purpose);
 
+        /// <summary>
+        /// Success is the authority coming to hold the claim (BQa-013) - acted on, written down
+        /// as needing proof, or filed with the rest of the talk. All three are disclosures that
+        /// landed, and none of them is a promise that anybody will do anything next: what the law
+        /// then does is its own autonomy, not this verb's postcondition.
+        ///
+        /// A rejection that rebounds is a performed failure, not a refusal. Nobody was taught,
+        /// and what changed instead is that it is now known the accuser said it - which is why
+        /// the accused is told through the same route somebody would actually have heard it.
+        ///
+        /// Saying it a second time with nothing new is refused outright. Without that it was not
+        /// a repeated accusation but an unlimited weapon: every rebound landed another defining
+        /// memory and another standing loss on the accused, for a claim nobody could prove.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.InformationDisclosed)
+            .Failing(FailureOutcomes.InformationRevealed, FailureOutcomes.OptionsTransformed);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -58,8 +76,7 @@ namespace BrilliantQuesting.Actions.Library
             if (fact == null)
             {
                 outcome = new ActionOutcome(Id, null, "There is nothing left to report.");
-                outcome.Notes.Add("the fact behind this report no longer exists");
-                return outcome;
+                return outcome.Refuse("the fact behind this report no longer exists");
             }
 
             // Saying it again, with nothing new, is not a second accusation. Without this a player
@@ -69,8 +86,7 @@ namespace BrilliantQuesting.Actions.Library
             if (AlreadyRebounded(context, fact.Id, decision.Response))
             {
                 outcome = new ActionOutcome(Id, null, who + " will not hear the same accusation twice without proof.");
-                outcome.Notes.Add("repeat accusation at " + decision.Evidence + "; already rebounded once, no new consequence");
-                return outcome;
+                return outcome.Refuse("repeat accusation at " + decision.Evidence + "; already rebounded once, no new consequence");
             }
 
             switch (decision.Response)
@@ -82,6 +98,7 @@ namespace BrilliantQuesting.Actions.Library
                 case AuthorityResponse.Acts:
                     TeachAuthority(context, fact.Id, confidence: 0.95, copyProof: true);
                     outcome = new ActionOutcome(Id, null, who + " takes the report seriously, and writes down what you can show them.");
+                    outcome.Change(SemanticEffects.InformationDisclosed);
                     outcome.Events.Add(Accusation(context, fact, WorldEventType.CrimeReported, 0.9, seen: true, decision));
                     outcome.Notes.Add("authority response: " + decision.Role + " accepted it on " + decision.Evidence);
                     outcome.Notes.Add("nobody acts on it yet; authority autonomy arrives at BQ-093");
@@ -90,6 +107,7 @@ namespace BrilliantQuesting.Actions.Library
                 case AuthorityResponse.OpensInquiry:
                     TeachAuthority(context, fact.Id, confidence: 0.65, copyProof: false);
                     outcome = new ActionOutcome(Id, null, who + " writes it down, and says they are not willing to act on your word alone.");
+                    outcome.Change(SemanticEffects.InformationDisclosed);
                     outcome.Events.Add(Accusation(context, fact, WorldEventType.InquiryOpened, 0.5, seen: false, decision));
                     outcome.Notes.Add("authority response: recorded, not actionable without proof");
                     break;
@@ -97,12 +115,13 @@ namespace BrilliantQuesting.Actions.Library
                 case AuthorityResponse.RejectsRumor:
                     TeachAuthority(context, fact.Id, confidence: 0.25, copyProof: false);
                     outcome = new ActionOutcome(Id, null, who + " files it with the rest of the talk and does nothing.");
+                    outcome.Change(SemanticEffects.InformationDisclosed);
                     outcome.Events.Add(Accusation(context, fact, WorldEventType.AccusationRejected, 0.25, seen: false, decision));
                     outcome.Notes.Add("authority response: filed as rumour");
                     break;
 
                 case AuthorityResponse.Rebounds:
-                    outcome = new ActionOutcome(Id, null, who + " will not act on this, and it is now known that you said it.");
+                    outcome = new ActionOutcome(Id, null, who + " will not act on this, and it is now known that you said it.").Fail();
 
                     // Truth decides which of these it was, not provability. A player who names
                     // the real thief and simply cannot prove it has not lied about anybody.
@@ -122,7 +141,7 @@ namespace BrilliantQuesting.Actions.Library
 
                 default:
                     outcome = new ActionOutcome(Id, null, who + " cannot act on this.");
-                    outcome.Notes.Add("authority response: unavailable");
+                    outcome.Refuse("authority response: unavailable");
                     break;
             }
 

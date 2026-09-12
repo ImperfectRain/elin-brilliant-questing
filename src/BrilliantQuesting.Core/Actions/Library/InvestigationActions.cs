@@ -33,6 +33,19 @@ namespace BrilliantQuesting.Actions.Library
                 "IVanillaState.TryTransferItem",
                 VanillaCapability.TransferItems));
 
+        /// <summary>
+        /// Success is the searcher coming to know the thing (BQa-013); the object being carried
+        /// out is the half that makes it provable and is declared as an extra rather than as a
+        /// requirement, because a trace with nothing recoverable behind it is still a find.
+        ///
+        /// Missing it leaves the scene exactly as it was and can be searched again. Ransacking
+        /// the place is what makes searching somebody else's scene a decision: nothing is found
+        /// and somebody has now seen you where you should not be.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.InformationLearned, SemanticEffects.PossessionTransferred)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (context.SubjectFact.IsNone)
@@ -73,6 +86,12 @@ namespace BrilliantQuesting.Actions.Library
                     outcome = new ActionOutcome(Id, check, recovered
                         ? "You find it - and you can carry it out with you."
                         : "You find the trace, though there is nothing here you could show anyone.");
+                    outcome.Change(SemanticEffects.InformationLearned);
+                    if (recovered)
+                    {
+                        outcome.Change(SemanticEffects.PossessionTransferred);
+                    }
+
                     outcome.Notes.Add("learned: " + ActionSupport.Describe(context, fact.Id) + (recovered ? " (provable)" : " (unprovable)"));
                     outcome.Events.Add(context.World.Record(WorldEventType.SecretLearned, context.Actor, fact.Subject, context.Now, 0.4, context.Zone, new[] { fact.Id }));
                     break;
@@ -193,6 +212,20 @@ namespace BrilliantQuesting.Actions.Library
         public override ActionEffects Effects => ActionEffects
             .Declaring(ActionEffect.Recorded(SemanticEffects.InformationDisclosed));
 
+        /// <summary>
+        /// Success is somebody else coming to hold the claim, and - where there was proof to show
+        /// them - being able to show it on themselves (BQa-013).
+        ///
+        /// Not being believed changes nothing: the claim stands, the proof is still yours, and
+        /// the route out is a different listener rather than a penalty. Being taken for an
+        /// inventor is the expensive one, because word gets back and the subject of the
+        /// accusation learns who is making it - a knowledge route, and the reason this branch
+        /// cannot be reached where nobody's presence was read.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.InformationDisclosed)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed, FailureOutcomes.OptionsTransformed);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -245,6 +278,7 @@ namespace BrilliantQuesting.Actions.Library
                     double confidence = check.Outcome == CheckOutcome.CriticalPass ? 1.0 : 0.8;
                     context.World.Knowledge.Teach(context.Target, factId, canProve ? KnowledgeSource.Document : KnowledgeSource.Hearsay, confidence, context.Now, canProve, context.Actor);
                     outcome = new ActionOutcome(Id, check, who + " believes you.");
+                    outcome.Change(SemanticEffects.InformationDisclosed);
                     outcome.Events.Add(context.World.Record(WorldEventType.SecretRevealed, context.Actor, fact.Subject, context.Now, canProve ? 0.9 : 0.6, context.Zone, new[] { factId }, seen));
                     outcome.Notes.Add(who + " now " + (canProve ? "can prove it too" : "believes it but cannot prove it"));
                     break;
@@ -315,6 +349,15 @@ namespace BrilliantQuesting.Actions.Library
                 "IVanillaState.GetInventory",
                 VanillaCapability.ReadInventory));
 
+        /// <summary>
+        /// Success is the other person placing the object (BQa-013). There is no roll and no
+        /// failure: either they recognise it or the verb was never available. What follows -
+        /// matters reopening because somebody could place it - is a consequence of the
+        /// disclosure, not a second outcome.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.InformationDisclosed);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -345,6 +388,7 @@ namespace BrilliantQuesting.Actions.Library
             string who = context.NameOf(context.Target);
             ActionOutcome outcome = new ActionOutcome(
                 Id, null, who + " knows the " + item.Name + " the moment they see it.");
+            outcome.Change(SemanticEffects.InformationDisclosed);
 
             // Recorded before anything is reopened, and with no claim on it: what happened is that
             // an object surfaced in front of somebody who could place it. Whoever is standing about

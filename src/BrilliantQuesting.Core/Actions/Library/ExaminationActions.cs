@@ -48,6 +48,21 @@ namespace BrilliantQuesting.Actions.Library
                 "IVanillaState.GetInventory",
                 VanillaCapability.ReadInventory));
 
+        /// <summary>
+        /// One classification for six disciplines (BQa-013), because they differ in what they can
+        /// read and not in what reading does. Success is the examiner coming to know a thing -
+        /// and, for a specialist, being able to walk somebody through it.
+        ///
+        /// The critical failure is the one that earns its own class: a confident wrong reading
+        /// leaves the examiner holding a false belief about somebody, which is a real change to
+        /// what they will try next without anything having been told, paid or broken. The truth
+        /// is untouched and can be argued back, and that is what makes it a transformation of
+        /// later options rather than harm.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.InformationLearned)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.OptionsTransformed);
+
         protected CheckProfile Profile { get; }
 
         /// <summary>What to say when there is nothing this discipline can be pointed at.</summary>
@@ -91,8 +106,7 @@ namespace BrilliantQuesting.Actions.Library
             if (!TryFindReading(context, out ItemDescriptor item, out Fact fact))
             {
                 ActionOutcome nothing = new ActionOutcome(Id, null, "There is nothing here for you to go over.");
-                nothing.Notes.Add(NothingToRead);
-                return nothing;
+                return nothing.Refuse(NothingToRead);
             }
 
             CheckRequest request = new CheckRequest(Profile, context.Actor, EntityId.None);
@@ -137,6 +151,7 @@ namespace BrilliantQuesting.Actions.Library
                 proofs);
 
             ActionOutcome outcome = new ActionOutcome(Id, check, item.Name + " tells you: " + ActionSupport.Describe(context, fact.Id) + ".");
+            outcome.Change(SemanticEffects.InformationLearned);
             outcome.Notes.Add("learned: " + ActionSupport.Describe(context, fact.Id) + (proves ? " (provable)" : " (unprovable)"));
             if (!proves)
             {

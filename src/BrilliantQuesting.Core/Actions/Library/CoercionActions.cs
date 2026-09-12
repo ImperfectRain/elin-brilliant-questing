@@ -26,6 +26,20 @@ namespace BrilliantQuesting.Actions.Library
                 SemanticSlots.Destination,
                 SemanticSlots.Purpose);
 
+        /// <summary>
+        /// A threat lands whatever the roll (BQa-013): every branch records it, and how the two
+        /// of them stand is different afterwards in all four. So success is standing changing,
+        /// failure is standing changing too, and the honest classification says so rather than
+        /// pretending that holding your nerve costs the person who was threatened nothing.
+        ///
+        /// What separates the branches is what comes with it - what they gave up, what the room
+        /// heard, and at the far end a fight the game resolves and BQ only records the start of.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.StandingAltered)
+            .Failing(FailureOutcomes.OptionsTransformed, FailureOutcomes.InformationRevealed, FailureOutcomes.HarmDone)
+            .AlsoChangingOnFailure(SemanticEffects.StandingAltered);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -75,6 +89,8 @@ namespace BrilliantQuesting.Actions.Library
             CheckResult check = context.Checks.Resolve(request, context.Rng);
             string who = context.NameOf(context.Target);
             IReadOnlyList<EntityId> seen = ActionSupport.Bystanders(context, true);
+            ActionOutcome Threatening(string narration) =>
+                new ActionOutcome(Id, check, narration).Change(SemanticEffects.StandingAltered);
 
             // Whether they have anything to give up decides the words as much as the roll does.
             // Narrating from the roll alone produced the first live run's worst line: "Ansel tells
@@ -92,13 +108,13 @@ namespace BrilliantQuesting.Actions.Library
                 case CheckOutcome.CriticalPass:
                     if (pressuredAdmission)
                     {
-                        outcome = new ActionOutcome(Id, check, who + " cracks and admits " + ActionSupport.Describe(context, factId) + ".");
+                        outcome = Threatening(who + " cracks and admits " + ActionSupport.Describe(context, factId) + ".");
                         Admit(context, factId, 0.9, outcome);
                         outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.7, context.Zone, related: new[] { factId }, witnesses: seen, tags: new[] { EventTags.Admission }, threadId: ThreadId(context)));
                         break;
                     }
 
-                    outcome = new ActionOutcome(Id, check, hasSomethingToGive
+                    outcome = Threatening(hasSomethingToGive
                         ? who + " folds completely and volunteers more than you asked for."
                         : Acknowledgement(who, binding, factId, context, "folds completely"));
                     RecordConcession(context, factId, 0.9, outcome, hasSomethingToGive);
@@ -108,13 +124,13 @@ namespace BrilliantQuesting.Actions.Library
                 case CheckOutcome.Pass:
                     if (pressuredAdmission)
                     {
-                        outcome = new ActionOutcome(Id, check, who + " understands exactly what you mean about " + binding.Describe(context) + ", but refuses to say it out loud.");
+                        outcome = Threatening(who + " understands exactly what you mean about " + binding.Describe(context) + ", but refuses to say it out loud.");
                         outcome.Notes.Add("withheld under pressure: " + ActionSupport.Describe(context, factId));
                         outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.6, context.Zone, related: new[] { factId }, witnesses: seen, tags: new[] { EventTags.Withheld }, threadId: ThreadId(context)));
                         break;
                     }
 
-                    outcome = new ActionOutcome(Id, check, hasSomethingToGive
+                    outcome = Threatening(hasSomethingToGive
                         ? who + " tells you what you want to know."
                         : Acknowledgement(who, binding, factId, context, "backs down"));
                     RecordConcession(context, factId, 0.7, outcome, hasSomethingToGive);
@@ -122,13 +138,13 @@ namespace BrilliantQuesting.Actions.Library
                     break;
 
                 case CheckOutcome.Fail:
-                    outcome = new ActionOutcome(Id, check, who + " holds their nerve and remembers this.");
+                    outcome = Threatening(who + " holds their nerve and remembers this.");
                     outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.5, context.Zone, related: Related(factId), witnesses: seen, threadId: ThreadId(context)));
                     break;
 
                 default:
                     // Elin's favourite kind of failure: your threat is misread as a challenge.
-                    outcome = new ActionOutcome(Id, check, who + " takes it as a challenge and swings first.");
+                    outcome = Threatening(who + " takes it as a challenge and swings first.");
                     outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.5, context.Zone, related: Related(factId), witnesses: seen, threadId: ThreadId(context)));
                     outcome.Events.Add(context.World.Record(WorldEventType.Attacked, context.Target, context.Actor, context.Now, 0.5, context.Zone, related: Related(factId), witnesses: seen, threadId: ThreadId(context)));
                     outcome.Notes.Add("combat is Elin's to resolve; the simulation only records that it started");
@@ -207,6 +223,20 @@ namespace BrilliantQuesting.Actions.Library
                 SemanticSlots.Destination,
                 SemanticSlots.Purpose);
 
+        /// <summary>
+        /// The money moving is what makes this an act at all (BQa-013), so success is standing
+        /// bought; a purse the build would not open is a refusal, and nothing about it may read
+        /// as an offer anybody heard.
+        ///
+        /// Once the coin has changed hands every ending has been paid for. Failing means they
+        /// took it and gave nothing back; failing badly means they took it, kept it and told
+        /// people - which is the one branch where what it cost is more than the orens.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.StandingAltered)
+            .Failing(FailureOutcomes.CostPaid, FailureOutcomes.InformationRevealed, FailureOutcomes.OptionsTransformed)
+            .AlsoChangingOnFailure(SemanticEffects.StandingAltered);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -267,8 +297,7 @@ namespace BrilliantQuesting.Actions.Library
             if (!context.Vanilla.TrySpendMoney(context.Actor, context.Target, price))
             {
                 ActionOutcome broke = new ActionOutcome(Id, check, "You cannot cover the offer.");
-                broke.Notes.Add("payment failed: insufficient funds at resolution time");
-                return broke;
+                return broke.Refuse("payment failed: insufficient funds at resolution time");
             }
 
             // As with intimidation: whether they have anything to sell decides the words. A
@@ -279,7 +308,7 @@ namespace BrilliantQuesting.Actions.Library
             switch (check.Outcome)
             {
                 case CheckOutcome.CriticalPass:
-                    outcome = new ActionOutcome(Id, check, who + " takes the money and decides you are worth keeping happy.");
+                    outcome = new ActionOutcome(Id, check, who + " takes the money and decides you are worth keeping happy.").Change(SemanticEffects.StandingAltered);
                     Reveal(context, factId, 0.9, outcome);
                     outcome.Events.Add(context.World.Record(WorldEventType.Bribed, context.Actor, context.Target, context.Now, 0.7, context.Zone));
                     break;
@@ -287,20 +316,21 @@ namespace BrilliantQuesting.Actions.Library
                 case CheckOutcome.Pass:
                     outcome = new ActionOutcome(Id, check, hasSomethingToSell
                         ? who + " pockets it and talks."
-                        : who + " pockets it, willing enough - but they have nothing you do not already know.");
+                        : who + " pockets it, willing enough - but they have nothing you do not already know.")
+                        .Change(SemanticEffects.StandingAltered);
                     Reveal(context, factId, 0.7, outcome);
                     outcome.Events.Add(context.World.Record(WorldEventType.Bribed, context.Actor, context.Target, context.Now, 0.5, context.Zone));
                     break;
 
                 case CheckOutcome.Fail:
-                    outcome = new ActionOutcome(Id, check, who + " takes the money, says nothing useful, and looks unimpressed.");
+                    outcome = new ActionOutcome(Id, check, who + " takes the money, says nothing useful, and looks unimpressed.").Change(SemanticEffects.StandingAltered);
                     outcome.Events.Add(context.World.Record(WorldEventType.Bribed, context.Actor, context.Target, context.Now, 0.3, context.Zone));
                     outcome.Notes.Add("paid " + price + " orens for nothing");
                     break;
 
                 default:
                     // The money is gone and they are insulted. Both halves matter.
-                    outcome = new ActionOutcome(Id, check, who + " is insulted, keeps the money anyway, and tells people you tried to buy them.");
+                    outcome = new ActionOutcome(Id, check, who + " is insulted, keeps the money anyway, and tells people you tried to buy them.").Change(SemanticEffects.StandingAltered);
                     outcome.Events.Add(context.World.Record(WorldEventType.Theft, context.Target, context.Actor, context.Now, 0.4, context.Zone));
                     outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.3, context.Zone, witnesses: ActionSupport.Bystanders(context, true)));
                     break;

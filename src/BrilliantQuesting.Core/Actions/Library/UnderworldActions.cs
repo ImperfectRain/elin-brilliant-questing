@@ -155,6 +155,20 @@ namespace BrilliantQuesting.Actions.Library
             ActionEffect.Recorded(SemanticEffects.EvidenceRemoved));
 
         /// <summary>
+        /// Success is the object gone from your keeping and no longer producible by you (BQa-013).
+        /// The orens are not part of it: a receiver who takes the goods and owes you for them has
+        /// still moved the thing, and that is the change the verb exists for, so "he has it and
+        /// has not paid" is a success that says so rather than a failure. A transfer the build
+        /// would not carry is a refusal - nothing moved and no money was involved either way.
+        ///
+        /// Being haggled down leaves the goods, the proof and the quiet intact. Haggling too
+        /// loudly leaves all three of those and adds a room that watched you try to move it.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.PossessionTransferred, SemanticEffects.EvidenceRemoved)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed);
+
+        /// <summary>
         /// Not player-specific in meaning - a village blacksmith has a fence too - and refused for
         /// anybody else all the same, because whether the receiver deals with somebody is read
         /// entirely off the player's Thieves' card, Karma and personal goodwill
@@ -198,8 +212,7 @@ namespace BrilliantQuesting.Actions.Library
             if (contact.IsNone || goods == null)
             {
                 ActionOutcome nobody = new ActionOutcome(Id, null, "There is no one here to take it off you.");
-                nobody.Notes.Add("no fence in reach, or nothing to sell");
-                return nobody;
+                return nobody.Refuse("no fence in reach, or nothing to sell");
             }
 
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Fencing, context.Actor, contact)
@@ -221,20 +234,21 @@ namespace BrilliantQuesting.Actions.Library
                     if (!context.Vanilla.TryTransferItem(goods.Id, context.Actor, contact))
                     {
                         outcome = new ActionOutcome(Id, check, "The " + goods.Name + " will not leave your hands.");
-                        outcome.Notes.Add("transfer refused; no money changed hands");
-                        return outcome;
+                        return outcome.Refuse("transfer refused; no money changed hands");
                     }
 
                     bool paid = offer > 0 && context.Vanilla.TrySpendMoney(contact, context.Actor, offer);
                     outcome = new ActionOutcome(Id, check, paid
                         ? who + " takes the " + goods.Name + " and counts out " + offer + " orens without a word about it."
                         : who + " takes the " + goods.Name + " and owes you for it.");
+                    outcome.Change(SemanticEffects.PossessionTransferred);
 
                     outcome.Events.Add(context.World.Record(
                         WorldEventType.ItemGiven, context.Actor, contact, context.Now, 0.4, context.Zone,
                         evidence: new[] { goods.Id }, tags: new[] { EventTags.Unnoticed },
                         threadId: context.Thread?.Id ?? EntityId.None));
 
+                    outcome.Change(SemanticEffects.EvidenceRemoved);
                     LoseProof(context, goods, outcome);
                     outcome.Notes.Add(paid ? "sold for " + offer + " orens" : "handed over; the payment did not come");
                     break;
@@ -327,6 +341,20 @@ namespace BrilliantQuesting.Actions.Library
             ActionEffect.Recorded(SemanticEffects.EvidenceRemoved));
 
         /// <summary>
+        /// Success is a claim that can now be shown on paper (BQa-013). The fee is spent before
+        /// the roll, so both failures are paid for: an ordinary one buys nothing at all, and a
+        /// bad one destroys the exemplar - the one branch in this verb where failing takes a real
+        /// object out of the world, which is why evidence removal is declared for failure too
+        /// instead of happening quietly.
+        ///
+        /// An unpayable price never reaches the work and is a refusal.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.EvidenceCreated)
+            .Failing(FailureOutcomes.CostPaid, FailureOutcomes.OptionsTransformed)
+            .AlsoChangingOnFailure(SemanticEffects.EvidenceRemoved);
+
+        /// <summary>
         /// Not player-specific in meaning - a village blacksmith has a fence too - and refused for
         /// anybody else all the same, because whether the receiver deals with somebody is read
         /// entirely off the player's Thieves' card, Karma and personal goodwill
@@ -376,16 +404,14 @@ namespace BrilliantQuesting.Actions.Library
             if (contact.IsNone || exemplar == null || claim == null)
             {
                 ActionOutcome nothing = new ActionOutcome(Id, null, "There is nothing here to have made.");
-                nothing.Notes.Add("no forger in reach, no exemplar, or nothing worth forging");
-                return nothing;
+                return nothing.Refuse("no forger in reach, no exemplar, or nothing worth forging");
             }
 
             int price = Price(claim);
             if (!context.Vanilla.TrySpendMoney(context.Actor, contact, price))
             {
                 ActionOutcome broke = new ActionOutcome(Id, null, "He names his price, and you cannot meet it.");
-                broke.Notes.Add("payment of " + price + " orens failed");
-                return broke;
+                return broke.Refuse("payment of " + price + " orens failed");
             }
 
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Fabrication, context.Actor, contact);
@@ -425,6 +451,7 @@ namespace BrilliantQuesting.Actions.Library
                     outcome = new ActionOutcome(Id, check, clean
                         ? who + " hands back the " + exemplar.Name + ", and there is nothing in it to argue with."
                         : who + " hands back the " + exemplar.Name + ", and it will pass unless somebody sits down with it.");
+                    outcome.Change(SemanticEffects.EvidenceCreated);
                     outcome.Events.Add(context.World.Record(
                         WorldEventType.EvidenceCreated, context.Actor, claim.Subject, context.Now, 0.7, context.Zone,
                         new[] { claim.Id, forgery.Id }, evidence: new[] { exemplar.Id },
@@ -453,6 +480,7 @@ namespace BrilliantQuesting.Actions.Library
                         : who + " makes a mess of it and hands back something nobody would look at twice.");
                     if (ruined)
                     {
+                        outcome.Change(SemanticEffects.EvidenceRemoved);
                         context.World.Knowledge.RevokeProofOfItem(exemplar.Id);
                         outcome.Events.Add(context.World.Record(
                             WorldEventType.EvidenceDestroyed, context.Actor, contact, context.Now, 0.5, context.Zone,
@@ -545,6 +573,21 @@ namespace BrilliantQuesting.Actions.Library
             ActionEffect.Recorded(SemanticEffects.EvidenceRemoved));
 
         /// <summary>
+        /// Success is the cargo reaching somebody else past whoever would have stopped it
+        /// (BQa-013), and with it the sender's own ability to produce the thing. A transfer the
+        /// build would not carry is a refusal: the cargo is still yours and no run was made.
+        ///
+        /// A carrier who will not take it this week costs nothing. A run taken on the road costs
+        /// the cargo outright - declared, because a failure that quietly destroyed an object
+        /// would be exactly the undeclared state movement this classification exists to catch -
+        /// or, where it cannot be destroyed, costs the quiet instead.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.PossessionTransferred, SemanticEffects.EvidenceRemoved)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.CostPaid, FailureOutcomes.InformationRevealed)
+            .AlsoChangingOnFailure(SemanticEffects.EvidenceRemoved);
+
+        /// <summary>
         /// Not player-specific in meaning - a village blacksmith has a fence too - and refused for
         /// anybody else all the same, because whether the receiver deals with somebody is read
         /// entirely off the player's Thieves' card, Karma and personal goodwill
@@ -591,8 +634,7 @@ namespace BrilliantQuesting.Actions.Library
             if (carrier.IsNone || cargo == null || context.ThirdParty.IsNone)
             {
                 ActionOutcome nothing = new ActionOutcome(Id, null, "There is no one here to carry anything anywhere.");
-                nothing.Notes.Add("no smuggler in reach, no cargo, or no recipient");
-                return nothing;
+                return nothing.Refuse("no smuggler in reach, no cargo, or no recipient");
             }
 
             CheckRequest request = new CheckRequest(ProceduralCheckProfiles.Smuggling, context.Actor, carrier)
@@ -611,11 +653,12 @@ namespace BrilliantQuesting.Actions.Library
                     if (!context.Vanilla.TryTransferItem(cargo.Id, context.Actor, context.ThirdParty))
                     {
                         outcome = new ActionOutcome(Id, check, "The " + cargo.Name + " does not go anywhere.");
-                        outcome.Notes.Add("transfer refused; the cargo is still yours");
-                        return outcome;
+                        return outcome.Refuse("transfer refused; the cargo is still yours");
                     }
 
                     outcome = new ActionOutcome(Id, check, "The " + cargo.Name + " reaches " + recipient + ", and no one who would have stopped it ever saw it.");
+                    outcome.Change(SemanticEffects.PossessionTransferred);
+                    outcome.Change(SemanticEffects.EvidenceRemoved);
                     outcome.Events.Add(context.World.Record(
                         WorldEventType.ItemGiven, context.Actor, context.ThirdParty, context.Now, 0.4, context.Zone,
                         evidence: new[] { cargo.Id }, tags: new[] { EventTags.Unnoticed },
@@ -642,6 +685,7 @@ namespace BrilliantQuesting.Actions.Library
 
                     if (lost)
                     {
+                        outcome.Change(SemanticEffects.EvidenceRemoved);
                         context.World.Knowledge.RevokeProofOfItem(cargo.Id);
                         outcome.Events.Add(context.World.Record(
                             WorldEventType.EvidenceDestroyed, context.Actor, context.ThirdParty, context.Now, 0.6, context.Zone,

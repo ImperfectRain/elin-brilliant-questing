@@ -90,6 +90,23 @@ namespace BrilliantQuesting.Actions
         public virtual ActionEffects Effects => ActionEffects.Undeclared;
 
         /// <summary>
+        /// What each of the three endings of this verb actually leaves behind (BQa-013).
+        ///
+        /// The fifth declaration, and the one with teeth. <see cref="Effects"/> is capability -
+        /// what could ever change - and is read before anybody attempts anything. This is the
+        /// postcondition contract, read afterwards: which of those changes success means, what a
+        /// performed failure may leave, and - by the fact that refusal is not declared at all -
+        /// that an attempt which never happened changes and records nothing.
+        ///
+        /// <see cref="Perform"/> holds the outcome to the success half rather than trusting it,
+        /// which is what stops an unsupported native write from being narrated as a deed.
+        /// <see cref="ActionPostconditions.Undeclared"/> by default, and reported as a gap by
+        /// <see cref="ActionRegistry.PostconditionCoverage"/> rather than read as "failing this
+        /// costs nothing".
+        /// </summary>
+        public virtual ActionPostconditions Postconditions => ActionPostconditions.Undeclared;
+
+        /// <summary>
         /// Whether this verb claims that kind of change at all, and - for a half vanilla has to
         /// carry - whether this build could carry it. Side-effect free, like every other question
         /// asked of a verb before it is taken.
@@ -128,6 +145,14 @@ namespace BrilliantQuesting.Actions
         /// Fails closed rather than trusting the caller: an attempt by an actor this verb does not
         /// admit produces a refusal outcome with no roll and no events, instead of running a body
         /// that would read the player's purse, standing or Home.
+        ///
+        /// It is also where the verb's <see cref="Postconditions"/> stop being documentation
+        /// (BQa-013). A verb that says success means an object changed hands, and whose outcome
+        /// recorded no such change, is demoted to <see cref="ActionResolution.Refused"/> here -
+        /// before any caller, autonomy pass or chronicle can read it as a deed. Holding the
+        /// outcome to the claim in the one place every attempt passes through is the difference
+        /// between a contract and a comment: no verb can forget it, and a build that cannot carry
+        /// a write cannot accumulate a history of things that did not happen.
         /// </summary>
         public ActionOutcome Perform(ActionContext context)
         {
@@ -135,19 +160,28 @@ namespace BrilliantQuesting.Actions
             if (!admits.IsAvailable)
             {
                 ActionOutcome refused = new ActionOutcome(Id, null, "That is not something they can do.");
-                refused.Notes.Add("refused before any roll: " + admits.Reason);
+                refused.Refuse("refused before any roll: " + admits.Reason);
                 refused.Embodiment = Embodiment;
                 refused.Observation = context.Observation;
                 return refused;
             }
 
             ActionOutcome outcome = PerformCore(context);
-            if (outcome != null)
+            if (outcome == null)
             {
-                outcome.Embodiment = Embodiment;
-                outcome.Observation = context.Observation;
+                return null;
             }
 
+            outcome.Embodiment = Embodiment;
+            outcome.Observation = context.Observation;
+
+            if (outcome.Resolution == ActionResolution.Succeeded
+                && !ActionPostconditionAudit.CarriedItsSuccess(Postconditions, outcome))
+            {
+                outcome.Refuse(Id + " claims success only where it changes something it declared, and nothing did");
+            }
+
+            outcome.ContractViolations.AddRange(ActionPostconditionAudit.Check(this, outcome));
             return outcome;
         }
 

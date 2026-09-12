@@ -2789,3 +2789,48 @@ Reason: every failure here is silent. A pressure derived from a world that has m
 about a shop it has not heard of, a missing ring with a thief attached and a reconciliation that
 tells the same story twice all produce a plausible save and a plausible actor, and none of them trips
 anything that was not written to look for it.
+
+## D089 — A verb says what each of its endings leaves behind, and the library holds every attempt to it
+
+BQa-010 gave a verb a fourth declaration: which kinds of state change it could potentially advance.
+That answers what a want should look at before anybody attempts anything. It says nothing about what
+is true afterwards, and afterwards is where the quiet failures live.
+
+**Three endings, not two.** A failure and a refusal both end with the actor holding nothing, and they
+are not the same event in the world. A failure happened - there is a roll, a moment, and usually a
+room that saw it, and the fallout is real. A refusal did not: the purse would not cover it, the item
+would not move, the shortage had already been answered. `ActionOutcome.Succeeded` used to be read off
+the roll alone, so every verb resolving without one reported success whatever the seam had said, and
+a build that could not carry a write accumulated a history of things that did not happen - a theft
+closed with the ring still in the thief's pocket, a debt settled with no money moved. The enum is
+the fix, and the distinction is the point of it.
+
+**Success is a checkable claim, checked in one place.** A verb declares what success changes; the
+outcome records what it actually changed, at the line after the write where the answer is known; and
+`NarrativeAction.Perform` demotes a success claim with nothing behind it to a refusal before any
+caller, autonomy pass or chronicle can read it as a deed. Holding the outcome to the claim in the one
+place every attempt passes through is the difference between a contract and a comment: no verb can
+forget it, and no reviewer has to remember it. An undeclared verb is left entirely alone - an
+unclassified verb is a coverage gap `ActionRegistry.PostconditionCoverage` reports, never a breach
+invented against it.
+
+**Failure is classified, not required to cost something.** The five shapes are read off what the
+library already does: nothing changed, something was revealed, something was paid, somebody was
+hurt, what can be tried next is different. Which one happens depends on the act, the observers and
+the roll. There is deliberately no rule that a failure must add a complication - a lie nobody
+believed leaves the world byte-identical, and that is the honest answer, not a gap somebody should
+fill. The classification's teeth are on the other side: a failure that moves state its verb never
+declared is reported, because a verb quietly doing something on the way to not working is
+indistinguishable from one that worked.
+
+**A refusal is not an occurrence, and a hidden act has no witnesses.** A refused attempt records no
+change and no event, so an event label can never stand in for the change it names. And an act
+resolved where nobody's presence was read has no bystanders to offer, whatever the caller's witness
+list says - the structural version of a guard one verb family had already written out by hand. That
+is the only route by which a hidden failure could cost somebody trust, and closing it in
+`ActionSupport.Bystanders` makes it a property of the library rather than of each verb's memory.
+
+Reason: every failure here produces a plausible narration, a plausible ledger entry and a world that
+has not moved. Nothing crashes, nothing looks wrong, and the save is indistinguishable from one where
+the deed happened - which is why the check is a gate on the shared path rather than a rule in a
+document.

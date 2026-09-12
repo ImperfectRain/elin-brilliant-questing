@@ -163,8 +163,7 @@ namespace BrilliantQuesting.Situations
             if (!feasibility.IsPossible)
             {
                 ActionOutcome refused = new ActionOutcome(actionId, null, "You cannot: " + feasibility.Reason);
-                refused.Notes.Add("blocked before any roll: " + feasibility.Reason);
-                return refused;
+                return refused.Refuse("blocked before any roll: " + feasibility.Reason);
             }
 
             return action.Perform(context);

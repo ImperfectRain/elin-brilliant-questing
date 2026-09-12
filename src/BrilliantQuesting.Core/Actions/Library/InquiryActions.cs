@@ -83,6 +83,18 @@ namespace BrilliantQuesting.Actions.Library
         public override ActionEffects Effects => ActionEffects
             .Declaring(ActionEffect.Recorded(SemanticEffects.InformationLearned));
 
+        /// <summary>
+        /// Success is the follower coming to know where somebody went (BQa-013) - inference from
+        /// the ground, never proof: tracks are not a thing you can pick up and show a guard.
+        ///
+        /// A ground too walked-over to read costs nothing and can be read again. Casting about
+        /// too long instead puts the searcher in front of somebody who wants to know why they
+        /// are here, which is a knowledge route out of the failure and not a manufactured one.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.InformationLearned)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (context.Zone.IsNone)
@@ -101,8 +113,7 @@ namespace BrilliantQuesting.Actions.Library
             if (quarry.IsNone)
             {
                 ActionOutcome cold = new ActionOutcome(Id, null, "The ground here has nothing left to say.");
-                cold.Notes.Add("no readable trail in " + context.Zone);
-                return cold;
+                return cold.Refuse("no readable trail in " + context.Zone);
             }
 
             CheckResult check = context.Checks.Resolve(
@@ -118,8 +129,7 @@ namespace BrilliantQuesting.Actions.Library
                     if (where.IsNone)
                     {
                         ActionOutcome lost = new ActionOutcome(Id, check, "The trail runs out somewhere you cannot follow.");
-                        lost.Notes.Add("the world has no current location for " + context.NameOf(quarry));
-                        return lost;
+                        return lost.Refuse("the world has no current location for " + context.NameOf(quarry));
                     }
 
                     Fact placed = Whereabouts.Record(context.World, quarry, where, context.NameOf(where));
@@ -134,6 +144,7 @@ namespace BrilliantQuesting.Actions.Library
                         false);
 
                     ActionOutcome outcome = new ActionOutcome(Id, check, "The ground says " + context.NameOf(quarry) + " was here, and where they went.");
+                    outcome.Change(SemanticEffects.InformationLearned);
                     outcome.Notes.Add("learned: " + ActionSupport.Describe(context, placed.Id) + " (unprovable)");
                     outcome.Events.Add(context.World.Record(
                         WorldEventType.SecretLearned,
@@ -231,6 +242,18 @@ namespace BrilliantQuesting.Actions.Library
         public override ActionEffects Effects => ActionEffects
             .Declaring(ActionEffect.Recorded(SemanticEffects.InformationLearned));
 
+        /// <summary>
+        /// Success is placing somebody, and at the far end seeing them do a thing yourself - the
+        /// one route to proof that needs no object at all (BQa-013).
+        ///
+        /// Losing them in the traffic gives nothing away, which is the point of the branch. Being
+        /// turned on is the cost: the quarry now knows somebody is following them, and that is
+        /// the shape of every failure in this verb that is not silent.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.InformationLearned)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target) || context.Target == context.Actor)
@@ -305,12 +328,14 @@ namespace BrilliantQuesting.Actions.Library
             ActionOutcome outcome = new ActionOutcome(Id, check, narration);
             if (where.IsNone)
             {
-                outcome.Notes.Add("the world has no current location for " + context.NameOf(context.Target));
-                return outcome;
+                // The tail went fine and the world would not say where they stopped. Nobody
+                // learned anything, so nothing may read as though they had.
+                return outcome.Refuse("the world has no current location for " + context.NameOf(context.Target));
             }
 
             Fact placed = Whereabouts.Record(context.World, context.Target, where, context.NameOf(where));
             context.World.Knowledge.Teach(context.Actor, placed.Id, KnowledgeSource.Inference, 0.85, context.Now, false);
+            outcome.Change(SemanticEffects.InformationLearned);
             outcome.Notes.Add("learned: " + ActionSupport.Describe(context, placed.Id) + " (unprovable)");
             return outcome;
         }
@@ -370,6 +395,15 @@ namespace BrilliantQuesting.Actions.Library
         public override ActionEffects Effects => ActionEffects
             .Declaring(ActionEffect.Recorded(SemanticEffects.InformationLearned));
 
+        /// <summary>
+        /// Success is hearsay: something heard, believed, and not provable by having heard it
+        /// (BQa-013). Voices dropped before anything useful is the quiet failure, and the loud
+        /// one is the talkers noticing who was standing there.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.InformationLearned)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             List<EntityId> present = Talkers(context);
@@ -390,8 +424,7 @@ namespace BrilliantQuesting.Actions.Library
             if (overheard == null)
             {
                 ActionOutcome quiet = new ActionOutcome(Id, null, "Nothing worth hearing is being said.");
-                quiet.Notes.Add("no fact present that the actor does not already hold");
-                return quiet;
+                return quiet.Refuse("no fact present that the actor does not already hold");
             }
 
             CheckResult check = context.Checks.Resolve(
@@ -413,6 +446,7 @@ namespace BrilliantQuesting.Actions.Library
                         speaker);
 
                     ActionOutcome outcome = new ActionOutcome(Id, check, "You catch enough of it to be worth the standing about.");
+                    outcome.Change(SemanticEffects.InformationLearned);
                     outcome.Notes.Add("overheard from " + context.NameOf(speaker) + ": " + ActionSupport.Describe(context, overheard.Id) + " (hearsay, unprovable)");
                     outcome.Events.Add(context.World.Record(
                         WorldEventType.SecretLearned,
@@ -522,6 +556,21 @@ namespace BrilliantQuesting.Actions.Library
         public override ActionEffects Effects => ActionEffects
             .Declaring(ActionEffect.Recorded(SemanticEffects.InformationLearned));
 
+        /// <summary>
+        /// Success is one of two stories stopping standing up, and the examiner knowing which
+        /// (BQa-013). Both still sounding equally likely changes nothing at all and can be tried
+        /// again once there is more to weigh.
+        ///
+        /// Reconciling them the wrong way round is the branch that earns a class of its own: the
+        /// truth is untouched and still in the graph, nobody was told and nothing was spent, and
+        /// what has changed is only who this person will now go after. That is exactly a
+        /// transformation of later options, and it is declared rather than left to look like
+        /// learning - nobody came to know anything here.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.InformationLearned)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.OptionsTransformed);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             return FindConflict(context, out Fact _, out Fact _)
@@ -534,8 +583,7 @@ namespace BrilliantQuesting.Actions.Library
             if (!FindConflict(context, out Fact truth, out Fact falsehood))
             {
                 ActionOutcome nothing = new ActionOutcome(Id, null, "Everything you have been told hangs together.");
-                nothing.Notes.Add("no two beliefs are versions of the same claim");
-                return nothing;
+                return nothing.Refuse("no two beliefs are versions of the same claim");
             }
 
             CheckResult check = context.Checks.Resolve(
@@ -550,6 +598,7 @@ namespace BrilliantQuesting.Actions.Library
                     Settle(context, keep: truth, drop: falsehood, confidence: check.Outcome == CheckOutcome.CriticalPass ? 0.95 : 0.8);
 
                     ActionOutcome outcome = new ActionOutcome(Id, check, "Held against each other, one of the two stories stops standing up.");
+                    outcome.Change(SemanticEffects.InformationLearned);
                     outcome.Notes.Add("kept: " + ActionSupport.Describe(context, truth.Id));
                     outcome.Notes.Add("discarded: " + ActionSupport.Describe(context, falsehood.Id));
                     NameTheLiar(context, truth, falsehood, outcome);

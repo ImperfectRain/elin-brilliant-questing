@@ -23,6 +23,16 @@ namespace BrilliantQuesting.Actions.Library
             .Declaring(ActionEffect.Recorded(SemanticEffects.StandingAltered));
 
         /// <summary>
+        /// No roll and no failure (BQa-013): talking to somebody pleasantly works, and what it
+        /// changes is how warmly they hear the next thing. Declaring it is not a formality -
+        /// success here must never be read as having answered the matter it was spoken about,
+        /// which is what <see cref="NarrativeAction.SettlesMatters"/> already says and what this
+        /// keeps saying in the vocabulary a goal reads.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.StandingAltered);
+
+        /// <summary>
         /// How warm small talk can make somebody before it stops being small talk. Chosen low on
         /// purpose: rapport is a way in, not a substitute for doing anything.
         /// </summary>
@@ -62,6 +72,7 @@ namespace BrilliantQuesting.Actions.Library
         {
             string who = context.NameOf(context.Target);
             ActionOutcome outcome = new ActionOutcome(Id, null, "You keep the conversation light. " + who + " seems a little more willing to hear you out.");
+            outcome.Change(SemanticEffects.StandingAltered);
             EntityId matter = ActionBinding.Infer(context).PropositionFact;
             EntityId[] related = matter.IsNone ? null : new[] { matter };
             outcome.Events.Add(context.World.Record(WorldEventType.Helped, context.Actor, context.Target, context.Now, 0.2, context.Zone, related: related, threadId: ThreadId(context)));
@@ -133,6 +144,19 @@ namespace BrilliantQuesting.Actions.Library
         public override ActionEffects Effects => ActionEffects
             .Declaring(ActionEffect.Recorded(SemanticEffects.InformationLearned));
 
+        /// <summary>
+        /// Success is being told something (BQa-013), provable at the far end where they hand
+        /// over what backs it up and hearsay otherwise.
+        ///
+        /// Having nothing to say to you costs nothing. The bad branch costs the thing that makes
+        /// asking around a decision: they mention your interest to the wrong person, so the
+        /// subject of the question learns somebody is asking - a route somebody actually walked,
+        /// not a witness the failure invented.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.InformationLearned)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -178,6 +202,7 @@ namespace BrilliantQuesting.Actions.Library
                         canProve ? targetBelief.Proofs : null,
                         context.Target);
                     outcome = new ActionOutcome(Id, check, who + " tells you everything, and offers to back it up.");
+                    outcome.Change(SemanticEffects.InformationLearned);
                     outcome.Notes.Add("learned: " + ActionSupport.Describe(context, factId));
                     outcome.Events.Add(context.World.Record(WorldEventType.Conversed, context.Actor, context.Target, context.Now, 0.4, context.Zone, new[] { factId }));
                     break;
@@ -185,6 +210,7 @@ namespace BrilliantQuesting.Actions.Library
                 case CheckOutcome.Pass:
                     context.World.Knowledge.Teach(context.Actor, factId, ActionSupport.DisclosureSource(context, factId), 0.6, context.Now, false, context.Target);
                     outcome = new ActionOutcome(Id, check, who + " tells you what they heard.");
+                    outcome.Change(SemanticEffects.InformationLearned);
                     outcome.Notes.Add("learned (hearsay, unprovable): " + ActionSupport.Describe(context, factId));
                     outcome.Events.Add(context.World.Record(WorldEventType.Conversed, context.Actor, context.Target, context.Now, 0.3, context.Zone));
                     break;
@@ -241,6 +267,21 @@ namespace BrilliantQuesting.Actions.Library
                 SemanticSlots.Destination,
                 SemanticSlots.Purpose);
 
+        /// <summary>
+        /// Success is somebody undertaking to help (BQa-013) - an agreement recorded against
+        /// them, and at the far end goodwill with it.
+        ///
+        /// Being turned down is allowed to stand and to cost nothing: asking is the gamble, and
+        /// the refusal used to reach into the obligation ledger and spend an open favour, which
+        /// quietly took the strongest reward in the vocabulary out of the player's hands.
+        /// Pressing too hard is the branch with a price - the ask stops reading as an ask, and
+        /// whoever was standing there heard it.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.ObligationAltered, SemanticEffects.StandingAltered)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed, FailureOutcomes.OptionsTransformed)
+            .AlsoChangingOnFailure(SemanticEffects.StandingAltered);
+
         // BQ-090. Somebody standing there deciding who passes is answered by asking them, and
         // being let through is `NarrativeSite.Admit` - nothing on the live build has to exist for
         // it. Declared here and not on the other social verbs because only the verbs that end in
@@ -289,6 +330,8 @@ namespace BrilliantQuesting.Actions.Library
                 case CheckOutcome.CriticalPass:
                 {
                     ActionOutcome outcome = new ActionOutcome(Id, check, who + " agrees to help with " + purpose + ", and seems glad to have been asked.");
+                    outcome.Change(SemanticEffects.ObligationAltered);
+                    outcome.Change(SemanticEffects.StandingAltered);
                     outcome.Events.Add(context.World.Record(WorldEventType.PromiseMade, context.Target, context.Actor, context.Now, 0.6, context.Zone, related: Related(binding), threadId: ThreadId(context)));
                     outcome.Events.Add(context.World.Record(WorldEventType.Helped, context.Actor, context.Target, context.Now, 0.4, context.Zone));
                     AdmitRestrictedSite(context, outcome);
@@ -298,6 +341,7 @@ namespace BrilliantQuesting.Actions.Library
                 case CheckOutcome.Pass:
                 {
                     ActionOutcome outcome = new ActionOutcome(Id, check, who + " agrees to help with " + purpose + ".");
+                    outcome.Change(SemanticEffects.ObligationAltered);
                     outcome.Events.Add(context.World.Record(WorldEventType.PromiseMade, context.Target, context.Actor, context.Now, 0.5, context.Zone, related: Related(binding), threadId: ThreadId(context)));
                     AdmitRestrictedSite(context, outcome);
                     return outcome;
@@ -310,6 +354,7 @@ namespace BrilliantQuesting.Actions.Library
                 {
                     // Pushed too hard: the ask stopped reading as an ask.
                     ActionOutcome outcome = new ActionOutcome(Id, check, "You press too hard. " + who + " takes it as a threat.");
+                    outcome.Change(SemanticEffects.StandingAltered);
                     outcome.Events.Add(context.World.Record(WorldEventType.Threatened, context.Actor, context.Target, context.Now, 0.3, context.Zone, witnesses: ActionSupport.Bystanders(context, true)));
                     return outcome;
                 }
@@ -397,6 +442,16 @@ namespace BrilliantQuesting.Actions.Library
                 SemanticSlots.Destination,
                 SemanticSlots.Purpose);
 
+        /// <summary>
+        /// Success is an undertaking spent and one created (BQa-013): the favour is discharged
+        /// and the person agrees to something they would have refused anyone else. No roll, so
+        /// no failure - a favour that is no longer there to call on is a refusal, and the reason
+        /// it is re-read at resolution time rather than trusted from the availability pass is
+        /// that it can be spent on somebody else in between.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.ObligationAltered, SemanticEffects.StandingAltered);
+
         // BQ-090. A favour buys the same concession persuasion does, including being let past
         // whoever is deciding, so it is the same route taken with something already owed.
         public SpatialRouteClaim SpatialRoute { get; } = new SpatialRouteClaim(
@@ -435,8 +490,7 @@ namespace BrilliantQuesting.Actions.Library
             if (favor == null)
             {
                 ActionOutcome nothing = new ActionOutcome(Id, null, who + " owes you nothing you can call on here.");
-                nothing.Notes.Add("no open favor from " + who + " covering this ask");
-                return nothing;
+                return nothing.Refuse("no open favor from " + who + " covering this ask");
             }
 
             favor.Fulfill(context.Now);
@@ -445,6 +499,8 @@ namespace BrilliantQuesting.Actions.Library
                 Id,
                 null,
                 "You call in what you are owed. " + who + " would have refused anyone else, and agrees to help with " + purpose + ".");
+            outcome.Change(SemanticEffects.ObligationAltered);
+            outcome.Change(SemanticEffects.StandingAltered);
             outcome.Events.Add(context.World.Record(
                 WorldEventType.FavorRedeemed,
                 context.Actor,
@@ -526,6 +582,20 @@ namespace BrilliantQuesting.Actions.Library
         public override ActionEffects Effects => ActionEffects
             .Declaring(ActionEffect.Recorded(SemanticEffects.InformationDenied));
 
+        /// <summary>
+        /// Success is the listener holding the claim less firmly (BQa-013), and only that: the
+        /// lie moves one belief downward and mints nothing.
+        ///
+        /// Not being believed is the cleanest "nothing happened" in the library - no event, no
+        /// belief moved, no standing spent - and it stays that way deliberately. A rule that
+        /// every lie must cost something would make lying to somebody who simply did not buy it
+        /// into a punishment, and the roll already has a branch for that: contradicting yourself
+        /// hardens their belief upward and puts the contradiction in front of whoever was there.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.InformationDenied)
+            .Failing(FailureOutcomes.NoMaterialChange, FailureOutcomes.InformationRevealed, FailureOutcomes.OptionsTransformed);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -570,12 +640,14 @@ namespace BrilliantQuesting.Actions.Library
                 case CheckOutcome.CriticalPass:
                     Shake(context, factId, 0.05);
                     outcome = new ActionOutcome(Id, check, who + " believes you completely, and apologises for doubting.");
+                    outcome.Change(SemanticEffects.InformationDenied);
                     outcome.Events.Add(context.World.Record(WorldEventType.Deceived, context.Actor, context.Target, context.Now, 0.5, context.Zone, new[] { factId }));
                     break;
 
                 case CheckOutcome.Pass:
                     Shake(context, factId, 0.35);
                     outcome = new ActionOutcome(Id, check, who + " accepts your version of it.");
+                    outcome.Change(SemanticEffects.InformationDenied);
                     outcome.Events.Add(context.World.Record(WorldEventType.Deceived, context.Actor, context.Target, context.Now, 0.4, context.Zone, new[] { factId }));
                     break;
 

@@ -806,6 +806,48 @@ Failed sabotage may expose interference; a caught lie may affect trust; a failed
 **Do not:** force complications, count a `failed` label as sufficient simulation, or use a failed capability probe as an in-world deed.
 
 
+**Current implementation (BQa-013).** `NarrativeAction.Postconditions` is the fifth declaration a
+verb makes about itself, and unlike the fourth it is checked. An attempt now ends three ways rather
+than two: a failure was performed and has fallout, a refusal never took place, and `ActionOutcome`
+carries which in `Resolution` instead of reading success off the roll - the read that let every
+no-roll refusal report a deed. What a verb says success changes is held to at the seam:
+`ActionOutcome.Changed` records what actually moved, written at the line after the write where the
+answer is known, and `Perform` demotes a success claim with none of its declared changes behind it,
+in the one place every attempt passes through, so no verb can forget it. Failure is classified from
+`FailureOutcomes` - nothing changed, information revealed, cost paid, harm done, later options
+transformed - and is never required to cost something; the teeth are on the other side, where
+`ActionPostconditionAudit` reports a failure that moved state its verb never declared, a refusal
+that recorded history, and witnesses named where nobody's presence was read.
+`ActionSupport.Bystanders` refuses off screen outright, which turns "a hidden failure cannot cost
+somebody trust" into a property of the library rather than of each verb's memory. The four families
+the three chains run through - Crime, Economic, Information, Social - are classified verb by verb;
+`ActionRegistry.PostconditionCoverage` reports the rest, and separately the seven verbs whose
+effects are undeclared, whose success is still BQa-010's open question rather than an answer
+invented here. The durable rule is
+[`D089`](agent/decisions.md#d089--a-verb-says-what-each-of-its-endings-leaves-behind-and-the-library-holds-every-attempt-to-it).
+
+One semantic defect was fixed in scope, and it is the shape the step names: `return_item` recorded
+`ItemReturned` and resolved the matter without reading what `TryTransferItem` said, so a build that
+would not move the object produced a settled theft, a satisfied victim and the ring still in the
+actor's pack - an event label standing in for the state change it claimed.
+`ActionPostconditionContractTests` covers it against the production write policy. Three neighbouring
+refusal branches in the same files - `provide_supplies`, `give_bred_animal` and a refused supply
+consumption - stopped reporting success too, because leaving a refusal reading as a deed beside its
+corrected neighbours would be the same defect with a shorter blast radius. The same tests cover the
+rest of the Done-when: the classified-family census, a failure that reaches the next
+`PressureFeedback` pass beside one that legitimately leaves the saved world byte-identical, refusal
+audited apart from a performed failure, the shared demotion against a verb that forgot, and a
+hidden failure naming no witnesses where the caller listed some.
+
+**Live verification still required** headless Core only. No live Elin session resolved any of these
+verbs here: the native refusals are proven against the sandbox's own write policy and capability
+gate, not against a build that declined a real inventory or purse write, and the Plugin was not
+compiled because the Elin assemblies are not redistributable. Nothing durable was added - the
+resolution, the recorded changes and the audit findings are transient fields on an outcome, no
+schema field moved, and existing saves are unaffected. Two contracts were deliberately left as they
+stand: `pickpocket` caught in the act still records the theft it was caught at, and the seven
+undeclared verbs stay undeclared. Evidence grade unchanged: headless/source.
+
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#reactions), [neighbor contract](systems/actions.md#actions), [validation](agent/validation.md#actions).
 
 **Sequence:** BQa-012 → BQa-013 → BQa-014.

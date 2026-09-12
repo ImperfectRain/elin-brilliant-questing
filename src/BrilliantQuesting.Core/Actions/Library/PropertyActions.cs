@@ -116,6 +116,21 @@ namespace BrilliantQuesting.Actions.Library
         /// <summary>A successful use of this ends the matter it was used inside (BQ-094).</summary>
         public override bool SettlesMatters => true;
 
+        /// <summary>
+        /// Success is the object actually being in their hands (BQa-013), and there is no second
+        /// thing it could be: this verb has no roll, no bystander cost and nothing to reveal, so
+        /// the transfer either happened or the attempt did not take place.
+        ///
+        /// That is the whole of the classification and it is load-bearing here. The body used to
+        /// record <c>ItemReturned</c> and close the matter without looking at what vanilla said,
+        /// so a build that would not move the item produced a resolved theft, a settled victim
+        /// and an object still in the actor's pack - a label standing in for the state change it
+        /// named. There is no failure class because there is no failure: nothing is attempted
+        /// and nothing is lost.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.PossessionTransferred);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!ActionSupport.Present(context, context.Target))
@@ -139,9 +154,23 @@ namespace BrilliantQuesting.Actions.Library
         protected override ActionOutcome PerformCore(ActionContext context)
         {
             ItemDescriptor item = Ownership.FindOwnedBy(context, context.Target);
-            context.Vanilla.TryTransferItem(item.Id, context.Actor, context.Target);
+            if (item == null)
+            {
+                ActionOutcome gone = new ActionOutcome(Id, null, "You are not carrying anything of theirs.");
+                return gone.Refuse("nothing of " + context.NameOf(context.Target) + "'s is in the actor's keeping any more");
+            }
+
+            // Nothing below may run on a move that did not happen. Recording the return and
+            // resolving the matter regardless is how an unsupported native write came to close a
+            // theft with the ring still in the thief's pocket (BQa-013).
+            if (!context.Vanilla.TryTransferItem(item.Id, context.Actor, context.Target))
+            {
+                ActionOutcome stuck = new ActionOutcome(Id, null, "The " + item.Name + " does not leave your hands.");
+                return stuck.Refuse("transfer refused; the ownership record and the object still disagree");
+            }
 
             ActionOutcome outcome = new ActionOutcome(Id, null, "You hand the " + item.Name + " back to " + context.NameOf(context.Target) + ".");
+            outcome.Change(SemanticEffects.PossessionTransferred);
             // What this answers is the occurrence the matter began with, not the item. Reading it
             // off the ledger instead - the most recent theft naming this object - is the guess
             // BQa-001 rules out, and it gets the wrong answer the moment the same thing is stolen
@@ -187,6 +216,15 @@ namespace BrilliantQuesting.Actions.Library
         public override ActionEffects Effects => ActionEffects
             .Declaring(ActionEffect.Recorded(SemanticEffects.StandingAltered));
 
+        /// <summary>
+        /// Deciding is the act (BQa-013), so it always succeeds and what it changes is how the
+        /// owner stands with whoever kept their property - recorded now, felt whenever somebody
+        /// finds out. There is no roll and so no failure: quiet is carried by the tag on the
+        /// event, never by the outcome pretending nothing was decided.
+        /// </summary>
+        public override ActionPostconditions Postconditions => ActionPostconditions
+            .Succeeding(SemanticEffects.StandingAltered);
+
         protected override Availability GetAvailabilityCore(ActionContext context)
         {
             if (!context.Vanilla.Supports(VanillaCapability.ReadInventory))
@@ -204,9 +242,14 @@ namespace BrilliantQuesting.Actions.Library
 
         protected override ActionOutcome PerformCore(ActionContext context)
         {
-            FindSomeoneElsesProperty(context, out ItemDescriptor item, out EntityId owner);
+            if (!FindSomeoneElsesProperty(context, out ItemDescriptor item, out EntityId owner))
+            {
+                ActionOutcome nothing = new ActionOutcome(Id, null, "There is nothing of anyone else's here to keep.");
+                return nothing.Refuse("no item in the actor's keeping is recorded as somebody else's");
+            }
 
             ActionOutcome outcome = new ActionOutcome(Id, null, "You keep the " + item.Name + ".");
+            outcome.Change(SemanticEffects.StandingAltered);
 
             if (Ownership.HasUndertakingWith(context, owner))
             {
