@@ -518,11 +518,13 @@ namespace BrilliantQuesting.Actions.Library
         }
 
         /// <summary>
-        /// Disclosure is the effect whether or not what was said is true: the listener comes away
-        /// holding a claim, and which claim is the knowledge graph's business.
+        /// Denial, not disclosure. What this verb moves is the listener's confidence in one claim,
+        /// and it moves it downward: whatever the roll, nobody comes away holding the claim who did
+        /// not hold it before. Declaring it as disclosure made it a candidate route to wanting
+        /// somebody told, which is the one thing it cannot do (BQa-011).
         /// </summary>
         public override ActionEffects Effects => ActionEffects
-            .Declaring(ActionEffect.Recorded(SemanticEffects.InformationDisclosed));
+            .Declaring(ActionEffect.Recorded(SemanticEffects.InformationDenied));
 
         protected override Availability GetAvailabilityCore(ActionContext context)
         {

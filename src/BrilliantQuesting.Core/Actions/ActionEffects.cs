@@ -40,6 +40,15 @@ namespace BrilliantQuesting.Actions
         /// <summary>Somebody else comes to know something because the actor said or showed it.</summary>
         public const string InformationDisclosed = "information.disclosed";
 
+        /// <summary>
+        /// Somebody else comes to hold a claim less firmly because the actor denied it.
+        ///
+        /// Separate from <see cref="InformationDisclosed"/> because it is the opposite change to
+        /// the same belief, and a want that a person be told something must never be offered the
+        /// verb that would talk them out of it (BQa-011).
+        /// </summary>
+        public const string InformationDenied = "information.denied";
+
         /// <summary>Something that can be shown comes to exist, true or manufactured.</summary>
         public const string EvidenceCreated = "evidence.created";
 
@@ -71,6 +80,7 @@ namespace BrilliantQuesting.Actions
             ObligationAltered,
             InformationLearned,
             InformationDisclosed,
+            InformationDenied,
             EvidenceCreated,
             EvidenceRemoved,
             PersonSecured,

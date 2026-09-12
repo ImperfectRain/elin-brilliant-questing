@@ -100,6 +100,18 @@ Proof: [SimulationTierTests](../../tests/BrilliantQuesting.Core.Tests/Simulation
 20,012 records, 1,000 scheduler ticks within 2 seconds excluding setup, at most 14 inspections per
 tick; tier mutations, rotating Cold selection, reload and unchanged Home readback.
 
+**Goal/action bridge (BQa-011).** A want that names a machine-readable condition is answered by
+[`GoalRoutes`](actions.md#actions) and by nothing else: `OffScreenSchemes` no longer matches substrings
+of `NpcGoal.Kind` for such a want, and does not fall through to that matching when the bridge offers
+nothing, because a want that said no verb here could serve it must not get an unrelated one. The
+name-matching remains only for wants with no condition - old saves and hand-established fixtures - and
+so does the pre-BQa-011 close on a successful attempt, since there is nothing better to ask about them.
+For covered wants the close is the condition read against authoritative state, and it retires the goal
+only when the actor's own successful attempt is how they could know; a condition another actor made true
+leaves the want open for `ActorGoalEvolution` to retire. `OffScreenSchemeTrace` carries each search, the
+condition reading and which of those two closes applied. The pass selects active wants rather than
+merely unsatisfied ones, so a want BQa-009 abandoned or superseded is no longer pursued.
+
 **Owns:** bounded off-screen selection and passes: `AutonomousInterventions` handles ignored matters;
 `OffScreenSchemes` pursues staged schemes; `AdventurerEcology` handles rival involvement. Inputs:
 known matters, stakes/goals, personal limits, activity and shared action offers. Outputs: `ActionIntent`

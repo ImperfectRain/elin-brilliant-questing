@@ -29,12 +29,32 @@ effect than success. The binding requirement `ContextualActionProjection` and th
 read now comes from this declaration rather than from a switch on verb ids. See
 [D086](../agent/decisions.md#d086--a-verb-declares-what-kind-of-change-it-could-make-nothing-keeps-a-list-of-which-verbs-answer-which-wants).
 
+**Goal/action bridge (BQa-011).** `GoalRoutes.Discover` answers "what could this person do about what
+they want": the want's `GoalCondition` term names the effect kinds that would move it, `ActionRegistry`
+names the verbs that could make those changes on this build, and the term's own `GoalConditionSlot`
+roles say which of its bindings is an object, a claim, an undertaking, a place or a person, so a verb is
+pointed at something without anything switching on the term's name. Nothing holds a list of which verbs
+answer which wants. The parties a route may be aimed at come from the condition's bindings, from the
+records those bindings name and from claims the actor themself holds - never from a sweep of the world,
+so an actor with no route to who took their property is offered none. The search is a read: it rolls,
+records and mutates nothing, ranking stays with the caller's existing goal weight, `InterventionStyles`
+and opportunity authorities, and `GetAvailability` plus `ActionAttempt.Run` still decide everything they
+decided before. `GoalRouteSearch.Unsupported` and its notes separate "this want cannot be read" from
+"this want has nothing available", because to a consumer that only asks what matched, those read alike.
+Satisfaction is two answers: whether the condition holds is authoritative state's, and whether its owner
+may believe it is answered only by their own successful attempt, so another actor's deed can make a want
+objectively true without closing it. `lie` declares `information.denied` rather than
+`information.disclosed`: it moves one belief downward, and a want that somebody be told something must
+not be offered it. See [D087](../agent/decisions.md#d087--what-the-world-holds-and-what-a-wants-owner-may-believe-are-two-answers-and-a-route-is-found-through-the-vocabulary-rather-than-through-a-name).
+
 Source: [NarrativeAction](../../src/BrilliantQuesting.Core/Actions/NarrativeAction.cs),
 [ActionRegistry](../../src/BrilliantQuesting.Core/Actions/ActionRegistry.cs),
 [ActionEffects](../../src/BrilliantQuesting.Core/Actions/ActionEffects.cs),
+[GoalRoutes](../../src/BrilliantQuesting.Core/Actions/GoalRoutes.cs),
 [ActionAttempt](../../src/BrilliantQuesting.Core/Actions/ActionAttempt.cs).
 Proof: [ActionBindingTests](../../tests/BrilliantQuesting.Core.Tests/ActionBindingTests.cs),
 [ActionEffectContractTests](../../tests/BrilliantQuesting.Core.Tests/ActionEffectContractTests.cs),
+[GoalActionBridgeTests](../../tests/BrilliantQuesting.Core.Tests/GoalActionBridgeTests.cs),
 [PlayerNpcActionSymmetryTests](../../tests/BrilliantQuesting.Core.Tests/PlayerNpcActionSymmetryTests.cs).
 Lab: [actor-action](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/ActorActionScenario.cs).
 Native: [capability routing](../elin/capabilities.md#capability-routing).

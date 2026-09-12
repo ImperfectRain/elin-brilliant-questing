@@ -109,13 +109,23 @@ namespace BrilliantQuesting.Actions
         /// </summary>
         public static bool HasRequiredSemanticSlots(NarrativeAction action, ActionContext context)
         {
+            return HasRequiredSemanticSlots(action, Infer(context));
+        }
+
+        /// <summary>
+        /// The same question asked of a binding that has been built but not yet put in a context
+        /// (BQa-011). Candidate construction has the binding before it has anywhere to run it, and
+        /// building a whole context to ask a question about the binding would make the answer
+        /// depend on a world, a resolver and an RNG stream that have nothing to do with it.
+        /// </summary>
+        public static bool HasRequiredSemanticSlots(NarrativeAction action, ActionBinding binding)
+        {
             IReadOnlyList<string> needed = action == null ? null : action.Effects.NeedsAnyOf;
             if (needed == null || needed.Count == 0)
             {
                 return true;
             }
 
-            ActionBinding binding = Infer(context);
             for (int i = 0; i < needed.Count; i++)
             {
                 if (SemanticSlots.IsBound(needed[i], binding))

@@ -2682,3 +2682,55 @@ with no route both read as "there is nothing to be done", and those are differen
 Reason: the drift is invisible. A stale side table, an undeclared verb and a want nothing answers all
 produce the same observable — a plausible actor doing nothing — and none of them fails a test that was
 not written to look for them, which is why coverage is a reported answer here rather than a default.
+
+## D087 — What the world holds and what a want's owner may believe are two answers, and a route is found through the vocabulary rather than through a name
+
+BQa-010 gave verbs a machine-readable account of what they could change and `GoalConditionRegistry`
+terms an account of what kind of change would satisfy them. BQa-011 joins them, and the join replaced
+two pieces of name-reading in `OffScreenSchemes`: the verb came from whether the goal's `Kind` string
+contained `"steal"`, and the want was closed if the chosen attempt succeeded and recorded anything at
+all. Both are the same mistake — reading a label instead of asking the world — and they fail in
+opposite directions, one by finding no route that plainly exists and one by declaring a want done
+because a conversation went well.
+
+**A route is term, then effect kind, then verb.** `GoalRoutes.Discover` asks the condition term which
+effect kinds would move it, asks the registry which verbs could make those changes on this build, and
+points them at the entities the condition already names. Nothing in that chain holds a list of which
+verbs answer which goals, which is what makes a verb registered tomorrow with today's vocabulary
+answer every want that vocabulary answers.
+
+**A term says what each of its bindings is.** `GoalBindingRole` exists because the alternative is a
+switch on term names: something has to know that `item` in `property.owned_by` is an object and `claim`
+in `claim.unproven` is a proposition, and the term is the only thing that legitimately does.
+`GoalBindingRole.Unknown` is honest — a term registered without saying stays readable and evaluable and
+simply gets no route, reported as such rather than guessed from the binding's name.
+
+**Who a route may be aimed at comes from what the actor believes.** The parties are the condition's own
+`Person` bindings, the parties of the records those bindings name, and the parties of claims the actor
+themself holds. Never a sweep of the world for whoever is currently carrying the thing: that would hand
+every victim the thief's name the moment the theft happened. Somebody who does not know who took their
+ring has no route to that person, and that is the correct answer rather than a gap to be filled.
+
+**Satisfaction is two questions, asked separately.** Whether the condition holds is authoritative
+state's answer and is recorded whatever it is. Whether the want's owner may act as though it holds is a
+different question, and only their own successful attempt answers it: somebody who tries a thing and it
+works knows what they did, and somebody whose cargo was quietly recovered by a stranger does not.
+A want that has become objectively true behind its owner's back stays open, stays stale, and is retired
+by their own goal evolution when the pressure behind it stops pressing on them (`D085`). Unknown state
+is neither satisfaction nor failure.
+
+**A want that never said what it wanted keeps the old rule.** There is nothing to ask instead, and
+stranding a hand-established scenario's goals forever would be worse than the shortcut. It is the
+covered wants the shortcut is wrong for, and those are exactly the ones that can now be asked properly.
+
+**`lie` is a denial, not a disclosure.** It declared `information.disclosed` on the reasoning that the
+listener comes away holding a claim. What it actually moves is their confidence in one claim, downward,
+so a want that somebody be told something would have been offered the one verb in the library
+guaranteed to move it the wrong way. `information.denied` is its own key for the same reason a term
+refuses disclosure as a route to keeping a claim unproven: the vocabulary has to be able to tell two
+changes to the same belief apart.
+
+Reason: both failures are silent. A want with no route and a want closed by an unrelated success both
+leave a plausible-looking actor and a plausible-looking save, and neither trips anything that was not
+written to look for it — which is why the search reports why it found nothing and the trace records
+what the world said as well as what was decided.

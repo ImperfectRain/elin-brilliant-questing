@@ -147,7 +147,7 @@ namespace BrilliantQuesting.Autonomy
             {
                 NpcGoal goal = goals[g];
                 trace.Goals.Add(goal);
-                List<SchemeCandidate> candidates = CandidatesFor(world, vanilla, actor, goal);
+                List<SchemeCandidate> candidates = CandidatesFor(world, vanilla, registry, actor, goal, trace);
                 for (int c = 0; c < candidates.Count; c++)
                 {
                     SchemeCandidate candidate = candidates[c];
@@ -219,11 +219,7 @@ namespace BrilliantQuesting.Autonomy
 
             trace.Attempt = ActionAttempt.Run(registry, intent, bestContext);
             trace.Chosen = best.Option;
-            if (GoalSatisfiedBy(best.Goal, trace.Attempt))
-            {
-                best.Goal.Satisfied = true;
-                trace.GoalSatisfied = true;
-            }
+            ReadTheWantAgainst(world, best.Goal, trace, now);
 
             return trace;
         }
@@ -263,11 +259,17 @@ namespace BrilliantQuesting.Autonomy
             return actors;
         }
 
+        /// <summary>
+        /// Whether anything is still wanted. Active, not merely unsatisfied: BQa-009 retires a want
+        /// somebody gave up or reappraised into a different one, and "not satisfied" reads both of
+        /// those as still being pursued, which would have this pass keep chasing a want its owner
+        /// has already stopped holding.
+        /// </summary>
         private static bool HasOpenGoal(NarrativeNpc npc)
         {
             for (int i = 0; i < npc.Goals.Count; i++)
             {
-                if (npc.Goals[i] != null && !npc.Goals[i].Satisfied && npc.Goals[i].Weight > 0)
+                if (npc.Goals[i] != null && npc.Goals[i].IsActive && npc.Goals[i].Weight > 0)
                 {
                     return true;
                 }
@@ -282,7 +284,7 @@ namespace BrilliantQuesting.Autonomy
             for (int i = 0; i < npc.Goals.Count; i++)
             {
                 NpcGoal goal = npc.Goals[i];
-                if (goal != null && !goal.Satisfied && goal.Weight > 0)
+                if (goal != null && goal.IsActive && goal.Weight > 0)
                 {
                     goals.Add(goal);
                 }
@@ -299,10 +301,30 @@ namespace BrilliantQuesting.Autonomy
         private static List<SchemeCandidate> CandidatesFor(
             NarrativeWorldState world,
             IVanillaState vanilla,
+            ActionRegistry registry,
             NarrativeNpc actor,
-            NpcGoal goal)
+            NpcGoal goal,
+            OffScreenSchemeTrace trace)
         {
             List<SchemeCandidate> candidates = new List<SchemeCandidate>();
+
+            // A want that says what it wants is answered by the bridge and by nothing else
+            // (BQa-011). The name-matching below is what remains for wants that have no
+            // machine-readable condition to read - an old save's goals and hand-established
+            // fixtures - and falling through to it for a covered want would put an unrelated
+            // verb behind a want that had already said no verb here could serve it.
+            GoalRouteSearch search = GoalRoutes.Discover(world, vanilla, registry, actor, goal);
+            trace.Searches.Add(search);
+            if (search.IsSupported)
+            {
+                for (int i = 0; i < search.Routes.Count; i++)
+                {
+                    candidates.Add(SchemeCandidate.FromRoute(search.Routes[i], world));
+                }
+
+                return candidates;
+            }
+
             string kind = goal.Kind ?? string.Empty;
 
             if (Has(kind, "repay") || Has(kind, "settle_debt") || Has(kind, "pay_debt"))
@@ -450,6 +472,11 @@ namespace BrilliantQuesting.Autonomy
                 candidate.Reason
             };
 
+            if (candidate.EffectKind.Length > 0)
+            {
+                terms.Insert(1, "would " + candidate.EffectKind + ", which is what the want asks for");
+            }
+
             return new OffScreenSchemeOption(
                 actor.Id,
                 candidate.Target,
@@ -479,19 +506,72 @@ namespace BrilliantQuesting.Autonomy
             return string.Empty;
         }
 
-        private static bool GoalSatisfiedBy(NpcGoal goal, ActionAttempt attempt)
+        /// <summary>
+        /// What the attempt did to the want, asked of authoritative state rather than of the
+        /// outcome's label (BQa-011).
+        ///
+        /// The rule this replaces was "it succeeded and it recorded something, so the want is
+        /// done", which closed a recovery on a pleasant conversation. Two questions are asked
+        /// instead, and they are deliberately different questions.
+        ///
+        /// <b>Does the condition hold?</b> That is the world's answer and it is recorded on the
+        /// trace whatever it is. It is objective, and it is not the owner's to have.
+        ///
+        /// <b>Does the owner know?</b> Only when what they themself did succeeded and the world
+        /// now says the condition holds. Somebody who tries a thing and it works knows what they
+        /// did; somebody whose cargo was quietly recovered by a stranger while they were asleep
+        /// does not, and closing their want here would be exactly the omniscience the step forbids.
+        /// The want stays open, stays stale, and is retired by their own goal evolution when the
+        /// pressure behind it stops pressing on them.
+        ///
+        /// A want that never said what it wanted keeps the old rule, because there is nothing here
+        /// to ask instead and stranding a hand-established scenario's goals forever would be a
+        /// worse answer than the shortcut. It is the covered wants that the shortcut is wrong for,
+        /// and those are exactly the ones that can now be asked properly.
+        /// </summary>
+        private static void ReadTheWantAgainst(
+            NarrativeWorldState world,
+            NpcGoal goal,
+            OffScreenSchemeTrace trace,
+            GameTime now)
         {
-            if (goal == null || attempt?.Outcome == null || !attempt.Outcome.Succeeded)
+            if (goal == null)
             {
-                return false;
+                return;
             }
 
-            if (attempt.Outcome.Events.Count == 0)
+            if (!goal.HasCondition)
             {
-                return false;
+                if (trace.Attempt?.Outcome != null
+                    && trace.Attempt.Outcome.Succeeded
+                    && trace.Attempt.Outcome.Events.Count > 0)
+                {
+                    goal.Satisfy(now, "attempt_succeeded");
+                    trace.GoalSatisfied = true;
+                    trace.ClosedByTheAttemptAlone = true;
+                }
+
+                return;
             }
 
-            return true;
+            trace.WantWasReadable = true;
+
+            GoalConditionState state = goal.Evaluate(world);
+            trace.ConditionAfter = state;
+            if (state != GoalConditionState.Met)
+            {
+                return;
+            }
+
+            if (trace.Attempt?.Outcome == null || !trace.Attempt.Outcome.Succeeded)
+            {
+                trace.ConditionHoldsUntaught = true;
+                return;
+            }
+
+            goal.ActorAssessment = GoalAssessment.BelievedMet;
+            goal.Satisfy(now, "condition_met");
+            trace.GoalSatisfied = true;
         }
 
         private static bool Beats(OffScreenSchemeOption option, OffScreenSchemeOption best)
@@ -801,9 +881,33 @@ namespace BrilliantQuesting.Autonomy
                 Target = target;
                 Style = InterventionStyles.For(ActionFamily.Social);
                 Reason = string.Empty;
+                EffectKind = string.Empty;
+            }
+
+            /// <summary>
+            /// A candidate the bridge proposed (BQa-011). The approach it reads as comes from the
+            /// same <see cref="InterventionStyles"/> reading of the verb's family that the other
+            /// autonomy pass already uses, so the actor's existing problem-solving preferences
+            /// weigh a discovered route exactly as they weigh a staged one.
+            /// </summary>
+            public static SchemeCandidate FromRoute(GoalRoute route, NarrativeWorldState world)
+            {
+                SchemeCandidate candidate = new SchemeCandidate(route.Goal, route.Action.Id, route.Target)
+                {
+                    EffectKind = route.EffectKind
+                };
+
+                candidate.WithFact(route.SubjectFact);
+                candidate.WithItem(route.SubjectItem);
+                candidate.WithBinding(route.Binding);
+                candidate.WithThread(FindThread(world, route.SubjectFact, route.Goal.Subject, route.Target));
+                return candidate.WithStyle(InterventionStyles.For(route.Action.Family), route.Because);
             }
 
             public NpcGoal Goal { get; }
+
+            /// <summary>The effect kind that joined the want to the verb, or empty for a staged candidate.</summary>
+            public string EffectKind { get; private set; }
 
             public string ActionId { get; }
 
@@ -936,6 +1040,7 @@ namespace BrilliantQuesting.Autonomy
             ConsideredAt = consideredAt;
             Goals = new List<NpcGoal>();
             Options = new List<OffScreenSchemeOption>();
+            Searches = new List<GoalRouteSearch>();
         }
 
         public EntityId Actor { get; }
@@ -948,11 +1053,36 @@ namespace BrilliantQuesting.Autonomy
 
         public List<OffScreenSchemeOption> Options { get; }
 
+        /// <summary>What the bridge could offer each want it was asked about (BQa-011).</summary>
+        public List<GoalRouteSearch> Searches { get; }
+
         public OffScreenSchemeOption Chosen { get; set; }
 
         public ActionAttempt Attempt { get; set; }
 
         public bool GoalSatisfied { get; set; }
+
+        /// <summary>
+        /// How the chosen want's condition read against authoritative state after the attempt.
+        /// <see cref="GoalConditionState.Unsupported"/> when nothing could answer, which includes
+        /// every want that has no machine-readable condition.
+        /// </summary>
+        public GoalConditionState ConditionAfter { get; set; } = GoalConditionState.Unsupported;
+
+        /// <summary>
+        /// The condition holds, and nothing that happened here told its owner so. Recorded because
+        /// it is the case that must never become a satisfied goal (BQa-011).
+        /// </summary>
+        public bool ConditionHoldsUntaught { get; set; }
+
+        /// <summary>Whether the chosen want said what it wanted in a way the world could answer.</summary>
+        public bool WantWasReadable { get; set; }
+
+        /// <summary>
+        /// The want was closed on the attempt having worked, because it named no condition anything
+        /// could be asked about. The pre-BQa-011 rule, kept only where there is nothing better.
+        /// </summary>
+        public bool ClosedByTheAttemptAlone { get; set; }
 
         public string Refusal { get; set; } = string.Empty;
 
@@ -971,6 +1101,22 @@ namespace BrilliantQuesting.Autonomy
             for (int i = 0; i < Goals.Count; i++)
             {
                 sb.Append("\n  goal mattered: ").Append(Goals[i]);
+            }
+
+            for (int i = 0; i < Searches.Count; i++)
+            {
+                GoalRouteSearch search = Searches[i];
+                if (!search.IsSupported)
+                {
+                    sb.Append("\n  no route could be looked for: ").Append(search.Unsupported);
+                    continue;
+                }
+
+                sb.Append("\n  routes discovered: ").Append(search.Routes.Count);
+                for (int n = 0; n < search.Notes.Count; n++)
+                {
+                    sb.Append("\n      ").Append(search.Notes[n]);
+                }
             }
 
             for (int i = 0; i < Options.Count; i++)
@@ -1006,9 +1152,22 @@ namespace BrilliantQuesting.Autonomy
             {
                 sb.Append("\n  selected NarrativeAction: ").Append(Chosen?.ActionId ?? Attempt.Intent.ActionId);
                 sb.Append("\n  ").Append(Attempt.Explain().Replace("\n", "\n  "));
-                if (GoalSatisfied)
+                if (WantWasReadable)
                 {
-                    sb.Append("\n  goal marked satisfied by the recorded attempt");
+                    sb.Append("\n  the want now reads ").Append(ConditionAfter).Append(" against the world");
+                }
+
+                if (ClosedByTheAttemptAlone)
+                {
+                    sb.Append("\n  goal satisfied: the want named no condition to ask about, so the attempt having worked is all there is to go on");
+                }
+                else if (GoalSatisfied)
+                {
+                    sb.Append("\n  goal satisfied: the condition holds and their own successful attempt is how they know");
+                }
+                else if (ConditionHoldsUntaught)
+                {
+                    sb.Append("\n  the condition holds, but nothing here taught its owner so; the want stays open");
                 }
             }
 

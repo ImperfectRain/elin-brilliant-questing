@@ -90,6 +90,57 @@ namespace BrilliantQuesting.World
         Met
     }
 
+    /// <summary>
+    /// What one of a condition term's bindings <em>is</em>, so that something pointing a verb at
+    /// it does not have to know the term's name (BQa-011).
+    ///
+    /// The term declares this because the term is the only thing that knows: "item" in
+    /// <see cref="GoalConditionKinds.PropertyOwnedBy"/> is an object and "claim" in
+    /// <see cref="GoalConditionKinds.ClaimUnproven"/> is a proposition, and a bridge that worked
+    /// that out by reading the binding names would be a switch on term names wearing a helper's
+    /// clothes. <see cref="Unknown"/> is the honest default for a term registered without saying:
+    /// nothing is pointed at that binding, and the gap is reported rather than guessed.
+    /// </summary>
+    public enum GoalBindingRole
+    {
+        /// <summary>Nothing was declared. Nothing points a verb at it.</summary>
+        Unknown,
+
+        /// <summary>A thing. Fills <c>SemanticSlots.Item</c>.</summary>
+        Object,
+
+        /// <summary>A claim in the knowledge graph. Fills <c>SemanticSlots.Proposition</c>.</summary>
+        Claim,
+
+        /// <summary>
+        /// A record in the obligation ledger. Read for the claim and the two parties it already
+        /// names, rather than treated as a proposition it is not.
+        /// </summary>
+        Undertaking,
+
+        /// <summary>A place. Fills <c>SemanticSlots.Destination</c>.</summary>
+        Place,
+
+        /// <summary>Somebody an attempt could be aimed at.</summary>
+        Person
+    }
+
+    /// <summary>One binding a condition term requires: its name, and what kind of thing it is.</summary>
+    public readonly struct GoalConditionSlot
+    {
+        public GoalConditionSlot(string name, GoalBindingRole role)
+        {
+            Name = GoalCodes.Require(name, nameof(name));
+            Role = role;
+        }
+
+        public string Name { get; }
+
+        public GoalBindingRole Role { get; }
+
+        public override string ToString() => Name + ":" + Role;
+    }
+
     /// <summary>One concrete binding of a condition term: a name from the term's shape and the id it points at.</summary>
     public readonly struct GoalBinding : IEquatable<GoalBinding>
     {
@@ -237,6 +288,16 @@ namespace BrilliantQuesting.World
 
         /// <summary>Bindings <c>place</c>, <c>source</c>: that shortage no longer presses at that place.</summary>
         public const string DemandRelieved = "demand.relieved";
+
+        /// <summary>
+        /// Bindings <c>claim</c>, <c>knower</c>: that person holds that claim.
+        ///
+        /// The want behind "they have to be told", stated as somebody coming to hold the claim
+        /// rather than as a conversation happening. Whether the claim is true is not this term's
+        /// question and deliberately not a condition of it: an actor who sincerely holds a false
+        /// claim can want the reeve told, and the reeve genuinely comes to hold it.
+        /// </summary>
+        public const string InformationKnownBy = "information.known_by";
     }
 
     /// <summary>
@@ -254,17 +315,25 @@ namespace BrilliantQuesting.World
         {
             Register(
                 GoalConditionKinds.PropertyOwnedBy,
-                new[] { "item", "owner" },
+                new[]
+                {
+                    new GoalConditionSlot("item", GoalBindingRole.Object),
+                    new GoalConditionSlot("owner", GoalBindingRole.Person)
+                },
                 OwnedBy,
                 new[] { SemanticEffects.PossessionTransferred });
             Register(
                 GoalConditionKinds.ObligationDischarged,
-                new[] { "obligation" },
+                new[] { new GoalConditionSlot("obligation", GoalBindingRole.Undertaking) },
                 ObligationDischarged,
                 new[] { SemanticEffects.ObligationAltered });
             Register(
                 GoalConditionKinds.ClaimUnproven,
-                new[] { "claim", "subject" },
+                new[]
+                {
+                    new GoalConditionSlot("claim", GoalBindingRole.Claim),
+                    new GoalConditionSlot("subject", GoalBindingRole.Person)
+                },
                 ClaimUnproven,
                 // Removing what can be shown, and only that. Telling somebody makes a claim more
                 // provable, not less, so disclosure is not a route to this condition however
@@ -272,14 +341,30 @@ namespace BrilliantQuesting.World
                 new[] { SemanticEffects.EvidenceRemoved });
             Register(
                 GoalConditionKinds.PersonAlive,
-                new[] { "person" },
+                new[] { new GoalConditionSlot("person", GoalBindingRole.Person) },
                 PersonAlive,
                 new[] { SemanticEffects.PersonSecured });
             Register(
                 GoalConditionKinds.DemandRelieved,
-                new[] { "place", "source" },
+                new[]
+                {
+                    new GoalConditionSlot("place", GoalBindingRole.Place),
+                    new GoalConditionSlot("source", GoalBindingRole.Claim)
+                },
                 DemandRelieved,
                 new[] { SemanticEffects.ResourceSupplied });
+            Register(
+                GoalConditionKinds.InformationKnownBy,
+                new[]
+                {
+                    new GoalConditionSlot("claim", GoalBindingRole.Claim),
+                    new GoalConditionSlot("knower", GoalBindingRole.Person)
+                },
+                InformationKnownBy,
+                // Somebody coming to hold the claim because it was put to them. Denying it to
+                // them is the opposite change and has its own key, so a want to have somebody
+                // told never offers the verb that would talk them out of it.
+                new[] { SemanticEffects.InformationDisclosed });
         }
 
         /// <summary>
@@ -298,19 +383,48 @@ namespace BrilliantQuesting.World
             Func<NarrativeWorldState, GoalCondition, GoalConditionState> evaluate,
             IReadOnlyList<string> advancedBy = null)
         {
+            GoalConditionSlot[] slots = new GoalConditionSlot[requiredBindings == null ? 0 : requiredBindings.Count];
+            for (int i = 0; i < slots.Length; i++)
+            {
+                slots[i] = new GoalConditionSlot(requiredBindings[i], GoalBindingRole.Unknown);
+            }
+
+            Register(kind, slots, evaluate, advancedBy);
+        }
+
+        /// <summary>
+        /// The same declaration, saying what each binding is (BQa-011).
+        ///
+        /// A term that says so can have a verb pointed at it by something that has never heard of
+        /// the term; a term registered through the name-only overload above stays readable and
+        /// evaluable and simply has no route built for it, which is a reported gap rather than a
+        /// guess about what "widget" was supposed to mean.
+        /// </summary>
+        public static void Register(
+            string kind,
+            IReadOnlyList<GoalConditionSlot> requiredBindings,
+            Func<NarrativeWorldState, GoalCondition, GoalConditionState> evaluate,
+            IReadOnlyList<string> advancedBy = null)
+        {
             string term = GoalCodes.Require(kind, nameof(kind));
             if (evaluate == null)
             {
                 throw new ArgumentNullException(nameof(evaluate));
             }
 
-            string[] names = new string[requiredBindings == null ? 0 : requiredBindings.Count];
-            for (int i = 0; i < names.Length; i++)
+            GoalConditionSlot[] slots = new GoalConditionSlot[requiredBindings == null ? 0 : requiredBindings.Count];
+            for (int i = 0; i < slots.Length; i++)
             {
-                names[i] = GoalCodes.Require(requiredBindings[i], nameof(requiredBindings));
+                slots[i] = new GoalConditionSlot(requiredBindings[i].Name, requiredBindings[i].Role);
             }
 
-            Array.Sort(names, StringComparer.Ordinal);
+            Array.Sort(slots, CompareSlotsByName);
+
+            string[] names = new string[slots.Length];
+            for (int i = 0; i < names.Length; i++)
+            {
+                names[i] = slots[i].Name;
+            }
 
             string[] effects = new string[advancedBy == null ? 0 : advancedBy.Count];
             for (int i = 0; i < effects.Length; i++)
@@ -318,7 +432,7 @@ namespace BrilliantQuesting.World
                 effects[i] = GoalCodes.Require(advancedBy[i], nameof(advancedBy));
             }
 
-            Terms[term] = new Term(names, evaluate, effects);
+            Terms[term] = new Term(names, slots, evaluate, effects);
         }
 
         public static bool IsRegistered(string kind) => kind != null && Terms.ContainsKey(kind);
@@ -327,6 +441,16 @@ namespace BrilliantQuesting.World
         public static IReadOnlyList<string> RequiredBindings(string kind)
         {
             return kind != null && Terms.TryGetValue(kind, out Term term) ? term.Bindings : null;
+        }
+
+        /// <summary>
+        /// The same bindings with what each one is, in the same order, or null when the term is
+        /// unregistered (BQa-011). A slot of <see cref="GoalBindingRole.Unknown"/> is a term that
+        /// never said, not a term whose binding means nothing.
+        /// </summary>
+        public static IReadOnlyList<GoalConditionSlot> Slots(string kind)
+        {
+            return kind != null && Terms.TryGetValue(kind, out Term term) ? term.Slots : null;
         }
 
         /// <summary>
@@ -490,19 +614,45 @@ namespace BrilliantQuesting.World
             return GoalConditionState.Met;
         }
 
+        private static GoalConditionState InformationKnownBy(NarrativeWorldState world, GoalCondition condition)
+        {
+            EntityId claim = condition.Reference("claim");
+            if (world.Knowledge.GetFact(claim) == null)
+            {
+                return GoalConditionState.Unsupported;
+            }
+
+            EntityId knower = condition.Reference("knower");
+            if (!world.Registry.IsActor(knower))
+            {
+                return GoalConditionState.Unsupported;
+            }
+
+            // Holding the claim, not being convinced of it. Confidence is the disclosure owner's
+            // business and a want to have somebody told is answered the moment they have been.
+            return world.Knowledge.Knows(knower, claim) ? GoalConditionState.Met : GoalConditionState.Unmet;
+        }
+
+        private static int CompareSlotsByName(GoalConditionSlot left, GoalConditionSlot right) =>
+            string.CompareOrdinal(left.Name, right.Name);
+
         private sealed class Term
         {
             internal Term(
                 IReadOnlyList<string> bindings,
+                IReadOnlyList<GoalConditionSlot> slots,
                 Func<NarrativeWorldState, GoalCondition, GoalConditionState> evaluate,
                 IReadOnlyList<string> advancedBy)
             {
                 Bindings = bindings;
+                Slots = slots;
                 Evaluate = evaluate;
                 AdvancedBy = advancedBy;
             }
 
             internal IReadOnlyList<string> Bindings { get; }
+
+            internal IReadOnlyList<GoalConditionSlot> Slots { get; }
 
             internal IReadOnlyList<string> AdvancedBy { get; }
 

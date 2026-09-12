@@ -700,6 +700,37 @@ Replace `OffScreenSchemes` goal-kind substring matching and its current success-
 **Do not:** parse `Kind`, `Reason` or display labels as free text; mistake a registered stable vocabulary key for prose; let action metadata execute effects; make objective completion an omniscient actor notification.
 
 
+**Current implementation (BQa-011).** `GoalRoutes.Discover` is the bridge: the want's condition term
+names the effect kinds that would move it, `ActionRegistry.Advancing` names the verbs that could make
+those changes on this build, and the term's own `GoalConditionSlot` roles - object, claim, undertaking,
+place, person - say which of its bindings points a verb at what, so nothing switches on a term or goal
+name. `information.known_by` is the reporting want the communication half needed, and it is answered by
+`report` and `expose` through the same registry, with actual receipt recorded by the knowledge owner and
+no scene anywhere near it. Candidate parties come from the condition's own bindings, the records they
+name and the claims the actor themself holds, never from a sweep of the world, so somebody who does not
+know who took their ring is offered no route to that person. The search is a read; ranking stays with
+`OffScreenSchemes.Weigh`, the goal weight, the existing `InterventionStyles` reading of the verb's family
+and opportunity. `GoalRouteSearch` separates "cannot be read" from "nothing available", and
+`OffScreenSchemes` no longer falls through to substring matching for a covered want. Satisfaction is now
+two answers: the condition read against authoritative state, recorded on the trace whatever it says, and
+the owner's belief, which only their own successful attempt supplies - so a deed by somebody else leaves
+the want open and stale for BQa-009's evolution to retire. Two scoped corrections were needed to make
+the bridge honest: `lie` declared `information.disclosed` while moving one belief downward, and now
+declares `information.denied`; and `ActionBinding.HasRequiredSemanticSlots` gained a binding-only
+overload so a candidate is checked before a context exists. Wants with no machine-readable condition
+keep the old name matching and the old close, because there is nothing better to ask about them. One
+further defect in the same gate: the pass selected wants that were merely unsatisfied, so a want BQa-009
+abandoned or superseded was still chased; it now selects active wants.
+`GoalActionBridgeTests` covers the seven Done-when clauses, the threadless pin, the communication
+bridge's refusal/sincere-error/correction and the denial exclusion; the durable rule is
+[`D087`](agent/decisions.md).
+
+**Live verification still required** headless Core only. No live Elin session exercised these routes,
+nothing schedules them beyond the existing off-screen pass - the integrated headless proof is BQa-016
+and live integration BQa-017 - and the Plugin was not compiled here because the Elin assemblies are not
+redistributable. Nothing durable was added: the condition, lifecycle and actor assessment this reads and
+writes are BQa-008's schema 13 fields. Evidence grade unchanged: headless/source.
+
 **Authority / proof route:** [owning source and representative tests](systems/actions.md#actions), [neighbor contract](systems/world.md#autonomy), [validation](agent/validation.md#actions).
 
 **Sequence:** BQa-010 → BQa-011 → BQa-012.

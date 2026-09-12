@@ -67,6 +67,7 @@ incomplete joins with links to their adopted planning owners.
 | Which durable matter is continuing? | `NarrativeThread`, lifecycle and escalation; [threads](systems/actions.md#threads) |
 | What actions are available? | `ActionRegistry.Discover` asks each `NarrativeAction`; [actions](systems/actions.md#actions) |
 | What kind of change could a verb make? | `NarrativeAction.Effects` declares it; `ActionRegistry.Advancing`/`EffectCoverage` read it; [actions](systems/actions.md#actions) |
+| What could somebody do about what they want? | `GoalRoutes.Discover` joins the condition term, the effect kinds and the verbs; [actions](systems/actions.md#actions) |
 | Is an attempt possible? | `GetAvailability`, actor scope, binding, capability and write policy; [availability](systems/actions.md#availability) |
 | Is an attempt uncertain; who resolves it? | Verb/beat declares `CheckRequest`; `ICheckResolver` resolves; [checks](systems/actions.md#checks) |
 | What consequence becomes history? | Performing owner records `WorldEvent`; `ConsequenceEngine` applies reactions; [reactions](systems/actions.md#reactions) |
