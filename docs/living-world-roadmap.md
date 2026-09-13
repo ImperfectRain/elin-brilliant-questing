@@ -1465,6 +1465,47 @@ At minimum, generic live proposal production must no longer be effectively limit
 **Founding incident boundary:** existing `SettlementSituationGenerator.TryGenerateSelected` performs the theft transfer before creating its matter. Do not generalize that behavior as recognition: recurring BQa producers must bind a theft already committed by a native or registered autonomous action. Separate explicit bootstrap/staging from ongoing recognition. A proposed new actor, site or premise must have an independently justified current establishment purpose; it cannot invent the theft, shortage, witness, backstory or motive needed to make its own proposal valid. Enumerate supported property, business and social/institutional producers over shared state, including threadless conditions; each has stable cause/binding identity and revalidation requirements.
 
 
+**Current implementation (BQa-021).** `SituationProposalEcology` is the producer side of the seam
+BQ-103 already built: selection knew how to compare reuse against hypothetical creation and had one
+producer to compare it with, so a town holding a broken mill, a failed shop, an unrelieved shortage,
+an open debt and two bodies with plans proposed nothing at all. Six enumerated producers across
+three families now read it - `UnresolvedCrimeProducer` and `DamagedPropertyProducer` over the
+knowledge graph, `ServiceContinuityProducer` and `LocalSupplyProducer` over the business and demand
+ledgers, `OpenObligationProducer` and `InstitutionalMandateProducer` over the obligation ledger and
+the organization records - and each reads a `Development` the detector already derived rather than
+its own copy of the store behind it. The set is a list rather than a discovery: a producer is
+registered by name, the ecology refuses a duplicate id, and a pressure family nothing is registered
+for proposes nothing, which is an ordinary outcome and not a gap.
+
+Nothing in a pass writes. Proposals are ranked by the existing `SituationProposalSelection.Rank`
+rather than by a second opinion kept here, admission is asked once through
+`NarrativeAttentionBudget.GenerationRefusal`, and a condition an unresolved thread already carries
+is suppressed with its reason the way the settlement owner already suppresses repetition - so an
+empty offer list is still distinguishable from a quiet world. Threadless conditions are the ordinary
+input rather than an edge case. Identity is the producer plus the development's own condition-keyed
+id, so the same trouble read twice is one proposal across a pass and across a save, and
+`SituationProposalCause.RevalidationRefusal` answers the only question BQa-022 will actually have
+before it fulfils anything: whether the condition is still derived, whether everything the proposal
+bound still exists, and whether somebody else's matter took it over while the proposal waited.
+
+Recognition is not creation, which is the boundary above. A producer binds an incident the world was
+already holding and has no route to one it is not: with the theft claim superseded the property
+producer over the same town proposes nothing rather than staging a theft to have something to
+recognize, and `SettlementSituationGenerator.TryGenerateSelected`'s founding transfer stays what it
+was - explicit staging, not a recurring producer. The one declared requirement in the set is a body
+whose own records show an unsatisfied goal and nobody on its roll to carry it; the purpose is the
+body's, recorded before any of this was read, and the requirement stays a priced description -
+BQ-103's existing weights, a proposal-local key, no reserved id and no actor. `NarrativeInspector.DescribeSituationProposals`
+prints a pass beside `DescribeDevelopments`, and the gap between the two lists is the honest answer
+to why a place with trouble in it is proposing nothing. `SituationProposalEcologyTests` proves the
+world's whole save is byte-identical before and after a pass and an inspection. The durable rule is
+[`D097`](agent/decisions.md#d097--the-world-is-read-for-several-kinds-of-trouble-at-once-and-reading-it-creates-none-of-them).
+
+Core-only and headless: no native surface, no persisted field and no live host were touched, so the
+evidence grade is unchanged at headless/source. Nothing here is consumed yet - a proposal reaches no
+world until BQa-022 owns fulfilment - and BQa-017's and BQa-020's outstanding live acceptance still
+sits underneath this step rather than being answered by it.
+
 **Authority / proof route:** [owning source and representative tests](systems/world.md#generation), [neighbor contract](systems/actions.md#developments), [validation](agent/validation.md#world).
 
 **Sequence:** BQa-020 → BQa-021 → BQa-022.

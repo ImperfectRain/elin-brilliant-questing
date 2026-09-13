@@ -3187,3 +3187,52 @@ The cycle still decides nothing: enrollment, legitimate reading, goal evolution 
 stay with the owner that held them. What it supplies is the interval, the bound and the roster.
 Headless throughout — that the Plugin's hooks advance one of these passes in a running game remains
 BQa-017's unproved gate, and nothing here observes a live institution.
+
+## D097 — The world is read for several kinds of trouble at once, and reading it creates none of them
+
+Generic situation production was one settlement's theft arithmetic. That was never a shortage of
+pressure: BQa-006's detector had been reading crime, damage, shortage, service continuity, debt and
+institutional stakes out of six different stores for as long as it existed, and BQ-103's selection
+seam had known how to compare reuse against hypothetical creation for just as long. What was missing
+was the middle. A town holding a broken mill, a failed shop, an unrelieved want, an open debt and
+two bodies with plans of their own proposed nothing, because the only producer in the world knew how
+to read a pocket.
+
+**Producers are a list, not a discovery.** `SituationProposalEcology` holds six named producers
+across property, business and social/institutional families, each registered by an id that is half
+of every proposal key, and refuses a duplicate id rather than silently keeping one. A condition no
+producer is registered for - the town's unproven secret, its evidence conflict - proposes nothing,
+and that is an ordinary outcome rather than a gap to be filled by a general rule. The alternative is
+the universal quest generator, which is the same list with the entries hidden.
+
+**A producer reads the condition, not the store behind it.** Every producer takes a `Development`
+the detector already derived, so there is one reading of what the world is holding rather than six,
+and the pressure a proposal carries is the world's own number rather than a second opinion about
+urgency. It binds only what the condition names: a site it names is the place, a person it names is
+a party, a body it names is a body. Roles are asserted only where an authoritative record asserts
+them - a `stole` claim names who took and who was taken from - and left generic everywhere else,
+because the detector already refused to decide who depends on a broken mill wheel and a proposal
+that guessed would be inventing exactly the backstory this step forbids.
+
+**Recognition binds an incident; it cannot commit one.** This is the boundary the step turns on.
+`SettlementSituationGenerator.TryGenerateSelected` performs its founding item transfer before it
+records anything, and that stays what it always was: explicit staging, with one archetype, called
+deliberately. Generalising it would have made every new producer a machine for manufacturing the
+trouble it then reports. So a producer has no vanilla handle, no commit callback and no way to
+author a fact, and the test that matters is the negative one - with the theft claim superseded, the
+property producer over the same town proposes nothing at all.
+
+**A requirement is a description with a price.** The one declared requirement in the set is a hand
+for a body whose own records show an unsatisfied goal and nobody on its roll to carry it. The
+purpose is the body's and was recorded before any of this was read, which is the whole difference
+between a requirement and a backstory; the declaration reserves no id, creates no actor and enrols
+nobody, and the only thing it does is cost BQ-103's existing four. Fulfilment is BQa-022's, after a
+proposal has actually won.
+
+**Identity is the condition's, and it can be asked again.** A proposal is keyed on its producer and
+the development's condition-keyed id, both stable across passes and reloads, so the same trouble
+read twice is one proposal rather than two about the same thing. Because production and fulfilment
+are deliberately not the same moment, the cause answers the three ways a waiting proposal goes
+stale - the condition is no longer derived, something it bound has left the registry, or somebody
+else's matter took it over - and a proposal made about a threadless condition is precisely the one
+that can be overtaken while it waits.

@@ -76,6 +76,7 @@ repetition itself is diagnostic, not a content-quality pass/fail threshold.
 |---|---|---|
 | Activity/embodiment | `ActorActivityTests` | `PlayerNpcActionSymmetryTests`, `MutationPolicyTests`; `actor-action`, native facet diagnostic |
 | Generation/archetypes | `SettlementSituationGeneratorTests` or affected archetype tests | `RecoveryRouteTests`, `NarrativeAttentionBudgetTests`; `integration`, `failed-caravan` for that archetype |
+| Generic proposal production, producer families and proposal revalidation | `SituationProposalEcologyTests` | `SituationProposalTests`, `PressureSynthesisTests`, `SettlementSituationGeneratorTests`, persistence gates; `integration` |
 | Autonomy/schemes/ecology | `AutonomousInterventionTests`, `OffScreenSchemeTests` or `AdventurerEcologyTests` | `PlayerNpcActionSymmetryTests`, discovery, persistence; `autonomy`, `off-screen-schemes`, `adventurer-ecology` |
 | Production cycle, per-pass budgets, turn order, spent openings | `ProductionCycleTests` | `AutonomousInterventionTests`, `OffScreenSchemeTests`, `ActorGoalEvolutionTests`, `ActionArbitrationTests`, `IntegrationHarnessTests` (Lab), persistence gates; `integration --days 30` |
 | Live recurring-cycle host, its hooks and failure absorption | `LiveWorldCycleTests` | `ProductionCycleTests`, `NativeZoneVisitTests`, `VanillaActionRecorderTests`, persistence gates; Plugin build and live [Native](#native) acceptance - headless host rules are not hook timing |

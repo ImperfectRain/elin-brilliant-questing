@@ -61,13 +61,33 @@ from that plan, refuses hypothetical actor/premise creation, rechecks attention 
 native transfer before establishing facts/history. Ranking a hypothetical alternative is supported;
 fulfilling its actor requirement is not added to the settlement generator. Explicit scenario staging
 remains a separate owner. There is no automatic new-actor fallback or universal creation factory.
+That founding transfer is staging and not recognition: it is one archetype, called deliberately, and
+no recurring producer may generalise it.
 
-Source: [SettlementSituationGenerator](../../src/BrilliantQuesting.Core/Situations/SettlementSituationGenerator.cs),
+`SituationProposalEcology` owns generic read-only proposal production over the whole world (BQa-021).
+It holds an enumerated producer list - `ISituationProposalProducer` implementations across the
+`property`, `business` and `institution` families - and each producer reads a `Development` the
+BQa-006 detector already derived rather than its own copy of the store behind it. A producer binds
+only what the condition names, asserting a role only where an authoritative record asserts one, and
+may declare hypothetical requirements it never satisfies. **Does not own:** committing, minting,
+transferring, opening a thread, or the incident that would make its own proposal worth making.
+
+A pass ranks through `SituationProposalSelection.Rank` and asks `NarrativeAttentionBudget.GenerationRefusal`
+once; a condition an unresolved thread already carries is suppressed with its reason, and threadless
+conditions are the ordinary input. Proposal identity is the producer id plus the development's
+condition-keyed id, stable across passes and saves; `SituationProposalCause.RevalidationRefusal`
+answers whether a waiting proposal's condition is still derived, its bindings still exist and no
+other matter has taken it over. Fulfilment of a selected proposal is not here. Nothing in a pass is
+saved, and nothing in a pass writes.
+
+Source: [SituationProposalEcology](../../src/BrilliantQuesting.Core/Situations/SituationProposalEcology.cs),
+[SettlementSituationGenerator](../../src/BrilliantQuesting.Core/Situations/SettlementSituationGenerator.cs),
 [SituationProposal](../../src/BrilliantQuesting.Core/Situations/SituationProposal.cs),
 [SituationCandidate](../../src/BrilliantQuesting.Core/Situations/SituationCandidate.cs),
 [LocalAffordanceProfile](../../src/BrilliantQuesting.Core/Situations/LocalAffordanceProfile.cs),
 [FailedCaravanSituation](../../src/BrilliantQuesting.Core/Situations/FailedCaravanSituation.cs).
 Proof: [SettlementSituationGeneratorTests](../../tests/BrilliantQuesting.Core.Tests/SettlementSituationGeneratorTests.cs),
+[SituationProposalEcologyTests](../../tests/BrilliantQuesting.Core.Tests/SituationProposalEcologyTests.cs),
 [SituationProposalTests](../../tests/BrilliantQuesting.Core.Tests/SituationProposalTests.cs),
 [FailedCaravanTests](../../tests/BrilliantQuesting.Core.Tests/FailedCaravanTests.cs).
 Lab: [integration](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/IntegrationScenario.cs),

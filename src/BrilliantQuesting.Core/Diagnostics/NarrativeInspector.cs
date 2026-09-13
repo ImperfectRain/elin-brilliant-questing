@@ -14,6 +14,7 @@ using BrilliantQuesting.Integration;
 using BrilliantQuesting.Knowledge;
 using BrilliantQuesting.Memory;
 using BrilliantQuesting.Relationships;
+using BrilliantQuesting.Situations;
 using BrilliantQuesting.Storylets;
 using BrilliantQuesting.Threads;
 using BrilliantQuesting.World;
@@ -1302,6 +1303,21 @@ namespace BrilliantQuesting.Diagnostics
             }
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// What the world could currently be asked for, across every supported producer family.
+        ///
+        /// Beside <see cref="DescribeDevelopments"/> on purpose: that says what the world is
+        /// holding, this says what could be proposed about it, and the gap between the two lists is
+        /// the honest answer to "why is nothing happening here". Reads and proposes; commits
+        /// nothing, exactly like the pass it prints.
+        /// </summary>
+        public static string DescribeSituationProposals(NarrativeWorldState world)
+        {
+            return world == null
+                ? "situation proposals: no world\n"
+                : SituationProposalEcology.Standard().Read(world).Explain();
         }
 
         public static string DescribeThread(NarrativeWorldState world, NarrativeThread thread)
