@@ -1174,8 +1174,58 @@ without a new goal engine or a second scheduler. Headless tests alone do not com
 **Do not:** copy the runner into the Plugin, leave old scheduling calls active beside it, promote
 headless timing to runtime evidence, or rerun physical work already performed by Elin.
 
+**Current implementation (BQa-017).** `LiveWorldCycle` is the host join, and it is deliberately
+almost nothing: it builds BQa-016's `ProductionCycle`, attaches its collector after the load for the
+same reason the consequence engine attaches then, and calls `Run`. It batches nothing, ranks nothing,
+selects no goal and keeps no interval cursor - whether the day is still owed is the persisted
+`ProductionCycleLedger`'s answer, so a reload onto the same morning does not re-run the morning and
+no Plugin clock exists to disagree with the save.
+
+The call-site handoff was audited as one. `AdvanceThreads` runs the pass after lifecycle and
+escalation and ahead of autonomy, schemes, adventurers and travel - the Lab's order, for the Lab's
+reason: an opening the pass committed is already closed in the shared ledger when those owners look
+at the same day. The completed-zone-visit postfix now reconciles and then asks the same day gate, so
+a journey or a rest that crossed midnight with no Act of its own still gets the interval it owes,
+after vanilla's own catch-up rather than instead of it. Reconciliation precedes elapsed work on every
+path that reaches a pass.
+
+One semantic defect in directly affected code was fixed with it, and it was a UI callback driving the
+world: `DramaChoiceProjector` was wired straight to `AdvanceThreads`, so every projected conversation
+ran a full escalation, autonomy, scheme, adventurer and travel pass - a player who spoke to eleven
+people before lunch got eleven of them out of one morning. Dialogue now reconciles and asks the day
+gate like every other hook, so expression can catch up a day that turned and can do nothing else.
+
+Two rules are the host's own. A pass that throws is absorbed rather than allowed out of an Elin
+callback, and its interval is closed on the way past: arbitration already catches a verb that threw
+(BQa-015), so what reaches the host is the adapter underneath - a character the game destroyed
+mid-pass - and nothing a pass committed unwinds, so retrying it would run the finished half again
+rather than resume it. And a native outcome the observer already recorded is not handed back to
+`Run`, which would mint the same history twice; `ProductionCycle.Close` writes only the closure the
+outcome still owed, so nobody is later offered the purse Elin has already moved.
+
+`LiveWorldCycleTests` covers the host's half: several hooks reaching one interval run one pass and
+change nothing on the repeats, an interval consumed before a save is refused by a fresh host on the
+restored world while the next day still runs, a pass that dies partway is absorbed with its interval
+spent and reported once rather than once per hook, and a recorded native outcome closes its opening
+without a second record and without an overlapping callback rewriting who did it. The Core 30-day and
+reload proofs in `ProductionCycleTests` remain green, and the Lab still calls the same runner through
+`ProductionSystemRegistry`. The durable rule is
+[`D093`](agent/decisions.md#d093--the-game-gets-the-runner-not-a-copy-of-it-and-a-failed-callback-costs-one-day).
+
+**Live verification still required** and this step is not complete without it, as its own Done-when
+says. The Plugin was not compiled here because the Elin assemblies are not available in this
+environment, so "the Plugin builds" is an unproved gate rather than a passing check. Nothing below
+has been observed in a running game: that `EVENT.ActPerformed`, the `Zone.OnVisit` postfix and the
+dialogue path actually fire at the cadence assumed; that ordinary play, resting and travel turn the
+calendar day the host reads; that zone leave/return and save/reload advance and reconstruct as the
+headless rules say; that repeated and overlapping callbacks and a previously consumed interval
+duplicate neither actions nor vanilla catch-up in game; or that a pass's cost is acceptable inside a
+frame. No new native observation is claimed - the cycle asks `IVanillaState` only what the existing
+off-screen owners already ask it. Evidence grade unchanged: headless/source.
+
 **Authority / proof route:** [live host joins](systems/flow.md#live-host-joins),
 [Plugin](../src/BrilliantQuesting.Plugin/BrilliantQuestingPlugin.cs),
+[live cycle host](../src/BrilliantQuesting.Plugin/LiveWorldCycle.cs),
 [native evidence](elin/capabilities.md), [validation](agent/validation.md#native).
 
 **Sequence:** BQa-016 → BQa-017 → BQa-018.

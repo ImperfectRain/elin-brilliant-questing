@@ -22,6 +22,11 @@
     <Compile Include="../../src/BrilliantQuesting.Plugin/RuntimeEvidence.cs" Link="RuntimeEvidence.cs" />
     <Compile Include="../../src/BrilliantQuesting.Plugin/ElinHomeState.cs" Link="ElinHomeState.cs" />
     <Compile Include="../../src/BrilliantQuesting.Plugin/NativeZoneVisit.cs" Link="NativeZoneVisit.cs" />
+    <!-- BQa-017. The host's own half of the recurring cycle - failure absorption, the closure a
+         recorded native outcome still owes, and reconstruction after a load - carries no Elin
+         type, so the decisions the Plugin makes around the Core runner are checkable here. Hook
+         timing and vanilla catch-up in game remain live evidence. -->
+    <Compile Include="../../src/BrilliantQuesting.Plugin/LiveWorldCycle.cs" Link="LiveWorldCycle.cs" />
     <EmbeddedResource Include="../../src/BrilliantQuesting.Plugin/NativeJournalRenderer.cs" LogicalName="JournalRendererSource" />
     <EmbeddedResource Include="../../src/BrilliantQuesting.Core/Presentation/JournalPages.cs" LogicalName="JournalPagesSource" />
   </ItemGroup>

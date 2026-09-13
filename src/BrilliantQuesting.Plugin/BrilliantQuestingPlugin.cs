@@ -52,6 +52,7 @@ namespace BrilliantQuesting.Plugin
         private AdventurerEcology _adventurers;
         private TravelingGroupLifecycle _travelingGroups;
         private ElinActionObserver _actionObserver;
+        private LiveWorldCycle _cycle;
         private RumorCirculation _gossip;
         private AmbientTalk _ambient;
         private AbsenceLifecycle _absences;
@@ -209,8 +210,14 @@ namespace BrilliantQuesting.Plugin
             }
 
             if (!ReconcileIfTheZoneChanged()) return;
+            ObservedVanillaAction observed;
             using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.Observe))
-                _actionObserver.Observe(payload);
+                observed = _actionObserver.Observe(payload);
+
+            // BQa-017. The observer has already written this down, so the cycle must not roll it
+            // again; what it still owes is the opening the game took, closed in the same ledger a
+            // pass writes so nobody is offered the purse Elin has already moved.
+            _cycle?.Observed(observed, _vanilla.Now);
             using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.Heartbeat))
                 AdvanceThreadsIfTheDayTurned();
             using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.Ambient))
@@ -293,7 +300,15 @@ namespace BrilliantQuesting.Plugin
             // A round trip may contain no ActPerformed callback at all. Completion of a visit,
             // even to the last recorded zone, requires fresh native readback.
             using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.ZoneVisit))
-                ReconcileIfTheZoneChanged(completedVisit: true);
+            {
+                // Reconciliation first, and this postfix already runs after vanilla's own
+                // catch-up, so elapsed work is consumed against a zone the game has finished
+                // rebuilding. Then the interval: a journey or a rest can cross a day boundary
+                // with no Act of its own, and BQa-017 wants the world moving through travel and
+                // zone leave/return rather than only while the player is swinging at something.
+                if (!ReconcileIfTheZoneChanged(completedVisit: true)) return;
+                AdvanceThreadsIfTheDayTurned();
+            }
         }
 
         private bool ReconcileIfTheZoneChanged(bool completedVisit = false)
@@ -481,7 +496,7 @@ namespace BrilliantQuesting.Plugin
             _threads.Register(DistressedBusinessSituation.ArchetypeId, new DistressedBusinessEscalation());
             _gossip = new RumorCirculation(rumors) { Distortion = distortion };
             _ambient = new AmbientTalk(rumors);
-            _drama.AdvanceThreads = AdvanceThreads;
+            _drama.AdvanceThreads = AdvanceFromDialogue;
 
             // The asked half of the same route. One rumour layer serves both, so what somebody
             // will volunteer in the street and what they will say when asked cannot drift apart.
@@ -491,6 +506,12 @@ namespace BrilliantQuesting.Plugin
 
             _consequences = new ConsequenceEngine(_world, _vanilla);
             _consequences.Attach();
+
+            // BQa-017. The Core runner the Lab calls, hosted. Built alongside the consequence
+            // engine and after the world is loaded, because both own an event listener that must
+            // not see restored history; its interval and spent openings come back off the save,
+            // so the Plugin keeps no cursor of its own.
+            _cycle = new LiveWorldCycle(_world, _vanilla, _checks, _actions, _log.LogInfo, _log.LogWarning);
 
             // Built after the bindings are restored, because reconciling before the save's
             // identity map is back would ask the game about characters it cannot resolve yet.
@@ -620,6 +641,7 @@ namespace BrilliantQuesting.Plugin
             {
                 int lifecycleChanges = ThreadLifecycle.Review(_world, _vanilla, _vanilla.Now);
                 int escalations = _threads.Advance(_world, _vanilla.Now);
+                AdvanceProductionCycle();
                 AdvanceAutonomy();
                 AdvanceSchemes();
                 AdvanceAdventurers();
@@ -643,6 +665,37 @@ namespace BrilliantQuesting.Plugin
             {
                 _log.LogWarning("Thread escalation skipped after an exception: " + ex.Message);
             }
+        }
+
+        /// <summary>
+        /// One bounded causal pass, run by the game rather than by a test (BQa-017).
+        ///
+        /// Ahead of the other autonomy owners for the reason the Lab runs it there: an opening a
+        /// pass committed is already closed in the shared ledger when the scheme pass looks at the
+        /// same day, so hook repetition cannot spend it twice. There is no gate here - whether
+        /// this interval is still owed is the cycle's persisted marker's answer, not this host's,
+        /// and a reload onto the same morning does not re-run the morning.
+        /// </summary>
+        private void AdvanceProductionCycle()
+        {
+            _cycle?.Advance(_vanilla.Now);
+        }
+
+        /// <summary>
+        /// The only way opening a conversation may reach the world (BQa-017).
+        ///
+        /// It used to be <see cref="AdvanceThreads"/> itself, which meant every projected dialogue
+        /// ran a full escalation, autonomy, scheme, adventurer and travel pass - a player who
+        /// talked to eleven people before lunch got eleven of them out of one morning. Expression
+        /// must not be able to advance the world, and it must not be required to either: this
+        /// reconciles first and then asks the same day gate every other hook asks, so a
+        /// conversation can catch up a day that turned and can do nothing else.
+        /// </summary>
+        private void AdvanceFromDialogue()
+        {
+            if (!_live || _world == null) return;
+            if (!ReconcileIfTheZoneChanged()) return;
+            AdvanceThreadsIfTheDayTurned();
         }
 
         /// <summary>
@@ -1699,6 +1752,7 @@ namespace BrilliantQuesting.Plugin
             _adventurers = null;
             _travelingGroups = null;
             _actionObserver = null;
+            _cycle = null;
             _lastAdvancedDay = long.MinValue;
             _reportedZoneIntakeFailure = false;
             _bindings?.Clear();

@@ -142,8 +142,14 @@ cannot be lifted once by each pass. Those markers are closures rather than reser
 nobody has taken yet is never written - and remembering them is capped, with oldest-first eviction
 as the documented cost of a bounded save.
 
-Headless Core only. Nothing in the Plugin calls it; BQa-017 owns the live host, and a green pass
-here is not evidence that any Elin hook advances one.
+The live host is [LiveWorldCycle](../../src/BrilliantQuesting.Plugin/LiveWorldCycle.cs) (BQa-017),
+which supplies hooks and absorbs failures and owns nothing the runner owns: no batching, fairness,
+turn order, goal selection or interval cursor of its own. Reconciliation precedes the pass on every
+path that reaches one; an act the observer already recorded closes its opening through
+`ProductionCycle.Close` rather than being handed back to `Run` and recorded twice; and a pass that
+throws is absorbed with its interval consumed, because nothing a pass committed unwinds and a retry
+would repeat the finished half. Evidence remains headless/source: no Elin hook, callback cadence or
+vanilla catch-up ordering has been observed in a running game.
 
 **Owns:** bounded off-screen selection and passes: `ProductionCycle` runs the shared causal pass;
 `AutonomousInterventions` handles ignored matters; `OffScreenSchemes` pursues staged schemes;
@@ -162,6 +168,7 @@ Source: [ProductionCycle](../../src/BrilliantQuesting.Core/Autonomy/ProductionCy
 [AdventurerEcology](../../src/BrilliantQuesting.Core/Autonomy/AdventurerEcology.cs),
 [cycle markers](../../src/BrilliantQuesting.Core/World/ProductionCycleLedger.cs).
 Proof: [ProductionCycleTests](../../tests/BrilliantQuesting.Core.Tests/ProductionCycleTests.cs),
+[LiveWorldCycleTests](../../tests/BrilliantQuesting.Core.Tests/LiveWorldCycleTests.cs),
 [AutonomousInterventionTests](../../tests/BrilliantQuesting.Core.Tests/AutonomousInterventionTests.cs).
 Lab: [autonomy](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/AutonomyScenario.cs),
 [off-screen-schemes](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/OffScreenSchemesScenario.cs),

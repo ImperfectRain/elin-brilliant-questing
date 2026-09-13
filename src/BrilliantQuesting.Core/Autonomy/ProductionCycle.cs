@@ -266,16 +266,54 @@ namespace BrilliantQuesting.Autonomy
             try
             {
                 Perform(pass, ledger, now, observations);
+                pass.Ran = true;
+            }
+            catch (Exception ex)
+            {
+                pass.Refusal = "the pass failed partway: " + ex.Message;
+                throw;
             }
             finally
             {
                 _running = false;
+
+                // The interval is consumed whether or not the pass reached the end of itself.
+                // A pass that threw has already committed whatever it committed - attempts write
+                // through the owners that own them, and none of that unwinds - so a host which
+                // caught the exception and called again on the same interval would not retry the
+                // pass, it would run the finished half of it a second time. Closing the interval
+                // is what makes a failed callback cost the rest of one day rather than duplicate
+                // a morning (BQa-017).
+                ledger.LastConsumedDay = pass.Day;
+                LastPass = pass;
             }
 
-            ledger.LastConsumedDay = pass.Day;
-            pass.Ran = true;
-            LastPass = pass;
             return pass;
+        }
+
+        /// <summary>
+        /// Closes the indivisible opening a native outcome has already taken (BQa-017).
+        ///
+        /// The other half of <see cref="TakeObservations"/>, on its own, for a host that recorded
+        /// the observation when it saw it. The live observer writes an act into history at the
+        /// moment Elin reports it, because a theft the town only hears about at midnight is a
+        /// different theft; handing that same observation to <see cref="Run"/> afterwards would
+        /// mint the record twice. So this does the half that is still owed and nothing else: no
+        /// record, no check, no verb, only the marker that stops a later pass offering the purse
+        /// the game has already moved.
+        ///
+        /// Idempotent through the ledger, whose first record of a closure is the true one, so a
+        /// repeated or overlapping callback reporting the same outcome closes nothing twice.
+        /// </summary>
+        public ConsumedOpening Close(ObservedVanillaAction observed, GameTime when)
+        {
+            if (observed == null || observed.Item.IsNone)
+            {
+                return null;
+            }
+
+            ActionContest taken = ActionContest.Exclusive(ContestedThing.Object, observed.Item);
+            return _world.ProductionCycle.Spend(taken.Key, observed.Actor, when, ConsumedOpening.Observed);
         }
 
         private void Perform(
@@ -288,7 +326,7 @@ namespace BrilliantQuesting.Autonomy
             List<string> spent = new List<string>();
             List<string> skipped = new List<string>();
 
-            TakeObservations(pass, ledger, now, observations, spent);
+            TakeObservations(pass, now, observations, spent);
 
             // The catch-all first, so a condition that changed with time rather than with an
             // event is in the same work set as the ones history announced.
@@ -351,7 +389,6 @@ namespace BrilliantQuesting.Autonomy
         /// </summary>
         private void TakeObservations(
             ProductionCyclePass pass,
-            ProductionCycleLedger ledger,
             GameTime now,
             IReadOnlyList<ObservedVanillaAction> observations,
             List<string> spent)
@@ -371,15 +408,10 @@ namespace BrilliantQuesting.Autonomy
 
                 pass.ObservationsRecorded++;
 
-                if (observed.Item.IsNone)
+                ConsumedOpening closed = Close(observed, now);
+                if (closed != null)
                 {
-                    continue;
-                }
-
-                ActionContest taken = ActionContest.Exclusive(ContestedThing.Object, observed.Item);
-                if (ledger.Spend(taken.Key, observed.Actor, now, ConsumedOpening.Observed) != null)
-                {
-                    spent.Add(taken.Key);
+                    spent.Add(closed.ContestKey);
                 }
             }
         }

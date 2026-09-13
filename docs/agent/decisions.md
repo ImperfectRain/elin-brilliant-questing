@@ -2988,3 +2988,47 @@ bounded interaction may defer a conflicting attempt; having once acted may not.
 
 Headless Core throughout. Nothing in the Plugin calls any of it, and a green month here is not
 evidence that an Elin hook advances one — that is BQa-017's to show.
+
+---
+
+## D093 — The game gets the runner, not a copy of it, and a failed callback costs one day
+
+BQa-016 left `ProductionCycle` with a Lab caller and no live one. The temptation at this seam is to
+write the scheduling again in the Plugin, where the clock and the zone are — and the result would be
+two schedulers with two ideas about what a day is, one of them tested. So the host supplies inputs
+and hooks, and owns nothing the runner owns: no batching, no fairness, no turn order, no goal
+selection, no arbitration, and in particular no interval cursor of its own. Whether an interval is
+still owed is `ProductionCycleLedger`'s answer, off the save, which is what makes a reload onto the
+same morning not re-run the morning without the Plugin having to remember anything.
+
+Three things follow, and they are the whole of what the host adds.
+
+**Every hook goes through the same gate.** An act, a completed zone visit and an opened conversation
+can all arrive repeatedly inside one day, and the cycle refuses the repeats. Opening a conversation
+used to run a full escalation, autonomy, scheme, adventurer and travel pass directly, which meant a
+player who talked to eleven people before lunch got eleven of them out of one morning; expression can
+now only catch up a day that has actually turned. It is not that expression may not touch the world —
+it is that it must not be able to advance it, and must not be required to.
+
+**Reconciliation comes first.** A pass consumes elapsed work, and elapsed work must be counted
+against a zone the game has finished rebuilding. The visit observer is a postfix on vanilla's own
+catch-up for that reason, and the day gate sits behind it on every path that can reach one, so a
+journey or a rest that crossed a day boundary with no act of its own still gets the interval it owes
+without the mod redoing physical work Elin already did.
+
+**A pass that throws closes its interval rather than retrying it.** Arbitration already absorbs a
+verb that threw, so what reaches the host is the layer underneath: an adapter read on a character the
+game destroyed mid-pass, a capability that went away under a version change. That exception stops at
+the host — an Elin callback is not the place to let a mod's exception out — and the interval is
+marked consumed on the way past. Retrying it would not resume the pass, because nothing a pass
+committed unwinds; it would run the finished half a second time. One failed callback costing the rest
+of one day is the cheaper wrong answer.
+
+The native half is the mirror of that. The live observer records an act the moment Elin reports it,
+because a theft the town only hears about at midnight is a different theft, so the observation cannot
+also be handed to `Run` — that would mint the same history twice. What it still owes is the opening
+the game took, and `ProductionCycle.Close` writes that closure and nothing else: no record, no check,
+no verb, so nobody is later offered the purse Elin has already moved.
+
+None of this is runtime evidence. The host's own rules are checkable headlessly and are checked;
+whether Elin calls them, and on what schedule, is a real save's to say.

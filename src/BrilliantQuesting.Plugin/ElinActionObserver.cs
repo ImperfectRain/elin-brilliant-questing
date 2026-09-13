@@ -38,7 +38,15 @@ namespace BrilliantQuesting.Plugin
             _log = log;
         }
 
-        internal void Observe(object payload)
+        /// <summary>
+        /// Reads one act and writes down whatever the simulation recognized in it.
+        ///
+        /// Returns what was recorded, or null when the payload was not an act, was not one of the
+        /// kinds this layer knows, or could not be recorded. The caller owns what else a recorded
+        /// outcome implies - BQa-017 closes the indivisible opening it took - and null means there
+        /// is nothing for it to own.
+        /// </summary>
+        internal ObservedVanillaAction Observe(object payload)
         {
             try
             {
@@ -47,7 +55,7 @@ namespace BrilliantQuesting.Plugin
                 if (act == null)
                 {
                     ReportUnknownPayload(payload, unwrapped);
-                    return;
+                    return null;
                 }
 
                 ObservedVanillaAction action;
@@ -55,24 +63,28 @@ namespace BrilliantQuesting.Plugin
                     action = ToObservedAction(act);
                 if (action == null)
                 {
-                    return;
+                    return null;
                 }
 
                 WorldEvent recorded;
                 using (RuntimeEvidence.Measure(RuntimeEvidence.Callback.Record))
                     recorded = _recorder.Record(action);
-                if (recorded != null)
+                if (recorded == null)
                 {
-                    _log.LogInfo("Observed vanilla " + recorded.Type + ": "
-                                 + _world.Registry.NameOf(recorded.Actor) + " -> "
-                                 + _world.Registry.NameOf(recorded.Target)
-                                 + Detail(action)
-                                 + " via " + action.SourceActionId + " (" + recorded.Id + ").");
+                    return null;
                 }
+
+                _log.LogInfo("Observed vanilla " + recorded.Type + ": "
+                             + _world.Registry.NameOf(recorded.Actor) + " -> "
+                             + _world.Registry.NameOf(recorded.Target)
+                             + Detail(action)
+                             + " via " + action.SourceActionId + " (" + recorded.Id + ").");
+                return action;
             }
             catch (Exception ex)
             {
                 _log.LogWarning("Skipped ActPerformed observation after an exception: " + ex);
+                return null;
             }
         }
 
