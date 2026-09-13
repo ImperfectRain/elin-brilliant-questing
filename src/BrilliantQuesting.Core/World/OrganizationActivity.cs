@@ -106,7 +106,9 @@ namespace BrilliantQuesting.World
     /// - asking the world on the body's behalf would hand it the save's knowledge for free.
     ///
     /// Headless. Nothing here touches Elin; <see cref="IVanillaState"/> is asked only what this
-    /// build can carry. Live enrollment and host wiring are BQa-020's.
+    /// build can carry. Which bodies production runs this pass over is
+    /// <see cref="OrganizationEnrollment"/>'s answer, and the live host reaches it through
+    /// <see cref="Autonomy.ProductionCycle"/> rather than by scheduling one of its own (BQa-020).
     /// </summary>
     public sealed class OrganizationActivity
     {
@@ -164,14 +166,20 @@ namespace BrilliantQuesting.World
         /// <summary>
         /// One bounded pass. Returns how many bodies changed something, which is what the existing
         /// callers count; <see cref="LastPass"/> is where what they planned and refused lives.
+        ///
+        /// <paramref name="enrolled"/> is who production has admitted (BQa-020), or null for every
+        /// body in the registry. Null is the direct caller's answer - a Lab probe or a test that
+        /// built the bodies it wants exercised - and the production cycle supplies a roster instead,
+        /// because "which of these is an institution at all" is <see cref="OrganizationEnrollment"/>'s
+        /// question and not this owner's.
         /// </summary>
-        public int Advance(GameTime now)
+        public int Advance(GameTime now, IReadOnlyList<EntityId> enrolled = null)
         {
             OrganizationActivityPass pass = new OrganizationActivityPass(now);
             OrganizationActivityBudget budget = Budget ?? new OrganizationActivityBudget();
             ProductionCycleLedger ledger = _world.ProductionCycle;
 
-            List<Organization> bodies = Whose(budget, now);
+            List<Organization> bodies = Whose(budget, now, enrolled);
             List<EntityId> turns = new List<EntityId>();
             List<EntityId> spentMembers = new List<EntityId>();
             List<Delegation> delegated = new List<Delegation>();
@@ -215,13 +223,17 @@ namespace BrilliantQuesting.World
         /// purse of people between them the order two bodies are reached in would otherwise decide
         /// which of them got anybody.
         /// </summary>
-        private List<Organization> Whose(OrganizationActivityBudget budget, GameTime now)
+        private List<Organization> Whose(
+            OrganizationActivityBudget budget, GameTime now, IReadOnlyList<EntityId> enrolled)
         {
             List<Organization> due = new List<Organization>();
             foreach (KeyValuePair<EntityId, Organization> pair in _world.Registry.Organizations)
             {
                 Organization body = pair.Value;
-                if (body != null && now.TotalDays > body.LastActedAt.TotalDays && HasActiveGoal(body))
+                if (body != null
+                    && Admitted(enrolled, body.Id)
+                    && now.TotalDays > body.LastActedAt.TotalDays
+                    && HasActiveGoal(body))
                 {
                     due.Add(body);
                 }
@@ -236,6 +248,24 @@ namespace BrilliantQuesting.World
             }
 
             return due;
+        }
+
+        private static bool Admitted(IReadOnlyList<EntityId> enrolled, EntityId body)
+        {
+            if (enrolled == null)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < enrolled.Count; i++)
+            {
+                if (enrolled[i] == body)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static int ByTurn(Organization a, Organization b)

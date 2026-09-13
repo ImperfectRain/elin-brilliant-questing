@@ -5,6 +5,22 @@ using BrilliantQuesting.Foundation;
 namespace BrilliantQuesting.World
 {
     /// <summary>
+    /// How production came by a body (BQa-020).
+    ///
+    /// The distinction is about what may be rewritten, not about what may act: an enrollment pass
+    /// keeps the roll of a body it raised itself in line with what is still observed, and never
+    /// touches the membership of one somebody else established.
+    /// </summary>
+    public enum OrganizationSource
+    {
+        /// <summary>A BQ owner made it deliberately, or a save carries it. The old-save default.</summary>
+        Established,
+
+        /// <summary>Raised by <see cref="OrganizationEnrollment"/> from observed offices.</summary>
+        ObservedMembership
+    }
+
+    /// <summary>
     /// A generated group - a smuggler crew, a farming family, a merchant association. These
     /// overlay vanilla guilds and factions rather than replacing them: the Thieves Guild is still
     /// the Thieves Guild, but the four people who actually fence goods in this town are ours.
@@ -45,6 +61,26 @@ namespace BrilliantQuesting.World
         /// body has not been told, however many of them hold it.
         /// </summary>
         public InstitutionalReceiptLedger Receipts { get; }
+
+        /// <summary>
+        /// How production came by this body (BQa-020).
+        ///
+        /// <see cref="OrganizationSource.Established"/> is the old-save default and covers every
+        /// body a BQ owner made deliberately. <see cref="OrganizationSource.ObservedMembership"/>
+        /// marks one <see cref="OrganizationEnrollment"/> raised from offices the game says people
+        /// hold, and is the half that has to be deduplicated: without a recorded route and
+        /// reference, every pass would raise the town's watch again.
+        /// </summary>
+        public OrganizationSource Source { get; set; } = OrganizationSource.Established;
+
+        /// <summary>
+        /// What the enrollment owner keyed this body on, or empty for a body it did not raise.
+        ///
+        /// Not an Elin handle and deliberately not kept in <see cref="NarrativeWorldState.ExternalRefs"/>,
+        /// which the adapter clears and rewrites from live bindings on every attach. It is the
+        /// observation this body stands for, and it is what makes raising it idempotent.
+        /// </summary>
+        public string ExternalRef { get; set; } = string.Empty;
 
         /// <summary>Coarse band rather than a modelled treasury; see the economy scope limit.</summary>
         public int Wealth { get; set; }

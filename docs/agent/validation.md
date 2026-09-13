@@ -84,6 +84,7 @@ repetition itself is diagnostic, not a content-quality pass/fail threshold.
 | Organizations/demand/business | `OrganizationActivityTests`, `BusinessContinuityTests` or `ProductionActionTests` | Relevant archetype, persistence; `integration` |
 | Organization operations, what a body needs before it acts and who carries it | `OrganizationOperationTests` | `OrganizationActivityTests`, `OrganizationPressureInterpretationTests`, `GoalActionBridgeTests`, `ActionArbitrationTests`, persistence gates; `integration` |
 | Institutional receipts, organization pressure reading and organization goals | `OrganizationPressureInterpretationTests` | `OrganizationActivityTests`, `ActorPressureViewTests`, `NpcGoalContractTests`, persistence gates; `integration` |
+| Organization enrollment, and bodies inside the production pass | `LiveOrganizationAgencyTests` | `ProductionCycleTests`, `OrganizationOperationTests`, `OrganizationPressureInterpretationTests`, `IntegrationHarnessTests` (Lab), persistence gates; `integration --days 30`; Plugin build and live [Native](#native) acceptance - a headless enrollment is not a raised body in a running game |
 | Sites/planning/content | `SiteGenesisTests`, `ScenarioPlanTests`, `ScenarioDungeonTests` or `SiteMutationTests` | `SiteRoutesTests`, `SiteContentsTests`, `SiteCandidatesTests`, persistence; `dungeon`, `site-addition` |
 | Spatial expressive-range diagnostics | `SpatialRangeHarnessTests` (Lab project) | `ScenarioPlanTests`, `AntiTemplateHarnessTests`, `LabCommandLineTests`; `spatial-range --seed 15 --runs 20` |
 

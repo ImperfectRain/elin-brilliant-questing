@@ -199,8 +199,8 @@ generated organization state/goals, the action library and the build. Outputs: m
 reserves, protection/raids, delegated attempts and events for ties, sites and situations. Records
 are persisted; pass machinery is transient.
 **Does not own:** vanilla guild membership/rank/economy. `GuildNetworks`/authority actions consume
-native or explicitly authored standing through their own routes. The Lab integration harness calls
-organization activity; the Plugin does not currently instantiate that pass.
+native or explicitly authored standing through their own routes. Which bodies a production pass acts
+on is `OrganizationEnrollment`'s answer, and the pass itself is `ProductionCycle`'s to schedule.
 
 **What a body knows, and what follows from it.** `InstitutionalReceiptLedger` on each organization is
 the whole of what the institution has been told: one saved receipt per filing, carrying the channel
@@ -240,7 +240,29 @@ evidence, and an end whose condition quietly came true stays open for `Organizat
 One person is spent once per pass whichever body asks for them, reserves are read as the last
 operation left them, and BQa-016's spent openings stop a reload repeating a deed.
 
+**How production comes by a body, and which it may act on.** `OrganizationEnrollment` is the only
+answer, and it has two halves. It *raises* a body from offices the game says people hold:
+`AuthorityPolicy.Reconcile` is the single route an observed institutional facet takes into
+`NarrativeNpc.Roles` and reads an office rather than a trade, a job token or a name, so people
+holding a watch office in one settlement are its `watch` and people holding guild standing there
+are its `guild`. Each is keyed on `Organization.ExternalRef` and raised once - `Organization.Source`
+records which route produced it, additively saved, defaulting to `Established` for every body an
+owner made deliberately and for every old save. A raised body's roll follows the observation in both
+directions; a body somebody established keeps its own membership. It gets no holding, no reserves,
+no leader and an empty receipt ledger, so it notices nothing until a BQa-018 channel tells it
+something. The other half *admits*: a body with living people or ground its record keeps is an
+institution, and a registry row with neither is refused by name.
+
+**When a body gets its turn.** Inside the same bounded pass the people are in.
+`ProductionCycle.Run` enrolls, derives each enrolled body's `OrganizationPressureView`, advances
+`OrganizationGoalEvolution` and then calls `OrganizationActivity` with that roster - so the Lab and
+the live host run one runner rather than two schedules, and one day gate and one opening ledger
+cover people and bodies alike. The people's half runs first, so an opening a townsman took this
+morning is already closed when his guild looks at the same day.
+
 Source: [OrganizationActivity](../../src/BrilliantQuesting.Core/World/OrganizationActivity.cs),
+[OrganizationEnrollment](../../src/BrilliantQuesting.Core/World/OrganizationEnrollment.cs),
+[ProductionCycle](../../src/BrilliantQuesting.Core/Autonomy/ProductionCycle.cs),
 [OrganizationOperations](../../src/BrilliantQuesting.Core/World/OrganizationOperations.cs),
 [Organization](../../src/BrilliantQuesting.Core/World/Organization.cs),
 [InstitutionalReceipt](../../src/BrilliantQuesting.Core/World/InstitutionalReceipt.cs),
@@ -248,11 +270,15 @@ Source: [OrganizationActivity](../../src/BrilliantQuesting.Core/World/Organizati
 [OrganizationGoalEvolution](../../src/BrilliantQuesting.Core/World/OrganizationGoalEvolution.cs).
 Proof: [OrganizationActivityTests](../../tests/BrilliantQuesting.Core.Tests/OrganizationActivityTests.cs),
 [OrganizationPressureInterpretationTests](../../tests/BrilliantQuesting.Core.Tests/OrganizationPressureInterpretationTests.cs),
-[OrganizationOperationTests](../../tests/BrilliantQuesting.Core.Tests/OrganizationOperationTests.cs).
+[OrganizationOperationTests](../../tests/BrilliantQuesting.Core.Tests/OrganizationOperationTests.cs),
+[LiveOrganizationAgencyTests](../../tests/BrilliantQuesting.Core.Tests/LiveOrganizationAgencyTests.cs).
 Lab: [integration](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/IntegrationScenario.cs).
 Native guild limits: [capabilities](../elin/capabilities.md).
-The durable rules are [`D094`](../agent/decisions.md#d094--a-body-knows-what-it-was-told-through-a-named-channel-and-never-the-union-of-what-its-people-believe)
-and [`D095`](../agent/decisions.md#d095--a-body-acts-through-its-own-people-or-on-its-own-records-and-never-gets-paid-for-failing).
+The durable rules are [`D094`](../agent/decisions.md#d094--a-body-knows-what-it-was-told-through-a-named-channel-and-never-the-union-of-what-its-people-believe),
+[`D095`](../agent/decisions.md#d095--a-body-acts-through-its-own-people-or-on-its-own-records-and-never-gets-paid-for-failing)
+and [`D096`](../agent/decisions.md#d096--production-comes-by-a-body-through-evidence-and-the-game-gets-the-same-bounded-pass-the-laboratory-does).
+No live game has been observed enrolling or ticking a body: that acceptance is BQa-020's outstanding
+half, and headless/source evidence is not runtime proof.
 
 ## Sites
 

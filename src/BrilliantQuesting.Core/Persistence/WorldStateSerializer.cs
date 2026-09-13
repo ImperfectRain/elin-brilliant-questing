@@ -403,6 +403,8 @@ namespace BrilliantQuesting.Persistence
                     .Set("legitimacy", organization.Legitimacy)
                     .Set("aggression", organization.Aggression)
                     .Set("lastActed", organization.LastActedAt.TotalMinutes)
+                    .Set("source", organization.Source.ToString())
+                    .Set("externalRef", organization.ExternalRef)
                     .Set("goals", goals)
                     .Set("receipts", receipts)
                     .Set("members", Ids(organization.MemberIds))
@@ -914,7 +916,14 @@ namespace BrilliantQuesting.Persistence
                     Wealth = json.GetInt("wealth"),
                     Legitimacy = json.GetInt("legitimacy"),
                     Aggression = json.GetInt("aggression"),
-                    LastActedAt = new GameTime(json.GetLong("lastActed"))
+                    LastActedAt = new GameTime(json.GetLong("lastActed")),
+
+                    // Old-save defaults (BQa-020). A save written before enrollment existed carries
+                    // bodies somebody established deliberately, which is what `Established` says;
+                    // reading them as observed would let the enrollment pass rewrite an authored
+                    // crew's membership from whoever happens to hold an office nearby.
+                    Source = ParseEnum(json.GetString("source"), OrganizationSource.Established),
+                    ExternalRef = json.GetString("externalRef")
                 };
 
                 foreach (JsonValue goalJson in json.GetArray("goals"))

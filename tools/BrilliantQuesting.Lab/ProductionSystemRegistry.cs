@@ -29,7 +29,6 @@ namespace BrilliantQuesting.Lab
         public RumorCirculation RumorCirculation { get; set; }
         public ThreadEngine Threads { get; set; }
         public SettlementSituationGenerator SettlementGenerator { get; set; }
-        public OrganizationActivity Organizations { get; set; }
         public AbsenceLifecycle Absences { get; set; }
         public OffScreenSchemes Schemes { get; set; }
 
@@ -121,8 +120,7 @@ namespace BrilliantQuesting.Lab
                     HarnessPhase.Daily,
                     AdvanceProductionCycle,
                     "production Core",
-                    "Headless Core only: a pass here is no evidence that any Elin hook advances one (BQa-017)."),
-                new ProductionSystemDescriptor("organization_activity", HarnessPhase.Daily, AdvanceOrganizations, "production Core"),
+                    "Headless Core only: a pass here is no evidence that any Elin hook advances one (BQa-017); its enrolled organization half is BQa-020's and equally unobserved in a running game."),
                 new ProductionSystemDescriptor("off_screen_schemes", HarnessPhase.Daily, AdvanceSchemes, "production Core"),
                 new ProductionSystemDescriptor("absence_lifecycle", HarnessPhase.Daily, ReconcileAbsences, "production Core"),
                 new ProductionSystemDescriptor("rumor_circulation", HarnessPhase.Daily, CirculateRumors, "production Core"),
@@ -248,19 +246,15 @@ namespace BrilliantQuesting.Lab
             runtime.CycleGoalChanges += pass.GoalChanges.Count;
             runtime.CycleIntentions += pass.IntentionsGathered;
             runtime.CycleCommits += pass.Committed;
-        }
 
-        private static void AdvanceOrganizations(HarnessState state, HarnessRuntime runtime)
-        {
-            // The build, the resolver and the library, because BQa-019 institutional ends are
-            // carried by real members through the shared attempt. Without them the pass would run
-            // its bookkeeping and refuse every deed for want of somewhere to perform it.
-            runtime.Organizations ??= new OrganizationActivity(
-                state.World,
-                state.Vanilla,
-                new VanillaStyleCheckResolver(state.Vanilla),
-                StandardActions.CreateRegistry());
-            runtime.OrganizationActions += runtime.Organizations.Advance(state.Vanilla.Now);
+            // BQa-020. Organization activity is no longer a second daily system beside the cycle:
+            // the cycle enrolls the bodies and runs the same owner the Lab used to call, so the
+            // harness counts what that pass did rather than driving one of its own. The Plugin
+            // reaches it through the identical runner.
+            if (pass.Institutional != null)
+            {
+                runtime.OrganizationActions += pass.Institutional.Committed;
+            }
         }
 
         private static void AdvanceSchemes(HarnessState state, HarnessRuntime runtime)

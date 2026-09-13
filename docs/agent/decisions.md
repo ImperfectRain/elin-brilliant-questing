@@ -3142,3 +3142,48 @@ Nothing here is persisted beyond what already was: the day the body last acted, 
 openings, which are what stop a reload offering a purse the save already carries the result of.
 Headless throughout — enrollment and the live host are BQa-020's, and no Elin session has scheduled
 one of these passes.
+
+---
+
+## D096 — Production comes by a body through evidence, and the game gets the same bounded pass the laboratory does
+
+Organization simulation was stronger in Core and the Lab than in the game, and the reason was not
+the simulation. `OrganizationActivity` had been exercised for as long as it existed, but only ever
+where somebody had authored a crew first: the Lab built its own bodies and called the pass itself,
+the tests built theirs, and the Plugin — which authors none and called nothing — ran no
+institutional pass at all. Two things were missing between them, and they are different problems.
+
+**Where a body comes from.** Before this there was no answer that did not involve a fixture. The
+honest routes are the ones that were already recorded: a body a BQ owner established deliberately,
+and offices the game itself says people hold. `AuthorityPolicy.Reconcile` is the only way an
+observed institutional facet reaches `NarrativeNpc.Roles`, and it reads an office and nothing else
+— not a trade, not a job token, not a name — so people holding a watch office in one settlement are
+that settlement's watch, and people holding guild standing there are its guild. `OrganizationEnrollment`
+groups those observations and raises one body per group, keyed on what it was raised from, so a
+pass every morning refreshes one roll instead of founding a new watch every day. A roll is the
+observation rather than a record of it: somebody who no longer holds the office comes off it.
+
+**What a raised body is not given.** No holding, because the settlement its people were observed in
+is not ground the watch keeps, and recording it as one would let BQa-019 collect reserves out of a
+town nobody owns. No purse, because a vanilla guild is not a BQ treasury. No leader, because which
+guard commands is not something the game says. And no knowledge: it starts with an empty receipt
+ledger, so until somebody files something through one of BQa-018's channels it notices nothing.
+That is the correct state of a newly enrolled institution rather than a gap — a body that noticed
+the town's troubles the day it was enrolled would be the omniscient institution D094 refuses.
+
+**Which bodies production may act on at all.** A body with living people, or ground its record
+keeps, is an institution. A registry row with neither is a name, and is refused by name rather than
+quietly skipped — which is what stops production depending on whatever a harness happened to add.
+
+**The game gets the same pass.** The institutional half is inside `ProductionCycle` rather than
+beside it, so the one runner the host already holds (D093) enrolls the bodies, derives what each may
+legitimately notice, evolves its ends and calls BQa-019's owner — and the Lab, which used to drive a
+second daily system of its own, now counts what that pass did. One day gate, one opening ledger, one
+batch boundary for people and bodies alike. The people's half runs first, as it did when the Lab
+ordered the two owners, so an opening a townsman took this morning is already closed when his guild
+looks at the same day, and the body's deed is dropped where the drop is visible.
+
+The cycle still decides nothing: enrollment, legitimate reading, goal evolution and execution each
+stay with the owner that held them. What it supplies is the interval, the bound and the roster.
+Headless throughout — that the Plugin's hooks advance one of these passes in a running game remains
+BQa-017's unproved gate, and nothing here observes a live institution.

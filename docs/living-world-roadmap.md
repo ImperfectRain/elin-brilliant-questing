@@ -1372,6 +1372,52 @@ Organizations do not need personality profiles or synthetic spokesperson NPCs to
 **Live enrollment boundary:** first establish how production obtains organizations at all. Reuse existing explicitly generated groups or verified membership/holding observations with provenance and deduplication; do not depend on Lab-created crews, equate vanilla guild IDs with BQ-owned wealth, or infer institutions from a job token. This commit wires already-tested execution and enrollment; it does not redesign organization actions. Its three-type live acceptance may use safely established BQ groups, but their later reports/goals/actions cannot be fixture scripts.
 
 
+
+**Current implementation (BQa-020).** The institutional half of a pass is inside
+`ProductionCycle` rather than beside it, so the runner the host already holds enrolls the bodies,
+derives what each may legitimately notice, evolves its ends and calls BQa-019's owner with that
+roster. The Lab's separate daily organization system is gone: the harness counts what the cycle's
+pass did, which is the whole point - one day gate, one opening ledger and one batch boundary for
+people and bodies alike, reached identically from `ProductionSystemRegistry` and from
+`LiveWorldCycle`. The Plugin needed no organization code and got none; `_cycle.Advance` already
+ticks them. The people's half runs first, as it did when the Lab ordered the two owners, so an
+opening a townsman took this morning is already closed when his guild looks at the same day and the
+body's deed is dropped where the drop is visible.
+
+`OrganizationEnrollment` is the answer to where a body comes from, which nothing had before: every
+organization reached the simulation through a save, a fixture or a Lab scenario, which is why the
+Plugin - authoring none - ran no institutional pass at all. It *raises* one from offices the game
+says people hold. `AuthorityPolicy.Reconcile` is the single route an observed institutional facet
+takes into `NarrativeNpc.Roles` and reads an office rather than a trade, a job token or a name, so
+people holding a watch office in one settlement are its `watch` and people holding guild standing
+there are its `guild`. Each body is keyed on `Organization.ExternalRef` and raised once, its roll
+follows the observation in both directions, and a body somebody else established keeps its own
+membership. A raised body gets no holding - the settlement its people were seen in is not ground it
+keeps, and recording it as one would let BQa-019 collect reserves out of a town nobody owns - no
+purse, no leader, and an empty receipt ledger. It *admits* separately: a body with living people or
+ground its record keeps is an institution and a registry row with neither is refused by name, which
+is what stops production depending on whatever a harness happened to add. `Source`/`ExternalRef`
+are additive save fields defaulting to `Established`/empty, so an old save's bodies are what they
+are. `LiveOrganizationAgencyTests` drives `ProductionCycle` and never the organization owner
+directly: three kinds of body notice and act in one pass, a person who reaches an opening first
+takes it from his own guild, a body nobody told notices nothing however much Core knows, what a body
+does becomes ordinary history that presses on the next pass, a reload onto the same morning does not
+let the bodies act again, and enrollment is deterministic, deduplicated across passes and saves, and
+refuses a name. The durable rule is
+[`D096`](agent/decisions.md#d096--production-comes-by-a-body-through-evidence-and-the-game-gets-the-same-bounded-pass-the-laboratory-does).
+
+**Live verification still required** and this step is not complete without it, as its Done-when
+says. Nothing below has been observed in a running game: that any Elin save yields the observed
+institutional facets this enrollment reads, and therefore that three organization types are raised
+and act through the live production cycle at all; that the identity intake's role reconciliation
+runs often enough to keep a raised roll current across zone changes and dismissals; or that an
+enrolled pass costs what a hosted frame can afford. The Plugin was not compiled here because the
+Elin assemblies are not available in this environment, so "the Plugin builds" remains an unproved
+gate rather than a passing check, and BQa-017's hook-timing acceptance is still outstanding
+underneath this one. No new native observation is claimed: enrollment reads roles this simulation
+already recorded and asks `IVanillaState` only who the player is. Evidence grade unchanged:
+headless/source.
+
 **Authority / proof route:** [owning source and representative tests](systems/world.md#organizations), [neighbor contract](systems/flow.md#live-host-joins), [validation](agent/validation.md#native).
 
 **Sequence:** BQa-019 → BQa-020 → BQa-021.

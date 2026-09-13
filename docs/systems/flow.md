@@ -15,7 +15,7 @@ Search the method named in the table before changing order or adding another tic
 | Attach/zone change | `RegisterLocalVanillaActors` → `ElinBindings.CanonicalIdFor` → identity intake/authority refresh | Stable IDs and re-read native facets; no personality inferred from job |
 | `EVENT.ActPerformed` | `OnActPerformed` → `ElinActionObserver.Observe` → `VanillaActionRecorder` → `NarrativeWorldState.Record` → `LiveWorldCycle.Observed` → `ProductionCycle.Close` | Recognized acts become history; unknown payloads ignored, native outcomes not rolled again, and the indivisible opening one took is closed rather than recorded twice |
 | New event | `EventLedger.Append` → attached `ConsequenceEngine.Handle` | Knowledge/tension then profile-based social/memory/standing reactions; no blanket claim that every fact comes from this listener |
-| Day changes after acts | `AdvanceThreadsIfTheDayTurned` → `AdvanceThreads` → `ThreadLifecycle.Review`, `ThreadEngine.Advance`, `LiveWorldCycle.Advance`, autonomy, schemes, adventurers, travel; then rumor circulation | Host order is explicit; each owner retains its own one-time state/gates. The cycle runs ahead of the other autonomy owners so an opening it committed is already closed when they look at the same day |
+| Day changes after acts | `AdvanceThreadsIfTheDayTurned` → `AdvanceThreads` → `ThreadLifecycle.Review`, `ThreadEngine.Advance`, `LiveWorldCycle.Advance`, autonomy, schemes, adventurers, travel; then rumor circulation | Host order is explicit; each owner retains its own one-time state/gates. The cycle runs ahead of the other autonomy owners so an opening it committed is already closed when they look at the same day. Its pass carries the organization half (BQa-020); the host adds no second organization tick |
 | Completed zone visit | `NativeZoneVisit` postfix → `ReconcileIfTheZoneChanged(completedVisit)` → `AdvanceThreadsIfTheDayTurned` | Reconciliation before elapsed work is consumed, after vanilla's own catch-up; a journey or rest that crossed a day with no act of its own still gets the interval it owes |
 | Generic conversation opened | `DramaChoiceProjector` → `AdvanceFromDialogue` → `ReconcileIfTheZoneChanged` → `AdvanceThreadsIfTheDayTurned` | Expression may catch up a day that turned and may do nothing else; it can neither advance the world nor be required to |
 | Attach/zone changes | `MaybeGenerateLocalSituation` → `SettlementSituationGenerator.Evaluate` → `SituationProposalSelection.Rank` → `TryGenerateSelected` through `TryGenerate`; separate Home generation | Admission before native theft mutation; established facts/threads remain unknown to player unless learned |
@@ -80,12 +80,19 @@ supplied observations (VanillaActionRecorder)
   -> GoalRoutes.Discover -> GoalRoute -> ActionIntent -> ActionCandidate
   -> ArbitrationBatch.Gather/Resolve -> ActionAttempt.Run
   -> attached ConsequenceEngine and the verbs' own owners
+  then, in the same pass, for the bodies:
+  -> OrganizationEnrollment.Advance -> raised/admitted roster
+  -> OrganizationPressureView.Of -> OrganizationGoalEvolution.Advance
+  -> OrganizationActivity.Advance(roster) -> bookkeeping or a member's ActionAttempt
   -> changed state -> back into PressureFeedback for the next interval
 ```
 
 One interval per pass, recorded in `ProductionCycleLedger`; replaying a consumed interval does
 nothing, and a re-entrant call from an immediate listener is refused rather than run. Attempts
-happen inside the batch and nowhere else on this path. The same runner is called by the Lab's
+happen inside the batch and nowhere else on this path. The institutional half runs after the
+people's, so an opening a person committed is already closed when their body looks at the same day
+(BQa-020); which bodies it reaches is [enrollment](world.md#organizations)'s answer, not a sweep of
+the registry. The same runner is called by the Lab's
 [production registry](../../tools/BrilliantQuesting.Lab/ProductionSystemRegistry.cs) and by the host
 through [LiveWorldCycle](../../src/BrilliantQuesting.Plugin/LiveWorldCycle.cs) (BQa-017), which adds
 hooks and failure absorption rather than scheduling: the interval gate is the persisted marker, not a
@@ -93,9 +100,12 @@ Plugin cursor, and a pass that throws closes its interval instead of replaying i
 Live hook timing and vanilla catch-up ordering remain a real save's to prove.
 
 Source: [ProductionCycle](../../src/BrilliantQuesting.Core/Autonomy/ProductionCycle.cs),
+[OrganizationEnrollment](../../src/BrilliantQuesting.Core/World/OrganizationEnrollment.cs),
 [LiveWorldCycle](../../src/BrilliantQuesting.Plugin/LiveWorldCycle.cs).
-Contract: [autonomy](world.md#autonomy), [persistence](integration.md#persistence).
+Contract: [autonomy](world.md#autonomy), [organizations](world.md#organizations),
+[persistence](integration.md#persistence).
 Proof: [ProductionCycleTests](../../tests/BrilliantQuesting.Core.Tests/ProductionCycleTests.cs),
+[LiveOrganizationAgencyTests](../../tests/BrilliantQuesting.Core.Tests/LiveOrganizationAgencyTests.cs),
 [LiveWorldCycleTests](../../tests/BrilliantQuesting.Core.Tests/LiveWorldCycleTests.cs),
 [IntegrationHarnessTests](../../tests/BrilliantQuesting.Lab.Tests/IntegrationHarnessTests.cs).
 
@@ -113,7 +123,7 @@ creation costs in that selection seam. Neither adds a director-to-spawner join o
 | Director → all world/scene selection | `DevelopmentScoring` ranks eligible news; attention also gates generation, and sincerity gates host presentations. No universal director owns every decision |
 | Routed storylets → live Drama | Plugin has no `StoryletRouter`/`StoryletEngine` host. Preserve semantic/wording/delivery boundaries when adding one |
 | Stable voice → save | `VoiceProfile` is caller-supplied; `NarrativeNpc`/serializer do not store an assigned voice. Reuse existing tone/idiolect vocabulary if persistent assignment is introduced |
-| Generated organization activity → live tick | Called by Lab `ProductionSystemRegistry`, not instantiated in Plugin. No claim of live organization simulation |
+| Generated organization activity → live tick | Joined inside `ProductionCycle` (BQa-020), so the Lab and the host run one pass rather than two schedules. Headless/source only: no live game has been observed raising a body from an observed office or ticking one |
 | Core production cycle → live tick | Joined by `LiveWorldCycle` on the day-turn, zone-visit and dialogue paths (BQa-017), reconstructed from the save's own markers. Headless/source evidence only: no Elin hook, callback timing, travel/rest cadence or vanilla catch-up ordering has been observed in a running game |
 | Site plan → native structure → future spatial pressure | Core plan/realization/addition exists; live structure/addition capabilities refuse. Do not promote plan geometry to native fact |
 | Native catch-up → BQ tiers | Plugin attach/zone change reads Home state through `OffScreenSchemes.ReconcileZone`; observed Active residents consume elapsed scheme windows without replaying physical work. [Tier contract](world.md#autonomy); actual Home revisit timing/readback still needs live evidence |

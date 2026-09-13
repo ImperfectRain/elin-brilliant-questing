@@ -30,6 +30,11 @@ namespace BrilliantQuesting.Plugin
     /// observer records an act the moment Elin reports it, which is the right moment, so the
     /// observation cannot also be handed to <see cref="ProductionCycle.Run"/> - that would mint
     /// the same history twice. <see cref="Observed"/> supplies the half that is still owed.
+    ///
+    /// The bodies are in that same pass and need nothing here (BQa-020). The cycle enrolls them,
+    /// reads what each may legitimately notice and calls the organization owner itself, so the host
+    /// gains a live institutional tick without gaining a second schedule to keep in step with the
+    /// first - which is this type's whole argument, applied once more.
     /// </summary>
     internal sealed class LiveWorldCycle
     {

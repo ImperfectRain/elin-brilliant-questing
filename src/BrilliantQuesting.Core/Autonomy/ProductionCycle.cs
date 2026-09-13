@@ -42,6 +42,15 @@ namespace BrilliantQuesting.Autonomy
         /// </summary>
         public int TurnSampling { get; set; } = 4;
 
+        /// <summary>
+        /// Bodies enrolled, read and given a turn per pass (BQa-020).
+        ///
+        /// Lower than the actor bound because a town has fewer institutions than people, and
+        /// because a body that was not reached keeps the <see cref="Organization.LastActedAt"/>
+        /// that puts it at the front of the next pass exactly as a person does.
+        /// </summary>
+        public int MostBodiesPerPass { get; set; } = 8;
+
         /// <summary>Wants of one actor that are searched for routes.</summary>
         public int MostGoalsPerActor { get; set; } = 3;
 
@@ -64,6 +73,8 @@ namespace BrilliantQuesting.Autonomy
     {
         private static readonly IReadOnlyList<EntityId> Nobody = new EntityId[0];
         private static readonly IReadOnlyList<GoalChange> NoChanges = new GoalChange[0];
+        private static readonly IReadOnlyList<OrganizationGoalChange> NoInstitutionalChanges =
+            new OrganizationGoalChange[0];
         private static readonly IReadOnlyList<string> NoKeys = new string[0];
 
         internal ProductionCyclePass(GameTime at)
@@ -72,6 +83,7 @@ namespace BrilliantQuesting.Autonomy
             Day = at.TotalDays;
             Evaluated = Nobody;
             GoalChanges = NoChanges;
+            InstitutionalGoalChanges = NoInstitutionalChanges;
             OpeningsSpent = NoKeys;
             OpeningsSkipped = NoKeys;
             Refusal = string.Empty;
@@ -124,6 +136,18 @@ namespace BrilliantQuesting.Autonomy
         /// <summary>Attempts that changed the world.</summary>
         public int Committed { get; internal set; }
 
+        /// <summary>Which bodies production came by and admitted this pass (BQa-020).</summary>
+        public OrganizationEnrollmentPass Enrollment { get; internal set; }
+
+        /// <summary>Institutional readings across every enrolled body.</summary>
+        public int InstitutionalReadings { get; internal set; }
+
+        /// <summary>Everything institutional goal evolution did this pass.</summary>
+        public IReadOnlyList<OrganizationGoalChange> InstitutionalGoalChanges { get; internal set; }
+
+        /// <summary>The organization pass's own result, or null when nothing was enrolled.</summary>
+        public OrganizationActivityPass Institutional { get; internal set; }
+
         public override string ToString()
         {
             if (!Ran)
@@ -133,7 +157,8 @@ namespace BrilliantQuesting.Autonomy
 
             return "day " + Day + ": " + DevelopmentsRead + " condition(s), " + Evaluated.Count
                 + " actor(s), " + GoalChanges.Count + " goal change(s), " + IntentionsGathered
-                + " intention(s), " + Committed + " committed";
+                + " intention(s), " + Committed + " committed, "
+                + (Enrollment == null ? 0 : Enrollment.Roster.Count) + " body(ies)";
         }
     }
 
@@ -203,10 +228,24 @@ namespace BrilliantQuesting.Autonomy
             _registry = registry ?? throw new ArgumentNullException(nameof(registry));
             _recorder = new VanillaActionRecorder(world, vanilla);
             Feedback = new PressureFeedback(world);
+
+            // The whole seam, because BQa-019's delegated deeds are carried by real members through
+            // the shared attempt: a cycle that handed it less would run institutional bookkeeping
+            // and refuse every deed for want of somewhere to perform it.
+            Organizations = new OrganizationActivity(world, vanilla, checks, registry);
         }
 
         /// <summary>The work-set collector this cycle reads from. Attach it after loading.</summary>
         public PressureFeedback Feedback { get; }
+
+        /// <summary>
+        /// BQa-019's organization owner, which this cycle calls rather than reproduces (BQa-020).
+        ///
+        /// Exposed for an inspector and for a host that wants to bound it differently. It is the
+        /// same type the Lab and the tests call directly; what the cycle adds is the day gate, the
+        /// enrolled roster and the shared opening ledger.
+        /// </summary>
+        public OrganizationActivity Organizations { get; }
 
         public ProductionCycleBudget Budget { get; set; } = new ProductionCycleBudget();
 
@@ -375,8 +414,67 @@ namespace BrilliantQuesting.Autonomy
                 Settle(pass, ledger, now, candidates, spent);
             }
 
+            Institutions(pass, budget, now, objective);
+
             pass.OpeningsSpent = spent;
             pass.OpeningsSkipped = skipped;
+        }
+
+        /// <summary>
+        /// The same pass, for the bodies rather than the people (BQa-020).
+        ///
+        /// <b>After the people, not instead of them.</b> A body acts through its own members, so an
+        /// opening one of them took this morning is already closed in the shared ledger when their
+        /// guild looks at the same day - which is the order the Lab already ran these two owners in,
+        /// kept now that one runner holds both.
+        ///
+        /// <b>Nothing here decides anything either.</b> Which bodies exist and which are
+        /// institutions at all is <see cref="OrganizationEnrollment"/>'s answer; what a body may
+        /// legitimately notice is <see cref="OrganizationPressureView"/>'s; which end follows is
+        /// <see cref="OrganizationGoalEvolution"/>'s; and what it does about one is
+        /// <see cref="OrganizationActivity"/>'s. This supplies the interval, the bound and the
+        /// roster, exactly as it does for people.
+        ///
+        /// The readings are the only thing handed to goal evolution, which is the whole of "no body
+        /// acts on what BQa-018 says it could not know": the objective conditions this pass read go
+        /// in, and a body with no filing, no undertaking and no holding takes nothing out of them.
+        /// </summary>
+        private void Institutions(
+            ProductionCyclePass pass,
+            ProductionCycleBudget budget,
+            GameTime now,
+            IReadOnlyList<Development> objective)
+        {
+            OrganizationEnrollmentPass enrolled =
+                OrganizationEnrollment.Advance(_world, _vanilla, now, budget.MostBodiesPerPass);
+            pass.Enrollment = enrolled;
+
+            if (enrolled.Roster.Count == 0)
+            {
+                return;
+            }
+
+            List<OrganizationGoalChange> changes = new List<OrganizationGoalChange>();
+            int readings = 0;
+            for (int i = 0; i < enrolled.Roster.Count; i++)
+            {
+                EntityId body = enrolled.Roster[i];
+                IReadOnlyList<OrganizationPressure> reading =
+                    OrganizationPressureView.Of(_world, body, objective);
+                readings += reading.Count;
+                changes.AddRange(OrganizationGoalEvolution.Advance(_world, body, reading, now));
+            }
+
+            pass.InstitutionalReadings = readings;
+            pass.InstitutionalGoalChanges = changes;
+
+            // The host's own stop and its reading of the world reach the bodies' deeds too. They
+            // go through the same batch anybody else's intention does, so a frame that has run out
+            // of time has run out of it for a guild as much as for a carter.
+            Organizations.Observation = Observation;
+            Organizations.Cancellation = Cancellation;
+            Organizations.Advance(now, enrolled.Roster);
+            pass.Institutional = Organizations.LastPass;
         }
 
         /// <summary>
