@@ -201,11 +201,33 @@ events for ties, sites and situations. Records are persisted; pass machinery is 
 native or explicitly authored standing through their own routes. The Lab integration harness calls
 organization activity; the Plugin does not currently instantiate that pass.
 
+**What a body knows, and what follows from it.** `InstitutionalReceiptLedger` on each organization is
+the whole of what the institution has been told: one saved receipt per filing, carrying the channel
+(`Accounting`, `MemberReport`, `HoldingObservation`, `ExternalReport`), whoever filed it, the claim,
+and a standing that can be corrected or retracted without the filing leaving the record.
+`InstitutionalReports` is the only way in, and where a person files it reads their confidence and
+provability off their own knowledge record rather than minting a second belief. Members' private
+beliefs are theirs: the union of them is never the body's knowledge.
+`OrganizationPressureView.Of` is the derived reading of that - a standing receipt, an open condition
+of a site the body keeps, or an undertaking it is party to on the ledger, and nothing else; a body's
+own stated aim is deliberately not a route. `OrganizationGoalEvolution.Advance` is the goal owner:
+it forms, reweights, supersedes and retires `OrganizationGoal`s from those readings alone, choosing
+among the ends a reading admits by `OrganizationPolicy`'s per-type charter, and asks the world
+whether a want came about only once its cause has left the body's own view. `OrganizationGoal`
+carries the same condition/provenance/lifecycle contract an `NpcGoal` does; `Progress` remains the
+body's effort counter and is not evidence about the condition. Reading is side effect free; only the
+evolution pass records a change. Nothing here schedules or acts - operations remain BQa-019's.
+
 Source: [OrganizationActivity](../../src/BrilliantQuesting.Core/World/OrganizationActivity.cs),
-[Organization](../../src/BrilliantQuesting.Core/World/Organization.cs).
-Proof: [OrganizationActivityTests](../../tests/BrilliantQuesting.Core.Tests/OrganizationActivityTests.cs).
+[Organization](../../src/BrilliantQuesting.Core/World/Organization.cs),
+[InstitutionalReceipt](../../src/BrilliantQuesting.Core/World/InstitutionalReceipt.cs),
+[OrganizationPressureView](../../src/BrilliantQuesting.Core/Developments/OrganizationPressureView.cs),
+[OrganizationGoalEvolution](../../src/BrilliantQuesting.Core/World/OrganizationGoalEvolution.cs).
+Proof: [OrganizationActivityTests](../../tests/BrilliantQuesting.Core.Tests/OrganizationActivityTests.cs),
+[OrganizationPressureInterpretationTests](../../tests/BrilliantQuesting.Core.Tests/OrganizationPressureInterpretationTests.cs).
 Lab: [integration](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/IntegrationScenario.cs).
 Native guild limits: [capabilities](../elin/capabilities.md).
+The durable rule is [`D094`](../agent/decisions.md#d094--a-body-knows-what-it-was-told-through-a-named-channel-and-never-the-union-of-what-its-people-believe).
 
 ## Sites
 

@@ -43,7 +43,21 @@ namespace BrilliantQuesting.World
             return organization != null
                    && !organization.LeaderId.IsNone
                    && now.TotalDays > organization.LastActedAt.TotalDays
-                   && organization.Goals.Count > 0;
+                   && HasActiveGoal(organization);
+        }
+
+        private static bool HasActiveGoal(Organization organization)
+        {
+            for (int i = 0; i < organization.Goals.Count; i++)
+            {
+                OrganizationGoal goal = organization.Goals[i];
+                if (goal != null && goal.IsActive)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool Act(Organization organization, GameTime now)
@@ -83,7 +97,11 @@ namespace BrilliantQuesting.World
             for (int i = 0; i < organization.Goals.Count; i++)
             {
                 OrganizationGoal goal = organization.Goals[i];
-                if (goal.Satisfied)
+
+                // Active, not merely unsatisfied. A goal can now end without its condition holding -
+                // given up when nothing presses any more, or handed to the end that replaced it -
+                // and acting on one of those would have the body chasing what it stopped wanting.
+                if (!goal.IsActive)
                 {
                     continue;
                 }

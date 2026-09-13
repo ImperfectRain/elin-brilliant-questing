@@ -219,6 +219,57 @@ namespace BrilliantQuesting.Developments
     }
 
     /// <summary>
+    /// The trouble a held claim would be, if it were true.
+    ///
+    /// Deliberately a table over the fact vocabulary rather than a re-reading of the detector's
+    /// rules: those rules answer "what is the world holding", and asking them here would drag their
+    /// truth tests in with them - and the whole reason a reader needs this is that the thing they
+    /// hold may be false.
+    ///
+    /// Shared by every reader that projects a claim nothing objective covers: one person's sincere
+    /// error (BQa-007) and one body's standing report (BQa-018) are the same question asked from
+    /// two places, and two copies of this table would eventually disagree about what a killing is.
+    /// </summary>
+    internal sealed class ClaimConcern
+    {
+        private ClaimConcern(string tag, int weight, bool isWrong)
+        {
+            Tag = tag;
+            Weight = weight;
+            IsWrong = isWrong;
+        }
+
+        internal string Tag { get; }
+
+        internal int Weight { get; }
+
+        /// <summary>Something somebody did, which somebody else can have put right.</summary>
+        internal bool IsWrong { get; }
+
+        internal static ClaimConcern Of(string predicate)
+        {
+            switch (predicate)
+            {
+                case FactPredicates.Killed: return Wrong(DevelopmentPressures.UnresolvedCrime, 90);
+                case FactPredicates.Extorted: return Wrong(DevelopmentPressures.UnresolvedCrime, 70);
+                case FactPredicates.Stole: return Wrong(DevelopmentPressures.UnresolvedCrime, 60);
+                case FactPredicates.Forged: return Wrong(DevelopmentPressures.UnresolvedCrime, 50);
+                case FactPredicates.MayBeSabotaged: return Wrong(DevelopmentPressures.UnresolvedCrime, 35);
+                case FactPredicates.AtRisk: return Condition(DevelopmentPressures.DamagedProperty, 45);
+                case FactPredicates.Damaged: return Condition(DevelopmentPressures.DamagedProperty, 40);
+                case FactPredicates.Needs: return Condition(DevelopmentPressures.Shortage, 40);
+                case FactPredicates.IsContaminated: return Condition(DevelopmentPressures.DamagedProperty, 30);
+                case FactPredicates.HasSoilTrouble: return Condition(DevelopmentPressures.DamagedProperty, 30);
+                default: return null;
+            }
+        }
+
+        private static ClaimConcern Wrong(string tag, int weight) => new ClaimConcern(tag, weight, true);
+
+        private static ClaimConcern Condition(string tag, int weight) => new ClaimConcern(tag, weight, false);
+    }
+
+    /// <summary>
     /// Step 7a: what one person can legitimately be under pressure about.
     ///
     /// <see cref="DevelopmentDetector"/> reads the world as it stands, and it reads it
@@ -461,7 +512,7 @@ namespace BrilliantQuesting.Developments
                 return null;
             }
 
-            Concern concern = ConcernOf(claim.Predicate);
+            ClaimConcern concern = ConcernOf(claim.Predicate);
             if (concern == null)
             {
                 return null;
@@ -602,28 +653,8 @@ namespace BrilliantQuesting.Developments
 
         // -- what a predicate would mean, if it were so ------------------------------------------
 
-        /// <summary>
-        /// The trouble a held claim would be, if it were true. Deliberately a table over the fact
-        /// vocabulary rather than a re-reading of the detector's rules: those rules answer "what is
-        /// the world holding", and asking them here would drag their truth tests in with them.
-        /// </summary>
-        private static Concern ConcernOf(string predicate)
-        {
-            switch (predicate)
-            {
-                case FactPredicates.Killed: return Concern.Wrong(DevelopmentPressures.UnresolvedCrime, 90);
-                case FactPredicates.Extorted: return Concern.Wrong(DevelopmentPressures.UnresolvedCrime, 70);
-                case FactPredicates.Stole: return Concern.Wrong(DevelopmentPressures.UnresolvedCrime, 60);
-                case FactPredicates.Forged: return Concern.Wrong(DevelopmentPressures.UnresolvedCrime, 50);
-                case FactPredicates.MayBeSabotaged: return Concern.Wrong(DevelopmentPressures.UnresolvedCrime, 35);
-                case FactPredicates.AtRisk: return Concern.Condition(DevelopmentPressures.DamagedProperty, 45);
-                case FactPredicates.Damaged: return Concern.Condition(DevelopmentPressures.DamagedProperty, 40);
-                case FactPredicates.Needs: return Concern.Condition(DevelopmentPressures.Shortage, 40);
-                case FactPredicates.IsContaminated: return Concern.Condition(DevelopmentPressures.DamagedProperty, 30);
-                case FactPredicates.HasSoilTrouble: return Concern.Condition(DevelopmentPressures.DamagedProperty, 30);
-                default: return null;
-            }
-        }
+        /// <summary>The trouble a held claim would be, if it were true. See <see cref="ClaimConcern"/>.</summary>
+        private static ClaimConcern ConcernOf(string predicate) => ClaimConcern.Of(predicate);
 
         /// <summary>
         /// How many people other than this actor a list names.
@@ -653,27 +684,6 @@ namespace BrilliantQuesting.Developments
             {
                 into.Add(id);
             }
-        }
-
-        private sealed class Concern
-        {
-            private Concern(string tag, int weight, bool isWrong)
-            {
-                Tag = tag;
-                Weight = weight;
-                IsWrong = isWrong;
-            }
-
-            internal string Tag { get; }
-
-            internal int Weight { get; }
-
-            /// <summary>Something somebody did, which somebody else can have put right.</summary>
-            internal bool IsWrong { get; }
-
-            internal static Concern Wrong(string tag, int weight) => new Concern(tag, weight, true);
-
-            internal static Concern Condition(string tag, int weight) => new Concern(tag, weight, false);
         }
 
         private sealed class Terms

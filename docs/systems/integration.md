@@ -58,6 +58,7 @@ or UI/decision caches. Save compatibility is a behavior, not only a version numb
 | Events, facts, beliefs/proofs, memories, ties, obligations | Restore stores directly; never redispatch old events or repeat standing writes |
 | Event causal provenance (schema 12) | Restore typed links and any decision codes verbatim, including references whose record is gone; an older save's events migrate to explicit unknown provenance and are never given an inferred cause |
 | Goal lifecycle, condition and provenance (schema 13) | Restore the lifecycle, its retirement code and the owner's own assessment verbatim, and the desired condition and causal source as references; a condition whose term this build does not know still loads and stays an unsupported desire; an older save's goals take their lifecycle from `satisfied` and are given no condition and no inferred cause |
+| Institutional receipts and organization goal contract (additive nodes, no bump) | Restore each receipt's channel, filer, claim, confidence, provability and standing verbatim, including corrected and retracted ones and the filing each was corrected by; restore an organization goal's lifecycle, retirement code, desired condition and causal source exactly as the NPC form is. An older save has no `receipts` node and loads as a body that has been told nothing, and its goals take their lifecycle from `satisfied` with no condition and no inferred cause. Standing filings are kept whatever the bound; closed ones are capped, oldest dropped |
 | Threads/firings, absences, travel, demands, businesses | Restore lifecycle/manifests and their one-time markers; rebuild handlers in host |
 | Rumor/ambient stamps | Preserve pacing across reload; policy objects themselves are not saved |
 | Production-cycle markers (additive node, no bump) | Restore the last consumed interval and the indivisible openings already closed; an older save has no node and loads as a world that has run no cycle and closed nothing, which is what it was. Closures only - a transient claim on something nobody has taken is never written - and whose turn it is stays derived from `LastSimulatedAt` rather than stored |
@@ -72,7 +73,8 @@ reattach/reconciliation separately from JSON restoration.
 Source: [WorldStateSerializer](../../src/BrilliantQuesting.Core/Persistence/WorldStateSerializer.cs),
 [SaveMigrations](../../src/BrilliantQuesting.Core/Persistence/SaveMigrations.cs),
 [NarrativeWorldState](../../src/BrilliantQuesting.Core/World/NarrativeWorldState.cs),
-[ProductionCycleLedger](../../src/BrilliantQuesting.Core/World/ProductionCycleLedger.cs).
+[ProductionCycleLedger](../../src/BrilliantQuesting.Core/World/ProductionCycleLedger.cs),
+[InstitutionalReceipt](../../src/BrilliantQuesting.Core/World/InstitutionalReceipt.cs).
 Proof: [PersistenceTests](../../tests/BrilliantQuesting.Core.Tests/PersistenceTests.cs),
 [MigrationFixtureTests](../../tests/BrilliantQuesting.Core.Tests/MigrationFixtureTests.cs) with
 [historical serializer fixtures](../../tests/BrilliantQuesting.Core.Tests/Fixtures/Saves/README.md),

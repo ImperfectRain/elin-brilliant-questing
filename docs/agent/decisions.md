@@ -3032,3 +3032,57 @@ no verb, so nobody is later offered the purse Elin has already moved.
 
 None of this is runtime evidence. The host's own rules are checkable headlessly and are checked;
 whether Elin calls them, and on what schedule, is a real save's to say.
+
+## D094 — A body knows what it was told through a named channel, and never the union of what its people believe
+
+An organization has no eyes. Every way of giving it some is a choice about what kind of institution
+the world contains, and two of them are cheap and wrong.
+
+The first is to read the union of its members' beliefs. It is one line, it always finds something,
+and it produces a guild of forty that knows every secret any of the forty holds — including the ones
+they are keeping from each other, from it, and from the law. That is not an institution. It is a
+collective mind, and everything downstream of it acts on knowledge nobody can point at a route for.
+
+The second is to let ownership and office stand in for knowing. The body owns the warehouse, so it
+knows the warehouse was emptied; the reeve's office answers for crimes, so his guild hears about one.
+This reads plausibly and it is the same omniscience wearing a badge: being answerable for a kind of
+matter is a reason to act on one and has never been a way of hearing about it. It is also the exact
+failure the actor view already refuses one level down, where a stake may move what a pressure costs
+somebody and may never be how they came to know it.
+
+So a body's knowledge is a **receipt**: a saved record that names a channel — its own books, one of
+its people, somebody watching a site it keeps, an outsider addressing it — and, where a person filed
+it, that person. Ownership and role are not channels. An owned loss reaches the body through an
+accounting, member or holding observation filing or it does not reach it at all, and a member who
+holds something and files nothing has told it nothing.
+
+**A receipt is not a knowledge record, and reusing one would have been the third cheap answer.** A
+knowledge record answers "does this knower hold this claim", and per-knower confidence never
+downgrades — weaker hearsay must not overwrite what somebody saw. An institution needs the opposite:
+a filing can be corrected by a later one or withdrawn outright, and the body must then stop acting on
+it while the person who filed it goes on believing whatever they believe. Expressing that as a belief
+would have meant teaching the graph to forget, which is a change to the belief authority made for a
+reason that is not about belief. The receipt therefore stores provenance and lifecycle, and reuses
+the filer's own knowledge record for the two things that are genuinely theirs: how sure they were,
+and whether they could show it. A body has no beliefs of its own anywhere.
+
+**Reports may be false and nothing checks.** A standing filing is read as the body's position whether
+or not the world agrees, exactly as a sincere belief is for a person, and a body that acts on a wrong
+report is acting as institutions do. The disagreement is recorded for an inspector and never for the
+body.
+
+What follows from a reading is the body's **charter** — a per-type table of the ends it answers with —
+and not a personality. Organizations get no values, sensitivities, appetites or problem-solving
+styles: duplicating the individual character authorities onto institutions would double every
+question and leave two places to answer it. A charter is the one thing an institution genuinely has
+that a person does not, and it is enough for a carters' guild, a crew and a family to read the same
+town and legitimately want three different things. A type nobody has written a charter for answers
+only for what it is plainly party to, rather than inheriting a trade guild's appetite for the town's
+troubles.
+
+One more thing is deliberately not a route: the body's own stated aim. The detector reads an
+organization stake off the goals a body already holds, so admitting that back as a reading would make
+every institutional goal its own cause, and nothing would ever retire.
+
+Headless throughout. Nothing here schedules a pass or performs an operation; what a body does about
+what it wants is BQa-019's, and no live session has exercised any of it.

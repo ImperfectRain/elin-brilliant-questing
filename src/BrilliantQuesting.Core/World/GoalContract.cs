@@ -66,6 +66,12 @@ namespace BrilliantQuesting.World
         /// <summary>One actor's local reading of a pressure. The reference is that reading's id.</summary>
         ActorPressure,
 
+        /// <summary>
+        /// One body's reading of what it has legitimately received. The reference is that reading's
+        /// id, and the record is the claim on file - which may be one somebody reported wrongly.
+        /// </summary>
+        InstitutionalReading,
+
         /// <summary>A record in authoritative state: an obligation, a fact, a demand.</summary>
         AuthoritativeRecord,
 
@@ -706,9 +712,30 @@ namespace BrilliantQuesting.World
                 formedAt);
         }
 
+        /// <summary>
+        /// The provenance of a goal formed from one body's reading of what it holds on file: that
+        /// reading's id, the objective pressure behind it where there is one, and the claim it is
+        /// about. Ids only, for the same reason the actor form gives - the reading is recomputed
+        /// every pass, and a frozen copy here would make the goal disagree with the next one.
+        /// </summary>
+        public static GoalOrigin FromInstitution(OrganizationPressure pressure, GameTime formedAt = default)
+        {
+            if (pressure == null)
+            {
+                throw new ArgumentNullException(nameof(pressure));
+            }
+
+            return new GoalOrigin(
+                GoalSourceKind.InstitutionalReading,
+                pressure.Id,
+                pressure.DevelopmentId,
+                pressure.FocusFactId,
+                formedAt);
+        }
+
         public GoalSourceKind Kind { get; }
 
-        /// <summary>The causing reading's id: an actor-local pressure id, or empty.</summary>
+        /// <summary>The causing reading's id: an actor-local or institutional pressure id, or empty.</summary>
         public string SourceId { get; }
 
         /// <summary>

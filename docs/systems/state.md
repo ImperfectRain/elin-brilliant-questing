@@ -100,6 +100,11 @@ read off what the actor believes rather than off the matter that ended. Derived,
 effect free — it teaches nothing, which is what separates it from `ActorLocalInterpreter` above.
 The durable rule is [`D083`](../agent/decisions.md#d083--an-actor-reaches-a-pressure-by-route-and-a-stake-only-changes-what-it-costs-them).
 
+A knower is a person here. An institution's knowledge is a saved receipt with a named channel and its
+own correctable standing, owned by [organizations](world.md#organizations): filing reads the
+reporter's record for confidence and provability rather than minting a second belief, and no reader
+may union members' beliefs into the body's. A report may be false, and the body acts on it.
+
 Source: [KnowledgeGraph](../../src/BrilliantQuesting.Core/Knowledge/KnowledgeGraph.cs),
 [ProofLink](../../src/BrilliantQuesting.Core/Knowledge/ProofLink.cs),
 [ActorPressureView](../../src/BrilliantQuesting.Core/Developments/ActorPressureView.cs),

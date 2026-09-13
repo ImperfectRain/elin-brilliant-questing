@@ -360,12 +360,38 @@ namespace BrilliantQuesting.Persistence
                 JsonValue goals = JsonValue.Array();
                 foreach (OrganizationGoal goal in organization.Goals)
                 {
+                    // `satisfied` stays written beside the lifecycle for the same reason an NPC
+                    // goal's does: a reader older than this step would otherwise see every
+                    // organization goal as outstanding.
                     goals.Add(JsonValue.Object()
                         .Set("kind", goal.Kind)
                         .Set("subject", goal.Subject.Value)
                         .Set("weight", goal.Weight)
                         .Set("progress", goal.Progress)
-                        .Set("satisfied", goal.Satisfied));
+                        .Set("satisfied", goal.Satisfied)
+                        .Set("lifecycle", goal.Lifecycle.ToString())
+                        .Set("retiredAt", goal.RetiredAt.TotalMinutes)
+                        .Set("retirementCode", goal.RetirementCode)
+                        .Set("supersededBy", goal.SupersededBy)
+                        .Set("condition", ConditionToJson(goal.Condition))
+                        .Set("origin", OriginToJson(goal.Origin)));
+                }
+
+                JsonValue receipts = JsonValue.Array();
+                foreach (InstitutionalReceipt receipt in organization.Receipts)
+                {
+                    receipts.Add(JsonValue.Object()
+                        .Set("id", receipt.Id)
+                        .Set("channel", receipt.Channel.ToString())
+                        .Set("claim", receipt.ClaimId.Value)
+                        .Set("filedBy", receipt.FiledBy.Value)
+                        .Set("filedAt", receipt.FiledAt.TotalMinutes)
+                        .Set("confidence", receipt.Confidence)
+                        .Set("provable", receipt.Provable)
+                        .Set("standing", receipt.Standing.ToString())
+                        .Set("closedAt", receipt.ClosedAt.TotalMinutes)
+                        .Set("closureCode", receipt.ClosureCode)
+                        .Set("supersededBy", receipt.SupersededBy));
                 }
 
                 array.Add(JsonValue.Object()
@@ -378,6 +404,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("aggression", organization.Aggression)
                     .Set("lastActed", organization.LastActedAt.TotalMinutes)
                     .Set("goals", goals)
+                    .Set("receipts", receipts)
                     .Set("members", Ids(organization.MemberIds))
                     .Set("sites", Ids(organization.SiteIds)));
             }
@@ -892,14 +919,48 @@ namespace BrilliantQuesting.Persistence
 
                 foreach (JsonValue goalJson in json.GetArray("goals"))
                 {
-                    organization.Goals.Add(new OrganizationGoal(
+                    // Old-save defaults. A save written before BQa-018 recorded only `satisfied`,
+                    // so the lifecycle is read off that and nothing else is inferred: an old
+                    // organization goal is an unsupported desire with unknown provenance, and says
+                    // so rather than having a condition guessed from its kind string.
+                    OrganizationGoal goal = new OrganizationGoal(
                         goalJson.GetString("kind"),
                         EntityId.Parse(goalJson.GetString("subject")),
-                        goalJson.GetInt("weight"))
+                        goalJson.GetInt("weight"),
+                        ReadCondition(goalJson["condition"]),
+                        ReadOrigin(goalJson["origin"]))
                     {
-                        Progress = goalJson.GetInt("progress"),
-                        Satisfied = goalJson.GetBool("satisfied")
-                    });
+                        Progress = goalJson.GetInt("progress")
+                    };
+
+                    goal.Restore(
+                        ParseEnum(goalJson.GetString("lifecycle"),
+                            goalJson.GetBool("satisfied") ? GoalLifecycle.Satisfied : GoalLifecycle.Active),
+                        new GameTime(goalJson.GetLong("retiredAt")),
+                        goalJson.GetString("retirementCode"),
+                        goalJson.GetString("supersededBy"));
+                    organization.Goals.Add(goal);
+                }
+
+                // Absent in a save written before this step, which loads as a body that has been
+                // told nothing - exactly the state it was already in.
+                foreach (JsonValue receiptJson in json.GetArray("receipts"))
+                {
+                    InstitutionalReceipt receipt = new InstitutionalReceipt(
+                        receiptJson.GetString("id"),
+                        ParseEnum(receiptJson.GetString("channel"), InstitutionalChannel.MemberReport),
+                        EntityId.Parse(receiptJson.GetString("claim")),
+                        EntityId.Parse(receiptJson.GetString("filedBy")),
+                        receiptJson.GetNumber("confidence"),
+                        receiptJson.GetBool("provable"),
+                        new GameTime(receiptJson.GetLong("filedAt")));
+
+                    receipt.Restore(
+                        ParseEnum(receiptJson.GetString("standing"), ReceiptStanding.Filed),
+                        new GameTime(receiptJson.GetLong("closedAt")),
+                        receiptJson.GetString("closureCode"),
+                        receiptJson.GetString("supersededBy"));
+                    organization.Receipts.Restore(receipt);
                 }
 
                 foreach (JsonValue member in json.GetArray("members"))

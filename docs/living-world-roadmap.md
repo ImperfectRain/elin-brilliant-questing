@@ -1262,6 +1262,28 @@ An organization may act on policy and shared institutional state without pretend
 
 **Authority / proof route:** [owning source and representative tests](systems/world.md#organizations), [neighbor contract](systems/state.md#belief-and-proof), [validation](agent/validation.md#persistence).
 
+**Current implementation (BQa-018).** `InstitutionalReceiptLedger` on each `Organization` is the whole
+of what a body has been told: one saved receipt per filing carrying its channel, its filer, the claim
+and a standing that can be corrected or retracted without the filing leaving the record.
+`InstitutionalReports` is the only way in, and reads the filer's own `KnowledgeRecord` for confidence
+and provability rather than minting a second belief. `OrganizationPressureView.Of` is the derived
+reading - a standing receipt, an open non-secret condition of a site the body keeps, or an open
+undertaking it is party to on the ledger, and nothing else; membership, ownership, office and the
+body's own stated aim are all explicitly not routes, and stakes are computed strictly after a route
+has admitted a reading. `OrganizationGoalEvolution.Advance` is the goal owner: it forms, reweights,
+supersedes and retires goals from those readings alone, chooses among the ends a reading admits by
+`OrganizationPolicy`'s per-type charter, and asks the world whether a want came about only once its
+cause has left the body's own view. `OrganizationGoal` now carries the BQa-008 condition/provenance/
+lifecycle contract, with `GoalSourceKind.InstitutionalReading` as its causal source, and the claim
+concern table that both readers need is shared rather than copied. Receipts and the organization goal
+contract are additive save nodes with old-save defaults - no schema bump - and closed receipts are
+bounded while standing ones are not. The three-types, unreported-knowledge, wrong-report, correction,
+filer-loss, determinism, old-save and reload cases are in
+[OrganizationPressureInterpretationTests](../tests/BrilliantQuesting.Core.Tests/OrganizationPressureInterpretationTests.cs);
+the durable reason is [`D094`](agent/decisions.md#d094--a-body-knows-what-it-was-told-through-a-named-channel-and-never-the-union-of-what-its-people-believe).
+Headless Core only: nothing schedules these passes, operations remain BQa-019's, and the Plugin was
+not compiled here because the Elin assemblies are not present. Evidence grade unchanged.
+
 **Sequence:** BQa-017 → BQa-018 → BQa-019.
 
 ---
