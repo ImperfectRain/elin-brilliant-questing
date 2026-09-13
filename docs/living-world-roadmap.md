@@ -1302,6 +1302,50 @@ Replace current unknown-goal and failed-recruit/protection fallbacks to `BuildWe
 **Do not:** create a parallel organization action ontology, economy, hidden member or native guild authority. This step adapts execution; live enrollment/host wiring follows in BQa-020.
 
 
+**Current implementation (BQa-019).** `OrganizationOperations.Plan` is the reading that turns one
+institutional end into an operation, and every operation declares what kind of change it could make -
+in `SemanticEffects`' own vocabulary rather than a second one beside it - what it needs, and what it
+costs. Two means, and the line is whether the change needs hands. The four institutional operations
+keep their owner and write the body's own records: taking somebody onto the roll, collecting from a
+holding, standing a watch on one, moving against a rival. None of them has an NPC performing it and
+the event names the body, because naming the leader as the actor of a membership change put a man
+somewhere he never went. Every other end is a deed: `GoalRoutes.DiscoverFor` routes the end's own
+BQa-008 condition for one eligible real member, and the deed goes through the same `ActionAttempt`
+and the same `ArbitrationBatch` as anybody else's intention. The body sends whoever filed the receipt
+the end came off - the person who has actually seen the thing - and that member is routed through
+their own knowledge, so being directed is not a way of being told. Every way of going about one end
+is offered together rather than the first one: they share a contest, so BQa-015 ranks them,
+revalidates the best against the world as it is at that moment, and the rest yield once one finishes
+it.
+
+The four `BuildWealth` fallbacks are gone, which is most of the step: an unknown end, a recruit search
+that found nobody, a holding that was not there and a rival that was not there each used to pay the
+body, and building wealth added three coins plus one per member from nowhere every pass. Reserves now
+come from a named holding - a site the body keeps whose own record does not call somebody else its
+controller - and nothing else; recruitment needs somebody reachable where the body keeps something,
+not already anybody's, not set against it, and affordable; a blow needs a rival that exists and the
+reserves to cover it. An end nothing supports is a refusal on the pass and the body waits. One person
+is spent once per pass whichever body asks for them, reserves are read as the last operation left
+them, bodies are taken least-recently-acted first and then by id rather than however the registry
+enumerates, and BQa-016's spent openings stop a reload offering a deed the save already carries the
+result of. Two semantic defects in the directly affected code were fixed in scope: effort closed an
+end at a hundred units of `Progress`, and a body acted through a leader who might be dead - an end now
+closes only on the world's answer to the body's own committed operation, and the leader is a
+preference among eligible members rather than a requirement. `OrganizationOperationTests` covers the
+six Done-when clauses and the required cases - leader loss, depleted reserves, shared member
+contention, the false report that motivates without becoming true, satisfaction against actual state,
+determinism and reload; the durable rule is [`D095`](agent/decisions.md#d095--a-body-acts-through-its-own-people-or-on-its-own-records-and-never-gets-paid-for-failing).
+
+**Live verification still required** headless Core only. Nothing durable was added - the day a body
+last acted and BQa-016's spent openings are the only markers, both of which the save already carried,
+and a pass that committed nothing leaves the save byte-identical. Nothing schedules these passes in
+the game: the Lab harness calls them and the Plugin does not, which is BQa-020's live enrollment and
+host wiring, and the Plugin was not compiled here because the Elin assemblies are not redistributable.
+One thing is deliberately left as it stands: an `AnswerClaim` end needs the body itself named among a
+reading's subjects, and the current subject lists hold people rather than institutions, so that end
+was not exercisable here - it is BQa-018's route to widen, not this step's. Evidence grade unchanged:
+headless/source.
+
 **Authority / proof route:** [owning source and representative tests](systems/world.md#organizations), [neighbor contract](systems/actions.md#actions), [validation](agent/validation.md#world).
 
 **Sequence:** BQa-018 → BQa-019 → BQa-020.

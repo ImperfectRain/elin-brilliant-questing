@@ -82,6 +82,7 @@ repetition itself is diagnostic, not a content-quality pass/fail threshold.
 | Simulation tiers | `SimulationTierTests`, `OffScreenSchemeTests` | Persistence gates, `ActorIdentityIntakeTests`, `PlayerNpcActionSymmetryTests`; `off-screen-schemes`, `integration`; Plugin build and live Home revisit/readback |
 | Travel/absence | `TravelingGroupTests` or `AbsenceTests` | `FailedCaravanTests`, `ConsequenceArrivalTests`; `traveling-groups`, `consequence-arrivals` |
 | Organizations/demand/business | `OrganizationActivityTests`, `BusinessContinuityTests` or `ProductionActionTests` | Relevant archetype, persistence; `integration` |
+| Organization operations, what a body needs before it acts and who carries it | `OrganizationOperationTests` | `OrganizationActivityTests`, `OrganizationPressureInterpretationTests`, `GoalActionBridgeTests`, `ActionArbitrationTests`, persistence gates; `integration` |
 | Institutional receipts, organization pressure reading and organization goals | `OrganizationPressureInterpretationTests` | `OrganizationActivityTests`, `ActorPressureViewTests`, `NpcGoalContractTests`, persistence gates; `integration` |
 | Sites/planning/content | `SiteGenesisTests`, `ScenarioPlanTests`, `ScenarioDungeonTests` or `SiteMutationTests` | `SiteRoutesTests`, `SiteContentsTests`, `SiteCandidatesTests`, persistence; `dungeon`, `site-addition` |
 | Spatial expressive-range diagnostics | `SpatialRangeHarnessTests` (Lab project) | `ScenarioPlanTests`, `AntiTemplateHarnessTests`, `LabCommandLineTests`; `spatial-range --seed 15 --runs 20` |

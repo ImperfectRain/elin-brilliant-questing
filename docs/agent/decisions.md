@@ -3086,3 +3086,59 @@ every institutional goal its own cause, and nothing would ever retire.
 
 Headless throughout. Nothing here schedules a pass or performs an operation; what a body does about
 what it wants is BQa-019's, and no live session has exercised any of it.
+
+---
+
+## D095 — A body acts through its own people or on its own records, and never gets paid for failing
+
+`OrganizationActivity` had one shape of bug in four places. An unknown end, a recruit search that
+found nobody, a holding that was not there and a rival that was not there all fell through to
+building wealth — and building wealth added three coins plus one per member, every pass, from
+nowhere. So the body that could do nothing was the body that got richer, membership compounded
+into income, and there was a second economy in the save that no owner had written and no record
+could account for.
+
+Removing the fallbacks is most of the fix, and the rest is saying what each operation actually
+needs. An operation now declares three things before it can happen: **what kind of change it could
+make**, in BQa-010's own effect vocabulary rather than a second one beside it; **what it needs**,
+in records that already exist; and **what it costs**. A body that cannot meet the prerequisites
+does nothing, and the refusal is on the pass where somebody can read it. Waiting is a response.
+
+**Two means, and the line is whether the change needs hands.** A change to the body's own records —
+its roll, its reserve band, the watch on a yard it keeps — is bookkeeping: no NPC performs it, no
+NPC is anywhere, and the event names the body. Naming the leader as the actor of a membership
+change, which is what the old owner did, put a man somewhere he never went. Everything else is a
+deed, and a deed goes through one eligible real member's shared `ActionAttempt`, routed by BQa-011
+from the end's own condition and settled in BQa-015's batch beside everybody else's intentions.
+There is no organization verb library, no organization check and no invisible body: a body with
+nobody free does nothing at all.
+
+**The body sends whoever brought it the matter.** Not an optimisation — the person on the filing is
+the one who has actually seen the thing, and sending the leader instead has a boss who has never
+laid eyes on the cart looking for whoever took it, which BQa-011 correctly offers no route to. The
+member is then routed through *their own* knowledge, as they would be for a want of their own, so
+being directed is not a way of being told.
+
+**Every way of going about one end goes in front of the batch, not the first one.** They share a
+contest — the cart, the person, the shortage — so arbitration ranks them by what the place and the
+hour allow, revalidates the best against the world as it is at that moment, and the rest yield the
+moment one of them finishes it. Choosing between them here would have been a second selector beside
+the one BQa-015 already owns, and a worse one, because it would have chosen before the world was
+asked.
+
+**Reserves are a named inflow.** What a body may collect is what its own holdings bring in, the
+holding is named on the record, and a holding is a site the body keeps whose own record does not
+call somebody else its controller — the site's record is the authority on that and the body's list
+is only its claim, which is the discipline BQa-018 already applies to a holding it says was taken.
+
+**What closes an end is the world's answer to the body's own operation.** Effort is not evidence:
+`Progress` is what the body has put in and says nothing about whether it worked, and the old owner
+closed an end at a hundred units of it. Nor is a condition that quietly became true behind the
+body's back — that stays open for BQa-018's evolution to retire once its cause has left the body's
+view, because closing it here would hand the institution the save's knowledge for free. The body
+asks exactly once, about exactly the thing it just did.
+
+Nothing here is persisted beyond what already was: the day the body last acted, and BQa-016's spent
+openings, which are what stop a reload offering a purse the save already carries the result of.
+Headless throughout — enrollment and the live host are BQa-020's, and no Elin session has scheduled
+one of these passes.

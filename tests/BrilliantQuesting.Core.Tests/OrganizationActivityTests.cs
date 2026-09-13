@@ -35,7 +35,10 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(15, organization.Wealth);
 
             WorldEvent action = Assert.Single(world.Ledger.Events, e => e.Type == WorldEventType.OrganizationActed);
-            Assert.Equal(Leader, action.Actor);
+
+            // The body, not a person. Taking somebody onto the roll is a change to the roll, and
+            // naming the leader as its actor would put him somewhere he never went (BQa-019).
+            Assert.Equal(Crew, action.Actor);
             Assert.Equal(Crew, action.Target);
             Assert.Contains(Recruit, action.Related);
             Assert.Contains(OrganizationActivity.ExpandMembership, action.Tags);

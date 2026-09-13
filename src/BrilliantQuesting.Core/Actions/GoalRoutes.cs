@@ -23,6 +23,7 @@ namespace BrilliantQuesting.Actions
     {
         internal GoalRoute(
             NpcGoal goal,
+            GoalCondition condition,
             string effectKind,
             NarrativeAction action,
             EntityId target,
@@ -30,6 +31,7 @@ namespace BrilliantQuesting.Actions
             string because)
         {
             Goal = goal;
+            Condition = condition;
             EffectKind = effectKind;
             Action = action;
             Target = target;
@@ -37,8 +39,15 @@ namespace BrilliantQuesting.Actions
             Because = because ?? string.Empty;
         }
 
-        /// <summary>The want this would serve.</summary>
+        /// <summary>
+        /// The person's want this would serve, or null when the desired condition came from
+        /// something that is not one person's want - an institutional end, for instance (BQa-019).
+        /// <see cref="Condition"/> is the part every route has.
+        /// </summary>
         public NpcGoal Goal { get; }
+
+        /// <summary>The desired condition this would move. Never null.</summary>
+        public GoalCondition Condition { get; }
 
         /// <summary>The <see cref="SemanticEffects"/> key that connects the want to the verb.</summary>
         public string EffectKind { get; }
@@ -175,7 +184,7 @@ namespace BrilliantQuesting.Actions
             NarrativeNpc actor,
             NpcGoal goal)
         {
-            if (world == null || registry == null || actor == null || goal == null)
+            if (goal == null)
             {
                 return new GoalRouteSearch("nothing to look for");
             }
@@ -185,7 +194,41 @@ namespace BrilliantQuesting.Actions
                 return new GoalRouteSearch("the want names no machine-readable condition");
             }
 
-            GoalCondition condition = goal.Condition;
+            return Discover(world, vanilla, registry, actor, goal.Condition, goal);
+        }
+
+        /// <summary>
+        /// The same search for a desired condition that is not this person's own want (BQa-019).
+        ///
+        /// An institutional end is a condition without an <see cref="NpcGoal"/> behind it: the body
+        /// wants the cart back, and the member it sends is the one who would have to do something
+        /// about it. Everything else is unchanged, and deliberately so - the routes offered are
+        /// still the ones <em>this person</em> could take, read through what this person knows, so
+        /// directing somebody is not a way of handing them the save's knowledge.
+        /// </summary>
+        public static GoalRouteSearch DiscoverFor(
+            NarrativeWorldState world,
+            IVanillaState vanilla,
+            ActionRegistry registry,
+            NarrativeNpc agent,
+            GoalCondition condition)
+        {
+            return Discover(world, vanilla, registry, agent, condition, null);
+        }
+
+        private static GoalRouteSearch Discover(
+            NarrativeWorldState world,
+            IVanillaState vanilla,
+            ActionRegistry registry,
+            NarrativeNpc actor,
+            GoalCondition condition,
+            NpcGoal goal)
+        {
+            if (world == null || registry == null || actor == null || condition == null)
+            {
+                return new GoalRouteSearch("nothing to look for");
+            }
+
             if (!GoalConditionRegistry.IsSupported(condition))
             {
                 return new GoalRouteSearch("'" + condition.Kind + "' is not a condition term this build can read");
@@ -230,7 +273,7 @@ namespace BrilliantQuesting.Actions
                     string because = "'" + condition.Kind + "' is moved by " + effect + ", which " + verb.Id + " could do";
                     for (int t = 0; t < targets.Count && routes.Count < MostRoutes; t++)
                     {
-                        routes.Add(new GoalRoute(goal, effect, verb, targets[t], subject.Bind(), because));
+                        routes.Add(new GoalRoute(goal, condition, effect, verb, targets[t], subject.Bind(), because));
                     }
 
                     if (routes.Count < MostRoutes)
@@ -238,7 +281,7 @@ namespace BrilliantQuesting.Actions
                         // An act with no other party. `destroy_evidence` is the standing example:
                         // it is aimed at a thing, and requiring somebody to aim it at would lose
                         // the route rather than make it honest.
-                        routes.Add(new GoalRoute(goal, effect, verb, EntityId.None, subject.Bind(), because));
+                        routes.Add(new GoalRoute(goal, condition, effect, verb, EntityId.None, subject.Bind(), because));
                     }
                 }
             }

@@ -252,7 +252,14 @@ namespace BrilliantQuesting.Lab
 
         private static void AdvanceOrganizations(HarnessState state, HarnessRuntime runtime)
         {
-            runtime.Organizations ??= new OrganizationActivity(state.World);
+            // The build, the resolver and the library, because BQa-019 institutional ends are
+            // carried by real members through the shared attempt. Without them the pass would run
+            // its bookkeeping and refuse every deed for want of somewhere to perform it.
+            runtime.Organizations ??= new OrganizationActivity(
+                state.World,
+                state.Vanilla,
+                new VanillaStyleCheckResolver(state.Vanilla),
+                StandardActions.CreateRegistry());
             runtime.OrganizationActions += runtime.Organizations.Advance(state.Vanilla.Now);
         }
 

@@ -45,7 +45,11 @@ Satisfaction is two answers: whether the condition holds is authoritative state'
 may believe it is answered only by their own successful attempt, so another actor's deed can make a want
 objectively true without closing it. `lie` declares `information.denied` rather than
 `information.disclosed`: it moves one belief downward, and a want that somebody be told something must
-not be offered it. See [D087](../agent/decisions.md#d087--what-the-world-holds-and-what-a-wants-owner-may-believe-are-two-answers-and-a-route-is-found-through-the-vocabulary-rather-than-through-a-name).
+not be offered it. `GoalRoutes.DiscoverFor` is the same search for a desired condition that is not this
+person's own want - an institutional end, where a body directs one of its members (BQa-019) - and it is
+the same search deliberately: the routes offered are the ones *that member* could take, read through
+what that member knows, so directing somebody is not a way of handing them the save's knowledge. See
+[D087](../agent/decisions.md#d087--what-the-world-holds-and-what-a-wants-owner-may-believe-are-two-answers-and-a-route-is-found-through-the-vocabulary-rather-than-through-a-name).
 
 **Postconditions (BQa-013).** `NarrativeAction.Postconditions` is the fifth declaration, and it
 refines the fourth rather than repeating it: `Effects` is capability, read before anybody attempts

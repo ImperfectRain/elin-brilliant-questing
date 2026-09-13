@@ -194,9 +194,10 @@ Native: [world/zone evidence](../elin/api/world-and-zones.md).
 ## Organizations
 
 **Owns:** BQ-generated `Organization` records, goals, memberships, holdings, wealth and last-action
-time; `OrganizationActivity.Advance` updates them deterministically and records deeds. Inputs:
-generated organization state/goals and time. Outputs: membership, reserves, protection/raids and
-events for ties, sites and situations. Records are persisted; pass machinery is transient.
+time; `OrganizationActivity.Advance` runs one bounded pass over them and records deeds. Inputs:
+generated organization state/goals, the action library and the build. Outputs: membership,
+reserves, protection/raids, delegated attempts and events for ties, sites and situations. Records
+are persisted; pass machinery is transient.
 **Does not own:** vanilla guild membership/rank/economy. `GuildNetworks`/authority actions consume
 native or explicitly authored standing through their own routes. The Lab integration harness calls
 organization activity; the Plugin does not currently instantiate that pass.
@@ -216,18 +217,42 @@ among the ends a reading admits by `OrganizationPolicy`'s per-type charter, and 
 whether a want came about only once its cause has left the body's own view. `OrganizationGoal`
 carries the same condition/provenance/lifecycle contract an `NpcGoal` does; `Progress` remains the
 body's effort counter and is not evidence about the condition. Reading is side effect free; only the
-evolution pass records a change. Nothing here schedules or acts - operations remain BQa-019's.
+evolution pass records a change. Nothing there schedules or acts.
+
+**What a body does about it, and what it does when it can do nothing.**
+`OrganizationOperations.Plan` is the reading that turns one end into an operation, and every
+operation declares what kind of change it could make - in `SemanticEffects`' own vocabulary, never
+a second one - what it needs and what it costs. Two means, and the line between them is whether the
+change needs hands. *Bookkeeping* writes the body's own records - the roll, the reserve band, the
+watch on a yard it keeps, a blow at a rival - has no NPC performing it and names the body on the
+event. *Delegated* is a deed, carried by one eligible real member through the shared `ActionAttempt`
+that anybody else would use, routed by `GoalRoutes.DiscoverFor` from the end's own BQa-008 condition
+and settled in `ArbitrationBatch` beside every other intention. The body sends whoever filed the
+receipt the end came off, because that is the person who has seen the thing, and the member is then
+routed through their own knowledge rather than the body's - being directed is not being told. Every
+way of going about one end is offered together: they share a contest, so BQa-015 ranks them,
+revalidates the best against the world as it is, and the rest yield once one of them finishes it.
+A holding is a site the body keeps whose own record does not name another controller, and reserves
+come from one or not at all. There are no organization verbs, no organization checks and no
+synthetic member: an end nothing supports is a refusal on the pass and the body waits. What closes
+an end is the world's answer to the body's own committed operation; `Progress` is effort and is not
+evidence, and an end whose condition quietly came true stays open for `OrganizationGoalEvolution`.
+One person is spent once per pass whichever body asks for them, reserves are read as the last
+operation left them, and BQa-016's spent openings stop a reload repeating a deed.
 
 Source: [OrganizationActivity](../../src/BrilliantQuesting.Core/World/OrganizationActivity.cs),
+[OrganizationOperations](../../src/BrilliantQuesting.Core/World/OrganizationOperations.cs),
 [Organization](../../src/BrilliantQuesting.Core/World/Organization.cs),
 [InstitutionalReceipt](../../src/BrilliantQuesting.Core/World/InstitutionalReceipt.cs),
 [OrganizationPressureView](../../src/BrilliantQuesting.Core/Developments/OrganizationPressureView.cs),
 [OrganizationGoalEvolution](../../src/BrilliantQuesting.Core/World/OrganizationGoalEvolution.cs).
 Proof: [OrganizationActivityTests](../../tests/BrilliantQuesting.Core.Tests/OrganizationActivityTests.cs),
-[OrganizationPressureInterpretationTests](../../tests/BrilliantQuesting.Core.Tests/OrganizationPressureInterpretationTests.cs).
+[OrganizationPressureInterpretationTests](../../tests/BrilliantQuesting.Core.Tests/OrganizationPressureInterpretationTests.cs),
+[OrganizationOperationTests](../../tests/BrilliantQuesting.Core.Tests/OrganizationOperationTests.cs).
 Lab: [integration](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/IntegrationScenario.cs).
 Native guild limits: [capabilities](../elin/capabilities.md).
-The durable rule is [`D094`](../agent/decisions.md#d094--a-body-knows-what-it-was-told-through-a-named-channel-and-never-the-union-of-what-its-people-believe).
+The durable rules are [`D094`](../agent/decisions.md#d094--a-body-knows-what-it-was-told-through-a-named-channel-and-never-the-union-of-what-its-people-believe)
+and [`D095`](../agent/decisions.md#d095--a-body-acts-through-its-own-people-or-on-its-own-records-and-never-gets-paid-for-failing).
 
 ## Sites
 
