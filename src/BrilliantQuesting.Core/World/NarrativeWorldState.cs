@@ -7,6 +7,7 @@ using BrilliantQuesting.Memory;
 using BrilliantQuesting.Obligations;
 using BrilliantQuesting.Relationships;
 using BrilliantQuesting.Threads;
+using BrilliantQuesting.Situations;
 
 namespace BrilliantQuesting.World
 {
@@ -228,6 +229,39 @@ namespace BrilliantQuesting.World
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// One synchronous Core commit; no native operation or user callback can observe staged
+        /// writes. Only unpublished writes are rolled back. Listener failure after publication is
+        /// diagnostic success, so retry can never repeat the creation or redispatch its event.
+        /// </summary>
+        internal SituationEstablishmentResult CommitEstablishment(NarrativeThread thread, WorldEvent occurrence,
+            EstablishmentFault fault)
+        {
+            bool stagedEvent = false;
+            bool stagedThread = false;
+            try
+            {
+                Ledger.StageEstablishment(occurrence);
+                stagedEvent = true;
+                UnresolvedCrimeProducer.Fail(fault, EstablishmentFault.AfterEventStaged);
+                Threads.Add(thread);
+                stagedThread = true;
+                UnresolvedCrimeProducer.Fail(fault, EstablishmentFault.AfterThreadStaged);
+            }
+            catch
+            {
+                if (stagedThread) Threads.Remove(thread);
+                if (stagedEvent) Ledger.DiscardEstablishment(occurrence);
+                throw;
+            }
+
+            var diagnostics = new List<string>();
+            // The only externally visible boundary. The record, thread and history now all exist.
+            if (fault == EstablishmentFault.AfterCommit) diagnostics.Add("injected failure after commit; establishment retained");
+            Ledger.PublishEstablishment(occurrence, diagnostics);
+            return new SituationEstablishmentResult(thread, null, diagnostics);
         }
     }
 }

@@ -193,6 +193,7 @@ namespace BrilliantQuesting.Situations
         {
             if (plan == null || selected == null || selected.Candidate.RequiresActorCreation
                 || selected.Candidate.NewWeirdPremises.Count != 0
+                || selected.Candidate.EstablishmentRequirement != null
                 || world.AttentionBudget.GenerationRefusal(world) != null) return null;
             bool admitted = false;
             foreach (SituationProposal proposal in plan.Proposals)

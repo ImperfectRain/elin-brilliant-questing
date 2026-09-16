@@ -3236,3 +3236,22 @@ are deliberately not the same moment, the cause answers the three ways a waiting
 stale - the condition is no longer derived, something it bound has left the registry, or somebody
 else's matter took it over - and a proposal made about a threadless condition is precisely the one
 that can be overtaken while it waits.
+
+## D098 — Establishment publishes a complete matter before observers run
+
+BQa-022 fulfills a selected property proposal with one new Core recognition record attached to its
+matter. The existing unresolved incident warrants that record; selecting it does not authorize a
+fictional commission, witness, native actor or historical deed. Durable producer/cause identity and
+role bindings serve idempotence and inspection, not another simulation authority. The declared
+requirement key is transient. Other unsupported requirements fail before allocation or mutation.
+
+Prepare detached state, revalidate, then stage the matter and its occurrence without callbacks.
+Only this unpublished staging can be discarded. IDs are never rewound. After publication, a throwing
+listener cannot make the operation report failure: the complete matter is already visible and retry
+returns it. Listener errors are diagnostics, and the remaining observers still receive the committed
+occurrence. This avoids an apparent rollback that leaves observer side effects behind. Native
+multi-write operations remain outside this capability until recovery is proved. The transaction is
+single-threaded like the existing world owner, not a concurrency or arbitrary-world rollback framework.
+
+Contract and proof: [generation](../systems/world.md#generation),
+[SituationEstablishmentTests](../../tests/BrilliantQuesting.Core.Tests/SituationEstablishmentTests.cs).

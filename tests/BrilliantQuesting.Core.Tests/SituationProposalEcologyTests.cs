@@ -138,7 +138,9 @@ namespace BrilliantQuesting.Tests
             Assert.Equal(Thief, crime.Proposal.Candidate.ActorIn(SituationRoles.Actor));
             Assert.Equal(Victim, crime.Proposal.Candidate.ActorIn(SituationRoles.Target));
             Assert.Equal(TheftFactId(world), crime.Cause.FocusFactId);
-            Assert.False(crime.RequiresCreation);
+            Assert.True(crime.RequiresCreation);
+            Assert.False(crime.Proposal.Candidate.RequiresActorCreation);
+            Assert.Equal("recognition", crime.Proposal.Candidate.EstablishmentRequirement);
 
             // The town is otherwise untouched, and the theft is put right.
             string before = WorldStateSerializer.Save(world);

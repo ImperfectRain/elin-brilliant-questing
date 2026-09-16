@@ -55,6 +55,9 @@ namespace BrilliantQuesting.Threads
 
         public EntityId OriginEventId { get; set; }
 
+        /// <summary>Committed proposal identity and bindings, or null for legacy/staged matters.</summary>
+        public Situations.SituationEstablishment Establishment { get; internal set; }
+
         public EntityId ParentThreadId { get; set; }
 
         public EntityId SuccessorThreadId { get; set; }

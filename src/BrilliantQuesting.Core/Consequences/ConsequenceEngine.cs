@@ -581,6 +581,8 @@ namespace BrilliantQuesting.Consequences
 
         private void RaiseThreadTension(WorldEvent worldEvent)
         {
+            // Recognizing an existing cause is not escalation, activation or player discovery.
+            if (worldEvent.Type == WorldEventType.SituationEstablished) return;
             if (worldEvent.ThreadId.IsNone)
             {
                 return;

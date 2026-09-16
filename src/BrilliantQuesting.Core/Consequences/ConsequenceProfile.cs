@@ -138,6 +138,7 @@ namespace BrilliantQuesting.Consequences
                 // An organization pursuing its own goal is history, not a judgement. The specific
                 // effect lives in the organization's saved state and event tags.
                 { WorldEventType.OrganizationActed, new ConsequenceProfile("organization_acted", MemoryWeight.Notable, 0) },
+                { WorldEventType.SituationEstablished, new ConsequenceProfile("situation_established", MemoryWeight.Routine, 0) },
                 { WorldEventType.SiteDiscovered, new ConsequenceProfile("discovered_site", MemoryWeight.Routine, 0, 0, fame: 1) },
                 { WorldEventType.SiteCleared, new ConsequenceProfile("cleared_site", MemoryWeight.Important, 8, 3, fame: 2) },
                 { WorldEventType.ThreadEscalated, new ConsequenceProfile("thread_escalated", MemoryWeight.Routine, 0) },

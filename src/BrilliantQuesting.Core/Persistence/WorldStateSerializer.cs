@@ -7,6 +7,7 @@ using BrilliantQuesting.Memory;
 using BrilliantQuesting.Obligations;
 using BrilliantQuesting.Relationships;
 using BrilliantQuesting.Threads;
+using BrilliantQuesting.Situations;
 using BrilliantQuesting.World;
 
 namespace BrilliantQuesting.Persistence
@@ -662,6 +663,7 @@ namespace BrilliantQuesting.Persistence
                     .Set("id", thread.Id.Value)
                     .Set("archetype", thread.ArchetypeId)
                     .Set("originEvent", thread.OriginEventId.Value)
+                    .Set("establishment", EstablishmentToJson(thread.Establishment))
                     .Set("parentThread", thread.ParentThreadId.Value)
                     .Set("successorThread", thread.SuccessorThreadId.Value)
                     .Set("createdAt", thread.CreatedAt.TotalMinutes)
@@ -1217,6 +1219,28 @@ namespace BrilliantQuesting.Persistence
             }
         }
 
+        private static JsonValue EstablishmentToJson(SituationEstablishment record)
+        {
+            if (record == null) return JsonValue.Null();
+            JsonValue bindings = JsonValue.Array();
+            foreach (SituationActorRequirement binding in record.Bindings)
+                bindings.Add(JsonValue.Object().Set("role", binding.Role).Set("entity", binding.ExistingActor.Value));
+            return JsonValue.Object().Set("id", record.Id.Value).Set("producer", record.ProducerId)
+                .Set("cause", record.CauseId).Set("bindings", bindings);
+        }
+
+        private static SituationEstablishment ReadEstablishment(JsonValue json)
+        {
+            // Additive field: historical saves did not establish through the selected owner.
+            if (json == null || json.Kind == JsonKind.Null) return null;
+            var bindings = new List<SituationActorRequirement>();
+            foreach (JsonValue binding in json.GetArray("bindings"))
+                bindings.Add(new SituationActorRequirement(binding.GetString("role"),
+                    EntityId.Parse(binding.GetString("entity")), null));
+            return new SituationEstablishment(EntityId.Parse(json.GetString("id")),
+                json.GetString("producer"), json.GetString("cause"), bindings);
+        }
+
         private static NarrativeThread ReadThread(JsonValue json)
         {
             NarrativeThread thread = new NarrativeThread(
@@ -1225,6 +1249,7 @@ namespace BrilliantQuesting.Persistence
                 new GameTime(json.GetLong("createdAt")))
                 {
                     OriginEventId = EntityId.Parse(json.GetString("originEvent")),
+                    Establishment = ReadEstablishment(json["establishment"]),
                     ParentThreadId = EntityId.Parse(json.GetString("parentThread")),
                     SuccessorThreadId = EntityId.Parse(json.GetString("successorThread")),
                     LastAdvancedAt = new GameTime(json.GetLong("lastAdvancedAt")),
@@ -1333,6 +1358,20 @@ namespace BrilliantQuesting.Persistence
 
         private static string ThreadQuarantineReason(NarrativeWorldState world, NarrativeThread thread)
         {
+            if (thread.Establishment != null)
+            {
+                WorldEvent occurrence = world.Ledger.Find(thread.OriginEventId);
+                if (occurrence == null || occurrence.Type != WorldEventType.SituationEstablished
+                    || occurrence.ThreadId != thread.Id || occurrence.Time != thread.CreatedAt)
+                    return "quarantined during save load: establishment has no matching occurrence";
+                foreach (SituationActorRequirement binding in thread.Establishment.Bindings)
+                    if (!thread.ParticipantIds.Contains(binding.ExistingActor))
+                        return "quarantined during save load: establishment binding is not a participant";
+                foreach (NarrativeThread prior in world.Threads)
+                    if (prior.Establishment != null && (prior.Establishment.Id == thread.Establishment.Id
+                        || prior.Establishment.CauseId == thread.Establishment.CauseId))
+                        return "quarantined during save load: duplicate establishment identity";
+            }
             for (int i = 0; i < thread.ParticipantIds.Count; i++)
             {
                 EntityId participant = thread.ParticipantIds[i];

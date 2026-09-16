@@ -14,7 +14,7 @@ namespace BrilliantQuesting.Events
         private readonly List<WorldEvent> _events = new List<WorldEvent>();
         private readonly Dictionary<EntityId, WorldEvent> _byId = new Dictionary<EntityId, WorldEvent>();
         private readonly List<Action<WorldEvent>> _listeners = new List<Action<WorldEvent>>();
-        private readonly Queue<WorldEvent> _pending = new Queue<WorldEvent>();
+        private readonly Queue<PendingEvent> _pending = new Queue<PendingEvent>();
         private bool _dispatching;
 
         /// <summary>Guard against a reaction loop; exceeding it is a bug, not a gameplay state.</summary>
@@ -41,7 +41,12 @@ namespace BrilliantQuesting.Events
 
             _events.Add(worldEvent);
             _byId[worldEvent.Id] = worldEvent;
-            _pending.Enqueue(worldEvent);
+            Dispatch(worldEvent, null);
+        }
+
+        private void Dispatch(WorldEvent worldEvent, List<string> diagnostics)
+        {
+            _pending.Enqueue(new PendingEvent(worldEvent, diagnostics));
 
             if (_dispatching)
             {
@@ -61,10 +66,17 @@ namespace BrilliantQuesting.Events
                             "Event cascade exceeded " + MaxCascadeDepth + " reactions; a listener is looping.");
                     }
 
-                    WorldEvent next = _pending.Dequeue();
+                    PendingEvent next = _pending.Dequeue();
                     for (int i = 0; i < _listeners.Count; i++)
                     {
-                        _listeners[i](next);
+                        if (next.Diagnostics == null) _listeners[i](next.Event);
+                        else
+                        {
+                            // This occurrence is already committed. An observer cannot turn it
+                            // into a failed establishment or prevent other observers seeing it.
+                            try { _listeners[i](next.Event); }
+                            catch (Exception ex) { next.Diagnostics.Add("establishment listener failed: " + ex.Message); }
+                        }
                     }
                 }
             }
@@ -72,6 +84,40 @@ namespace BrilliantQuesting.Events
             {
                 _dispatching = false;
             }
+        }
+
+        private sealed class PendingEvent
+        {
+            internal PendingEvent(WorldEvent occurrence, List<string> diagnostics)
+            {
+                Event = occurrence;
+                Diagnostics = diagnostics;
+            }
+            internal WorldEvent Event { get; }
+            internal List<string> Diagnostics { get; }
+        }
+
+        // The establishment transaction is the only caller. No observer runs between staging
+        // and publication. Removal is permitted only for its last, still-unpublished occurrence.
+        internal void StageEstablishment(WorldEvent occurrence)
+        {
+            _byId.Add(occurrence.Id, occurrence);
+            try { _events.Add(occurrence); }
+            catch { _byId.Remove(occurrence.Id); throw; }
+        }
+
+        internal void DiscardEstablishment(WorldEvent occurrence)
+        {
+            if (_events.Count == 0 || !ReferenceEquals(_events[_events.Count - 1], occurrence))
+                throw new InvalidOperationException("Only the last unpublished establishment can be discarded.");
+            _events.RemoveAt(_events.Count - 1);
+            _byId.Remove(occurrence.Id);
+        }
+
+        internal void PublishEstablishment(WorldEvent occurrence, List<string> diagnostics)
+        {
+            try { Dispatch(occurrence, diagnostics); }
+            catch (Exception ex) { diagnostics.Add("committed establishment dispatch failed: " + ex.Message); }
         }
 
         public IEnumerable<WorldEvent> Involving(EntityId entity)

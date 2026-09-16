@@ -13,6 +13,13 @@ queues are transient. **Does not own:** native current state, truth of every spo
 event-sourced reconstruction. Never rewrite events to reconcile identity or replay reactions on load.
 Consumers: consequences, threads, continuity, diagnostics.
 
+Selected Core establishment has one additional publication boundary: its owner stages an occurrence
+and record-bearing thread together, then dispatches only after both are committed. Unpublished
+staging can be discarded without rewinding IDs; published history cannot. A throwing observer of
+`SituationEstablished` produces a transient diagnostic while other observers continue, including
+when publication was queued during another dispatch. The present-time occurrence asserts only
+recognition of an existing cause. See [generation](world.md#generation).
+
 For live native violence, `VanillaActionRecorder.ShouldObserveViolence` admits player actions or
 combat between actors at `NarrativeImportance.Known` or above (the player is known).
 Passive registration alone is not significance. The Plugin checks before witness scans/intake;

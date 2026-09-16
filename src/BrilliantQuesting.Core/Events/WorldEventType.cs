@@ -180,6 +180,9 @@ namespace BrilliantQuesting.Events
         /// answer is durable: asking the same person the same thing again with nothing new is the
         /// same request, not a second one, and the only place that can be read off is history.
         /// </summary>
-        RequestDeclined
+        RequestDeclined,
+
+        /// <summary>A present-time recognition of an existing cause, not its founding incident.</summary>
+        SituationEstablished
     }
 }

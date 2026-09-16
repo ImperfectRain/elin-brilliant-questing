@@ -222,7 +222,8 @@ namespace BrilliantQuesting.Situations
         public string Key => Proposal.Key;
 
         public bool RequiresCreation =>
-            Proposal.Candidate.RequiresActorCreation || Proposal.Candidate.NewWeirdPremises.Count > 0;
+            Proposal.Candidate.RequiresActorCreation || Proposal.Candidate.NewWeirdPremises.Count > 0
+            || Proposal.Candidate.EstablishmentRequirement != null;
 
         /// <summary>Inspector-only. Describes requirements; asserts nothing about fulfilling them.</summary>
         public string Explain()
@@ -264,16 +265,23 @@ namespace BrilliantQuesting.Situations
         private static readonly Development[] NoConditions = new Development[0];
 
         internal SituationProposalPass(
+            NarrativeWorldState world,
             IReadOnlyList<Development> conditions,
             IReadOnlyList<SituationProposalOffer> offers,
             IReadOnlyList<SuppressedProposal> suppressed,
             IReadOnlyList<string> families)
         {
+            _world = world;
             Conditions = conditions ?? NoConditions;
             Offers = offers ?? NoOffers;
             Suppressed = suppressed ?? NothingSuppressed;
             Families = families ?? NoFamilies;
         }
+
+        private readonly NarrativeWorldState _world;
+
+        /// <summary>Select the admitted winner without allocation or fulfillment.</summary>
+        public SelectedSituationProposal Select() => Offers.Count == 0 ? null : new SelectedSituationProposal(_world, Offers[0]);
 
         /// <summary>The conditions the pass was read from, in the detector's stable order.</summary>
         public IReadOnlyList<Development> Conditions { get; }
@@ -400,7 +408,7 @@ namespace BrilliantQuesting.Situations
         {
             if (world == null || conditions == null || conditions.Count == 0)
             {
-                return new SituationProposalPass(conditions, null, null, null);
+                return new SituationProposalPass(world, conditions, null, null, null);
             }
 
             // The director's own admission gate, asked once for the pass and not re-derived here.
@@ -460,14 +468,14 @@ namespace BrilliantQuesting.Situations
 
             families.Sort(StringComparer.Ordinal);
             return new SituationProposalPass(
-                conditions, offers.AsReadOnly(), suppressed.AsReadOnly(), families.AsReadOnly());
+                world, conditions, offers.AsReadOnly(), suppressed.AsReadOnly(), families.AsReadOnly());
         }
 
         /// <summary>
         /// Everything a candidate actually bound, in the candidate's own sorted requirement order
         /// plus its declared requirements, so two readings of one condition can be compared.
         /// </summary>
-        private static string BindingKey(SituationCandidate candidate)
+        internal static string BindingKey(SituationCandidate candidate)
         {
             var sb = new StringBuilder(candidate.ArchetypeId);
             foreach (SituationActorRequirement actor in candidate.ActorRequirements)
@@ -480,6 +488,8 @@ namespace BrilliantQuesting.Situations
             if (!place.IsNone) sb.Append("|place=").Append(place.Value);
             for (int i = 0; i < candidate.NewWeirdPremises.Count; i++)
                 sb.Append("|premise=new:").Append(candidate.NewWeirdPremises[i]);
+            if (candidate.EstablishmentRequirement != null)
+                sb.Append("|establishment=new:").Append(candidate.EstablishmentRequirement);
             return sb.ToString();
         }
     }
@@ -558,7 +568,7 @@ namespace BrilliantQuesting.Situations
     /// does not perform one. Whether the wrong can be recovered, proved or repaid is nothing this
     /// says - it says only that the world is holding it and that these are the people in it.
     /// </summary>
-    public sealed class UnresolvedCrimeProducer : ISituationProposalProducer
+    public sealed partial class UnresolvedCrimeProducer : ISituationProposalProducer
     {
         public const string Archetype = "property_recovery";
 
@@ -577,6 +587,7 @@ namespace BrilliantQuesting.Situations
                 world, condition, Archetype,
                 "the world holds " + world.Registry.NameOf(wrong.Subject) + " " + wrong.Predicate
                 + " " + world.Registry.NameOf(wrong.Object) + " with nothing recording it answered");
+            builder.RequireEstablishmentRecord("recognition");
 
             int bound = 0;
             if (world.Registry.GetNpc(wrong.Subject) != null)

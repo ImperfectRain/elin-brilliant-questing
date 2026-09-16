@@ -10,13 +10,15 @@ namespace BrilliantQuesting.World
     /// <summary>What a single causal reference turned out to point at, once it was looked up.</summary>
     public sealed class ResolvedCause
     {
-        public ResolvedCause(CausalRole role, EntityId reference, WorldEvent occurrence, Fact claim, NarrativeThread matter)
+        public ResolvedCause(CausalRole role, EntityId reference, WorldEvent occurrence, Fact claim, NarrativeThread matter,
+            Situations.SituationEstablishment establishment = null)
         {
             Role = role;
             Reference = reference;
             Occurrence = occurrence;
             Claim = claim;
             Matter = matter;
+            Establishment = establishment;
         }
 
         public CausalRole Role { get; }
@@ -32,18 +34,21 @@ namespace BrilliantQuesting.World
         /// <summary>The matter it names, when it names one the world still carries.</summary>
         public NarrativeThread Matter { get; }
 
+        public Situations.SituationEstablishment Establishment { get; }
+
         /// <summary>
         /// The reference survived but what it pointed at did not - a fact dropped with a
         /// quarantined matter, a record an older save never had. The link is still reported,
         /// because a dangling reference is information and deleting it would be a quiet lie.
         /// </summary>
-        public bool IsMissing => Occurrence == null && Claim == null && Matter == null;
+        public bool IsMissing => Occurrence == null && Claim == null && Matter == null && Establishment == null;
 
         public override string ToString()
         {
             if (Occurrence != null) return Role + " " + Occurrence.Type + " " + Reference;
             if (Claim != null) return Role + " claim " + Reference;
             if (Matter != null) return Role + " matter " + Reference;
+            if (Establishment != null) return Role + " establishment " + Reference;
             return Role + " " + Reference + " (missing)";
         }
     }
@@ -147,7 +152,8 @@ namespace BrilliantQuesting.World
                     reference,
                     FindEvent(world, reference),
                     world.Knowledge.GetFact(reference),
-                    world.GetThread(reference)));
+                    world.GetThread(reference),
+                    FindEstablishment(world, reference)));
             }
 
             return new CausalReading(worldEvent, causes);
@@ -159,6 +165,13 @@ namespace BrilliantQuesting.World
             if (world == null) throw new ArgumentNullException(nameof(world));
             WorldEvent worldEvent = FindEvent(world, eventId);
             return worldEvent == null ? null : Read(world, worldEvent);
+        }
+
+        private static Situations.SituationEstablishment FindEstablishment(NarrativeWorldState world, EntityId id)
+        {
+            foreach (NarrativeThread thread in world.Threads)
+                if (thread.Establishment != null && thread.Establishment.Id == id) return thread.Establishment;
+            return null;
         }
 
         /// <summary>

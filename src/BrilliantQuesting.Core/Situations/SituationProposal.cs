@@ -63,6 +63,8 @@ namespace BrilliantQuesting.Situations
                     .Append(actor.RequiresCreation ? actor.CreationKey : actor.ExistingActor.Value);
             foreach (string premise in Candidate.NewWeirdPremises)
                 text.Append("; requires new weird premise ").Append(premise);
+            if (Candidate.EstablishmentRequirement != null)
+                text.Append("; requires Core establishment record ").Append(Candidate.EstablishmentRequirement);
             return text.ToString();
         }
     }

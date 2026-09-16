@@ -113,9 +113,11 @@ namespace BrilliantQuesting.Situations
             List<string> causes,
             List<SettingReference> settingReferences,
             IReadOnlyList<SituationActorRequirement> newActors = null,
-            IEnumerable<string> newWeirdPremises = null)
+            IEnumerable<string> newWeirdPremises = null,
+            string establishmentRequirement = null)
         {
             ArchetypeId = archetypeId;
+            EstablishmentRequirement = establishmentRequirement;
             _actors = new Dictionary<string, List<EntityId>>();
             foreach (KeyValuePair<string, List<EntityId>> role in actors)
             {
@@ -154,6 +156,9 @@ namespace BrilliantQuesting.Situations
         }
 
         public string ArchetypeId { get; }
+
+        /// <summary>Proposal-local key for a new Core establishment record; never a reserved ID.</summary>
+        public string EstablishmentRequirement { get; }
 
         /// <summary>Reuse bindings and hypothetical actors in one immutable casting vocabulary.</summary>
         public IReadOnlyList<SituationActorRequirement> ActorRequirements { get; }
@@ -223,7 +228,7 @@ namespace BrilliantQuesting.Situations
                 causes.Add(because);
             }
 
-            return new SituationCandidate(ArchetypeId, _actors, _items, _sites, pressures, causes, _settingReferences, ActorRequirements, NewWeirdPremises);
+            return new SituationCandidate(ArchetypeId, _actors, _items, _sites, pressures, causes, _settingReferences, ActorRequirements, NewWeirdPremises, EstablishmentRequirement);
         }
 
         public EntityId SiteIn(string role) => _sites.TryGetValue(role, out EntityId site) ? site : EntityId.None;
@@ -246,6 +251,17 @@ namespace BrilliantQuesting.Situations
         private readonly string _archetypeId;
         private readonly List<SituationActorRequirement> _newActors = new List<SituationActorRequirement>();
         private readonly HashSet<string> _newWeirdPremises = new HashSet<string>(System.StringComparer.Ordinal);
+        private string _establishmentRequirement;
+
+        public SituationCandidateBuilder RequireEstablishmentRecord(string creationKey)
+        {
+            if (string.IsNullOrWhiteSpace(creationKey))
+                throw new System.ArgumentException("A proposal-local creation key is required.", nameof(creationKey));
+            if (_establishmentRequirement != null && _establishmentRequirement != creationKey)
+                throw new System.InvalidOperationException("A matter has exactly one establishment record.");
+            _establishmentRequirement = creationKey;
+            return this;
+        }
 
         /// <summary>Declare a new premise without establishing it. Reusing a premise needs no creation requirement.</summary>
         public SituationCandidateBuilder RequireNewWeirdPremise(string creationKey)
@@ -361,7 +377,7 @@ namespace BrilliantQuesting.Situations
         }
 
         public SituationCandidate Build() =>
-            new SituationCandidate(_archetypeId, _actors, _items, _sites, _pressures, _causes, _settingReferences, _newActors, _newWeirdPremises);
+            new SituationCandidate(_archetypeId, _actors, _items, _sites, _pressures, _causes, _settingReferences, _newActors, _newWeirdPremises, _establishmentRequirement);
     }
 
     /// <summary>

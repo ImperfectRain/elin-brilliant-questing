@@ -80,7 +80,32 @@ answers whether a waiting proposal's condition is still derived, its bindings st
 other matter has taken it over. Fulfilment of a selected proposal is not here. Nothing in a pass is
 saved, and nothing in a pass writes.
 
+**Selected fulfillment (BQa-022):** `SituationProposalPass.Select` returns only the admitted,
+ranked winner, tied to its originating world and producer. `SelectedSituationProposal.Fulfill`
+routes it back to that producer; neither ranking nor the Director creates anything.
+`UnresolvedCrimeProducer` supports one Core-only requirement: a new `SituationEstablishment`
+recognition record, stored on its new `NarrativeThread`. Its independently existing cause is the
+unanswered crime fact. The record retains a stable ID, producer/cause identity and reused role
+bindings; it creates no new incident, belief, witness, obligation or physical entity. The transient
+`recognition` requirement key is never saved. This bookkeeping record is not a significant actor
+or weird premise, so BQ-103's creation weights are unchanged.
+
+The owner revalidates the cause, canonical actors, sites, bindings, ownership, time and thread budget
+before preparing detached state and again immediately before commit. Other owners and unsupported
+actor/premise requirements refuse; there is no fallback premise or native multi-write path.
+`NarrativeWorldState.CommitEstablishment` stages the record-bearing thread and present-time
+`SituationEstablished` occurrence without callbacks. An exception before publication discards only
+unpublished writes; IDs remain consumed. Only then does the ledger notify listeners. Listener errors
+are diagnostic **success**, not failed fulfillment: the whole establishment is already committed,
+other listeners still run, and reentrant retries return the same matter without redispatch.
+The occurrence has no actor or witnesses and cannot activate/escalate the matter or teach anyone.
+Typed provenance names existing causal events and both new outcomes; `CausalHistory` resolves the
+recognition record through its owning thread. Successful establishment and its bindings survive
+save/reload; a prior committed recognition prevents a second creation for the same condition.
+This is headless/source evidence. Recurring production hosting remains BQa-024's work.
+
 Source: [SituationProposalEcology](../../src/BrilliantQuesting.Core/Situations/SituationProposalEcology.cs),
+[SituationEstablishment](../../src/BrilliantQuesting.Core/Situations/SituationEstablishment.cs),
 [SettlementSituationGenerator](../../src/BrilliantQuesting.Core/Situations/SettlementSituationGenerator.cs),
 [SituationProposal](../../src/BrilliantQuesting.Core/Situations/SituationProposal.cs),
 [SituationCandidate](../../src/BrilliantQuesting.Core/Situations/SituationCandidate.cs),
@@ -88,6 +113,7 @@ Source: [SituationProposalEcology](../../src/BrilliantQuesting.Core/Situations/S
 [FailedCaravanSituation](../../src/BrilliantQuesting.Core/Situations/FailedCaravanSituation.cs).
 Proof: [SettlementSituationGeneratorTests](../../tests/BrilliantQuesting.Core.Tests/SettlementSituationGeneratorTests.cs),
 [SituationProposalEcologyTests](../../tests/BrilliantQuesting.Core.Tests/SituationProposalEcologyTests.cs),
+[SituationEstablishmentTests](../../tests/BrilliantQuesting.Core.Tests/SituationEstablishmentTests.cs),
 [SituationProposalTests](../../tests/BrilliantQuesting.Core.Tests/SituationProposalTests.cs),
 [FailedCaravanTests](../../tests/BrilliantQuesting.Core.Tests/FailedCaravanTests.cs).
 Lab: [integration](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/IntegrationScenario.cs),
