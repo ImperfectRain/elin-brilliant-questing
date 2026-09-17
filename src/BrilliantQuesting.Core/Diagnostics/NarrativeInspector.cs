@@ -1324,6 +1324,16 @@ namespace BrilliantQuesting.Diagnostics
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("thread ").Append(thread.ArchetypeId).Append(" [").Append(thread.State).Append(", tension ").Append(thread.Tension).Append("]\n");
+            sb.Append("  id: ").Append(thread.Id).Append("; origin: ").Append(thread.OriginEventId).Append('\n');
+            foreach (EntityId factId in thread.FactIds)
+            {
+                Fact fact = world.Knowledge.GetFact(factId);
+                sb.Append("  fact: ").Append(factId).Append(" [").Append(fact?.Truth.ToString() ?? "missing").Append("]");
+                foreach (NarrativeThread other in world.Threads)
+                    if (other.Id != thread.Id && other.FactIds.Contains(factId))
+                        sb.Append("; shared with ").Append(other.Id).Append(" [").Append(other.State).Append("]");
+                sb.Append('\n');
+            }
             if (!string.IsNullOrEmpty(thread.Resolution))
             {
                 sb.Append("  resolution: ").Append(thread.Resolution).Append('\n');

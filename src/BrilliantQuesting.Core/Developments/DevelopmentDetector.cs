@@ -281,7 +281,7 @@ namespace BrilliantQuesting.Developments
                 return;
             }
 
-            NarrativeThread matter = into.ThreadCarrying(fact.Id);
+            NarrativeThread matter = into.ThreadCarrying(fact.Id, "dev.unresolved_crime:" + fact.Id.Value);
             if (IsSettled(world, matter, fact))
             {
                 return;
@@ -316,7 +316,8 @@ namespace BrilliantQuesting.Developments
         /// </summary>
         private static bool IsSettled(NarrativeWorldState world, NarrativeThread matter, Fact crime)
         {
-            if (matter == null)
+            if (matter == null || (matter.Establishment != null
+                && matter.Establishment.CauseId != "dev.unresolved_crime:" + crime.Id.Value))
             {
                 return false;
             }
@@ -363,7 +364,7 @@ namespace BrilliantQuesting.Developments
             reading.Place(world, fact.Subject);
             reading.Origin(fact.OriginEvent);
             reading.Focus(fact.Id);
-            reading.CarrierAndPlaces(into.ThreadCarrying(fact.Id));
+            reading.CarrierAndPlaces(into.ThreadCarrying(fact.Id, "dev.damaged_property:" + fact.Id.Value));
             reading.Press(40);
         }
 
@@ -493,7 +494,9 @@ namespace BrilliantQuesting.Developments
             reading.Subject(record.InheritedById);
             reading.Site(record.PlaceId);
             reading.Focus(record.CauseFactId);
-            reading.CarrierAndPlaces(into.ThreadCarrying(record.CauseFactId));
+            Fact cause = world.Knowledge.GetFact(record.CauseFactId);
+            if (cause != null) reading.Origin(cause.OriginEvent);
+            reading.CarrierAndPlaces(into.ThreadCarrying(record.CauseFactId, "dev.business_continuity:" + record.BusinessId.Value));
             reading.Press(press);
         }
 
@@ -771,7 +774,10 @@ namespace BrilliantQuesting.Developments
             internal void CarrierAndPlaces(NarrativeThread thread)
             {
                 Carrier(thread);
-                if (thread == null)
+                // A recognition's places were derived from its own condition. Sharing a claim
+                // with that matter cannot add those places to another condition's bindings.
+                // Legacy authored matters remain a source of place context.
+                if (thread == null || thread.Establishment != null)
                 {
                     return;
                 }
@@ -815,6 +821,7 @@ namespace BrilliantQuesting.Developments
             private readonly List<Reading> _order = new List<Reading>();
             private readonly Dictionary<string, Reading> _byId = new Dictionary<string, Reading>(StringComparer.Ordinal);
             private Dictionary<EntityId, NarrativeThread> _carriers;
+            private Dictionary<string, NarrativeThread> _recognitions;
 
             internal Aggregation(NarrativeWorldState world)
             {
@@ -839,7 +846,7 @@ namespace BrilliantQuesting.Developments
             /// unmake an unproven secret; whether the matter can still be <em>played</em> is a
             /// scene question, answered by <c>SceneStatus</c> when something tries.
             /// </summary>
-            internal NarrativeThread ThreadCarrying(EntityId factId)
+            internal NarrativeThread ThreadCarrying(EntityId factId, string conditionId = null)
             {
                 if (factId.IsNone)
                 {
@@ -849,9 +856,12 @@ namespace BrilliantQuesting.Developments
                 if (_carriers == null)
                 {
                     _carriers = new Dictionary<EntityId, NarrativeThread>();
+                    _recognitions = new Dictionary<string, NarrativeThread>(StringComparer.Ordinal);
                     for (int i = 0; i < _world.Threads.Count; i++)
                     {
                         NarrativeThread thread = _world.Threads[i];
+                        if (thread.Establishment != null && !_recognitions.ContainsKey(thread.Establishment.CauseId))
+                            _recognitions[thread.Establishment.CauseId] = thread;
                         for (int f = 0; f < thread.FactIds.Count; f++)
                         {
                             if (!_carriers.ContainsKey(thread.FactIds[f]))
@@ -863,6 +873,7 @@ namespace BrilliantQuesting.Developments
                 }
 
                 NarrativeThread carrier;
+                if (conditionId != null && _recognitions.TryGetValue(conditionId, out carrier)) return carrier;
                 _carriers.TryGetValue(factId, out carrier);
                 return carrier;
             }

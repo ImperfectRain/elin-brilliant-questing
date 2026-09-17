@@ -118,9 +118,11 @@ creation at handoff. BQ-152 supplies pre-creation comparison; BQ-103 subtracts e
 creation costs in that selection seam. Neither adds a director-to-spawner join or charges existing news.
 
 BQa-022 adds a bounded Core join: the admitted ecology winner can return to
-`UnresolvedCrimeProducer`, which fulfills its declared establishment-record requirement and publishes
+`UnresolvedCrimeProducer` (also damage and business-continuity owners in BQa-023), which fulfills its declared establishment-record requirement and publishes
 the record, matter and present-time history atomically. It reuses the already recorded incident and
-actors. Other owners/native creation remain refused. No live recurring call site is added here;
+actors. Distinct conditions may share a fact while retaining separate recognition, pressure and
+resolution; a committed deed reaches each explicitly linked live matter with one global consequence
+dispatch. Other owners/native creation remain refused. No live recurring call site is added here;
 that admission/hosting join remains BQa-024. See the [generation contract](world.md#generation).
 
 | Join | Current limit / reusable seam |

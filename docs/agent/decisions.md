@@ -3255,3 +3255,21 @@ single-threaded like the existing world owner, not a concurrency or arbitrary-wo
 
 Contract and proof: [generation](../systems/world.md#generation),
 [SituationEstablishmentTests](../../tests/BrilliantQuesting.Core.Tests/SituationEstablishmentTests.cs).
+
+## D099 — Shared state does not give one matter ownership of another
+
+BQa-023 keeps recognition identity at producer plus condition, not at the shared fact or actor.
+A broken tool and a business interrupted by it are independently established matters. Their owners
+reuse the BQa-022 atomic Core commit and create no second damage, witness, goal or incident. Existing
+legacy matters lack condition identity and retain conservative suppression. Pressure readings prefer
+their own committed recognition; copied recognition sites and another matter's settlement are not
+new source evidence. Unsupported fulfillment still refuses before writes.
+
+One deed updates all live matters explicitly named by thread or related fact, once per matter.
+The rest of consequence dispatch remains once per event. Shared state can remove an action from
+several matters without resolving them all; ending, inheritance and history stay with each matter.
+Inspection derives shared-fact links without a new saved graph or a player knowledge shortcut.
+
+Proof: [CrossMatterCompositionTests](../../tests/BrilliantQuesting.Core.Tests/CrossMatterCompositionTests.cs).
+Evidence is headless/source, including sandbox repair and native-effect comparisons. No new native
+capability or recurring establishment host is claimed; BQa-024 remains separate.

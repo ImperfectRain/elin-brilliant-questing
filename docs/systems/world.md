@@ -83,9 +83,11 @@ saved, and nothing in a pass writes.
 **Selected fulfillment (BQa-022):** `SituationProposalPass.Select` returns only the admitted,
 ranked winner, tied to its originating world and producer. `SelectedSituationProposal.Fulfill`
 routes it back to that producer; neither ranking nor the Director creates anything.
-`UnresolvedCrimeProducer` supports one Core-only requirement: a new `SituationEstablishment`
+`UnresolvedCrimeProducer`, `DamagedPropertyProducer` and `ServiceContinuityProducer` support one
+Core-only requirement: a new `SituationEstablishment`
 recognition record, stored on its new `NarrativeThread`. Its independently existing cause is the
-unanswered crime fact. The record retains a stable ID, producer/cause identity and reused role
+recorded crime, damage or business cause. Fulfillment refuses a missing cause fact or historical
+origin. The record retains a stable ID, producer/cause identity and reused role
 bindings; it creates no new incident, belief, witness, obligation or physical entity. The transient
 `recognition` requirement key is never saved. This bookkeeping record is not a significant actor
 or weird premise, so BQ-103's creation weights are unchanged.
@@ -101,8 +103,18 @@ other listeners still run, and reentrant retries return the same matter without 
 The occurrence has no actor or witnesses and cannot activate/escalate the matter or teach anyone.
 Typed provenance names existing causal events and both new outcomes; `CausalHistory` resolves the
 recognition record through its owning thread. Successful establishment and its bindings survive
-save/reload; a prior committed recognition prevents a second creation for the same condition.
+save/reload; a prior committed recognition prevents a second creation for the same producer and
+condition, including after resolution. Distinct conditions can share a fact (BQa-023): recognition
+does not reserve the fact, actor or resource. Legacy matters without establishment identities retain
+conservative suppression. Pressure readings prefer the recognition of their own condition; another
+matter's settlement cannot settle their crime, and derived recognition sites are not copied into
+other conditions. Business readings retain their cause fact's historical origin. Damage proposals
+bind a site only when the registry actually holds a site, not for arbitrary item IDs.
 This is headless/source evidence. Recurring production hosting remains BQa-024's work.
+
+Cross-matter proof: [CrossMatterCompositionTests](../../tests/BrilliantQuesting.Core.Tests/CrossMatterCompositionTests.cs)
+establishes repair and business matters independently, performs one shared repair, compares global
+effects against a single-matter control, then recognizes a later business after resolution/reload.
 
 Source: [SituationProposalEcology](../../src/BrilliantQuesting.Core/Situations/SituationProposalEcology.cs),
 [SituationEstablishment](../../src/BrilliantQuesting.Core/Situations/SituationEstablishment.cs),

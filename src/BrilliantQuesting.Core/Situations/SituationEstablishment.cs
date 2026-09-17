@@ -53,10 +53,10 @@ namespace BrilliantQuesting.Situations
         public SituationEstablishmentResult Fulfill(GameTime now)
         {
             // Routing only. The selected producer owns validation, preparation and establishment.
-            var owner = Offer.Producer as UnresolvedCrimeProducer;
-            return owner == null
-                ? SituationEstablishmentResult.Refused("the selected owner has no atomic fulfillment capability")
-                : owner.Fulfill(World, this, now);
+            if (Offer.Producer is UnresolvedCrimeProducer crime) return crime.Fulfill(World, this, now);
+            if (Offer.Producer is DamagedPropertyProducer damage) return damage.Fulfill(World, this, now);
+            if (Offer.Producer is ServiceContinuityProducer service) return service.Fulfill(World, this, now);
+            return SituationEstablishmentResult.Refused("the selected owner has no atomic fulfillment capability");
         }
     }
 
@@ -86,15 +86,39 @@ namespace BrilliantQuesting.Situations
 
         internal SituationEstablishmentResult Fulfill(NarrativeWorldState world, SelectedSituationProposal selected,
             GameTime now, EstablishmentFault fault, Action beforeCommit = null)
+            => CoreSituationEstablishment.Fulfill(this, world, selected, now, fault, beforeCommit);
+
+        internal static void Fail(EstablishmentFault fault, EstablishmentFault at)
+            => CoreSituationEstablishment.Fail(fault, at);
+    }
+
+    public sealed partial class DamagedPropertyProducer
+    {
+        public SituationEstablishmentResult Fulfill(NarrativeWorldState world, SelectedSituationProposal selected, GameTime now)
+            => CoreSituationEstablishment.Fulfill(this, world, selected, now);
+    }
+
+    public sealed partial class ServiceContinuityProducer
+    {
+        public SituationEstablishmentResult Fulfill(NarrativeWorldState world, SelectedSituationProposal selected, GameTime now)
+            => CoreSituationEstablishment.Fulfill(this, world, selected, now);
+    }
+
+    // Shared transaction mechanics, called only by the explicitly supported Core owners above.
+    internal static class CoreSituationEstablishment
+    {
+        internal static SituationEstablishmentResult Fulfill(ISituationProposalProducer owner,
+            NarrativeWorldState world, SelectedSituationProposal selected, GameTime now,
+            EstablishmentFault fault = EstablishmentFault.None, Action beforeCommit = null)
         {
             if (world == null || selected == null || !ReferenceEquals(selected.World, world)
-                || !ReferenceEquals(selected.Offer.Producer, this))
+                || !ReferenceEquals(selected.Offer.Producer, owner))
                 return SituationEstablishmentResult.Refused("selection belongs to another world or owner");
 
             SituationProposalOffer offer = selected.Offer;
             foreach (NarrativeThread existing in world.Threads)
             {
-                if (existing.Establishment == null || existing.Establishment.ProducerId != ProducerId
+                if (existing.Establishment == null || existing.Establishment.ProducerId != owner.ProducerId
                     || existing.Establishment.CauseId != offer.Cause.DevelopmentId) continue;
                 if (existing.State == ThreadState.Quarantined)
                     return SituationEstablishmentResult.Refused("the prior establishment is quarantined");
@@ -109,9 +133,9 @@ namespace BrilliantQuesting.Situations
             {
                 Fail(fault, EstablishmentFault.BeforePrepare);
                 SituationCandidate candidate = offer.Proposal.Candidate;
-                var record = new SituationEstablishment(world.NewId("est"), ProducerId,
+                var record = new SituationEstablishment(world.NewId("est"), owner.ProducerId,
                     offer.Cause.DevelopmentId, candidate.ActorRequirements);
-                var thread = new NarrativeThread(world.NewId("thread"), Archetype, now)
+                var thread = new NarrativeThread(world.NewId("thread"), candidate.ArchetypeId, now)
                 {
                     Establishment = record,
                     OriginEventId = world.NewId("evt"),
@@ -149,18 +173,28 @@ namespace BrilliantQuesting.Situations
             }
         }
 
-        private string Validate(NarrativeWorldState world, SituationProposalOffer offer, GameTime now)
+        private static string Validate(NarrativeWorldState world, SituationProposalOffer offer, GameTime now)
         {
             SituationCandidate candidate = offer.Proposal.Candidate;
             if (candidate.RequiresActorCreation || candidate.NewWeirdPremises.Count != 0
                 || candidate.EstablishmentRequirement != "recognition")
                 return "the owner cannot fulfill every declared requirement";
+            // Recognition needs a recorded cause, including business recognition: a status alone
+            // cannot justify inventing the incident behind it.
+            if (offer.Cause.FocusFactId.IsNone || offer.Cause.OriginEventIds.Count == 0)
+                return "the selected condition has no recorded cause";
+            if (offer.Producer is ServiceContinuityProducer)
+                foreach (BusinessRecord business in world.Businesses.Records)
+                    if (offer.Cause.DevelopmentId == "dev.business_continuity:" + business.BusinessId.Value
+                        && (business.BeganAt > now || business.LastChangedAt > now))
+                        return "the business condition did not exist at establishment time";
             var current = DevelopmentDetector.Detect(world);
-            string refusal = offer.Cause.RevalidationRefusal(world, current)
+            string refusal = offer.Cause.RevalidationRefusal(world, current, offer.ProducerId)
                 ?? world.AttentionBudget.GenerationRefusal(world);
             if (refusal != null) return refusal;
             foreach (NarrativeThread thread in world.Threads)
-                if (thread.Establishment != null && thread.Establishment.CauseId == offer.Cause.DevelopmentId)
+                if (thread.Establishment != null && thread.Establishment.ProducerId == offer.ProducerId
+                    && thread.Establishment.CauseId == offer.Cause.DevelopmentId)
                     return "the condition already has a committed recognition";
             foreach (EntityId site in offer.Cause.SiteIds)
                 if (world.Registry.GetSite(site) == null) return "a bound site no longer exists";
@@ -169,7 +203,7 @@ namespace BrilliantQuesting.Situations
             foreach (Development condition in current)
             {
                 if (condition.Id != offer.Cause.DevelopmentId) continue;
-                SituationCandidate fresh = Propose(world, condition);
+                SituationCandidate fresh = offer.Producer.Propose(world, condition);
                 if (fresh == null || SituationProposalEcology.BindingKey(fresh) != offer.BindingKey
                     || condition.FocusFactId != offer.Cause.FocusFactId
                     || !SameIds(condition.SiteIds, offer.Cause.SiteIds)

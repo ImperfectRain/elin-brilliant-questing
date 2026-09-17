@@ -319,10 +319,20 @@ inheritance/quarantine and history for autonomy, discovery, storylets and chroni
 **Does not own:** a quest objective UI, all developments or native life state. Unresolved bindings
 are not dead actors. Handler registrations are transient and must be restored by the host.
 
+**Cross-matter composition (BQa-023):** independently recognized conditions may bind the same
+authoritative fact. `ConsequenceEngine` uses `NarrativeThread.IsNamedBy` to update each live matter
+once for a committed deed; knowledge, memories, obligations and native rewards still dispatch once
+per event. Shared participants alone do not propagate tension. Recognition does not escalate, and
+closed/dormant matters do not reopen through this route. A shared repair changes action availability
+in both matters, but only the explicitly resolved matter ends. `DescribeThread` exposes stable
+matter/origin IDs, fact state and other matters sharing each fact, without merging histories or
+granting player knowledge. See [D099](../agent/decisions.md#d099--shared-state-does-not-give-one-matter-ownership-of-another).
+
 Source: [ThreadEngine](../../src/BrilliantQuesting.Core/Threads/ThreadEngine.cs),
 [ThreadLifecycle](../../src/BrilliantQuesting.Core/Threads/ThreadLifecycle.cs),
 [ThreadResolution](../../src/BrilliantQuesting.Core/Threads/ThreadResolution.cs).
 Proof: [ThreadLifecycleTests](../../tests/BrilliantQuesting.Core.Tests/ThreadLifecycleTests.cs),
+[CrossMatterCompositionTests](../../tests/BrilliantQuesting.Core.Tests/CrossMatterCompositionTests.cs),
 [PersistenceTests](../../tests/BrilliantQuesting.Core.Tests/PersistenceTests.cs).
 Lab: [questline](../../tools/BrilliantQuesting.Lab/Cli/Scenarios/QuestlineScenario.cs).
 Native: life/location in [capabilities](../elin/capabilities.md).

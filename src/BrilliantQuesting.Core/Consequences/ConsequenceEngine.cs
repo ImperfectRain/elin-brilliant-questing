@@ -583,19 +583,15 @@ namespace BrilliantQuesting.Consequences
         {
             // Recognizing an existing cause is not escalation, activation or player discovery.
             if (worldEvent.Type == WorldEventType.SituationEstablished) return;
-            if (worldEvent.ThreadId.IsNone)
+            if (worldEvent.ThreadId.IsNone && worldEvent.Related.Count == 0) return;
+            // A committed deed can bear on several independent matters through a shared fact.
+            // Dispatch its knowledge, rewards and social effects once, outside this loop.
+            foreach (NarrativeThread thread in _world.Threads)
             {
-                return;
+                if (!thread.IsLive || !thread.IsNamedBy(worldEvent)) continue;
+                thread.Tension = (int)Math.Min(100, thread.Tension + worldEvent.Magnitude * 10);
+                thread.State = ThreadState.Active;
             }
-
-            NarrativeThread thread = _world.GetThread(worldEvent.ThreadId);
-            if (thread == null || !thread.IsLive)
-            {
-                return;
-            }
-
-            thread.Tension = (int)Math.Min(100, thread.Tension + worldEvent.Magnitude * 10);
-            thread.State = ThreadState.Active;
         }
 
         private static bool HasTag(WorldEvent worldEvent, string tag)

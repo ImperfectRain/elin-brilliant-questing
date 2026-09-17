@@ -112,6 +112,9 @@ namespace BrilliantQuesting.Situations
         /// the matter over in the meantime. A pure read, like everything else here.
         /// </summary>
         public string RevalidationRefusal(NarrativeWorldState world, IReadOnlyList<Development> current)
+            => RevalidationRefusal(world, current, null);
+
+        internal string RevalidationRefusal(NarrativeWorldState world, IReadOnlyList<Development> current, string producerId)
         {
             if (world == null) return "there is no world to revalidate against";
 
@@ -148,13 +151,30 @@ namespace BrilliantQuesting.Situations
             // read off the condition as it stands now rather than off the thread this cause was
             // captured with - a proposal made about a threadless condition is exactly the one that
             // can be overtaken, and asking the old answer would never notice.
-            NarrativeThread carrier = world.GetThread(held.ThreadId);
-            if (carrier != null && carrier.State != ThreadState.Resolved)
+            if (AlreadyCarried(world, held, producerId))
             {
                 return "an existing matter now carries " + DevelopmentId;
             }
 
             return null;
+        }
+
+        internal static bool AlreadyCarried(NarrativeWorldState world, Development condition, string producerId)
+        {
+            // A shared fact is not exclusive ownership of every condition arising from it.
+            // Committed recognition is keyed by producer + condition, even after resolution.
+            // Legacy matters have no such identity; preserve their conservative suppression.
+            foreach (NarrativeThread thread in world.Threads)
+            {
+                if (thread.Establishment != null)
+                {
+                    if (thread.Establishment.CauseId == condition.Id
+                        && (producerId == null || thread.Establishment.ProducerId == producerId)) return true;
+                }
+                else if (thread.State != ThreadState.Resolved
+                    && (thread.Id == condition.ThreadId || thread.FactIds.Contains(condition.FocusFactId))) return true;
+            }
+            return false;
         }
     }
 
@@ -437,8 +457,7 @@ namespace BrilliantQuesting.Situations
                     // Repetition first, then admission - the order the settlement owner already
                     // uses, and for the same reason: a matter somebody is already telling is not
                     // refused by a budget, it is simply not a proposal.
-                    NarrativeThread carrier = world.GetThread(condition.ThreadId);
-                    if (carrier != null && carrier.State != ThreadState.Resolved)
+                    if (SituationProposalCause.AlreadyCarried(world, condition, producer.ProducerId))
                     {
                         suppressed.Add(new SuppressedProposal(
                             offer, "an existing matter already carries " + condition.Id));
@@ -623,7 +642,7 @@ namespace BrilliantQuesting.Situations
     /// culprit. So this binds the thing and whoever the claim names as depending on it, and
     /// proposes nothing about how it came to be broken.
     /// </summary>
-    public sealed class DamagedPropertyProducer : ISituationProposalProducer
+    public sealed partial class DamagedPropertyProducer : ISituationProposalProducer
     {
         public const string Archetype = "property_repair";
 
@@ -643,9 +662,10 @@ namespace BrilliantQuesting.Situations
                 "the world holds " + world.Registry.NameOf(damage.Subject) + " damaged"
                 + (string.IsNullOrEmpty(damage.Value) ? string.Empty : " (" + damage.Value + ")")
                 + " with nothing recording it repaired");
+            builder.RequireEstablishmentRecord("recognition");
 
             // The damaged thing is a place in its own right even where the condition named no site.
-            if (!damage.Subject.IsNone && world.Registry.GetNpc(damage.Subject) == null)
+            if (world.Registry.GetSite(damage.Subject) != null)
             {
                 builder.BindSite(SituationRoles.Place, damage.Subject);
             }
@@ -663,7 +683,7 @@ namespace BrilliantQuesting.Situations
     /// town nobody recognises. The live shop surface is not read here at all: an operator asleep is
     /// the working day, and the ledger's durable meaning is the only thing that presses.
     /// </summary>
-    public sealed class ServiceContinuityProducer : ISituationProposalProducer
+    public sealed partial class ServiceContinuityProducer : ISituationProposalProducer
     {
         public const string Archetype = "service_continuity";
 
@@ -682,6 +702,7 @@ namespace BrilliantQuesting.Situations
                 interrupted
                     ? "the business ledger records this trade interrupted"
                     : "the business ledger records this trade recovering and still owed custom");
+            builder.RequireEstablishmentRecord("recognition");
 
             int bound = ProposalBinding.BindParties(world, condition, builder);
             return ProposalBinding.Close(builder, bound);
